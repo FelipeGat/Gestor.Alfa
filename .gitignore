@@ -1,0 +1,53 @@
+# ===============================
+# Laravel
+# ===============================
+/vendor
+/node_modules
+
+.env
+.env.*
+.env.backup
+.env.production
+
+/storage/*.key
+/storage/app/*
+!/storage/app/.gitignore
+/storage/framework/*
+/storage/logs/*
+
+/bootstrap/cache/*
+
+# ===============================
+# Frontend / Build
+# ===============================
+/public/build
+/public/hot
+/public/storage
+
+# ===============================
+# IDEs / Editores
+# ===============================
+.idea
+.vscode
+.fleet
+.zed
+.phpactor.json
+
+# ===============================
+# Testes
+# ===============================
+.phpunit.result.cache
+.phpunit.cache
+
+# ===============================
+# OS
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Laravel / Composer extras
+# ===============================
+/auth.json
+Homestead.json
+Homestead.yaml

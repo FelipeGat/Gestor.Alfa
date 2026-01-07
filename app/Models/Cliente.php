@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Cobranca;
+use App\Models\Boleto;
+use App\Models\User;
+use App\Models\Email;
+use App\Models\Telefone;
+
+class Cliente extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'nome',
+        'ativo',
+        'valor_mensal',
+        'dia_vencimento',
+    ];
+
+    protected $casts = [
+        'ativo'          => 'boolean',
+        'valor_mensal'   => 'decimal:2',
+        'dia_vencimento'=> 'integer',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relacionamentos
+    |--------------------------------------------------------------------------
+    */
+
+    public function emails()
+    {
+        return $this->hasMany(Email::class);
+    }
+
+    public function telefones()
+    {
+        return $this->hasMany(Telefone::class);
+    }
+
+    public function cobrancas()
+    {
+        return $this->hasMany(Cobranca::class);
+    }
+
+    public function boletos()
+    {
+        return $this->hasMany(Boleto::class);
+    }
+
+    public function user()
+    {
+        return $this->hasOne(User::class);
+    }
+
+    public function notasFiscais()
+    {
+        return $this->hasMany(NotaFiscal::class);
+    }
+}

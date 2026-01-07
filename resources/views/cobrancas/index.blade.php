@@ -1,0 +1,204 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Cobranças
+        </h2>
+    </x-slot>
+
+    <div class="flex justify-center min-h-screen bg-gray-100">
+        <div class="w-3/4 py-12 space-y-6">
+
+            {{-- FILTROS --}}
+            <form method="GET" class="bg-white shadow rounded-lg p-6">
+                <div class="flex flex-wrap gap-4 items-end">
+
+                    <div class="flex flex-col flex-1 min-w-[150px]">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Cliente</label>
+                        <select name="cliente_id" class="border rounded px-3 py-2 text-sm">
+                            <option value="">Todos</option>
+                            @foreach($clientes as $cliente)
+                            <option value="{{ $cliente->id }}" @selected(request('cliente_id')==$cliente->id)>
+                                {{ $cliente->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col min-w-[120px]">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Mês</label>
+                        <select name="mes" class="border rounded px-3 py-2 text-sm">
+                            <option value="">Todos</option>
+                            @for($m=1;$m<=12;$m++) <option value="{{ $m }}" @selected(request('mes')==$m)>
+                                {{ str_pad($m,2,'0',STR_PAD_LEFT) }}
+                                </option>
+                                @endfor
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col min-w-[120px]">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Ano</label>
+                        <input type="number" name="ano" value="{{ request('ano') }}"
+                            class="border rounded px-3 py-2 text-sm" placeholder="YYYY">
+                    </div>
+
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-blue rounded text-sm">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+
+            {{-- TABELA AGRUPADA --}}
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Cliente</th>
+                            <th class="px-4 py-3 text-center">Qtd</th>
+                            <th class="px-4 py-3 text-right">Total</th>
+                            <th class="px-4 py-3 text-center">Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($cobrancas as $clienteNome => $lista)
+                        @php
+                        $rowId = md5($clienteNome);
+
+                        $inadimplente = $lista->contains(fn($c) => $c->status === 'vencido');
+
+                        $boletosNaoBaixados = $lista->filter(fn($c) =>
+                        $c->boleto && is_null($c->boleto->baixado_em)
+                        )->count();
+
+                        $total = $lista->sum('valor');
+                        @endphp
+
+                        {{-- LINHA CLIENTE --}}
+                        <tr class="bg-white {{ $inadimplente ? 'bg-red-50' : '' }}">
+                            <td class="px-4 py-3 font-medium">
+                                {{ $clienteNome }}
+
+                                @if($inadimplente)
+                                <span class="ml-2 px-2 py-0.5 text-xs rounded bg-red-100 text-red-700">
+                                    Inadimplente
+                                </span>
+                                @endif
+
+                                @if($boletosNaoBaixados > 0)
+                                <span class="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800">
+                                    {{ $boletosNaoBaixados }} não baixado{{ $boletosNaoBaixados > 1 ? 's' : '' }}
+                                </span>
+                                @endif
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                {{ $lista->count() }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right font-semibold">
+                                R$ {{ number_format($total,2,',','.') }}
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="toggleCliente('{{ $rowId }}', this)"
+                                    class="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm">
+
+                                    <span class="icon-plus">+</span>
+                                    <span class="icon-minus hidden">−</span>
+                                </button>
+                            </td>
+                        </tr>
+
+                        {{-- COBRANÇAS DO CLIENTE --}}
+                        <tr id="cliente-{{ $rowId }}" class="hidden bg-gray-50">
+                            <td colspan="4" class="p-4 animate-expand">
+                                <table class="w-full text-xs bg-white border">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left">Vencimento</th>
+                                            <th class="px-3 py-2 text-right">Valor</th>
+                                            <th class="px-3 py-2 text-center">Status</th>
+                                            <th class="px-3 py-2 text-center">Ações</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        @foreach($lista as $cobranca)
+                                        <tr class="border-b hover:bg-gray-50">
+                                            <td class="px-3 py-2">
+                                                {{ $cobranca->data_vencimento->format('d/m/Y') }}
+                                            </td>
+
+                                            <td class="px-3 py-2 text-right">
+                                                R$ {{ number_format($cobranca->valor,2,',','.') }}
+                                            </td>
+
+                                            <td class="px-3 py-2 text-center">
+                                                @if($cobranca->status === 'pago')
+                                                <span class="text-green-700">Pago</span>
+                                                @elseif($cobranca->status === 'pendente')
+                                                <span class="text-yellow-700">Pendente</span>
+                                                @else
+                                                <span class="text-red-700">Vencido</span>
+                                                @endif
+                                            </td>
+
+                                            <td class="px-3 py-2 text-center">
+                                                @if($cobranca->status !== 'pago')
+                                                <form method="POST" action="{{ route('cobrancas.pagar',$cobranca) }}"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button class="text-green-600 text-xs">
+                                                        Pagar
+                                                    </button>
+                                                </form>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- JS --}}
+    <script>
+    function toggleCliente(id, btn) {
+        const row = document.getElementById('cliente-' + id);
+        const plus = btn.querySelector('.icon-plus');
+        const minus = btn.querySelector('.icon-minus');
+
+        row.classList.toggle('hidden');
+        plus.classList.toggle('hidden');
+        minus.classList.toggle('hidden');
+    }
+    </script>
+
+    {{-- Animação --}}
+    <style>
+    @keyframes expand {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-expand {
+        animation: expand 0.25s ease-out;
+    }
+    </style>
+
+</x-app-layout>

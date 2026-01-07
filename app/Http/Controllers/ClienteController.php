@@ -1,0 +1,164 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Cliente;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PrimeiroAcessoMail;
+
+class ClienteController extends Controller
+{
+    public function index()
+    {
+        $clientes = Cliente::orderBy('nome')
+            ->with(['emails', 'telefones'])
+            ->get();
+
+        return view('clientes.index', compact('clientes'));
+    }
+
+    public function create()
+    {
+        return view('clientes.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'valor_mensal' => 'required|numeric|min:0',
+            'dia_vencimento' => 'required|integer|min:1|max:31',
+
+            'emails' => 'required|array|min:1',
+            'emails.*' => 'required|email',
+
+            'telefones' => 'nullable|array',
+            'telefones.*' => 'nullable|string|max:50',
+        ]);
+
+        // Cria o cliente
+        $cliente = Cliente::create([
+            'nome'  => $request->nome,
+            'ativo' => $request->ativo ?? true,
+            'valor_mensal' => $request->valor_mensal,
+            'dia_vencimento' => $request->dia_vencimento,
+        ]);
+
+        // Salva os emails
+        foreach ($request->emails as $i => $email) {
+            $cliente->emails()->create([
+                'valor'     => $email,
+                'principal' => ($request->email_principal == $i),
+            ]);
+        }
+
+        // Salva os telefones
+        if ($request->filled('telefones')) {
+            foreach ($request->telefones as $i => $telefone) {
+                $cliente->telefones()->create([
+                    'valor'     => $telefone,
+                    'principal' => ($request->telefone_principal == $i),
+                ]);
+            }
+        }
+
+        // Recupera email principal
+        $emailPrincipal = $cliente->emails()
+            ->where('principal', true)
+            ->first();
+
+        if (!$emailPrincipal) {
+            $emailPrincipal = $cliente->emails()->first();
+        }
+
+        // Cria usuário do cliente
+        $user = User::create([
+            'name'            => $cliente->nome,
+            'email'           => $emailPrincipal->valor,
+            'password'        => bcrypt(Str::random(40)), // senha temporária
+            'tipo'            => 'cliente',
+            'cliente_id'      => $cliente->id,
+            'primeiro_acesso' => true,
+        ]);
+
+        // Envia e-mail de primeiro acesso
+        Mail::to($user->email)->send(new PrimeiroAcessoMail($user));
+
+        return redirect()
+            ->route('clientes.index')
+            ->with('success', 'Cliente cadastrado com sucesso!');
+    }
+
+    public function edit(Cliente $cliente)
+    {
+        $cliente->load(['emails', 'telefones']);
+        return view('clientes.edit', compact('cliente'));
+    }
+
+    public function update(Request $request, Cliente $cliente)
+    {
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'valor_mensal' => 'required|numeric|min:0',
+            'dia_vencimento' => 'required|integer|min:1|max:28',
+
+            'emails' => 'required|array|min:1',
+            'emails.*' => 'nullable|email',
+
+            'telefones' => 'nullable|array',
+            'telefones.*' => 'nullable|string|max:50',
+        ]);
+
+        // Atualiza cliente (CORRETO)
+        $cliente->update([
+            'nome'           => $request->nome,
+            'ativo'          => $request->boolean('ativo'), // 🔥 CORRETO
+            'valor_mensal'   => $request->valor_mensal,
+            'dia_vencimento' => $request->dia_vencimento,
+        ]);
+
+        // Remove contatos antigos
+        $cliente->emails()->delete();
+        $cliente->telefones()->delete();
+
+        // Recria emails
+        foreach ($request->emails as $id => $email) {
+            if (!$email) continue;
+
+            $cliente->emails()->create([
+                'valor'     => $email,
+                'principal' => ($request->email_principal == $id),
+            ]);
+        }
+
+        // Recria telefones
+        if ($request->filled('telefones')) {
+            foreach ($request->telefones as $id => $telefone) {
+                if (!$telefone) continue;
+
+                $cliente->telefones()->create([
+                    'valor'     => $telefone,
+                    'principal' => ($request->telefone_principal == $id),
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('clientes.index')
+            ->with('success', 'Cliente atualizado com sucesso!');
+    }
+
+
+    public function destroy(Cliente $cliente)
+    {
+        // Soft delete do cliente
+        $cliente->delete();
+
+        return redirect()
+            ->route('clientes.index')
+            ->with('success', 'Cliente excluído com sucesso!');
+    }
+}
