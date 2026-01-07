@@ -11,10 +11,35 @@ use App\Mail\PrimeiroAcessoMail;
 
 class ClienteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $clientes = Cliente::orderBy('nome')
-            ->with(['emails', 'telefones'])
+        $query = Cliente::with(['emails', 'telefones']);
+
+        // Filtro: nome ou e-mail
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('nome', 'like', "%{$search}%")
+                ->orWhereHas('emails', function ($emailQuery) use ($search) {
+                    $emailQuery->where('valor', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // Filtro: status
+        if ($request->filled('status')) {
+            if ($request->status === 'ativo') {
+                $query->where('ativo', true);
+            }
+
+            if ($request->status === 'inativo') {
+                $query->where('ativo', false);
+            }
+        }
+
+        $clientes = $query
+            ->orderBy('nome')
             ->get();
 
         return view('clientes.index', compact('clientes'));
