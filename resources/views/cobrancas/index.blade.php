@@ -41,8 +41,10 @@
                             class="border rounded px-3 py-2 text-sm" placeholder="YYYY">
                     </div>
 
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-blue rounded text-sm">
-                        Filtrar
+                    <button type="submit"
+                        class="inline-flex items-center justify-center px-4 py-2
+                                        bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
+                        🔍 Filtrar
                     </button>
                 </div>
             </form>
@@ -101,9 +103,11 @@
 
                             <td class="px-4 py-3 text-center">
                                 <button onclick="toggleCliente('{{ $rowId }}', this)"
-                                    class="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm">
+                                    class="inline-flex items-center justify-center px-4 py-2
+                                        bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
 
                                     <span class="icon-plus">+</span>
+
                                     <span class="icon-minus hidden">−</span>
                                 </button>
                             </td>
