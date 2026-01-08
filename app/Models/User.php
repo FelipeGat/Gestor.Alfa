@@ -31,6 +31,7 @@ class User extends Authenticatable
         'password',
         'tipo',
         'cliente_id',
+        'funcionario_id',
         'primeiro_acesso',
     ];
 

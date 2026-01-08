@@ -14,13 +14,7 @@ class Funcionario extends Model
     protected $table = 'funcionarios';
 
     protected $fillable = [
-        'razao_social',
-        'nome_fantasia',
-        'cnpj',
-        'endereco',
-        'email_comercial',
-        'email_administrativo',
-        'telefone_comercial',
+        'nome',
         'ativo',
     ];
 
@@ -37,5 +31,10 @@ class Funcionario extends Model
     public function empresas()
     {
         return $this->belongsToMany(Empresa::class);
+    }
+
+   public function user()
+    {
+        return $this->hasOne(User::class);
     }
 }

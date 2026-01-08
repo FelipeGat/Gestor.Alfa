@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Funcionario;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PrimeiroAcessoMail;
 
@@ -45,10 +45,18 @@ class FuncionarioController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+            $request->validate(
+        [
             'nome'  => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-        ]);
+        ],
+        [
+            'email.unique' => 'Este e-mail já está em uso por outro usuário.',
+            'email.required' => 'O e-mail é obrigatório.',
+            'email.email' => 'Informe um e-mail válido.',
+            'nome.required' => 'O nome é obrigatório.',
+        ]
+    );
 
         // Cria funcionário
         $funcionario = Funcionario::create([
@@ -60,7 +68,7 @@ class FuncionarioController extends Controller
         $user = User::create([
             'name'            => $funcionario->nome,
             'email'           => $request->email,
-            'password'        => bcrypt(Str::random(40)), // senha temporária
+            'password' => bcrypt($request->email), // senha temporária email
             'tipo'            => 'funcionario',
             'funcionario_id'  => $funcionario->id,
             'primeiro_acesso' => true,
@@ -76,6 +84,7 @@ class FuncionarioController extends Controller
 
     public function edit(Funcionario $funcionario)
     {
+        $funcionario->load('user');
         return view('funcionarios.edit', compact('funcionario'));
     }
 
@@ -83,11 +92,16 @@ class FuncionarioController extends Controller
     {
         $request->validate([
             'nome' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($funcionario->user->id),],
         ]);
 
         $funcionario->update([
             'nome'  => $request->nome,
             'ativo' => $request->boolean('ativo'),
+        ]);
+
+        $funcionario->user->update([
+            'email' => $request->email,
         ]);
 
         return redirect()

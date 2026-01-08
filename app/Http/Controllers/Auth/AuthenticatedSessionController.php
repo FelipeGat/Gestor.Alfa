@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\User;
 
-
 class AuthenticatedSessionController extends Controller
 {
     /**
@@ -27,24 +26,20 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
         $request->session()->regenerate();
 
         /** @var User $user */
         $user = Auth::user();
 
-        // 🔐 Se for cliente e ainda for primeiro acesso → encerra
-        if ($user->tipo === 'cliente' && $user->primeiro_acesso) {
-            $user->update([
-                'primeiro_acesso' => false,
-            ]);
-        }
-
-        // 👉 Redirecionamento por tipo
-        if ($user->tipo === 'cliente') {
-            return redirect()->route('portal.index');
-        }
-
-        return redirect()->route('dashboard');
+        // 🔁 Redirecionamento conforme tipo de usuário
+        return redirect()->intended(
+            $user->tipo === 'admin'
+                ? route('dashboard')
+                : ($user->tipo === 'cliente'
+                    ? route('portal.index')
+                    : route('portal-funcionario.dashboard'))
+        );
     }
 
     /**
