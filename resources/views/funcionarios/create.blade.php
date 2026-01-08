@@ -19,7 +19,12 @@
 
                     <div class="mb-4">
                         <label class="block font-medium text-gray-700">Email de Acesso</label>
-                        <input type="email" name="email" class="mt-1 block w-full rounded border-gray-300" required>
+                        <input type="email" name="email" class="mt-1 block w-full rounded border-gray-300
+                              @error('email') border-red-500 @enderror" value="{{ old('email') }}" required>
+
+                        @error('email')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="mb-6">

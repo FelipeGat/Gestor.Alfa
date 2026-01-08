@@ -9,13 +9,19 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow rounded p-6">
 
-                <form method="POST" action="{{ route('funcionarios.update', $funcionario) }}">
+                <form method="POST" action="{{ route('funcionarios.update', $funcionario,) }}">
                     @csrf
                     @method('PUT')
 
                     <div class="mb-4">
                         <label class="block font-medium text-gray-700">Nome</label>
                         <input type="text" name="nome" value="{{ old('nome', $funcionario->nome) }}"
+                            class="mt-1 block w-full rounded border-gray-300" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block font-medium text-gray-700">Email</label>
+                        <input type="text" name="email" value="{{ old('email', $funcionario->user->email) }}"
                             class="mt-1 block w-full rounded border-gray-300" required>
                     </div>
 
