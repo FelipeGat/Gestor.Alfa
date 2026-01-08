@@ -8,6 +8,8 @@ use App\Http\Controllers\PortalController;
 use App\Http\Controllers\BoletoController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmpresaController; 
+use App\Http\Controllers\FuncionarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,27 +22,30 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD (somente ADMIN)
+| ÁREA ADMIN)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // DASHBOARD
 
-    Route::patch('/cobrancas/{cobranca}/pagar', 
-    [CobrancaController::class, 'pagar']
-    )->name('cobrancas.pagar');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+    // Route::get('/dashboard', function () {
+    //     return view('dashboard');
+    // })->name('dashboard');
 
+
+    // MARCAR COBRANÇA COMO PAGA
     Route::patch('/cobrancas/{cobranca}/pagar',
     [CobrancaController::class, 'marcarComoPago']
     )->name('cobrancas.pagar');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    // Route::patch('/cobrancas/{cobranca}/pagar', 
+    // [CobrancaController::class, 'pagar']
+    // )->name('cobrancas.pagar');
 
-
+    
     // CLIENTES
     Route::resource('clientes', ClienteController::class);
 
@@ -49,6 +54,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     
     // BOLETOS
     Route::post('/boletos/{cliente}/upload', [BoletoController::class, 'upload'])->name('boletos.upload');
+
+    // EMPRESAS
+    Route::resource('empresas', EmpresaController::class);
+
+    // FUNCIONÁRIOS
+    Route::resource('funcionarios', FuncionarioController::class);
 });
 
 
@@ -71,6 +82,20 @@ Route::middleware(['auth', 'cliente'])->group(function () {
         )->name('portal.notas.download');
 
 });
+
+/*
+|--------------------------------------------------------------------------
+| PORTAL DO FUNCIONÁRIO
+|--------------------------------------------------------------------------
+*/
+
+    Route::middleware(['auth', 'funcionario'])->group(function () {
+
+        Route::get('/portal-funcionario', function () {
+            return view('portal-funcionario.index');
+        })->name('portal-funcionario.index');
+
+    });
 
 /*
 |--------------------------------------------------------------------------
