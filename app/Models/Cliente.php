@@ -62,4 +62,9 @@ class Cliente extends Model
     {
         return $this->hasMany(NotaFiscal::class);
     }
+
+    public function empresas()
+    {
+        return $this->belongsToMany(Empresa::class);
+    }
 }
