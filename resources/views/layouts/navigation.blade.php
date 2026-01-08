@@ -11,12 +11,13 @@
                     <a href="{{ route('dashboard') }}">
                         @elseif(Auth::user()->tipo === 'cliente')
                         <a href="{{ route('portal.index') }}">
-                            @else
-                            <a href="{{ route('portal-funcionario.index') }}">
+                            @elseif(Auth::user()->tipo === 'funcionario')
+                            <a href="{{ route('portal-funcionario.dashboard') }}">
                                 @endif
                                 <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                             </a>
                 </div>
+
 
                 <!-- Navigation Links -->
                 <div class="hidden sm:flex sm:ms-10 space-x-8 py-6">
@@ -80,7 +81,7 @@
 
                     {{-- MENU FUNCIONÁRIO --}}
                     @if(Auth::user()->tipo === 'funcionario')
-                    <x-nav-link :href="route('portal-funcionario.index')"
+                    <x-nav-link :href="route('portal-funcionario.dashboard')"
                         :active="request()->routeIs('portal-funcionario.*')">
                         Minha Agenda
                     </x-nav-link>
@@ -156,7 +157,7 @@
             @endif
 
             @if(Auth::user()->tipo === 'funcionario')
-            <x-responsive-nav-link :href="route('portal-funcionario.index')">Minha Agenda</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Minha Agenda</x-responsive-nav-link>
             @endif
 
         </div>
