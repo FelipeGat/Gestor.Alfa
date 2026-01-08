@@ -12,6 +12,7 @@ use App\Http\Controllers\BoletoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\FuncionarioController;
+use App\Http\Controllers\AssuntoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,6 +49,11 @@ Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
 
     // Funcionários
     Route::resource('funcionarios', FuncionarioController::class);
+
+    // Assuntos
+    Route::resource('assuntos', AssuntoController::class);
+
+    
 
     // Upload de boletos
     Route::post('/boletos/{cliente}/upload',

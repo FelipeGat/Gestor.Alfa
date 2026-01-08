@@ -62,6 +62,10 @@
                             <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
                                 Clientes
                             </x-nav-link>
+
+                            <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
+                                Assuntos
+                            </x-nav-link>
                         </div>
                     </div>
 
@@ -150,6 +154,7 @@
             <x-responsive-nav-link :href="route('empresas.index')">Empresas</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('funcionarios.index')">Funcionários</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('clientes.index')">Clientes</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
             @endif
 
             @if(Auth::user()->tipo === 'cliente')
