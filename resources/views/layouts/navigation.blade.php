@@ -37,6 +37,10 @@
                                 Dashboard
                             </x-nav-link>
 
+                            <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
+                                Atendimentos
+                            </x-nav-link>
+
                             <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
                                 Cobranças
                             </x-nav-link>

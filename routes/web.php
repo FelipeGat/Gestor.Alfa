@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\AssuntoController;
+use App\Http\Controllers\AtendimentoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,9 @@ Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
     // Assuntos
     Route::resource('assuntos', AssuntoController::class);
 
+    // Atendimentos
+    Route::resource('atendimentos', AtendimentoController::class)
+    ->except(['show']);
     
 
     // Upload de boletos
