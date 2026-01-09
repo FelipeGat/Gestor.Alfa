@@ -14,6 +14,7 @@ use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\AssuntoController;
 use App\Http\Controllers\AtendimentoController;
+use App\Http\Controllers\PortalFuncionarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,15 +99,11 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
     ->name('portal-funcionario.')
     ->group(function () {
 
-        // Dashboard do funcionário
-        Route::get('/dashboard', function () {
-            return view('portal-funcionario.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [PortalFuncionarioController::class, 'dashboard'])
+            ->name('dashboard');
 
-        // Agenda (futuro)
-        Route::get('/agenda', function () {
-            return view('portal-funcionario.agenda');
-        })->name('agenda');
+        Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])
+            ->name('agenda');
     });
 
 /*
