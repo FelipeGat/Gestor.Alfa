@@ -74,6 +74,9 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status
                                 </th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Data</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    Ações</th>
                             </tr>
                         </thead>
 
@@ -86,7 +89,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-xs text-gray-900">
-                                    {{ $atendimento->nome_solicitante }} <br>
+                                    {{ $atendimento->cliente->nome }} <br>
                                     <span class="text-gray-500">
                                         {{ $atendimento->telefone_solicitante ?? '—' }}
                                     </span>
@@ -97,7 +100,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-xs text-gray-900">
-                                    {{ $atendimento->empresa->nome }}
+                                    {{ $atendimento->empresa->nome_fantasia }}
                                 </td>
 
                                 <td class="px-4 py-3 text-xs text-gray-900">
@@ -124,6 +127,26 @@
 
                                 <td class="px-4 py-3 text-xs text-gray-900">
                                     {{ $atendimento->data_atendimento->format('d/m/Y') }}
+                                </td>
+
+                                <td class="px-4 py-3 text-xs">
+                                    <div class="flex gap-2 items-center">
+                                        <a href="{{ route('atendimentos.edit', $atendimento) }}"
+                                            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md transition duration-200">
+                                            Editar
+                                        </a>
+
+                                        <form action="{{ route('atendimentos.destroy', $atendimento) }}" method="POST"
+                                            onsubmit="return confirm('Tem certeza que deseja excluir este atendimento?')"
+                                            class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="px-3 py-1 border border-red-600 text-red-600 hover:bg-red-50 text-xs font-medium rounded-md transition duration-200">
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
 
                             </tr>
