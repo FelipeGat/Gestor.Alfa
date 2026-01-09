@@ -15,6 +15,7 @@ use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\AssuntoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\PortalFuncionarioController;
+use App\Http\Controllers\AtendimentoAndamentoFotoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,22 @@ Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
     Route::patch('/atendimentos/{atendimento}/atualizar-campo',
     [AtendimentoController::class, 'atualizarCampo']);
 
+    Route::post(
+    '/atendimentos/{atendimento}/andamentos',
+    [\App\Http\Controllers\AtendimentoAndamentoController::class, 'store']
+    )->name('atendimentos.andamentos.store');
+
+    Route::post(
+    '/atendimentos/{atendimento}/atualizar-status',
+    [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
+    )->name('atendimentos.status.update');
+
+
+    // Upload de fotos
+    Route::post(
+    '/andamentos/{andamento}/fotos',
+    [AtendimentoAndamentoFotoController::class, 'store']
+    )->name('andamentos.fotos.store');
     
 
     // Upload de boletos

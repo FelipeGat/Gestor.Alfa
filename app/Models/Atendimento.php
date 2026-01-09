@@ -70,4 +70,19 @@ class Atendimento extends Model
         return $this->belongsTo(Atendimento::class, 'atendimento_origem_id');
     }
 
+    public function andamentos()
+    {
+        return $this->hasMany(AtendimentoAndamento::class)
+                    ->orderBy('created_at', 'desc');
+    }
+
+    public function statusHistoricos()
+    {
+        return $this->hasMany(
+            \App\Models\AtendimentoStatusHistorico::class,
+            'atendimento_id'
+        )->orderBy('created_at', 'desc');
+    }
+
+
 }

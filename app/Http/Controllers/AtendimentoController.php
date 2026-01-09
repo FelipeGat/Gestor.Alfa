@@ -85,13 +85,11 @@ class AtendimentoController extends Controller
 
     public function edit(Atendimento $atendimento)
     {
-        return view('atendimentos.edit', [
-            'atendimento'  => $atendimento,
-            'clientes'     => Cliente::orderBy('nome')->get(),
-            'assuntos'     => Assunto::where('ativo', true)->orderBy('nome')->get(),
-            'empresas'     => Empresa::orderBy('nome_fantasia')->get(),
-            'funcionarios' => Funcionario::where('ativo', true)->orderBy('nome')->get(),
+        $atendimento->load([
+            'andamentos.user'
         ]);
+
+        return view('atendimentos.edit', compact('atendimento'));
     }
 
     public function store(Request $request)
