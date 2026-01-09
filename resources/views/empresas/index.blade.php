@@ -33,13 +33,13 @@
                     </div>
 
                     <div class="flex gap-3 items-end">
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs rounded-md">
+                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2
+                            bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
                             🔍 Filtrar
                         </button>
 
-                        <a href="{{ route('empresas.create') }}"
-                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs rounded-md">
+                        <a href="{{ route('empresas.create') }}" class="inline-flex items-center justify-center px-4 py-2
+                            bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
                             ➕ Nova Empresa
                         </a>
                     </div>
