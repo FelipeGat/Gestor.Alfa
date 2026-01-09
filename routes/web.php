@@ -121,7 +121,12 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
 
         Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])
             ->name('agenda');
+
+        // VISUALIZAR ATENDIMENTO (SOMENTE LEITURA)
+        Route::get('/atendimentos/{atendimento}', [PortalFuncionarioController::class, 'show'])
+            ->name('atendimentos.show');
     });
+
 
 /*
 |--------------------------------------------------------------------------

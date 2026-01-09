@@ -28,4 +28,19 @@ class PortalFuncionarioController extends Controller
     {
         return view('portal-funcionario.agenda');
     }
+
+    public function show(Atendimento $atendimento)
+    {
+        $funcionarioId = Auth::user()->funcionario_id;
+
+        // segurança: técnico só vê atendimento dele
+        abort_if(
+            $atendimento->funcionario_id !== $funcionarioId,
+            403
+        );
+
+        return view('portal-funcionario.atendimentos.show', compact('atendimento'));
+    }
+
+
 }

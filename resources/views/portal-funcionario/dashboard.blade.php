@@ -141,7 +141,9 @@
                             {{-- Corpo da Tabela --}}
                             <tbody class="divide-y divide-gray-200">
                                 @foreach($atendimentos as $atendimento)
-                                <tr class="hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200">
+                                <tr onclick="window.location.href = '{{ route('portal-funcionario.atendimentos.show', ['atendimento' => $atendimento->id]) }}'"
+                                    class="cursor-pointer hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200">
+
                                     {{-- Número do Atendimento --}}
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
