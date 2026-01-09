@@ -115,6 +115,20 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Status Inicial *
+                            </label>
+
+                            <select name="status_inicial" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
+                                    focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="aberto" selected>Aberto</option>
+                                <option value="orcamento">Orçamento</option>
+                                <option value="garantia">Garantia</option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Empresa *
                             </label>
                             <select name="empresa_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm

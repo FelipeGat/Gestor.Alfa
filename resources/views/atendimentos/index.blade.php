@@ -121,7 +121,7 @@
 
                                 <td class="px-4 py-3 text-xs">
                                     <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                        {{ ucfirst(str_replace('_', ' ', $atendimento->status)) }}
+                                        {{ ucfirst(str_replace('_', ' ', $atendimento->status_atual)) }}
                                     </span>
                                 </td>
 

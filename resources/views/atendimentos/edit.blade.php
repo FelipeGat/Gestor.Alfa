@@ -9,13 +9,12 @@
         <div class="w-3/4 py-12">
             <div class="bg-white shadow rounded-lg p-6">
 
-                {{-- POSSÍVEIS ERROS --}}
+                {{-- ERROS --}}
                 @if ($errors->any())
                 <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-300">
                     <h3 class="text-sm font-medium text-red-800 mb-2">
                         ⚠️ Verifique os erros abaixo:
                     </h3>
-
                     <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
                         @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -28,13 +27,23 @@
                     @csrf
                     @method('PUT')
 
+                    {{-- STATUS ATUAL (SOMENTE VISUAL) --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Status Atual
+                        </label>
+                        <input type="text" disabled
+                            value="{{ ucfirst(str_replace('_', ' ', $atendimento->status_atual)) }}"
+                            class="w-full bg-gray-100 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                    </div>
+
                     {{-- CLIENTE --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Cliente (opcional)
                         </label>
-                        <select name="cliente_id" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="cliente_id"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">— Não informado —</option>
                             @foreach($clientes as $cliente)
                             <option value="{{ $cliente->id }}" @selected(old('cliente_id', $atendimento->cliente_id) ==
@@ -67,8 +76,8 @@
                                 Telefone
                             </label>
                             <input type="text" name="telefone_solicitante"
-                                value="{{ old('telefone_solicitante', $atendimento->telefone_solicitante) }}" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                value="{{ old('telefone_solicitante', $atendimento->telefone_solicitante) }}"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
@@ -76,8 +85,8 @@
                                 E-mail
                             </label>
                             <input type="email" name="email_solicitante"
-                                value="{{ old('email_solicitante', $atendimento->email_solicitante) }}" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                value="{{ old('email_solicitante', $atendimento->email_solicitante) }}"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                     </div>
@@ -126,17 +135,14 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Prioridade *
                             </label>
-                            <select name="prioridade" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="baixa" @selected(old('prioridade', $atendimento->prioridade) == 'baixa')>
-                                    Baixa
-                                </option>
-                                <option value="media" @selected(old('prioridade', $atendimento->prioridade) == 'media')>
-                                    Média
-                                </option>
-                                <option value="alta" @selected(old('prioridade', $atendimento->prioridade) == 'alta')>
-                                    Alta
-                                </option>
+                            <select name="prioridade" required
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="baixa" @selected(old('prioridade', $atendimento->prioridade) ==
+                                    'baixa')>Baixa</option>
+                                <option value="media" @selected(old('prioridade', $atendimento->prioridade) ==
+                                    'media')>Média</option>
+                                <option value="alta" @selected(old('prioridade', $atendimento->prioridade) ==
+                                    'alta')>Alta</option>
                             </select>
                         </div>
 
@@ -165,8 +171,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Técnico
                             </label>
-                            <select name="funcionario_id" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="funcionario_id"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">— Não atribuído —</option>
                                 @foreach($funcionarios as $funcionario)
                                 <option value="{{ $funcionario->id }}" @selected(old('funcionario_id', $atendimento->

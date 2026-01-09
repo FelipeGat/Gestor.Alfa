@@ -9,6 +9,10 @@ use App\Models\Funcionario;
 use App\Models\Assunto;
 use Illuminate\Http\Request;
 
+use App\Models\AtendimentoStatusHistorico;
+use Illuminate\Support\Facades\Auth;
+
+
 class AtendimentoController extends Controller
 {
     public function index()
@@ -110,7 +114,10 @@ class AtendimentoController extends Controller
         }
 
 
-
+        // public function store(Request $request)
+        // {
+        //     dd($request->all());
+        // }
 
     public function store(Request $request)
     {
@@ -121,11 +128,15 @@ class AtendimentoController extends Controller
                 'descricao'        => 'required|string',
                 'prioridade'       => 'required|in:baixa,media,alta',
                 'empresa_id'       => 'required|exists:empresas,id',
+                'status_inicial'   => 'required|in:orcamento,aberto,garantia',
             ]);
 
             $ultimoNumero = Atendimento::max('numero_atendimento') ?? 0;
 
-            Atendimento::create([
+            // regra de orçamento
+            $isOrcamento = $request->status_inicial === 'orcamento';
+
+            $atendimento = Atendimento::create([
                 'numero_atendimento'   => $ultimoNumero + 1,
                 'cliente_id'           => $request->cliente_id,
                 'nome_solicitante'     => $request->nome_solicitante,
@@ -136,23 +147,32 @@ class AtendimentoController extends Controller
                 'prioridade'           => $request->prioridade,
                 'empresa_id'           => $request->empresa_id,
                 'funcionario_id'       => $request->funcionario_id,
-                'status'               => 'aberto',
+                'status_atual'         => $request->status_inicial,
+                'is_orcamento'         => $isOrcamento,
                 'data_atendimento'     => now(),
+            ]);
+
+            // registra histórico inicial
+            AtendimentoStatusHistorico::create([
+                'atendimento_id' => $atendimento->id,
+                'status'         => $request->status_inicial,
+                'observacao'     => 'Abertura do atendimento',
+                'user_id'        => Auth::id(),
             ]);
 
             return redirect()
                 ->route('atendimentos.index')
                 ->with('success', 'Atendimento registrado com sucesso.');
 
-            } catch (\Throwable $e) {
+        } catch (\Throwable $e) {
 
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'erro_sistema' =>
-                            'Ocorreu um erro inesperado ao salvar o atendimento. ' .
-                            'Verifique os dados ou contate o suporte técnico.'
-                    ]);
-            }
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'erro_sistema' =>
+                        'Erro ao criar o atendimento. Verifique os dados ou contate o suporte.'
+                ]);
         }
+    }
+
  }

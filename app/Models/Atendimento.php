@@ -24,7 +24,9 @@ class Atendimento extends Model
         'prioridade',
         'empresa_id',
         'funcionario_id',
-        'status',
+        'status_atual',
+        'is_orcamento',
+        'atendimento_origem_id',
         'data_atendimento',
     ];
 
@@ -57,4 +59,15 @@ class Atendimento extends Model
     {
         return $this->belongsTo(Funcionario::class);
     }
+
+    public function historicos()
+    {
+        return $this->hasMany(AtendimentoStatusHistorico::class);
+    }
+
+    public function atendimentoOrigem()
+    {
+        return $this->belongsTo(Atendimento::class, 'atendimento_origem_id');
+    }
+
 }
