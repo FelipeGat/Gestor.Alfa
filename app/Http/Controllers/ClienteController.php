@@ -140,7 +140,7 @@ class ClienteController extends Controller
         // Atualiza cliente (CORRETO)
         $cliente->update([
             'nome'           => $request->nome,
-            'ativo'          => $request->boolean('ativo'), // 🔥 CORRETO
+            'ativo'          => $request->boolean('ativo'),
             'valor_mensal'   => $request->valor_mensal,
             'dia_vencimento' => $request->dia_vencimento,
         ]);
