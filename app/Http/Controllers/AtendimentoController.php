@@ -7,172 +7,209 @@ use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Funcionario;
 use App\Models\Assunto;
-use Illuminate\Http\Request;
-
 use App\Models\AtendimentoStatusHistorico;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 
 class AtendimentoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $atendimentos = Atendimento::with([
-                'cliente',
-                'assunto',
-                'empresa',
-                'funcionario'
-            ])
-            ->orderByRaw("
-                FIELD(prioridade, 'alta', 'media', 'baixa'),
-                data_atendimento ASC,
-                numero_atendimento ASC
-            ")
+        $query = Atendimento::with([
+            'cliente',
+            'assunto',
+            'empresa',
+            'funcionario'
+        ]);
+
+        // BUSCA (cliente ou solicitante)
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('nome_solicitante', 'like', "%{$search}%")
+                ->orWhereHas('cliente', function ($c) use ($search) {
+                    $c->where('nome', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // PRIORIDADE
+        if ($request->filled('prioridade')) {
+            $query->where('prioridade', $request->prioridade);
+        }
+
+        // STATUS
+        if ($request->filled('status')) {
+            $query->where('status_atual', $request->status);
+        }
+
+        // PERÍODO
+        $periodo = $request->periodo ?? 'mes';
+
+        match ($periodo) {
+            'dia' => $query->whereDate('data_atendimento', today()),
+            'semana' => $query->whereBetween('data_atendimento', [
+                now()->startOfWeek(),
+                now()->endOfWeek()
+            ]),
+            'ano' => $query->whereYear('data_atendimento', now()->year),
+            default => $query->whereMonth('data_atendimento', now()->month),
+        };
+
+        $atendimentos = $query
+            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
+            ->orderByDesc('data_atendimento')
             ->get();
 
-        return view('atendimentos.index', compact('atendimentos'));
+        $funcionarios = Funcionario::where('ativo', true)
+            ->orderBy('nome')
+            ->get();
+
+        return view('atendimentos.index', compact(
+            'atendimentos',
+            'funcionarios'
+        ));
     }
+
 
     public function create()
     {
-        $clientes     = Cliente::orderBy('nome')->get();
-        $assuntos     = Assunto::where('ativo', true)->orderBy('nome')->get();
-        $empresas     = Empresa::orderBy('nome_fantasia')->get();
-        $funcionarios = Funcionario::where('ativo', true)->orderBy('nome')->get();
-
-        return view('atendimentos.create', compact(
-            'clientes',
-            'assuntos',
-            'empresas',
-            'funcionarios'
-        ));
+        return view('atendimentos.create', [
+            'clientes'     => Cliente::orderBy('nome')->get(),
+            'assuntos'     => Assunto::where('ativo', true)->orderBy('nome')->get(),
+            'empresas'     => Empresa::orderBy('nome_fantasia')->get(),
+            'funcionarios' => Funcionario::where('ativo', true)->orderBy('nome')->get(),
+        ]);
     }
 
     public function edit(Atendimento $atendimento)
     {
-        $clientes     = Cliente::orderBy('nome')->get();
-        $assuntos     = Assunto::where('ativo', true)->orderBy('nome')->get();
-        $empresas     = Empresa::orderBy('nome_fantasia')->get();
-        $funcionarios = Funcionario::where('ativo', true)->orderBy('nome')->get();
+        return view('atendimentos.edit', [
+            'atendimento'  => $atendimento,
+            'clientes'     => Cliente::orderBy('nome')->get(),
+            'assuntos'     => Assunto::where('ativo', true)->orderBy('nome')->get(),
+            'empresas'     => Empresa::orderBy('nome_fantasia')->get(),
+            'funcionarios' => Funcionario::where('ativo', true)->orderBy('nome')->get(),
+        ]);
+    }
 
-        return view('atendimentos.edit', compact(
-            'atendimento',
-            'clientes',
-            'assuntos',
-            'empresas',
-            'funcionarios'
-        ));
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nome_solicitante' => 'required|string|max:255',
+            'assunto_id'       => 'required|exists:assuntos,id',
+            'descricao'        => 'required|string',
+            'prioridade'       => 'required|in:baixa,media,alta',
+            'empresa_id'       => 'required|exists:empresas,id',
+            'status_inicial'   => 'required|in:orcamento,aberto,garantia',
+        ]);
+
+        $ultimoNumero = Atendimento::max('numero_atendimento') ?? 0;
+
+        $statusInicial = $request->status_inicial;
+
+        $atendimento = Atendimento::create([
+            'numero_atendimento'   => $ultimoNumero + 1,
+            'cliente_id'           => $request->cliente_id,
+            'nome_solicitante'     => $request->nome_solicitante,
+            'telefone_solicitante' => $request->telefone_solicitante,
+            'email_solicitante'    => $request->email_solicitante,
+            'assunto_id'           => $request->assunto_id,
+            'descricao'            => $request->descricao,
+            'prioridade'           => $request->prioridade,
+            'empresa_id'           => $request->empresa_id,
+            'funcionario_id'       => $request->funcionario_id,
+            'status_atual'         => $statusInicial,
+            'is_orcamento'         => $statusInicial === 'orcamento',
+            'data_atendimento'     => now(),
+        ]);
+
+        AtendimentoStatusHistorico::create([
+            'atendimento_id' => $atendimento->id,
+            'status'         => $statusInicial,
+            'observacao'     => 'Abertura do atendimento',
+            'user_id'        => Auth::id(),
+        ]);
+
+        return redirect()
+            ->route('atendimentos.index')
+            ->with('success', 'Atendimento registrado com sucesso.');
     }
 
     public function update(Request $request, Atendimento $atendimento)
     {
-        try {
-            $request->validate([
-                'nome_solicitante' => 'required|string|max:255',
-                'assunto_id'       => 'required|exists:assuntos,id',
-                'descricao'        => 'required|string',
-                'prioridade'       => 'required|in:baixa,media,alta',
-                'empresa_id'       => 'required|exists:empresas,id',
-            ]);
+        $request->validate([
+            'nome_solicitante' => 'required|string|max:255',
+            'assunto_id'       => 'required|exists:assuntos,id',
+            'descricao'        => 'required|string',
+            'prioridade'       => 'required|in:baixa,media,alta',
+            'empresa_id'       => 'required|exists:empresas,id',
+        ]);
 
-            $atendimento->update([
-                'cliente_id'           => $request->cliente_id,
-                'nome_solicitante'     => $request->nome_solicitante,
-                'telefone_solicitante' => $request->telefone_solicitante,
-                'email_solicitante'    => $request->email_solicitante,
-                'assunto_id'           => $request->assunto_id,
-                'descricao'            => $request->descricao,
-                'prioridade'           => $request->prioridade,
-                'empresa_id'           => $request->empresa_id,
-                'funcionario_id'       => $request->funcionario_id,
-            ]);
+        $atendimento->update([
+            'cliente_id'           => $request->cliente_id,
+            'nome_solicitante'     => $request->nome_solicitante,
+            'telefone_solicitante' => $request->telefone_solicitante,
+            'email_solicitante'    => $request->email_solicitante,
+            'assunto_id'           => $request->assunto_id,
+            'descricao'            => $request->descricao,
+            'prioridade'           => $request->prioridade,
+            'empresa_id'           => $request->empresa_id,
+            'funcionario_id'       => $request->funcionario_id,
+        ]);
 
-            return redirect()
-                ->route('atendimentos.index')
-                ->with('success', 'Atendimento atualizado com sucesso.');
-
-        } catch (\Throwable $e) {
-
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'erro_sistema' =>
-                        'Erro ao atualizar o atendimento. Verifique os dados ou contate o suporte.'
-                ]);
-        }
-
+        return redirect()
+            ->route('atendimentos.index')
+            ->with('success', 'Atendimento atualizado com sucesso.');
     }
 
-    public function destroy(Atendimento $atendimento)
-        {
-            // Soft delete do cliente
-            $atendimento->delete();
-
-            return redirect()
-                ->route('atendimentos.index')
-                ->with('success', 'Atendimento excluído com sucesso!');
-        }
-
-
-        // public function store(Request $request)
-        // {
-        //     dd($request->all());
-        // }
-
-    public function store(Request $request)
+    // METODO ATUALIZAR CAMPO
+    public function atualizarCampo(Request $request, Atendimento $atendimento)
     {
-        try {
-            $request->validate([
-                'nome_solicitante' => 'required|string|max:255',
-                'assunto_id'       => 'required|exists:assuntos,id',
-                'descricao'        => 'required|string',
-                'prioridade'       => 'required|in:baixa,media,alta',
-                'empresa_id'       => 'required|exists:empresas,id',
-                'status_inicial'   => 'required|in:orcamento,aberto,garantia',
+        $request->validate([
+            'campo' => 'required|in:status,prioridade,funcionario_id',
+            'valor' => 'nullable'
+        ]);
+
+        // STATUS → HISTÓRICO
+        if ($request->campo === 'status') {
+
+            if ($atendimento->status_atual === 'concluido') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Atendimento concluído não pode ser alterado.'
+                ]);
+            }
+
+            $atendimento->update([
+                'status_atual' => $request->valor
             ]);
 
-            $ultimoNumero = Atendimento::max('numero_atendimento') ?? 0;
-
-            // regra de orçamento
-            $isOrcamento = $request->status_inicial === 'orcamento';
-
-            $atendimento = Atendimento::create([
-                'numero_atendimento'   => $ultimoNumero + 1,
-                'cliente_id'           => $request->cliente_id,
-                'nome_solicitante'     => $request->nome_solicitante,
-                'telefone_solicitante' => $request->telefone_solicitante,
-                'email_solicitante'    => $request->email_solicitante,
-                'assunto_id'           => $request->assunto_id,
-                'descricao'            => $request->descricao,
-                'prioridade'           => $request->prioridade,
-                'empresa_id'           => $request->empresa_id,
-                'funcionario_id'       => $request->funcionario_id,
-                'status_atual'         => $request->status_inicial,
-                'is_orcamento'         => $isOrcamento,
-                'data_atendimento'     => now(),
-            ]);
-
-            // registra histórico inicial
             AtendimentoStatusHistorico::create([
                 'atendimento_id' => $atendimento->id,
-                'status'         => $request->status_inicial,
-                'observacao'     => 'Abertura do atendimento',
+                'status'         => $request->valor,
+                'observacao'     => 'Alteração via fila',
                 'user_id'        => Auth::id(),
             ]);
 
-            return redirect()
-                ->route('atendimentos.index')
-                ->with('success', 'Atendimento registrado com sucesso.');
-
-        } catch (\Throwable $e) {
-
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'erro_sistema' =>
-                        'Erro ao criar o atendimento. Verifique os dados ou contate o suporte.'
-                ]);
+            return response()->json(['success' => true]);
         }
+
+        // PRIORIDADE ou TÉCNICO
+        $atendimento->update([
+            $request->campo => $request->valor
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
- }
+    public function destroy(Atendimento $atendimento)
+    {
+        $atendimento->delete();
+
+        return redirect()
+            ->route('atendimentos.index')
+            ->with('success', 'Atendimento excluído com sucesso!');
+    }
+}

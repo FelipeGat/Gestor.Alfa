@@ -57,6 +57,10 @@ Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
     // Atendimentos
     Route::resource('atendimentos', AtendimentoController::class)
     ->except(['show']);
+
+    Route::patch('/atendimentos/{atendimento}/atualizar-campo',
+    [AtendimentoController::class, 'atualizarCampo']);
+
     
 
     // Upload de boletos

@@ -12,23 +12,45 @@
             <form method="GET" class="bg-white shadow rounded-lg p-6">
                 <div class="flex flex-wrap gap-4 items-end">
 
-                    {{-- Buscar --}}
+                    {{-- BUSCA --}}
                     <div class="flex flex-col flex-1 min-w-[240px]">
-                        <label class="text-sm font-medium text-gray-700 mb-2">
-                            Pesquisar Solicitante
+                        <label class="text-sm font-medium text-gray-700 mb-1">
+                            Buscar
                         </label>
                         <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Nome do solicitante" class="border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            placeholder="Cliente ou solicitante"
+                            class="border border-gray-300 rounded-md px-3 py-2 text-sm">
                     </div>
 
-                    {{-- Prioridade --}}
+                    {{-- STATUS --}}
                     <div class="flex flex-col w-48">
-                        <label class="text-sm font-medium text-gray-700 mb-2">
+                        <label class="text-sm font-medium text-gray-700 mb-1">
+                            Status
+                        </label>
+                        <select name="status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Todos</option>
+                            @foreach([
+                            'orcamento' => 'Orçamento',
+                            'aberto' => 'Aberto',
+                            'em_atendimento' => 'Em Atendimento',
+                            'pendente_cliente' => 'Pendente Cliente',
+                            'pendente_fornecedor' => 'Pendente Fornecedor',
+                            'garantia' => 'Garantia',
+                            'concluido' => 'Concluído'
+                            ] as $value => $label)
+                            <option value="{{ $value }}" @selected(request('status')===$value)>
+                                {{ $label }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- PRIORIDADE --}}
+                    <div class="flex flex-col w-40">
+                        <label class="text-sm font-medium text-gray-700 mb-1">
                             Prioridade
                         </label>
-                        <select name="prioridade" class="border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="prioridade" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
                             <option value="">Todas</option>
                             <option value="alta" @selected(request('prioridade')=='alta' )>Alta</option>
                             <option value="media" @selected(request('prioridade')=='media' )>Média</option>
@@ -36,15 +58,28 @@
                         </select>
                     </div>
 
-                    {{-- Botões --}}
+                    {{-- PERÍODO --}}
+                    <div class="flex flex-col w-40">
+                        <label class="text-sm font-medium text-gray-700 mb-1">
+                            Período
+                        </label>
+                        <select name="periodo" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="dia" @selected(request('periodo')=='dia' )>Hoje</option>
+                            <option value="semana" @selected(request('periodo')=='semana' )>Semana</option>
+                            <option value="mes" @selected(request('periodo','mes')=='mes' )>Mês</option>
+                            <option value="ano" @selected(request('periodo')=='ano' )>Ano</option>
+                        </select>
+                    </div>
+
+                    {{-- BOTÕES --}}
                     <div class="flex gap-3 items-end">
                         <button type="submit" class="inline-flex items-center justify-center px-4 py-2
-                                   bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
+                            bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
                             🔍 Filtrar
                         </button>
 
                         <a href="{{ route('atendimentos.create') }}" class="inline-flex items-center justify-center px-4 py-2
-                                   bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
+                            bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md shadow">
                             ➕ Novo Atendimento
                         </a>
                     </div>
@@ -52,97 +87,125 @@
                 </div>
             </form>
 
+
             {{-- TABELA --}}
             @if($atendimentos->count() > 0)
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
-
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Nº</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                                    Solicitante</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Assunto
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Empresa
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Técnico
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Prioridade
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Data</th>
-                                <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Ações</th>
+                                <th class="px-4 py-3 text-xs">Nº</th>
+                                <th class="px-4 py-3 text-xs">Solicitante</th>
+                                <th class="px-4 py-3 text-xs">Assunto</th>
+                                <th class="px-4 py-3 text-xs">Empresa</th>
+                                <th class="px-4 py-3 text-xs">Técnico</th>
+                                <th class="px-4 py-3 text-xs">Prioridade</th>
+                                <th class="px-4 py-3 text-xs">Status</th>
+                                <th class="px-4 py-3 text-xs">Data</th>
+                                <th class="px-4 py-3 text-xs">Ações</th>
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-gray-200">
+                        <tbody class="divide-y">
                             @foreach($atendimentos as $atendimento)
-                            <tr class="hover:bg-gray-50 transition duration-150">
+                            <tr class="hover:bg-gray-50">
 
-                                <td class="px-4 py-3 text-xs font-medium text-gray-900">
+                                {{-- Nº --}}
+                                <td class="px-4 py-3 text-xs font-medium">
                                     #{{ $atendimento->numero_atendimento }}
                                 </td>
 
-                                <td class="px-4 py-3 text-xs text-gray-900">
-                                    {{ $atendimento->cliente->nome }} <br>
+                                {{-- SOLICITANTE --}}
+                                <td class="px-4 py-3 text-xs">
+                                    @if($atendimento->cliente)
+                                    <strong>{{ $atendimento->cliente->nome }}</strong>
+                                    @else
+                                    {{ $atendimento->nome_solicitante }}
+                                    @endif
+                                    <br>
                                     <span class="text-gray-500">
                                         {{ $atendimento->telefone_solicitante ?? '—' }}
                                     </span>
                                 </td>
 
-                                <td class="px-4 py-3 text-xs text-gray-900">
+                                {{-- ASSUNTO --}}
+                                <td class="px-4 py-3 text-xs">
                                     {{ $atendimento->assunto->nome }}
                                 </td>
 
-                                <td class="px-4 py-3 text-xs text-gray-900">
+                                {{-- EMPRESA --}}
+                                <td class="px-4 py-3 text-xs">
                                     {{ $atendimento->empresa->nome_fantasia }}
                                 </td>
 
-                                <td class="px-4 py-3 text-xs text-gray-900">
-                                    {{ $atendimento->funcionario->nome ?? '—' }}
-                                </td>
-
+                                {{-- TÉCNICO (EDITÁVEL) --}}
                                 <td class="px-4 py-3 text-xs">
-                                    @if($atendimento->prioridade === 'alta')
-                                    <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Alta</span>
-                                    @elseif($atendimento->prioridade === 'media')
-                                    <span
-                                        class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Média</span>
-                                    @else
-                                    <span
-                                        class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Baixa</span>
-                                    @endif
+                                    <select data-id="{{ $atendimento->id }}" data-campo="funcionario_id"
+                                        class="campo-editavel border-gray-300 rounded text-xs px-2 py-1">
+
+                                        <option value="">—</option>
+                                        @foreach($funcionarios as $funcionario)
+                                        <option value="{{ $funcionario->id }}" @selected($atendimento->funcionario_id ==
+                                            $funcionario->id)>
+                                            {{ $funcionario->nome }}
+                                        </option>
+                                        @endforeach
+                                    </select>
                                 </td>
 
+                                {{-- PRIORIDADE (EDITÁVEL) --}}
                                 <td class="px-4 py-3 text-xs">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                        {{ ucfirst(str_replace('_', ' ', $atendimento->status_atual)) }}
-                                    </span>
+                                    <select data-id="{{ $atendimento->id }}" data-campo="prioridade"
+                                        class="campo-editavel border-gray-300 rounded text-xs px-2 py-1">
+                                        <option value="baixa" @selected($atendimento->prioridade === 'baixa')>Baixa
+                                        </option>
+                                        <option value="media" @selected($atendimento->prioridade === 'media')>Média
+                                        </option>
+                                        <option value="alta" @selected($atendimento->prioridade === 'alta')>Alta
+                                        </option>
+                                    </select>
                                 </td>
 
-                                <td class="px-4 py-3 text-xs text-gray-900">
+                                {{-- STATUS (EDITÁVEL + HISTÓRICO) --}}
+                                <td class="px-4 py-3 text-xs">
+                                    <select data-id="{{ $atendimento->id }}" data-campo="status"
+                                        class="campo-editavel border-gray-300 rounded text-xs px-2 py-1">
+                                        @foreach([
+                                        'orcamento' => 'Orçamento',
+                                        'aberto' => 'Aberto',
+                                        'em_atendimento' => 'Em Atendimento',
+                                        'pendente_cliente' => 'Pendente Cliente',
+                                        'pendente_fornecedor' => 'Pendente Fornecedor',
+                                        'garantia' => 'Garantia',
+                                        'concluido' => 'Concluído'
+                                        ] as $value => $label)
+                                        <option value="{{ $value }}" @selected($atendimento->status_atual === $value)>
+                                            {{ $label }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                {{-- DATA --}}
+                                <td class="px-4 py-3 text-xs">
                                     {{ $atendimento->data_atendimento->format('d/m/Y') }}
                                 </td>
 
+                                {{-- AÇÕES --}}
                                 <td class="px-4 py-3 text-xs">
-                                    <div class="flex gap-2 items-center">
+                                    <div class="flex gap-2">
                                         <a href="{{ route('atendimentos.edit', $atendimento) }}"
-                                            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs font-medium rounded-md transition duration-200">
+                                            class="px-3 py-1 bg-blue-600 text-green-600 rounded text-xs">
                                             Editar
                                         </a>
 
                                         <form action="{{ route('atendimentos.destroy', $atendimento) }}" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir este atendimento?')"
-                                            class="inline">
+                                            onsubmit="return confirm('Deseja excluir este atendimento?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
-                                                class="px-3 py-1 border border-red-600 text-red-600 hover:bg-red-50 text-xs font-medium rounded-md transition duration-200">
+                                                class="px-3 py-1 border border-red-600 text-red-600 rounded text-xs">
                                                 Excluir
                                             </button>
                                         </form>
@@ -154,14 +217,45 @@
                         </tbody>
                     </table>
                 </div>
-
             </div>
             @else
-            <div class="bg-white rounded-lg shadow-md p-12 text-center">
-                <p class="text-gray-500 text-lg">Nenhum atendimento registrado.</p>
+            <div class="bg-white p-12 rounded shadow text-center">
+                <p class="text-gray-500">Nenhum atendimento registrado.</p>
             </div>
             @endif
 
         </div>
     </div>
+
+    {{-- SCRIPT AJAX --}}
+    <script>
+    document.querySelectorAll('.campo-editavel').forEach(el => {
+        el.addEventListener('change', function() {
+
+            fetch(`/atendimentos/${this.dataset.id}/atualizar-campo`, {
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        campo: this.dataset.campo,
+                        valor: this.value
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.message || 'Erro ao atualizar');
+                        location.reload();
+                    }
+                })
+                .catch(() => {
+                    alert('Erro de comunicação');
+                    location.reload();
+                });
+        });
+    });
+    </script>
+
 </x-app-layout>
