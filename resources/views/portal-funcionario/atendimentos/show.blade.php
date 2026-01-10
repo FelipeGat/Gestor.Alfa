@@ -52,7 +52,7 @@
                                             @endif
 
                                             <div class="relative flex items-start space-x-3">
-                                                <div class="relative">
+                                                <div>
                                                     <span
                                                         class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center ring-8 ring-white">
                                                         <svg class="h-6 w-6 text-blue-600" fill="none"
@@ -81,21 +81,72 @@
                                                         </p>
                                                     </div>
 
-                                                    {{-- ===== FOTOS (SOMENTE VISUALIZAÇÃO) ===== --}}
+
+                                                    {{-- ================= UPLOAD DE FOTOS (TÉCNICO) ================= --}}
+                                                    @if(
+                                                    $atendimento->status_atual !== 'finalizacao' &&
+                                                    $atendimento->status_atual !== 'concluido'
+                                                    )
+                                                    <form method="POST"
+                                                        action="{{ route('portal-funcionario.andamentos.fotos.store', $andamento) }}"
+                                                        enctype="multipart/form-data"
+                                                        class="mt-3 flex items-center gap-2">
+                                                        @csrf
+
+                                                        <input type="file" name="fotos[]" multiple accept="image/*"
+                                                            class="block w-full text-[10px] text-gray-500
+               file:mr-2 file:py-1 file:px-3 file:rounded-full
+               file:border-0 file:text-[10px] file:font-semibold
+               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+
+                                                        <button type="submit"
+                                                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs rounded shadow">
+                                                            Anexar
+                                                        </button>
+                                                    </form>
+                                                    @endif
+
+
+                                                    {{-- ================= FOTOS ================= --}}
                                                     @if($andamento->fotos->count())
                                                     <div class="mt-4">
                                                         <div class="flex flex-wrap gap-2">
                                                             @foreach($andamento->fotos as $foto)
-                                                            <a href="{{ asset('storage/'.$foto->arquivo) }}"
-                                                                target="_blank" class="block group">
-                                                                <img src="{{ asset('storage/'.$foto->arquivo) }}"
-                                                                    class="w-[85px] h-[85px] object-cover rounded-md border border-gray-200 shadow-sm group-hover:ring-2 group-hover:ring-blue-500 transition-all"
-                                                                    alt="Anexo">
-                                                            </a>
+                                                            <div class="relative group">
+                                                                <a href="{{ asset('storage/'.$foto->arquivo) }}"
+                                                                    target="_blank">
+                                                                    <img src="{{ asset('storage/'.$foto->arquivo) }}"
+                                                                        class="w-[85px] h-[85px] object-cover rounded-md
+                           border border-gray-200 shadow-sm
+                           group-hover:ring-2 group-hover:ring-blue-500
+                           transition-all" alt="Anexo">
+                                                                </a>
+
+                                                                {{-- BOTÃO REMOVER --}}
+                                                                @if(
+                                                                $atendimento->status_atual !== 'finalizacao' &&
+                                                                $atendimento->status_atual !== 'concluido'
+                                                                )
+                                                                <form method="POST"
+                                                                    action="{{ route('portal-funcionario.andamentos.fotos.destroy', $foto->id) }}"
+                                                                    onsubmit="return confirm('Remover esta foto?')"
+                                                                    class="absolute -top-2 -right-2">
+                                                                    @csrf
+                                                                    @method('DELETE')
+
+                                                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white
+                           rounded-full w-5 h-5 flex items-center
+                           justify-center text-xs shadow">
+                                                                        ✕
+                                                                    </button>
+                                                                </form>
+                                                                @endif
+                                                            </div>
                                                             @endforeach
                                                         </div>
                                                     </div>
                                                     @endif
+
 
                                                 </div>
                                             </div>
@@ -114,7 +165,6 @@
                         </div>
                     </div>
                 </div>
-
                 <br>
 
                 {{-- ================= COLUNA DIREITA ================= --}}
@@ -127,14 +177,26 @@
                                 Ações
                             </h3>
                         </div>
-                        <div class="p-4">
+                        <div class="p-4 space-y-3">
                             <a href="{{ route('portal-funcionario.dashboard') }}"
                                 class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 rounded-md text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm">
                                 ← Voltar
                             </a>
+
+                            @if($atendimento->status_atual !== 'finalizacao' && $atendimento->status_atual !==
+                            'concluido')
+                            <form method="POST"
+                                action="{{ route('portal-funcionario.atendimentos.finalizacao', $atendimento) }}">
+                                @csrf
+                                <input type="hidden" name="status" value="finalizacao">
+                                <button type="submit"
+                                    class="w-full py-2 bg-orange-500 hover:bg-orange-600 text-green-600 text-sm font-bold rounded-md shadow">
+                                    Enviar para Finalização
+                                </button>
+                            </form>
+                            @endif
                         </div>
                     </div>
-
                     <br>
 
                     {{-- ===== DETALHES ===== --}}

@@ -122,9 +122,24 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])
             ->name('agenda');
 
-        // VISUALIZAR ATENDIMENTO (SOMENTE LEITURA)
+        // Visualizar atendimento (somente leitura)
         Route::get('/atendimentos/{atendimento}', [PortalFuncionarioController::class, 'show'])
             ->name('atendimentos.show');
+
+        // Técnico envia para FINALIZAÇÃO
+        Route::post('/atendimentos/{atendimento}/finalizacao', [PortalFuncionarioController::class, 'enviarParaFinalizacao'])
+            ->name('atendimentos.finalizacao');
+
+        // Técnico aenxa Fotos
+        Route::post('/andamentos/{andamento}/fotos', [AtendimentoAndamentoFotoController::class, 'store'])
+            ->name('andamentos.fotos.store');
+
+        // Técnico deleta Fotos
+        Route::delete('/andamentos/fotos/{foto}',    [AtendimentoAndamentoFotoController::class, 'destroy'])
+            ->name('andamentos.fotos.destroy');
+
+
+            
     });
 
 

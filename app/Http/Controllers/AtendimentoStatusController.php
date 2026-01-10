@@ -24,6 +24,7 @@ class AtendimentoStatusController extends Controller
                     'pendente_cliente',
                     'pendente_fornecedor',
                     'garantia',
+                    'finalizacao',
                     'concluido'
                 ])],
                 'prioridade' => ['required', Rule::in(['baixa', 'media', 'alta'])],

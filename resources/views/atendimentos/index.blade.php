@@ -37,6 +37,7 @@
                             'pendente_cliente' => 'Pendente Cliente',
                             'pendente_fornecedor' => 'Pendente Fornecedor',
                             'garantia' => 'Garantia',
+                            'finalizacao' => 'Finalização',
                             'concluido' => 'Concluído'
                             ] as $value => $label)
                             <option value="{{ $value }}" @selected(request('status')===$value)>
@@ -372,6 +373,7 @@
                                             'pendente_cliente' => 'Pendente Cliente',
                                             'pendente_fornecedor' => 'Pendente Fornecedor',
                                             'garantia' => 'Garantia',
+                                            'finalizacao'=> 'Finalização',
                                             'concluido' => 'Concluído'
                                             ] as $value => $label)
                                             <option value="{{ $value }}" @selected($atendimento->status_atual ===

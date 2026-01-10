@@ -207,7 +207,8 @@
                                         class="w-full border-gray-300 rounded-md text-sm focus:ring-blue-500">
                                         @foreach(['orcamento' => 'Orçamento', 'aberto' => 'Aberto', 'em_atendimento' =>
                                         'Em Atendimento', 'pendente_cliente' => 'Pendente Cliente',
-                                        'pendente_fornecedor' => 'Pendente Fornecedor', 'garantia' => 'Garantia',
+                                        'pendente_fornecedor' => 'Pendente Fornecedor', 'finalizacao' =>
+                                        'Finalização','garantia' => 'Garantia',
                                         'concluido' => 'Concluído'] as $v => $l)
                                         <option value="{{ $v }}" @selected($atendimento->status_atual === $v)>{{ $l }}
                                         </option>

@@ -91,7 +91,7 @@
                     @if(Auth::user()->tipo === 'funcionario')
                     <x-nav-link :href="route('portal-funcionario.dashboard')"
                         :active="request()->routeIs('portal-funcionario.*')">
-                        Minha Agenda
+                        Meus Atendimentos
                     </x-nav-link>
                     @endif
 

@@ -36,8 +36,9 @@
             <div class="cards-container">
                 <div class="space-y-6">
                     @foreach($atendimentos as $atendimento)
-                    <div
-                        class="bg-white shadow-md rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-lg transition-shadow duration-200">
+                    <div onclick="window.location.href='{{ route('portal-funcionario.atendimentos.show', ['atendimento' => $atendimento->id]) }}';"
+                        class="cursor-pointer bg-white shadow-md rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-lg transition-shadow duration-200">
+
 
                         {{-- Cabeçalho do Card --}}
                         <div class="flex justify-between items-start mb-3">
