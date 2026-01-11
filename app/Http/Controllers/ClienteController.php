@@ -53,24 +53,61 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nome' => 'required|string|max:255',
-            'valor_mensal' => 'required|numeric|min:0',
-            'dia_vencimento' => 'required|integer|min:1|max:31',
+        // Básicos
+        'tipo_pessoa'  => 'required|in:PF,PJ',
+        'cpf_cnpj'     => 'required|string|unique:clientes,cpf_cnpj',
+        'nome'         => 'required|string|max:255',
+        'razao_social' => 'nullable|string|max:255',
+        'nome_fantasia'=> 'nullable|string|max:255',
+        'tipo_cliente' => 'required|in:CONTRATO,AVULSO',
+        'data_cadastro'=> 'required|date',
 
-            'emails' => 'required|array|min:1',
-            'emails.*' => 'required|email',
+        // Endereço
+        'cep'          => 'nullable|string|max:20',
+        'logradouro'   => 'nullable|string|max:255',
+        'numero'       => 'nullable|string|max:20',
+        'complemento'  => 'nullable|string|max:255',
+        'cidade'       => 'nullable|string|max:255',
 
-            'telefones' => 'nullable|array',
-            'telefones.*' => 'nullable|string|max:50',
-        ]);
+        // Financeiro (somente contrato)
+        'valor_mensal'   => 'nullable|numeric|min:0',
+        'dia_vencimento' => 'nullable|integer|min:1|max:28',
+
+        // Contatos
+        'emails'        => 'required|array|min:1',
+        'emails.*'      => 'required|email',
+
+        'telefones'     => 'nullable|array',
+        'telefones.*'   => 'nullable|string|max:50',
+
+        'observacoes'   => 'nullable|string',
+    ]);
+
 
         // Cria o cliente
         $cliente = Cliente::create([
-            'nome'  => $request->nome,
-            'ativo' => $request->ativo ?? true,
-            'valor_mensal' => $request->valor_mensal,
-            'dia_vencimento' => $request->dia_vencimento,
+            'nome'          => $request->nome,
+            'ativo'         => $request->ativo ?? true,
+            'tipo_pessoa'   => $request->tipo_pessoa,
+            'cpf_cnpj'      => preg_replace('/\D/', '', $request->cpf_cnpj),
+            'razao_social'  => $request->razao_social,
+            'nome_fantasia' => $request->nome_fantasia,
+            'tipo_cliente'  => $request->tipo_cliente,
+            'data_cadastro' => $request->data_cadastro,
+            'cep'           => $request->cep,
+            'logradouro'    => $request->logradouro,
+            'numero'        => $request->numero,
+            'complemento'   => $request->complemento,
+            'cidade'        => $request->cidade,
+            'valor_mensal'   => $request->tipo_cliente === 'CONTRATO'
+                ? $request->valor_mensal
+                : null,
+            'dia_vencimento' => $request->tipo_cliente === 'CONTRATO'
+                ? $request->dia_vencimento
+                : null,
+            'observacoes'   => $request->observacoes,
         ]);
+
 
         // Salva os emails
         foreach ($request->emails as $i => $email) {

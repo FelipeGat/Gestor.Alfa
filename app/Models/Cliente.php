@@ -9,6 +9,8 @@ use App\Models\Boleto;
 use App\Models\User;
 use App\Models\Email;
 use App\Models\Telefone;
+use App\Models\NotaFiscal;
+
 
 class Cliente extends Model
 {
@@ -19,6 +21,18 @@ class Cliente extends Model
         'ativo',
         'valor_mensal',
         'dia_vencimento',
+        'tipo_pessoa',
+        'cpf_cnpj',
+        'razao_social',
+        'nome_fantasia',
+        'tipo_cliente',
+        'data_cadastro',
+        'cep',
+        'logradouro',
+        'numero',
+        'complemento',
+        'cidade',
+        'observacoes',
     ];
 
     protected $casts = [
