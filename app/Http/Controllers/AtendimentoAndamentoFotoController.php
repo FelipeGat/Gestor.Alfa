@@ -57,15 +57,24 @@ class AtendimentoAndamentoFotoController extends Controller
         );
 
         foreach ($request->file('fotos') as $foto) {
-            $path = $foto->store(
-                "andamentos/atendimento_{$atendimento->id}",
-                'public'
-            );
 
-            $andamento->fotos()->create([
-                'arquivo' => $path,
-            ]);
+        $nomeArquivo = uniqid() . '.' . $foto->getClientOriginalExtension();
+
+        $destino = public_path("uploads/andamentos/atendimento_{$atendimento->id}");
+
+        if (!file_exists($destino)) {
+            mkdir($destino, 0755, true);
         }
+
+        $foto->move($destino, $nomeArquivo);
+
+        $path = "uploads/andamentos/atendimento_{$atendimento->id}/{$nomeArquivo}";
+
+        $andamento->fotos()->create([
+            'arquivo' => $path,
+        ]);
+    }
+
 
         return back()->with('success', 'Fotos anexadas com sucesso.');
     }

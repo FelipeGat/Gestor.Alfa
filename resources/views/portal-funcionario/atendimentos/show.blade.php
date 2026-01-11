@@ -95,9 +95,9 @@
 
                                                         <input type="file" name="fotos[]" multiple accept="image/*"
                                                             class="block w-full text-[10px] text-gray-500
-               file:mr-2 file:py-1 file:px-3 file:rounded-full
-               file:border-0 file:text-[10px] file:font-semibold
-               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                                        file:mr-2 file:py-1 file:px-3 file:rounded-full
+                                                        file:border-0 file:text-[10px] file:font-semibold
+                                                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
 
                                                         <button type="submit"
                                                             class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-green-600 text-xs rounded shadow">
@@ -117,9 +117,9 @@
                                                                     target="_blank">
                                                                     <img src="{{ asset('storage/'.$foto->arquivo) }}"
                                                                         class="w-[85px] h-[85px] object-cover rounded-md
-                           border border-gray-200 shadow-sm
-                           group-hover:ring-2 group-hover:ring-blue-500
-                           transition-all" alt="Anexo">
+                                                                    border border-gray-200 shadow-sm
+                                                                    group-hover:ring-2 group-hover:ring-blue-500
+                                                                    transition-all" alt="Anexo">
                                                                 </a>
 
                                                                 {{-- BOTÃO REMOVER --}}
@@ -135,8 +135,8 @@
                                                                     @method('DELETE')
 
                                                                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white
-                           rounded-full w-5 h-5 flex items-center
-                           justify-center text-xs shadow">
+                                                                    rounded-full w-5 h-5 flex items-center
+                                                                    justify-center text-xs shadow">
                                                                         ✕
                                                                     </button>
                                                                 </form>
