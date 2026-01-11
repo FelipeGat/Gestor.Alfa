@@ -19,6 +19,7 @@
 </head>
 
 <body class="font-sans text-gray-900 antialiased">
+
     <div class="min-h-screen flex flex-col justify-center px-4 sm:items-center bg-gray-100">
         <div>
             <a href="/">
@@ -26,7 +27,7 @@
             </a>
         </div>
 
-        <div class="w-full max-w-md bg-white p-6 rounded-lg shadow mt-8 sm:mt-0">
+        <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
             {{ $slot }}
         </div>
     </div>

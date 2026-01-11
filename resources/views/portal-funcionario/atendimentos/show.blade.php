@@ -113,14 +113,13 @@
                                                         <div class="flex flex-wrap gap-2">
                                                             @foreach($andamento->fotos as $foto)
                                                             <div class="relative group">
-                                                                <a href="{{ asset('storage/'.$foto->arquivo) }}"
-                                                                    target="_blank">
-                                                                    <img src="{{ asset('storage/'.$foto->arquivo) }}"
-                                                                        class="w-[85px] h-[85px] object-cover rounded-md
+                                                                <a href="{{ asset($foto->arquivo) }}" target="_blank">
+                                                                    <img src="{{ asset($foto->arquivo) }}" class="w-[85px] h-[85px] object-cover rounded-md
                                                                     border border-gray-200 shadow-sm
                                                                     group-hover:ring-2 group-hover:ring-blue-500
                                                                     transition-all" alt="Anexo">
                                                                 </a>
+
 
                                                                 {{-- BOTÃO REMOVER --}}
                                                                 @if(

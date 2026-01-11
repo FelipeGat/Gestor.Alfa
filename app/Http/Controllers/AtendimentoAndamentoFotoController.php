@@ -4,12 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Models\AtendimentoAndamento;
 use App\Models\AtendimentoAndamentoFoto;
 
 class AtendimentoAndamentoFotoController extends Controller
 {
+    /**
+     * Retorna o caminho base correto para uploads
+     */
+    private function uploadsBasePath(): string
+    {
+        // Produção: usa o caminho definido no .env
+        // Local: fallback para public/uploads
+        return rtrim(
+            env('UPLOADS_PUBLIC_PATH', public_path('uploads')),
+            '/'
+        );
+    }
+
     /**
      * STORE
      */
@@ -33,7 +45,7 @@ class AtendimentoAndamentoFotoController extends Controller
             );
         }
 
-        // Limite de fotos
+        // Limite de fotos por andamento
         $quantidadeAtual = $andamento->fotos()->count();
         $novasFotos = count($request->file('fotos', []));
 
@@ -44,37 +56,31 @@ class AtendimentoAndamentoFotoController extends Controller
         );
 
         // Validação
-        $request->validate(
-            [
-                'fotos'   => ['required', 'array'],
-                'fotos.*' => ['image', 'max:2048'],
-            ],
-            [
-                'fotos.required' => 'Selecione ao menos uma imagem.',
-                'fotos.*.image'  => 'O arquivo deve ser uma imagem válida.',
-                'fotos.*.max'    => 'Cada imagem deve ter no máximo 2MB.',
-            ]
-        );
+        $request->validate([
+            'fotos'   => ['required', 'array'],
+            'fotos.*' => ['image', 'max:2048'],
+        ]);
 
-        foreach ($request->file('fotos') as $foto) {
-
-        $nomeArquivo = uniqid() . '.' . $foto->getClientOriginalExtension();
-
-        $destino = public_path("uploads/andamentos/atendimento_{$atendimento->id}");
+        $basePath = $this->uploadsBasePath();
+        $destino = $basePath . "/andamentos/atendimento_{$atendimento->id}";
 
         if (!file_exists($destino)) {
             mkdir($destino, 0755, true);
         }
 
-        $foto->move($destino, $nomeArquivo);
+        foreach ($request->file('fotos') as $foto) {
 
-        $path = "uploads/andamentos/atendimento_{$atendimento->id}/{$nomeArquivo}";
+            $nomeArquivo = uniqid() . '.' . $foto->getClientOriginalExtension();
 
-        $andamento->fotos()->create([
-            'arquivo' => $path,
-        ]);
-    }
+            $foto->move($destino, $nomeArquivo);
 
+            // Caminho RELATIVO (usado pelo asset())
+            $path = "uploads/andamentos/atendimento_{$atendimento->id}/{$nomeArquivo}";
+
+            $andamento->fotos()->create([
+                'arquivo' => $path,
+            ]);
+        }
 
         return back()->with('success', 'Fotos anexadas com sucesso.');
     }
@@ -86,7 +92,6 @@ class AtendimentoAndamentoFotoController extends Controller
     {
         $user = Auth::user();
 
-        // Buscar foto com relacionamento
         $foto = AtendimentoAndamentoFoto::with('andamento.atendimento')->findOrFail($fotoId);
 
         $andamento = $foto->andamento;
@@ -107,12 +112,13 @@ class AtendimentoAndamentoFotoController extends Controller
             );
         }
 
-        // Remove arquivo físico
-        if (Storage::disk('public')->exists($foto->arquivo)) {
-            Storage::disk('public')->delete($foto->arquivo);
+        // Caminho físico correto do arquivo
+        $arquivoFisico = $this->uploadsBasePath() . '/' . $foto->arquivo;
+
+        if (file_exists($arquivoFisico)) {
+            unlink($arquivoFisico);
         }
 
-        // Remove registro
         $foto->delete();
 
         return back()->with('success', 'Foto removida com sucesso.');

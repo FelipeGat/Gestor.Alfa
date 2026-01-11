@@ -76,6 +76,40 @@
 
                             @if($atendimento->andamentos->count())
                             <div class="flow-root">
+
+                                @if(
+                                $atendimento->status_atual !== 'finalizacao' &&
+                                $atendimento->status_atual !== 'concluido'
+                                )
+                                <div class="mb-6 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-2">
+                                        Anexar fotos ao atendimento
+                                    </h4>
+
+                                    <form method="POST"
+                                        action="{{ route('andamentos.fotos.store', $atendimento->andamentos->first()) }}"
+                                        enctype="multipart/form-data"
+                                        class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                        @csrf
+
+                                        <input type="file" name="fotos[]" multiple accept="image/*" class="block w-full text-xs text-gray-500
+                                            file:mr-2 file:py-1.5 file:px-3 file:rounded-md
+                                            file:border-0 file:text-xs file:font-semibold
+                                            file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+
+                                        <button type="submit"
+                                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-red-600 text-xs font-bold rounded shadow">
+                                            Enviar fotos
+                                        </button>
+                                    </form>
+
+                                    <p class="mt-2 text-[11px] text-gray-500">
+                                        As fotos serão vinculadas ao andamento mais recente.
+                                    </p>
+                                </div>
+                                @endif
+
+
                                 <ul role="list" class="-mb-8">
                                     @foreach($atendimento->andamentos as $index => $andamento)
                                     <li>
@@ -113,37 +147,15 @@
                                                         <p class="whitespace-pre-line">{{ $andamento->descricao }}</p>
                                                     </div>
 
-                                                    {{-- FORMULÁRIO DE ANEXO DENTRO DO ITEM --}}
-                                                    @if($atendimento->status_atual !== 'concluido')
-                                                    <div class="mt-3 border-t border-gray-100 pt-3">
-                                                        <form method="POST"
-                                                            action="{{ route('andamentos.fotos.store', $andamento) }}"
-                                                            enctype="multipart/form-data"
-                                                            class="flex items-center gap-2">
-                                                            @csrf
-                                                            <input type="file" name="fotos[]" multiple accept="image/*"
-                                                                class="block w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                                            <button type="submit"
-                                                                class="p-1.5 bg-gray-800 text-white rounded hover:bg-black transition">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                                    viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                        stroke-width="2"
-                                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                                                </svg>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                    @endif
 
                                                     {{-- EXIBIÇÃO DAS FOTOS --}}
                                                     @if($andamento->fotos->count())
                                                     <div class="mt-4">
                                                         <div class="flex flex-wrap gap-2">
                                                             @foreach($andamento->fotos as $foto)
-                                                            <a href="{{ asset('storage/'.$foto->arquivo) }}"
-                                                                target="_blank" class="block group">
-                                                                <img src="{{ asset('storage/'.$foto->arquivo) }}"
+                                                            <a href="{{ asset($foto->arquivo) }}" target="_blank"
+                                                                class="block group">
+                                                                <img src="{{ asset($foto->arquivo) }}"
                                                                     class="w-[85px] h-[85px] object-cover rounded-md border border-gray-200 shadow-sm group-hover:ring-2 group-hover:ring-blue-500 transition-all"
                                                                     alt="Anexo">
                                                             </a>
