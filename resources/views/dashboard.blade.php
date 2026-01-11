@@ -60,7 +60,43 @@
                 </div>
             </div>
 
-            {{-- CARD 4: RECEITA PREVISTA --}}
+            {{-- CARD 4: CLIENTES CONTRATO --}}
+            <div class="dashboard-card blue">
+                <div class="card-content">
+                    <div class="card-info">
+                        <p class="card-label">Clientes com Contrato</p>
+                        <p class="card-value blue">{{ $clientesContrato }}</p>
+                    </div>
+                    <div class="card-icon blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {{-- CARD 5: CLIENTES AVULSOS --}}
+            <div class="dashboard-card yellow">
+                <div class="card-content">
+                    <div class="card-info">
+                        <p class="card-label">Clientes Avulsos</p>
+                        <p class="card-value yellow">{{ $clientesAvulso }}</p>
+                    </div>
+                    <div class="card-icon yellow">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+
+
+            {{-- CARD 6: RECEITA PREVISTA --}}
             <div class="dashboard-card yellow">
                 <div class="card-content">
                     <div class="card-info">
@@ -80,7 +116,7 @@
                 </div>
             </div>
 
-            {{-- CARD 5: RECEITA REALIZADA --}}
+            {{-- CARD 7: RECEITA REALIZADA --}}
             <div class="dashboard-card green">
                 <div class="card-content">
                     <div class="card-info">
@@ -100,7 +136,7 @@
                 </div>
             </div>
 
-            {{-- CARD 6: COBRANÇAS GERADAS --}}
+            {{-- CARD 8: COBRANÇAS GERADAS --}}
             <div class="dashboard-card blue">
                 <div class="card-content">
                     <div class="card-info">
@@ -117,7 +153,7 @@
                 </div>
             </div>
 
-            {{-- CARD 7: BOLETOS NÃO BAIXADOS --}}
+            {{-- CARD 9: BOLETOS NÃO BAIXADOS --}}
             <div class="dashboard-card red">
                 <div class="card-content">
                     <div class="card-info">

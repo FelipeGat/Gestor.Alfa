@@ -19,6 +19,10 @@ class DashboardController extends Controller
         $clientesAtivos = Cliente::where('ativo', true)->count();
         $clientesInativos = Cliente::where('ativo', false)->count();
 
+        // Tipos de cliente
+        $clientesContrato = Cliente::where('tipo_cliente', 'CONTRATO')->count();
+        $clientesAvulso   = Cliente::where('tipo_cliente', 'AVULSO')->count();
+
         // Financeiro
         $receitaPrevista = Cobranca::whereMonth('data_vencimento', $mes)
             ->whereYear('data_vencimento', $ano)
@@ -41,6 +45,8 @@ class DashboardController extends Controller
             'totalClientes',
             'clientesAtivos',
             'clientesInativos',
+            'clientesContrato',
+            'clientesAvulso',
             'receitaPrevista',
             'receitaRealizada',
             'clientesComCobranca',
