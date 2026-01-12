@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\ResetPasswordNotification;
 use App\Models\Cliente;
+use App\Models\Perfil;
 
 /**
  * @property bool $primeiro_acesso
@@ -59,6 +59,23 @@ class User extends Authenticatable
         ];
     }
 
+    public function canPermissao(string $recurso, string $acao): bool
+    {
+        foreach ($this->perfis as $perfil) {
+            foreach ($perfil->permissoes as $permissao) {
+                if (
+                    $permissao->recurso === $recurso &&
+                    $permissao->pivot->{$acao}
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
@@ -67,5 +84,15 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function perfis()
+    {
+        return $this->belongsToMany(Perfil::class, 'perfil_user');
+    }
+
+    public function isAdminPanel(): bool
+    {
+        return $this->perfis()->whereIn('slug', ['admin', 'administrativo'])->exists();
     }
 }

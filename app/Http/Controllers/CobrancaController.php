@@ -6,11 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\Cobranca;
 use App\Models\Cliente;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CobrancaController extends Controller
 {
+
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('cobrancas', 'ler'),
+            403
+        );
+
         // 🔎 Filtros
         $clienteId = $request->cliente_id;
         $mes       = $request->mes;
@@ -91,7 +101,15 @@ class CobrancaController extends Controller
     }
 
         public function destroy(Cobranca $cobranca)
-            {
+        {
+        /** @var User $user */
+            $user = Auth::user();
+
+            abort_if(
+                !$user->canPermissao('cobrancas', 'excluir'),
+                403
+            );
+
                 // Exclui boleto vinculado (se existir)
                 if ($cobranca->boleto) {
                     $cobranca->boleto->delete();

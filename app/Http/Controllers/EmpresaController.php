@@ -4,11 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Empresa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class EmpresaController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('empresas', 'ler'),
+            403
+        );
+
         $query = Empresa::query();
 
         // Filtro por razão social ou nome fantasia
@@ -41,6 +51,15 @@ class EmpresaController extends Controller
 
     public function create()
     {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('empresas', 'incluir'),
+            403
+        );
+
         return view('empresas.create');
     }
 
@@ -69,6 +88,14 @@ class EmpresaController extends Controller
 
     public function edit(Empresa $empresa)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('empresas', 'incluir'),
+            403
+        );
+
         return view('empresas.edit', compact('empresa'));
     }
 
@@ -97,6 +124,14 @@ class EmpresaController extends Controller
 
     public function destroy(Empresa $empresa)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('empresas', 'excluir'),
+            403
+        );
+
         $empresa->delete();
 
         return redirect()

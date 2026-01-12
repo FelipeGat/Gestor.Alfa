@@ -4,11 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Assunto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AssuntoController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('assuntos', 'ler'),
+            403
+        );
+
         $query = Assunto::query();
 
         if ($request->filled('search')) {
@@ -23,9 +32,19 @@ class AssuntoController extends Controller
 
         return view('assuntos.index', compact('assuntos'));
     }
+    
 
     public function create()
     {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('assuntos', 'incluir'),
+            403
+        );
+
         return view('assuntos.create');
     }
 
@@ -46,6 +65,14 @@ class AssuntoController extends Controller
 
     public function edit(Assunto $assunto)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('assuntos', 'incluir'),
+            403
+        );
+
         return view('assuntos.edit', compact('assunto'));
     }
 
@@ -66,6 +93,15 @@ class AssuntoController extends Controller
 
     public function destroy(Assunto $assunto)
     {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('assuntos', 'excluir'),
+            403
+        );
+
         $assunto->delete();
 
         return redirect()->route('assuntos.index')

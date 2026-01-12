@@ -8,11 +8,19 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PrimeiroAcessoMail;
+use Illuminate\Support\Facades\Auth;
 
 class FuncionarioController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('funcionarios', 'ler'),
+            403
+        );
         $query = Funcionario::query();
 
         // Filtro por nome
@@ -40,6 +48,14 @@ class FuncionarioController extends Controller
 
     public function create()
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('funcionarios', 'incluir'),
+            403
+        );
+
         return view('funcionarios.create');
     }
 
@@ -90,6 +106,15 @@ class FuncionarioController extends Controller
 
     public function update(Request $request, Funcionario $funcionario)
     {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('funcionarios', 'incluir'),
+            403
+        );
+
         $request->validate([
             'nome' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($funcionario->user->id),],
@@ -111,6 +136,14 @@ class FuncionarioController extends Controller
 
     public function destroy(Funcionario $funcionario)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('funcionarios', 'excluir'),
+            403
+        );
+
         $funcionario->delete();
 
         return redirect()

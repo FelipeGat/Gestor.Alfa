@@ -8,11 +8,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PrimeiroAcessoMail;
+use Illuminate\Support\Facades\Auth;
 
 class ClienteController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('clientes', 'ler'),
+            403
+        );
+
         $query = Cliente::with(['emails', 'telefones']);
 
         // Filtro: nome ou e-mail
@@ -47,6 +56,14 @@ class ClienteController extends Controller
 
     public function create()
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('clientes', 'incluir'),
+            403
+        );
+
         return view('clientes.create');
     }
 
@@ -156,12 +173,29 @@ class ClienteController extends Controller
 
     public function edit(Cliente $cliente)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('clientes', 'incluir'),
+            403
+        );
+
         $cliente->load(['emails', 'telefones']);
         return view('clientes.edit', compact('cliente'));
     }
 
     public function update(Request $request, Cliente $cliente)
     {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('clientes', 'incluir'),
+            403
+        );
+
         $request->validate([
             'nome' => 'required|string|max:255',
             'valor_mensal' => 'required|numeric|min:0',
@@ -216,6 +250,14 @@ class ClienteController extends Controller
 
     public function destroy(Cliente $cliente)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->canPermissao('clientes', 'excluir'),
+            403
+        );
+
         // Soft delete do cliente
         $cliente->delete();
 

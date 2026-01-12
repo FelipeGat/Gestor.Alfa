@@ -29,18 +29,21 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var User $user */
+       /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // 🔁 Redirecionamento conforme tipo de usuário
-        return redirect()->intended(
-            $user->tipo === 'admin'
-                ? route('dashboard')
-                : ($user->tipo === 'cliente'
-                    ? route('portal.index')
-                    : route('portal-funcionario.dashboard'))
-        );
+        if ($user->isAdminPanel()) {
+            return redirect()->route('dashboard');
+        }
+
+        if ($user->tipo === 'cliente') {
+            return redirect()->route('portal.index');
+        }
+
+        return redirect()->route('portal-funcionario.dashboard');
+
     }
+
 
     /**
      * Destroy an authenticated session.

@@ -73,6 +73,18 @@ Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
     [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
     )->name('atendimentos.status.update');
 
+    Route::get('/teste-permissao', function () {
+         /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    return [
+        'clientes_ler' => $user->canPermissao('clientes', 'ler'),
+        'clientes_excluir' => $user->canPermissao('clientes', 'excluir'),
+        'empresas_ler' => $user->canPermissao('empresas', 'ler'),
+    ];
+    })->middleware('auth');
+
+
 
     // Upload de fotos
     Route::post(
@@ -186,12 +198,13 @@ Route::middleware('auth')->group(function () {
         ]);
 
         return redirect()->route(
-            $user->tipo === 'admin'
+            $user->isAdminPanel()
                 ? 'dashboard'
                 : ($user->tipo === 'cliente'
                     ? 'portal.index'
                     : 'portal-funcionario.dashboard')
         );
+
     })->name('password.first.store');
 });
 
