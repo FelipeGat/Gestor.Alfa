@@ -17,10 +17,16 @@ class AdminMiddleware
         /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->isAdminPanel()) {
-            abort(403, 'Acesso não autorizado.');
+        // ADMIN tem acesso total
+        if ($user->tipo === 'admin') {
+            return $next($request);
         }
 
-        return $next($request);
+        // Administrativo precisa ter perfil válido
+        if ($user->isAdminPanel()) {
+            return $next($request);
+        }
+
+        abort(403, 'Acesso não autorizado.');
     }
 }

@@ -1,3 +1,11 @@
+@php
+abort_if(
+!auth()->user()->canPermissao('clientes', 'incluir'),
+403,
+'Acesso não autorizado'
+);
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -5,7 +13,7 @@
         </h2>
     </x-slot>
 
-    {{-- JS EXISTENTE (mantido) --}}
+    {{-- ================= JS (MANTIDO) ================= --}}
     <script>
     function addEmail() {
         document.getElementById('emails').insertAdjacentHTML(
@@ -39,13 +47,7 @@
                 e.target.value = v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
             }
         }
-    });
-    </script>
 
-    <script>
-    document.addEventListener('input', function(e) {
-
-        // CPF / CNPJ
         if (e.target.name === 'cpf_cnpj') {
             let v = e.target.value.replace(/\D/g, '');
 
@@ -63,34 +65,23 @@
             }
         }
 
-        // CEP
         if (e.target.name === 'cep') {
             let v = e.target.value.replace(/\D/g, '');
             e.target.value = v.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
         }
     });
-    </script>
 
-    <script>
     function toggleContrato() {
         const tipo = document.querySelector('[name="tipo_cliente"]').value;
         const bloco = document.getElementById('bloco-contrato');
-
-        if (tipo === 'AVULSO') {
-            bloco.style.display = 'none';
-        } else {
-            bloco.style.display = 'grid';
-        }
+        bloco.style.display = (tipo === 'AVULSO') ? 'none' : 'grid';
     }
 
     document.addEventListener('DOMContentLoaded', toggleContrato);
     document.addEventListener('change', function(e) {
-        if (e.target.name === 'tipo_cliente') {
-            toggleContrato();
-        }
+        if (e.target.name === 'tipo_cliente') toggleContrato();
     });
     </script>
-
 
     <div class="py-12">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
@@ -115,7 +106,6 @@
                         <h3 class="font-semibold text-gray-800 mb-4">Dados Básicos</h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {{-- Tipo Pessoa --}}
                             <div>
                                 <label class="block text-sm font-medium">Tipo de Pessoa</label>
                                 <select name="tipo_pessoa" class="w-full rounded border-gray-300" required>
@@ -125,14 +115,12 @@
                                 </select>
                             </div>
 
-                            {{-- CPF / CNPJ --}}
                             <div>
                                 <label class="block text-sm font-medium">CPF / CNPJ</label>
                                 <input type="text" name="cpf_cnpj" value="{{ old('cpf_cnpj') }}"
                                     class="w-full rounded border-gray-300" required>
                             </div>
 
-                            {{-- Data Cadastro --}}
                             <div>
                                 <label class="block text-sm font-medium">Data de Cadastro</label>
                                 <input type="date" name="data_cadastro"
@@ -160,10 +148,8 @@
                     <div class="mb-8">
                         <h3 class="font-semibold text-gray-800 mb-4">Contatos</h3>
 
-                        {{-- Emails --}}
                         <div class="mb-4">
                             <label class="block font-medium text-gray-700">Emails</label>
-
                             <div id="emails">
                                 <div class="flex items-center gap-2 mb-2">
                                     <input type="email" name="emails[]" class="border w-full rounded" required>
@@ -171,16 +157,13 @@
                                     <span class="text-sm">Principal</span>
                                 </div>
                             </div>
-
                             <button type="button" onclick="addEmail()" class="text-sm text-blue-600 mt-1">
                                 + Adicionar email
                             </button>
                         </div>
 
-                        {{-- Telefones --}}
                         <div>
                             <label class="block font-medium text-gray-700">Telefones</label>
-
                             <div id="telefones">
                                 <div class="flex items-center gap-2 mb-2">
                                     <input type="text" name="telefones[]" class="border w-full telefone rounded">
@@ -188,7 +171,6 @@
                                     <span class="text-sm">Principal</span>
                                 </div>
                             </div>
-
                             <button type="button" onclick="addTelefone()" class="text-sm text-blue-600 mt-1">
                                 + Adicionar telefone
                             </button>
@@ -202,13 +184,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <input type="text" name="cep" placeholder="CEP" value="{{ old('cep') }}"
                                 class="rounded border-gray-300">
-
                             <input type="text" name="logradouro" placeholder="Logradouro"
                                 value="{{ old('logradouro') }}" class="rounded border-gray-300">
-
                             <input type="text" name="numero" placeholder="Nº" value="{{ old('numero') }}"
                                 class="rounded border-gray-300">
-
                             <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade') }}"
                                 class="rounded border-gray-300">
                         </div>
@@ -274,7 +253,7 @@
                             Voltar
                         </a>
 
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-blue-600 rounded text-sm">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">
                             Salvar
                         </button>
                     </div>

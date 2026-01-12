@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PrimeiroAcessoMail;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\PrimeiroAcessoMail;
 
 class ClienteController extends Controller
 {
@@ -18,38 +18,30 @@ class ClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
+            !$user->isAdminPanel() &&
             !$user->canPermissao('clientes', 'ler'),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
         $query = Cliente::with(['emails', 'telefones']);
 
-        // Filtro: nome ou e-mail
         if ($request->filled('search')) {
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
-                ->orWhereHas('emails', function ($emailQuery) use ($search) {
-                    $emailQuery->where('valor', 'like', "%{$search}%");
-                });
+                  ->orWhereHas('emails', function ($emailQuery) use ($search) {
+                      $emailQuery->where('valor', 'like', "%{$search}%");
+                  });
             });
         }
 
-        // Filtro: status
         if ($request->filled('status')) {
-            if ($request->status === 'ativo') {
-                $query->where('ativo', true);
-            }
-
-            if ($request->status === 'inativo') {
-                $query->where('ativo', false);
-            }
+            $query->where('ativo', $request->status === 'ativo');
         }
 
-        $clientes = $query
-            ->orderBy('nome')
-            ->get();
+        $clientes = $query->orderBy('nome')->get();
 
         return view('clientes.index', compact('clientes'));
     }
@@ -60,8 +52,10 @@ class ClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
+            !$user->isAdminPanel() &&
             !$user->canPermissao('clientes', 'incluir'),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
         return view('clientes.create');
@@ -69,64 +63,60 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() &&
+            !$user->canPermissao('clientes', 'incluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
         $request->validate([
-        // Básicos
-        'tipo_pessoa'  => 'required|in:PF,PJ',
-        'cpf_cnpj'     => 'required|string|unique:clientes,cpf_cnpj',
-        'nome'         => 'required|string|max:255',
-        'razao_social' => 'nullable|string|max:255',
-        'nome_fantasia'=> 'nullable|string|max:255',
-        'tipo_cliente' => 'required|in:CONTRATO,AVULSO',
-        'data_cadastro'=> 'required|date',
+            'tipo_pessoa'   => 'required|in:PF,PJ',
+            'cpf_cnpj'      => 'required|string|unique:clientes,cpf_cnpj',
+            'nome'          => 'required|string|max:255',
+            'nome_fantasia' => 'nullable|string|max:255',
+            'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
+            'data_cadastro' => 'required|date',
 
-        // Endereço
-        'cep'          => 'nullable|string|max:20',
-        'logradouro'   => 'nullable|string|max:255',
-        'numero'       => 'nullable|string|max:20',
-        'complemento'  => 'nullable|string|max:255',
-        'cidade'       => 'nullable|string|max:255',
+            'cep'           => 'nullable|string|max:20',
+            'logradouro'    => 'nullable|string|max:255',
+            'numero'        => 'nullable|string|max:20',
+            'complemento'   => 'nullable|string|max:255',
+            'cidade'        => 'nullable|string|max:255',
 
-        // Financeiro (somente contrato)
-        'valor_mensal'   => 'nullable|numeric|min:0',
-        'dia_vencimento' => 'nullable|integer|min:1|max:28',
+            'valor_mensal'   => 'nullable|numeric|min:0',
+            'dia_vencimento' => 'nullable|integer|min:1|max:28',
 
-        // Contatos
-        'emails'        => 'required|array|min:1',
-        'emails.*'      => 'required|email',
+            'emails'      => 'required|array|min:1',
+            'emails.*'    => 'required|email',
 
-        'telefones'     => 'nullable|array',
-        'telefones.*'   => 'nullable|string|max:50',
+            'telefones'   => 'nullable|array',
+            'telefones.*' => 'nullable|string|max:50',
 
-        'observacoes'   => 'nullable|string',
-    ]);
-
-
-        // Cria o cliente
-        $cliente = Cliente::create([
-            'nome'          => $request->nome,
-            'ativo'         => $request->ativo ?? true,
-            'tipo_pessoa'   => $request->tipo_pessoa,
-            'cpf_cnpj'      => preg_replace('/\D/', '', $request->cpf_cnpj),
-            'razao_social'  => $request->razao_social,
-            'nome_fantasia' => $request->nome_fantasia,
-            'tipo_cliente'  => $request->tipo_cliente,
-            'data_cadastro' => $request->data_cadastro,
-            'cep'           => $request->cep,
-            'logradouro'    => $request->logradouro,
-            'numero'        => $request->numero,
-            'complemento'   => $request->complemento,
-            'cidade'        => $request->cidade,
-            'valor_mensal'   => $request->tipo_cliente === 'CONTRATO'
-                ? $request->valor_mensal
-                : null,
-            'dia_vencimento' => $request->tipo_cliente === 'CONTRATO'
-                ? $request->dia_vencimento
-                : null,
-            'observacoes'   => $request->observacoes,
+            'observacoes' => 'nullable|string',
         ]);
 
+        $cliente = Cliente::create([
+            'nome'           => $request->nome,
+            'ativo'          => $request->ativo ?? true,
+            'tipo_pessoa'    => $request->tipo_pessoa,
+            'cpf_cnpj'       => preg_replace('/\D/', '', $request->cpf_cnpj),
+            'nome_fantasia'  => $request->nome_fantasia,
+            'tipo_cliente'   => $request->tipo_cliente,
+            'data_cadastro'  => $request->data_cadastro,
+            'cep'            => $request->cep,
+            'logradouro'     => $request->logradouro,
+            'numero'         => $request->numero,
+            'complemento'    => $request->complemento,
+            'cidade'         => $request->cidade,
+            'valor_mensal'   => $request->tipo_cliente === 'CONTRATO' ? $request->valor_mensal : null,
+            'dia_vencimento' => $request->tipo_cliente === 'CONTRATO' ? $request->dia_vencimento : null,
+            'observacoes'    => $request->observacoes,
+        ]);
 
-        // Salva os emails
         foreach ($request->emails as $i => $email) {
             $cliente->emails()->create([
                 'valor'     => $email,
@@ -134,7 +124,6 @@ class ClienteController extends Controller
             ]);
         }
 
-        // Salva os telefones
         if ($request->filled('telefones')) {
             foreach ($request->telefones as $i => $telefone) {
                 $cliente->telefones()->create([
@@ -144,30 +133,21 @@ class ClienteController extends Controller
             }
         }
 
-        // Recupera email principal
-        $emailPrincipal = $cliente->emails()
-            ->where('principal', true)
-            ->first();
+        $emailPrincipal = $cliente->emails()->where('principal', true)->first()
+            ?? $cliente->emails()->first();
 
-        if (!$emailPrincipal) {
-            $emailPrincipal = $cliente->emails()->first();
-        }
-
-        // Cria usuário do cliente
-        $user = User::create([
+        $userCliente = User::create([
             'name'            => $cliente->nome,
             'email'           => $emailPrincipal->valor,
-            'password'        => bcrypt(Str::random(40)), // senha temporária
+            'password'        => bcrypt(Str::random(40)),
             'tipo'            => 'cliente',
             'cliente_id'      => $cliente->id,
             'primeiro_acesso' => true,
         ]);
 
-        // Envia e-mail de primeiro acesso
-        Mail::to($user->email)->send(new PrimeiroAcessoMail($user));
+        Mail::to($userCliente->email)->send(new PrimeiroAcessoMail($userCliente));
 
-        return redirect()
-            ->route('clientes.index')
+        return redirect()->route('clientes.index')
             ->with('success', 'Cliente cadastrado com sucesso!');
     }
 
@@ -177,76 +157,67 @@ class ClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('clientes', 'incluir'),
-            403
+            !$user->isAdminPanel() &&
+            !$user->canPermissao('clientes', 'editar'),
+            403,
+            'Acesso não autorizado'
         );
 
         $cliente->load(['emails', 'telefones']);
+
         return view('clientes.edit', compact('cliente'));
     }
 
     public function update(Request $request, Cliente $cliente)
     {
-
         /** @var User $user */
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('clientes', 'incluir'),
-            403
+            !$user->isAdminPanel() &&
+            !$user->canPermissao('clientes', 'editar'),
+            403,
+            'Acesso não autorizado'
         );
 
         $request->validate([
-            'nome' => 'required|string|max:255',
-            'valor_mensal' => 'required|numeric|min:0',
-            'dia_vencimento' => 'required|integer|min:1|max:28',
-
-            'emails' => 'required|array|min:1',
-            'emails.*' => 'nullable|email',
-
-            'telefones' => 'nullable|array',
-            'telefones.*' => 'nullable|string|max:50',
+            'nome'           => 'required|string|max:255',
+            'valor_mensal'   => 'nullable|numeric|min:0',
+            'dia_vencimento' => 'nullable|integer|min:1|max:28',
+            'emails'         => 'required|array|min:1',
+            'emails.*'       => 'required|email',
         ]);
 
-        // Atualiza cliente (CORRETO)
-        $cliente->update([
-            'nome'           => $request->nome,
-            'ativo'          => $request->boolean('ativo'),
-            'valor_mensal'   => $request->valor_mensal,
-            'dia_vencimento' => $request->dia_vencimento,
-        ]);
+        $cliente->update($request->only([
+            'nome',
+            'ativo',
+            'valor_mensal',
+            'dia_vencimento',
+            'observacoes'
+        ]));
 
-        // Remove contatos antigos
         $cliente->emails()->delete();
         $cliente->telefones()->delete();
 
-        // Recria emails
-        foreach ($request->emails as $id => $email) {
-            if (!$email) continue;
-
+        foreach ($request->emails as $i => $email) {
             $cliente->emails()->create([
                 'valor'     => $email,
-                'principal' => ($request->email_principal == $id),
+                'principal' => ($request->email_principal == $i),
             ]);
         }
 
-        // Recria telefones
         if ($request->filled('telefones')) {
-            foreach ($request->telefones as $id => $telefone) {
-                if (!$telefone) continue;
-
+            foreach ($request->telefones as $i => $telefone) {
                 $cliente->telefones()->create([
                     'valor'     => $telefone,
-                    'principal' => ($request->telefone_principal == $id),
+                    'principal' => ($request->telefone_principal == $i),
                 ]);
             }
         }
 
-        return redirect()
-            ->route('clientes.index')
+        return redirect()->route('clientes.index')
             ->with('success', 'Cliente atualizado com sucesso!');
     }
-
 
     public function destroy(Cliente $cliente)
     {
@@ -254,15 +225,15 @@ class ClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
+            !$user->isAdminPanel() &&
             !$user->canPermissao('clientes', 'excluir'),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
-        // Soft delete do cliente
         $cliente->delete();
 
-        return redirect()
-            ->route('clientes.index')
+        return redirect()->route('clientes.index')
             ->with('success', 'Cliente excluído com sucesso!');
     }
 }

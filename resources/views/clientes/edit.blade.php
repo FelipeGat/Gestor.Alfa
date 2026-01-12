@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    {{-- JS EXISTENTE (mantido) --}}
+    {{-- ================= JS (MANTIDO) ================= --}}
     <script>
     function addEmail() {
         document.getElementById('emails').insertAdjacentHTML(
@@ -39,13 +39,7 @@
                 e.target.value = v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
             }
         }
-    });
-    </script>
 
-    <script>
-    document.addEventListener('input', function(e) {
-
-        // CPF / CNPJ
         if (e.target.name === 'cpf_cnpj') {
             let v = e.target.value.replace(/\D/g, '');
 
@@ -63,35 +57,23 @@
             }
         }
 
-        // CEP
         if (e.target.name === 'cep') {
             let v = e.target.value.replace(/\D/g, '');
             e.target.value = v.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
         }
     });
-    </script>
 
-    <script>
     function toggleContrato() {
         const tipo = document.querySelector('[name="tipo_cliente"]').value;
         const bloco = document.getElementById('bloco-contrato');
-
-        if (tipo === 'AVULSO') {
-            bloco.style.display = 'none';
-        } else {
-            bloco.style.display = 'grid';
-        }
+        bloco.style.display = (tipo === 'AVULSO') ? 'none' : 'grid';
     }
 
     document.addEventListener('DOMContentLoaded', toggleContrato);
     document.addEventListener('change', function(e) {
-        if (e.target.name === 'tipo_cliente') {
-            toggleContrato();
-        }
+        if (e.target.name === 'tipo_cliente') toggleContrato();
     });
     </script>
-
-
 
     <div class="py-12">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
@@ -161,10 +143,8 @@
                     <div class="mb-8">
                         <h3 class="font-semibold text-gray-800 mb-4">Contatos</h3>
 
-                        {{-- Emails --}}
                         <div class="mb-4">
                             <label class="block font-medium text-gray-700">Emails</label>
-
                             <div id="emails">
                                 @foreach($cliente->emails as $i => $email)
                                 <div class="flex items-center gap-2 mb-2">
@@ -182,10 +162,8 @@
                             </button>
                         </div>
 
-                        {{-- Telefones --}}
                         <div>
                             <label class="block font-medium text-gray-700">Telefones</label>
-
                             <div id="telefones">
                                 @foreach($cliente->telefones as $i => $telefone)
                                 <div class="flex items-center gap-2 mb-2">
@@ -209,27 +187,24 @@
                         <h3 class="font-semibold text-gray-800 mb-4">Endereço</h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <input type="text" name="cep" placeholder="CEP" value="{{ old('cep', $cliente->cep) }}"
+                            <input type="text" name="cep" value="{{ old('cep', $cliente->cep) }}" placeholder="CEP"
                                 class="rounded border-gray-300">
-
-                            <input type="text" name="logradouro" placeholder="Logradouro"
-                                value="{{ old('logradouro', $cliente->logradouro) }}" class="rounded border-gray-300">
-
-                            <input type="text" name="numero" placeholder="Nº"
-                                value="{{ old('numero', $cliente->numero) }}" class="rounded border-gray-300">
-
-                            <input type="text" name="cidade" placeholder="Cidade"
-                                value="{{ old('cidade', $cliente->cidade) }}" class="rounded border-gray-300">
+                            <input type="text" name="logradouro" value="{{ old('logradouro', $cliente->logradouro) }}"
+                                placeholder="Logradouro" class="rounded border-gray-300">
+                            <input type="text" name="numero" value="{{ old('numero', $cliente->numero) }}"
+                                placeholder="Nº" class="rounded border-gray-300">
+                            <input type="text" name="cidade" value="{{ old('cidade', $cliente->cidade) }}"
+                                placeholder="Cidade" class="rounded border-gray-300">
                         </div>
 
                         <div class="mt-4">
-                            <input type="text" name="complemento" placeholder="Complemento"
-                                value="{{ old('complemento', $cliente->complemento) }}"
+                            <input type="text" name="complemento"
+                                value="{{ old('complemento', $cliente->complemento) }}" placeholder="Complemento"
                                 class="w-full rounded border-gray-300">
                         </div>
                     </div>
 
-                    {{-- ================= INFORMAÇÕES ================= --}}
+                    {{-- ================= CONTRATO ================= --}}
                     <div class="mb-8">
                         <h3 class="font-semibold text-gray-800 mb-4">Informações do Cliente</h3>
 
@@ -285,7 +260,7 @@
                             Cancelar
                         </a>
 
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-green-600 rounded text-sm">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">
                             Atualizar
                         </button>
                     </div>

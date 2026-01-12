@@ -5,6 +5,7 @@
 
             <!-- Left side -->
             <div class="flex">
+
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     @if(auth()->user()->isAdminPanel())
@@ -164,7 +165,9 @@
             @endif
 
             @if(Auth::user()->tipo === 'cliente')
-            <x-responsive-nav-link :href="route('portal.index')">Meus Boletos</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('portal.index')">
+                Meus Boletos
+            </x-responsive-nav-link>
             @endif
 
             @if(Auth::user()->tipo === 'funcionario')

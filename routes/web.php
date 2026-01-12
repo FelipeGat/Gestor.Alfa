@@ -31,7 +31,7 @@ Route::get('/', function () {
 | ÁREA ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin', 'primeiro_acesso'])->group(function () {
+Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
