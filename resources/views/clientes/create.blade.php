@@ -5,37 +5,70 @@
         </h2>
     </x-slot>
 
-    {{-- ================= JS (MANTIDO) ================= --}}
+    {{-- ================= ESTILO SPINNER ================= --}}
+    <style>
+    .cnpj-spinner {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #cbd5e1;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    </style>
+
+
+    {{-- ================= JS ================= --}}
     <script>
+    /*    ADIÇÃO DINÂICA DE EMAILS  */
+
     function addEmail() {
         document.getElementById('emails').insertAdjacentHTML(
             'beforeend',
-            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
-                    <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
-                    <div class="flex items-center gap-2 whitespace-nowrap">
-                        <input type="radio" name="email_principal" class="rounded">
-                        <span class="text-sm text-gray-600">Principal</span>
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
-                </div>`
+            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+            <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
+            <div class="flex items-center gap-2 whitespace-nowrap">
+                <input type="radio" name="email_principal" value="1" class="rounded text-blue-600">
+                <span class="text-sm text-gray-600">Principal</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                Remover
+            </button>
+        </div>`
         );
     }
 
+    /* =========================
+       ADIÇÃO DINÂICA DE TELEFONES
+    ========================= */
     function addTelefone() {
         document.getElementById('telefones').insertAdjacentHTML(
             'beforeend',
-            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
-                    <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                    <div class="flex items-center gap-2 whitespace-nowrap">
-                        <input type="radio" name="telefone_principal" class="rounded">
-                        <span class="text-sm text-gray-600">Principal</span>
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
-                </div>`
+            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+            <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+            <div class="flex items-center gap-2 whitespace-nowrap">
+                <input type="radio" name="telefone_principal" value="1" class="rounded text-blue-600">
+                <span class="text-sm text-gray-600">Principal</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                Remover
+            </button>
+        </div>`
         );
     }
 
+    /* =========================
+       MÁSCARAS (INPUT)
+    ========================= */
     document.addEventListener('input', function(e) {
+
+        // Telefone
         if (e.target.classList.contains('telefone')) {
             let v = e.target.value.replace(/\D/g, '');
             e.target.value = v.length <= 10 ?
@@ -43,6 +76,7 @@
                 v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
         }
 
+        // CPF / CNPJ
         if (e.target.name === 'cpf_cnpj') {
             let v = e.target.value.replace(/\D/g, '');
             e.target.value = v.length <= 11 ?
@@ -55,23 +89,160 @@
                 .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
         }
 
+        // CEP
         if (e.target.name === 'cep') {
             let v = e.target.value.replace(/\D/g, '');
             e.target.value = v.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
         }
     });
 
+    /* =========================
+       TOGGLE CONTRATO
+    ========================= */
     function toggleContrato() {
-        const tipo = document.querySelector('[name="tipo_cliente"]').value;
-        document.getElementById('bloco-contrato').style.display =
-            tipo === 'AVULSO' ? 'none' : 'block';
+        const tipo = document.querySelector('[name="tipo_cliente"]')?.value;
+        const bloco = document.getElementById('bloco-contrato');
+        if (!bloco) return;
+
+        bloco.style.display = tipo === 'AVULSO' ? 'none' : 'block';
     }
 
     document.addEventListener('DOMContentLoaded', toggleContrato);
     document.addEventListener('change', e => {
         if (e.target.name === 'tipo_cliente') toggleContrato();
     });
+
+
+    /* =========================
+    STATUS VISUAL CNPJ
+    ========================= */
+    const cnpjStatusEl = () => document.getElementById('cnpj-status');
+
+    function setCnpjLoading() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `<div class="cnpj-spinner"></div>`;
+    }
+
+    function setCnpjSuccess() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 13l4 4L19 7"/>
+            </svg>
+        `;
+    }
+
+    function setCnpjError() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        `;
+    }
+
+    function clearCnpjStatus() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.add('hidden');
+        el.innerHTML = '';
+    }
+
+
+    /* =========================
+       BUSCAR CNPJ (RECEITA)
+    ========================= */
+    async function buscarCNPJ(cnpj) {
+        cnpj = cnpj.replace(/\D/g, '');
+
+        // ignora CPF
+        if (cnpj.length !== 14) {
+            clearCnpjStatus();
+            return;
+        }
+
+        setCnpjLoading();
+
+        try {
+            const response = await fetch(`/api/cnpj/${cnpj}`);
+            const data = await response.json();
+
+            if (data.status === 'ERROR') {
+                setCnpjError();
+                return;
+            }
+
+            document.querySelector('[name="nome"]').value = data.nome || '';
+            document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
+            document.querySelector('[name="cep"]').value = data.cep || '';
+            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+            document.querySelector('[name="numero"]').value = data.numero || '';
+            document.querySelector('[name="bairro"]').value = data.bairro || '';
+            document.querySelector('[name="cidade"]').value = data.municipio || '';
+            document.querySelector('[name="estado"]').value = data.uf || '';
+
+            if (data.cep) {
+                buscarCEP(data.cep.replace(/\D/g, ''));
+            }
+
+            setCnpjSuccess();
+
+        } catch (error) {
+            console.error(error);
+            setCnpjError();
+        }
+    }
+
+
+    /* =========================
+       BUSCAR CEP (VIACEP)
+    ========================= */
+    async function buscarCEP(cep) {
+        cep = cep.replace(/\D/g, '');
+
+        if (cep.length !== 8) return;
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+
+            if (data.erro) {
+                console.warn('CEP não encontrado');
+                return;
+            }
+
+            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+            document.querySelector('[name="bairro"]').value = data.bairro || '';
+            document.querySelector('[name="cidade"]').value = data.localidade || '';
+            document.querySelector('[name="estado"]').value = data.uf || '';
+
+        } catch (error) {
+            console.error('Erro ao consultar CEP', error);
+        }
+    }
+
+    /* =========================
+       DISPARO AUTOMÁTICO (BLUR)
+    ========================= */
+    document.addEventListener('blur', function(e) {
+        if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
+        if (e.target.name === 'cep') buscarCEP(e.target.value);
+    }, true);
     </script>
+
+
 
     <div class="py-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -127,13 +298,22 @@
                             </select>
                         </div>
 
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CPF / CNPJ <span
-                                    class="text-red-500">*</span></label>
-                            <input type="text" name="cpf_cnpj"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                                placeholder="000.000.000-00" required>
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                CPF / CNPJ <span class="text-red-500">*</span>
+                            </label>
+
+                            <input type="text" name="cpf_cnpj" class="w-full rounded-lg border border-gray-300 shadow-sm
+                            focus:border-blue-500 focus:ring-blue-500 px-3 py-2 pr-10" placeholder="000.000.000-00"
+                                required>
+
+                            {{-- Loading / Status --}}
+                            <div id="cnpj-status"
+                                class="absolute inset-0 flex items-center justify-center pointer-events-none hidden">
+                                <!-- conteúdo dinâmico -->
+                            </div>
                         </div>
+
 
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data de Cadastro <span
@@ -342,9 +522,9 @@
                 </div>
 
                 {{-- AÇÕES --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 bg-red shadow rounded-lg p-6 sm:p-8">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 bg-white shadow rounded-lg p-6 sm:p-8">
                     <a href="{{ route('clientes.index') }}"
-                        class="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-red font-medium hover:bg-gray-50 transition duration-200">
+                        class="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -359,7 +539,6 @@
                         </svg>
                         Salvar Cliente
                     </button>
-                </div>
 
             </form>
         </div>

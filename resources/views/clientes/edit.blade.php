@@ -5,62 +5,74 @@
         </h2>
     </x-slot>
 
-    {{-- ================= JS (MANTIDO) ================= --}}
+    {{-- ================= ESTILO SPINNER ================= --}}
+    <style>
+    .cnpj-spinner {
+        width: 36px;
+        height: 36px;
+        border: 4px solid #cbd5e1;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    </style>
+
+    {{-- ================= JS ================= --}}
     <script>
+    /* =========================
+           ADIÇÃO DINÂMICA
+        ========================= */
     function addEmail() {
-        document.getElementById('emails').insertAdjacentHTML(
-            'beforeend',
-            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
-                    <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
-                    <div class="flex items-center gap-2 whitespace-nowrap">
-                        <input type="radio" name="email_principal" class="rounded">
-                        <span class="text-sm text-gray-600">Principal</span>
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
-                </div>`
-        );
+        document.getElementById('emails').insertAdjacentHTML('beforeend', `
+                <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
+                    <input type="email" name="emails[]" class="w-full sm:flex-1 rounded-md border px-3 py-2" required>
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="radio" name="email_principal" class="rounded text-blue-600"> Principal
+                    </label>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
+                </div>
+            `);
     }
 
     function addTelefone() {
-        document.getElementById('telefones').insertAdjacentHTML(
-            'beforeend',
-            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
-                    <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                    <div class="flex items-center gap-2 whitespace-nowrap">
-                        <input type="radio" name="telefone_principal" class="rounded">
-                        <span class="text-sm text-gray-600">Principal</span>
-                    </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
-                </div>`
-        );
+        document.getElementById('telefones').insertAdjacentHTML('beforeend', `
+                <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
+                    <input type="text" name="telefones[]" class="telefone w-full sm:flex-1 rounded-md border px-3 py-2">
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="radio" name="telefone_principal" class="rounded text-blue-600"> Principal
+                    </label>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
+                </div>
+            `);
     }
 
-    document.addEventListener('input', function(e) {
+    /* =========================
+       MÁSCARAS
+    ========================= */
+    document.addEventListener('input', e => {
         if (e.target.classList.contains('telefone')) {
             let v = e.target.value.replace(/\D/g, '');
-
-            if (v.length <= 10) {
-                e.target.value = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-            } else {
-                e.target.value = v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
-            }
+            e.target.value = v.length <= 10 ?
+                v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
         }
 
         if (e.target.name === 'cpf_cnpj') {
             let v = e.target.value.replace(/\D/g, '');
-
-            if (v.length <= 11) {
-                e.target.value = v
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            } else {
-                e.target.value = v
-                    .replace(/(\d{2})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1/$2')
-                    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-            }
+            e.target.value = v.length <= 11 ?
+                v.replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2') :
+                v.replace(/(\d{2})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1/$2')
+                .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
         }
 
         if (e.target.name === 'cep') {
@@ -69,16 +81,144 @@
         }
     });
 
+    /* =========================
+       TOGGLE CONTRATO
+    ========================= */
     function toggleContrato() {
-        const tipo = document.querySelector('[name="tipo_cliente"]').value;
+        const tipo = document.querySelector('[name="tipo_cliente"]')?.value;
         const bloco = document.getElementById('bloco-contrato');
-        bloco.style.display = (tipo === 'AVULSO') ? 'none' : 'block';
+        if (bloco) bloco.style.display = tipo === 'AVULSO' ? 'none' : 'block';
     }
-
     document.addEventListener('DOMContentLoaded', toggleContrato);
-    document.addEventListener('change', function(e) {
+    document.addEventListener('change', e => {
         if (e.target.name === 'tipo_cliente') toggleContrato();
     });
+
+    /* =========================
+    STATUS VISUAL CNPJ
+    ========================= */
+    const cnpjStatusEl = () => document.getElementById('cnpj-status');
+
+    function setCnpjLoading() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `<div class="cnpj-spinner"></div>`;
+    }
+
+    function setCnpjSuccess() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 13l4 4L19 7"/>
+            </svg>
+        `;
+    }
+
+    function setCnpjError() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.remove('hidden');
+        el.innerHTML = `
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        `;
+    }
+
+    function clearCnpjStatus() {
+        const el = cnpjStatusEl();
+        if (!el) return;
+
+        el.classList.add('hidden');
+        el.innerHTML = '';
+    }
+
+    /* =========================
+       BUSCAR CNPJ (RECEITA)
+    ========================= */
+    async function buscarCNPJ(cnpj) {
+        cnpj = cnpj.replace(/\D/g, '');
+
+        // ignora CPF
+        if (cnpj.length !== 14) {
+            clearCnpjStatus();
+            return;
+        }
+
+        setCnpjLoading();
+
+        try {
+            const response = await fetch(`/api/cnpj/${cnpj}`);
+            const data = await response.json();
+
+            if (data.status === 'ERROR') {
+                setCnpjError();
+                return;
+            }
+
+            document.querySelector('[name="nome"]').value = data.nome || '';
+            document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
+            document.querySelector('[name="cep"]').value = data.cep || '';
+            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+            document.querySelector('[name="numero"]').value = data.numero || '';
+            document.querySelector('[name="bairro"]').value = data.bairro || '';
+            document.querySelector('[name="cidade"]').value = data.municipio || '';
+            document.querySelector('[name="estado"]').value = data.uf || '';
+
+            if (data.cep) {
+                buscarCEP(data.cep.replace(/\D/g, ''));
+            }
+
+            setCnpjSuccess();
+
+        } catch (error) {
+            console.error(error);
+            setCnpjError();
+        }
+    }
+
+    /* =========================
+       BUSCAR CEP (VIACEP)
+    ========================= */
+    async function buscarCEP(cep) {
+        cep = cep.replace(/\D/g, '');
+
+        if (cep.length !== 8) return;
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+
+            if (data.erro) {
+                console.warn('CEP não encontrado');
+                return;
+            }
+
+            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+            document.querySelector('[name="bairro"]').value = data.bairro || '';
+            document.querySelector('[name="cidade"]').value = data.localidade || '';
+            document.querySelector('[name="estado"]').value = data.uf || '';
+
+        } catch (error) {
+            console.error('Erro ao consultar CEP', error);
+        }
+    }
+
+    /* =========================
+       DISPARO AUTOMÁTICO (BLUR)
+    ========================= */
+    document.addEventListener('blur', function(e) {
+        if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
+        if (e.target.name === 'cep') buscarCEP(e.target.value);
+    }, true);
     </script>
 
     <div class="py-8">

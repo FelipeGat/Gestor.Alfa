@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\PrimeiroAcessoMail;
+use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
@@ -73,37 +74,47 @@ class ClienteController extends Controller
             'Acesso não autorizado'
         );
 
-        $request->validate([
-            'tipo_pessoa'   => 'required|in:PF,PJ',
-            'cpf_cnpj'      => 'required|string|unique:clientes,cpf_cnpj',
-            'nome'          => 'required|string|max:255',
-            'nome_fantasia' => 'nullable|string|max:255',
-            'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
-            'data_cadastro' => 'required|date',
+        $request->validate(
+            [
+                'tipo_pessoa'   => 'required|in:PF,PJ',
+                'cpf_cnpj'      => [
+                    'required',
+                    'string',
+                    Rule::unique('clientes', 'cpf_cnpj'),
+                ],
+                'nome'          => 'required|string|max:255',
+                'nome_fantasia' => 'nullable|string|max:255',
+                'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
+                'data_cadastro' => 'required|date',
 
-            'cep'           => 'nullable|string|max:20',
-            'logradouro'    => 'nullable|string|max:255',
-            'numero'        => 'nullable|string|max:20',
-            'complemento'   => 'nullable|string|max:255',
-            'cidade'        => 'nullable|string|max:255',
-            'bairro'        => 'nullable|string|max:255',
-            'estado'        => 'nullable|string|max:2',
+                'cep'           => 'nullable|string|max:20',
+                'logradouro'    => 'nullable|string|max:255',
+                'numero'        => 'nullable|string|max:20',
+                'complemento'   => 'nullable|string|max:255',
+                'cidade'        => 'nullable|string|max:255',
+                'bairro'        => 'nullable|string|max:255',
+                'estado'        => 'nullable|string|max:2',
 
-            'inscricao_estadual'   => 'nullable|string|max:50',
-            'inscricao_municipal' => 'nullable|string|max:50',
+                'inscricao_estadual'   => 'nullable|string|max:50',
+                'inscricao_municipal' => 'nullable|string|max:50',
 
-            'valor_mensal'   => 'nullable|numeric|min:0',
-            'dia_vencimento' => 'nullable|integer|min:1|max:28',
+                'valor_mensal'   => 'nullable|numeric|min:0',
+                'dia_vencimento' => 'nullable|integer|min:1|max:28',
 
-            'emails'      => 'required|array|min:1',
-            'emails.*'    => 'required|email',
+                'emails'      => 'required|array|min:1',
+                'emails.*'    => 'required|email',
 
-            'telefones'   => 'nullable|array',
-            'telefones.*' => 'nullable|string|max:50',
+                'telefones'   => 'nullable|array',
+                'telefones.*' => 'nullable|string|max:50',
 
-            'observacoes' => 'nullable|string',
-        ]);
-
+                'observacoes' => 'nullable|string',
+            ],
+            [
+                'cpf_cnpj.unique' => 'Este CPF/CNPJ já está cadastrado no sistema.',
+                'cpf_cnpj.required' => 'Informe o CPF ou CNPJ.',
+            ]
+        );
+        
         $cliente = Cliente::create([
             'nome'           => $request->nome,
             'ativo'          => $request->ativo ?? true,
@@ -189,13 +200,26 @@ class ClienteController extends Controller
             'Acesso não autorizado'
         );
 
-        $request->validate([
-            'nome'           => 'required|string|max:255',
-            'valor_mensal'   => 'nullable|numeric|min:0',
-            'dia_vencimento' => 'nullable|integer|min:1|max:28',
-            'emails'         => 'required|array|min:1',
-            'emails.*'       => 'required|email',
-        ]);
+        $request->validate(
+            [
+                'nome' => 'required|string|max:255',
+
+                'cpf_cnpj' => [
+                    'required',
+                    'string',
+                    Rule::unique('clientes', 'cpf_cnpj')->ignore($cliente->id),
+                ],
+
+                'valor_mensal'   => 'nullable|numeric|min:0',
+                'dia_vencimento' => 'nullable|integer|min:1|max:28',
+
+                'emails'   => 'required|array|min:1',
+                'emails.*' => 'required|email',
+            ],
+            [
+                'cpf_cnpj.unique' => 'Este CPF/CNPJ já está cadastrado em outro cliente.',
+            ]
+        );
 
         $cliente->update($request->only([
             'nome',

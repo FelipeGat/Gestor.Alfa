@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\AssuntoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\PortalFuncionarioController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -207,5 +210,46 @@ Route::middleware('auth')->group(function () {
 
     })->name('password.first.store');
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| API – Consulta CNPJ (Proxy ReceitaWS)
+|--------------------------------------------------------------------------
+*/
+Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
+
+    $cnpj = preg_replace('/\D/', '', $cnpj);
+
+    if (strlen($cnpj) !== 14) {
+        return response()->json([
+            'status' => 'ERROR',
+            'message' => 'CNPJ inválido'
+        ], 400);
+    }
+
+    try {
+
+        $cacheKey = "cnpj_{$cnpj}";
+
+        $data = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($cnpj) {
+
+            /** @var \Illuminate\Http\Client\Response $response */
+            $response = Http::timeout(15)
+                ->get("https://www.receitaws.com.br/v1/cnpj/{$cnpj}");
+
+            return $response->json();
+        });
+
+        return response()->json($data);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'ERROR',
+            'message' => 'Erro ao consultar Receita Federal'
+        ], 500);
+    }
+});
+
 
 require __DIR__.'/auth.php';
