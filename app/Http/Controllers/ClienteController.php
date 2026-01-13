@@ -86,6 +86,11 @@ class ClienteController extends Controller
             'numero'        => 'nullable|string|max:20',
             'complemento'   => 'nullable|string|max:255',
             'cidade'        => 'nullable|string|max:255',
+            'bairro'        => 'nullable|string|max:255',
+            'estado'        => 'nullable|string|max:2',
+
+            'inscricao_estadual'   => 'nullable|string|max:50',
+            'inscricao_municipal' => 'nullable|string|max:50',
 
             'valor_mensal'   => 'nullable|numeric|min:0',
             'dia_vencimento' => 'nullable|integer|min:1|max:28',
@@ -112,6 +117,10 @@ class ClienteController extends Controller
             'numero'         => $request->numero,
             'complemento'    => $request->complemento,
             'cidade'         => $request->cidade,
+            'bairro'         => $request->bairro,
+            'estado'         => $request->estado,
+            'inscricao_estadual'   => $request->inscricao_estadual,
+            'inscricao_municipal'  => $request->inscricao_municipal,
             'valor_mensal'   => $request->tipo_cliente === 'CONTRATO' ? $request->valor_mensal : null,
             'dia_vencimento' => $request->tipo_cliente === 'CONTRATO' ? $request->dia_vencimento : null,
             'observacoes'    => $request->observacoes,
@@ -193,8 +202,15 @@ class ClienteController extends Controller
             'ativo',
             'valor_mensal',
             'dia_vencimento',
+            'bairro',
+            'cidade',
+            'estado',
+            'complemento',
+            'inscricao_estadual',
+            'inscricao_municipal',
             'observacoes'
         ]));
+
 
         $cliente->emails()->delete();
         $cliente->telefones()->delete();

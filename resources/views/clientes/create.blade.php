@@ -1,15 +1,7 @@
-@php
-abort_if(
-!auth()->user()->canPermissao('clientes', 'incluir'),
-403,
-'Acesso não autorizado'
-);
-@endphp
-
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Novo Cliente
+            ➕ Novo Cliente
         </h2>
     </x-slot>
 
@@ -18,10 +10,13 @@ abort_if(
     function addEmail() {
         document.getElementById('emails').insertAdjacentHTML(
             'beforeend',
-            `<div class="flex items-center gap-2 mb-2">
-                    <input type="email" name="emails[]" class="border w-full rounded" required>
-                    <input type="radio" name="email_principal" value="">
-                    <span class="text-sm">Principal</span>
+            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
+                    <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
+                    <div class="flex items-center gap-2 whitespace-nowrap">
+                        <input type="radio" name="email_principal" class="rounded">
+                        <span class="text-sm text-gray-600">Principal</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
                 </div>`
         );
     }
@@ -29,10 +24,13 @@ abort_if(
     function addTelefone() {
         document.getElementById('telefones').insertAdjacentHTML(
             'beforeend',
-            `<div class="flex items-center gap-2 mb-2">
-                    <input type="text" name="telefones[]" class="border w-full telefone rounded">
-                    <input type="radio" name="telefone_principal" value="">
-                    <span class="text-sm">Principal</span>
+            `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md">
+                    <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                    <div class="flex items-center gap-2 whitespace-nowrap">
+                        <input type="radio" name="telefone_principal" class="rounded">
+                        <span class="text-sm text-gray-600">Principal</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">Remover</button>
                 </div>`
         );
     }
@@ -40,29 +38,21 @@ abort_if(
     document.addEventListener('input', function(e) {
         if (e.target.classList.contains('telefone')) {
             let v = e.target.value.replace(/\D/g, '');
-
-            if (v.length <= 10) {
-                e.target.value = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-            } else {
-                e.target.value = v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
-            }
+            e.target.value = v.length <= 10 ?
+                v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
         }
 
         if (e.target.name === 'cpf_cnpj') {
             let v = e.target.value.replace(/\D/g, '');
-
-            if (v.length <= 11) {
-                e.target.value = v
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            } else {
-                e.target.value = v
-                    .replace(/(\d{2})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1.$2')
-                    .replace(/(\d{3})(\d)/, '$1/$2')
-                    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-            }
+            e.target.value = v.length <= 11 ?
+                v.replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2') :
+                v.replace(/(\d{2})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1/$2')
+                .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
         }
 
         if (e.target.name === 'cep') {
@@ -73,193 +63,305 @@ abort_if(
 
     function toggleContrato() {
         const tipo = document.querySelector('[name="tipo_cliente"]').value;
-        const bloco = document.getElementById('bloco-contrato');
-        bloco.style.display = (tipo === 'AVULSO') ? 'none' : 'grid';
+        document.getElementById('bloco-contrato').style.display =
+            tipo === 'AVULSO' ? 'none' : 'block';
     }
 
     document.addEventListener('DOMContentLoaded', toggleContrato);
-    document.addEventListener('change', function(e) {
+    document.addEventListener('change', e => {
         if (e.target.name === 'tipo_cliente') toggleContrato();
     });
     </script>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow rounded p-6">
+    <div class="py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {{-- ERROS --}}
-                @if ($errors->any())
-                <div class="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded">
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach ($errors->all() as $erro)
-                        <li>{{ $erro }}</li>
-                        @endforeach
-                    </ul>
+            {{-- HEADER DO FORMULÁRIO --}}
+            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
+                <h1 class="text-2xl font-bold text-black">Cadastro de Cliente</h1>
+                <p class="text-blue-100 text-sm mt-1">Preencha os dados abaixo para criar um novo cliente</p>
+            </div>
+
+            {{-- ERROS --}}
+            @if ($errors->any())
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-red-800 mb-2">Erros encontrados:</h3>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            @foreach ($errors->all() as $erro)
+                            <li>{{ $erro }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
-                @endif
+            </div>
+            @endif
 
-                <form action="{{ route('clientes.store') }}" method="POST">
-                    @csrf
+            <form action="{{ route('clientes.store') }}" method="POST" class="space-y-6">
+                @csrf
 
-                    {{-- ================= DADOS BÁSICOS ================= --}}
-                    <div class="mb-8">
-                        <h3 class="font-semibold text-gray-800 mb-4">Dados Básicos</h3>
+                {{-- SEÇÃO 1: DADOS BÁSICOS --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        📋 Dados Básicos
+                    </h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium">Tipo de Pessoa</label>
-                                <select name="tipo_pessoa" class="w-full rounded border-gray-300" required>
-                                    <option value="">Selecione</option>
-                                    <option value="PF" @selected(old('tipo_pessoa')=='PF' )>Pessoa Física</option>
-                                    <option value="PJ" @selected(old('tipo_pessoa')=='PJ' )>Pessoa Jurídica</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium">CPF / CNPJ</label>
-                                <input type="text" name="cpf_cnpj" value="{{ old('cpf_cnpj') }}"
-                                    class="w-full rounded border-gray-300" required>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium">Data de Cadastro</label>
-                                <input type="date" name="data_cadastro"
-                                    value="{{ old('data_cadastro', date('Y-m-d')) }}"
-                                    class="w-full rounded border-gray-300" required>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pessoa <span
+                                    class="text-red-500">*</span></label>
+                            <select name="tipo_pessoa"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900"
+                                required>
+                                <option value="">Selecione</option>
+                                <option value="PF">Pessoa Física</option>
+                                <option value="PJ">Pessoa Jurídica</option>
+                            </select>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium">Nome / Razão Social</label>
-                                <input type="text" name="nome" value="{{ old('nome') }}"
-                                    class="w-full rounded border-gray-300" required>
-                            </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CPF / CNPJ <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" name="cpf_cnpj"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="000.000.000-00" required>
+                        </div>
 
-                            <div>
-                                <label class="block text-sm font-medium">Nome Fantasia</label>
-                                <input type="text" name="nome_fantasia" value="{{ old('nome_fantasia') }}"
-                                    class="w-full rounded border-gray-300">
-                            </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Cadastro <span
+                                    class="text-red-500">*</span></label>
+                            <input type="date" name="data_cadastro" value="{{ date('Y-m-d') }}"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                required>
                         </div>
                     </div>
 
-                    {{-- ================= CONTATOS ================= --}}
-                    <div class="mb-8">
-                        <h3 class="font-semibold text-gray-800 mb-4">Contatos</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome / Razão Social <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" name="nome"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="Digite o nome completo" required>
+                        </div>
 
-                        <div class="mb-4">
-                            <label class="block font-medium text-gray-700">Emails</label>
-                            <div id="emails">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <input type="email" name="emails[]" class="border w-full rounded" required>
-                                    <input type="radio" name="email_principal" value="0" checked>
-                                    <span class="text-sm">Principal</span>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia</label>
+                            <input type="text" name="nome_fantasia"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="Digite o nome fantasia (opcional)">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 2: CONTATOS --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        📧 Contatos
+                    </h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Emails <span
+                                        class="text-red-500">*</span></label>
+                                <button type="button" onclick="addEmail()"
+                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    Adicionar email
+                                </button>
+                            </div>
+                            <div id="emails" class="space-y-3">
+                                <div
+                                    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <input type="email" name="emails[]"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        placeholder="seu.email@exemplo.com" required>
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <input type="radio" name="email_principal" checked
+                                            class="rounded text-blue-600">
+                                        <span class="text-sm text-gray-600">Principal</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button type="button" onclick="addEmail()" class="text-sm text-blue-600 mt-1">
-                                + Adicionar email
-                            </button>
                         </div>
 
                         <div>
-                            <label class="block font-medium text-gray-700">Telefones</label>
-                            <div id="telefones">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <input type="text" name="telefones[]" class="border w-full telefone rounded">
-                                    <input type="radio" name="telefone_principal" value="0" checked>
-                                    <span class="text-sm">Principal</span>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Telefones</label>
+                                <button type="button" onclick="addTelefone()"
+                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    Adicionar telefone
+                                </button>
+                            </div>
+                            <div id="telefones" class="space-y-3">
+                                <div
+                                    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <input type="text" name="telefones[]"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        placeholder="(00) 0000-0000">
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <input type="radio" name="telefone_principal" checked
+                                            class="rounded text-blue-600">
+                                        <span class="text-sm text-gray-600">Principal</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button type="button" onclick="addTelefone()" class="text-sm text-blue-600 mt-1">
-                                + Adicionar telefone
-                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 3: ENDEREÇO --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        🏠 Endereço
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                            <input type="text" name="cep" placeholder="00000-000"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
+                        <div class="col-span-1 sm:col-span-2 lg:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                            <input type="text" name="logradouro" placeholder="Rua, Avenida, etc."
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                            <input type="text" name="numero" placeholder="Nº"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                         </div>
                     </div>
 
-                    {{-- ================= ENDEREÇO ================= --}}
-                    <div class="mb-8">
-                        <h3 class="font-semibold text-gray-800 mb-4">Endereço</h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <input type="text" name="cep" placeholder="CEP" value="{{ old('cep') }}"
-                                class="rounded border-gray-300">
-                            <input type="text" name="logradouro" placeholder="Logradouro"
-                                value="{{ old('logradouro') }}" class="rounded border-gray-300">
-                            <input type="text" name="numero" placeholder="Nº" value="{{ old('numero') }}"
-                                class="rounded border-gray-300">
-                            <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade') }}"
-                                class="rounded border-gray-300">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                            <input type="text" name="bairro" placeholder="Bairro"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                         </div>
-
-                        <div class="mt-4">
-                            <input type="text" name="complemento" placeholder="Complemento"
-                                value="{{ old('complemento') }}" class="w-full rounded border-gray-300">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                            <input type="text" name="cidade" placeholder="Cidade"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                            <input type="text" name="estado" placeholder="UF" maxlength="2"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 uppercase">
                         </div>
                     </div>
 
-                    {{-- ================= CONTRATO ================= --}}
-                    <div class="mb-8">
-                        <h3 class="font-semibold text-gray-800 mb-4">Informações do Cliente</h3>
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                        <input type="text" name="complemento" placeholder="Apto, sala, etc."
+                            class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                    </div>
+                </div>
 
-                        <div id="bloco-contrato" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium">Tipo de Cliente</label>
-                                <select name="tipo_cliente" class="w-full rounded border-gray-300" required>
-                                    <option value="">Selecione</option>
-                                    <option value="CONTRATO" @selected(old('tipo_cliente')=='CONTRATO' )>Contrato
-                                    </option>
-                                    <option value="AVULSO" @selected(old('tipo_cliente')=='AVULSO' )>Avulso</option>
-                                </select>
-                            </div>
+                {{-- SEÇÃO 4: CONTRATO --}}
+                <div id="bloco-contrato" class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        📑 Informações de Contrato
+                    </h3>
 
-                            <div>
-                                <label class="block text-sm font-medium">Valor Mensal</label>
-                                <input type="number" step="0.01" name="valor_mensal" value="{{ old('valor_mensal') }}"
-                                    class="w-full rounded border-gray-300">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium">Dia de Vencimento</label>
-                                <select name="dia_vencimento" class="w-full rounded border-gray-300">
-                                    <option value="">Selecione</option>
-                                    @for($i=1;$i<=28;$i++) <option value="{{ $i }}"
-                                        @selected(old('dia_vencimento')==$i)>
-                                        Dia {{ $i }}
-                                        </option>
-                                        @endfor
-                                </select>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cliente</label>
+                            <select name="tipo_cliente"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
+                                <option value="CONTRATO">Contrato</option>
+                                <option value="AVULSO">Avulso</option>
+                            </select>
                         </div>
 
-                        <div class="mt-4">
-                            <textarea name="observacoes" rows="3" class="w-full rounded border-gray-300"
-                                placeholder="Observações">{{ old('observacoes') }}</textarea>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor Mensal</label>
+                            <input type="number" step="0.01" name="valor_mensal" placeholder="0,00"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
+
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dia de Vencimento</label>
+                            <select name="dia_vencimento"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
+                                <option value="">Selecione</option>
+                                @for($i=1;$i<=28;$i++) <option value="{{ $i }}">Dia {{ $i }}</option>
+                                    @endfor
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    {{-- STATUS --}}
-                    <div class="mb-6">
-                        <label class="block font-medium text-gray-700">Status</label>
-                        <select name="ativo" class="mt-1 block w-full rounded border-gray-300">
-                            <option value="1" selected>Ativo</option>
-                            <option value="0">Inativo</option>
-                        </select>
+                {{-- SEÇÃO 5: INSCRIÇÕES --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        🏛️ Inscrições
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Inscrição Estadual</label>
+                            <input type="text" name="inscricao_estadual" placeholder="IE"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Inscrição Municipal</label>
+                            <input type="text" name="inscricao_municipal" placeholder="IM"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        </div>
                     </div>
+                </div>
 
-                    {{-- BOTÕES --}}
-                    <div class="flex justify-end gap-2">
-                        <a href="{{ route('clientes.index') }}" class="px-4 py-2 border rounded text-sm">
-                            Voltar
-                        </a>
+                {{-- SEÇÃO 6: OBSERVAÇÕES --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        📝 Observações
+                    </h3>
+                    <textarea name="observacoes" rows="4"
+                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                        placeholder="Adicione observações importantes sobre o cliente..."></textarea>
+                </div>
 
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">
-                            Salvar
-                        </button>
-                    </div>
+                {{-- AÇÕES --}}
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 bg-red shadow rounded-lg p-6 sm:p-8">
+                    <a href="{{ route('clientes.index') }}"
+                        class="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-red font-medium hover:bg-gray-50 transition duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelar
+                    </a>
 
-                </form>
-            </div>
+                    <button type="submit"
+                        class="inline-flex items-center justify-center px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-green-600 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition duration-200 shadow-md hover:shadow-lg">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Salvar Cliente
+                    </button>
+                </div>
+
+            </form>
         </div>
     </div>
 </x-app-layout>

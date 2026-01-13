@@ -30,8 +30,12 @@ class Cliente extends Model
         'cep',
         'logradouro',
         'numero',
-        'complemento',
+        'bairro',
         'cidade',
+        'estado',
+        'complemento',
+        'inscricao_estadual',
+        'inscricao_municipal',
         'observacoes',
     ];
 
