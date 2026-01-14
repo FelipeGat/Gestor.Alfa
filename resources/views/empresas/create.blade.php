@@ -1,71 +1,149 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Nova Empresa
+            🏢 Nova Empresa
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow rounded p-6">
+    <div class="py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                <form action="{{ route('empresas.store') }}" method="POST">
-                    @csrf
+            {{-- HEADER DO FORMULÁRIO --}}
+            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
+                <h1 class="text-2xl font-bold text-black">Cadastro de Empresa</h1>
+                <p class="text-sm text-gray-600 mt-1">
+                    Preencha os dados abaixo para cadastrar uma nova empresa
+                </p>
+            </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">Razão Social</label>
-                        <input type="text" name="razao_social" class="mt-1 block w-full rounded border-gray-300"
-                            required>
+            {{-- ERROS --}}
+            @if ($errors->any())
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
+                <h3 class="font-medium mb-2">Erros encontrados:</h3>
+                <ul class="list-disc list-inside text-sm space-y-1">
+                    @foreach ($errors->all() as $erro)
+                    <li>{{ $erro }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            <form action="{{ route('empresas.store') }}" method="POST" class="space-y-6">
+                @csrf
+
+                {{-- SEÇÃO 1: DADOS DA EMPRESA --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        🏷️ Dados da Empresa
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Razão Social <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="razao_social" required class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="Razão Social da empresa">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Nome Fantasia
+                            </label>
+                            <input type="text" name="nome_fantasia" class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="Nome fantasia (opcional)">
+                        </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">Nome Fantasia</label>
-                        <input type="text" name="nome_fantasia" class="mt-1 block w-full rounded border-gray-300">
-                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                CNPJ <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="cnpj" required class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="00.000.000/0000-00">
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">CNPJ</label>
-                        <input type="text" name="cnpj" class="mt-1 block w-full rounded border-gray-300" required>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Endereço
+                            </label>
+                            <input type="text" name="endereco" class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="Endereço completo">
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">Endereço</label>
-                        <input type="text" name="endereco" class="mt-1 block w-full rounded border-gray-300">
+                {{-- SEÇÃO 2: CONTATOS --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        📧 Contatos
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Email Comercial
+                            </label>
+                            <input type="email" name="email_comercial" class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="comercial@empresa.com">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Email Administrativo
+                            </label>
+                            <input type="email" name="email_administrativo" class="w-full rounded-lg border border-gray-300 shadow-sm
+                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                placeholder="adm@empresa.com">
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">Email Comercial</label>
-                        <input type="email" name="email_comercial" class="mt-1 block w-full rounded border-gray-300">
-                    </div>
+                {{-- SEÇÃO 3: STATUS --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        ⚙️ Status
+                    </h3>
 
-                    <div class="mb-4">
-                        <label class="block font-medium text-gray-700">Email Administrativo</label>
-                        <input type="email" name="email_administrativo"
-                            class="mt-1 block w-full rounded border-gray-300">
-                    </div>
-
-                    <div class="mb-6">
-                        <label class="block font-medium text-gray-700">Status</label>
-                        <select name="ativo" class="mt-1 block w-full rounded border-gray-300">
+                    <div class="max-w-xs">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situação da Empresa
+                        </label>
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm
+                                   focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                             <option value="1" selected>Ativa</option>
                             <option value="0">Inativa</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="flex justify-end gap-2">
-                        <a href="{{ route('empresas.index') }}"
-                            class="px-4 py-2 bg-gray-300 text-red-600 rounded hover:bg-gray-400">
-                            Voltar
-                        </a>
+                {{-- AÇÕES --}}
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
+                            bg-white shadow rounded-lg p-6 sm:p-8">
 
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-green-600 rounded hover:bg-blue-700">
-                            Salvar
-                        </button>
-                    </div>
+                    <a href="{{ route('empresas.index') }}" class="inline-flex items-center justify-center px-6 py-2
+                               rounded-lg border border-gray-300 text-gray-700 font-medium
+                               hover:bg-gray-50 transition">
+                        ❌ Cancelar
+                    </a>
 
-                </form>
+                    <button type="submit" class="inline-flex items-center justify-center px-8 py-2
+                               bg-gradient-to-r from-blue-600 to-blue-700
+                               text-green-600 rounded-lg font-medium
+                               hover:from-blue-700 hover:to-blue-800
+                               transition shadow-md hover:shadow-lg">
+                        ✔️ Salvar Empresa
+                    </button>
+                </div>
 
-            </div>
+            </form>
+
         </div>
     </div>
 </x-app-layout>
