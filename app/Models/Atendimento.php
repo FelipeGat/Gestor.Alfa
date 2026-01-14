@@ -47,12 +47,16 @@ class Atendimento extends Model
 
     public function assunto()
     {
-        return $this->belongsTo(Assunto::class);
+        return $this->belongsTo(Assunto::class)->withDefault([
+            'nome' => '—',
+        ]);
     }
 
     public function empresa()
     {
-        return $this->belongsTo(Empresa::class);
+        return $this->belongsTo(Empresa::class)->withDefault([
+            'nome_fantasia' => '—',
+        ]);
     }
 
     public function funcionario()
