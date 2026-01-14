@@ -60,7 +60,9 @@ class AtendimentoController extends Controller
         $atendimentos = $query
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
             ->orderByDesc('data_atendimento')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
+
 
         $funcionarios = Funcionario::where('ativo', true)
             ->orderBy('nome')

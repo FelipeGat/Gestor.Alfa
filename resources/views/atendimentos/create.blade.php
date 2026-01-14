@@ -1,179 +1,659 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Novo Atendimento
+            ➕ Novo Atendimento
         </h2>
     </x-slot>
 
-    <div class="flex justify-center min-h-screen bg-gray-100">
-        <div class="w-3/4 py-12">
-            <div class="bg-white shadow rounded-lg p-6">
+    {{-- ================= ESTILOS ================= --}}
+    <style>
+    /* ========================= CONTAINER ========================= */
+    .form-wrapper {
+        padding: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
-                {{-- POSSOVEIS ERROS --}}
-                @if ($errors->any())
-                <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-300">
-                    <h3 class="text-sm font-medium text-red-800 mb-2">
-                        ⚠️ Verifique os erros abaixo:
+    .form-container {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    .form-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .form-header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    /* ========================= SEÇÕES ========================= */
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-section-icon {
+        width: 20px;
+        height: 20px;
+        color: #3b82f6;
+    }
+
+    /* ========================= CAMPOS ========================= */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group label .required {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background-color: #f0f9ff;
+    }
+
+    .form-group input:hover:not(:focus),
+    .form-group select:hover:not(:focus),
+    .form-group textarea:hover:not(:focus) {
+        border-color: #9ca3af;
+        background-color: #f9fafb;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    /* ========================= GRID ========================= */
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* ========================= ERROS ========================= */
+    .error-alert {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .error-alert-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #dc2626;
+        margin-bottom: 0.75rem;
+    }
+
+    .error-alert-title svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-alert-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .error-alert-list li {
+        color: #991b1b;
+        font-size: 0.875rem;
+        padding: 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .error-alert-list li::before {
+        content: "•";
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    /* ========================= SUCESSO ========================= */
+    .success-alert {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .success-alert svg {
+        width: 20px;
+        height: 20px;
+        color: #22c55e;
+        flex-shrink: 0;
+    }
+
+    .success-alert-text {
+        color: #166534;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* ========================= LOADING ========================= */
+    .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e5e7eb;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ========================= BOTÕES ========================= */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #d1d5db;
+    }
+
+    .btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* ========================= HELP TEXT ========================= */
+    .form-help {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    /* ========================= RESPONSIVE ========================= */
+    @media (max-width: 768px) {
+        .form-wrapper {
+            padding: 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .form-grid-2,
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    </style>
+
+    {{-- ================= CONTEÚDO ================= --}}
+    <div class="form-wrapper">
+        <div class="form-container">
+
+            {{-- ================= ERROS ================= --}}
+            @if ($errors->any())
+            <div class="error-alert" role="alert">
+                <div class="error-alert-title">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Verifique os erros abaixo:
+                </div>
+                <ul class="error-alert-list">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            {{-- ================= FORMULÁRIO ================= --}}
+            <form action="{{ route('atendimentos.store') }}" method="POST" class="form" id="formAtendimento">
+                @csrf
+
+                {{-- ================= SEÇÃO: CLIENTE ================= --}}
+                <section class="form-section">
+                    <h3 class="form-section-title">
+                        <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"></path>
+                        </svg>
+                        Cliente
                     </h3>
 
-                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
-                        @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-
-
-                <form action="{{ route('atendimentos.store') }}" method="POST" class="space-y-6">
-                    @csrf
-
-                    {{-- CLIENTE --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <div class="form-group">
+                        <label for="cliente_id">
                             Cliente (opcional)
                         </label>
-                        <select name="cliente_id" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="cliente_id" id="cliente_id" class="@error('cliente_id') border-red-500 @enderror">
                             <option value="">— Não informado —</option>
                             @foreach($clientes as $cliente)
-                            <option value="{{ $cliente->id }}">
+                            <option value="{{ $cliente->id }}" @selected(old('cliente_id')==$cliente->id)>
                                 {{ $cliente->nome }}
                             </option>
                             @endforeach
                         </select>
+                        @error('cliente_id')
+                        <p class="form-help text-red-500">{{ $message }}</p>
+                        @enderror
                     </div>
+                </section>
 
-                    {{-- SOLICITANTE --}}
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {{-- ================= SEÇÃO: SOLICITANTE ================= --}}
+                <section class="form-section">
+                    <h3 class="form-section-title">
+                        <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z">
+                            </path>
+                        </svg>
+                        Dados do Solicitante
+                    </h3>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Nome do Solicitante *
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label for="nome_solicitante">
+                                Nome do Solicitante
+                                <span class="required">*</span>
                             </label>
-                            <input type="text" name="nome_solicitante" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" name="nome_solicitante" id="nome_solicitante" required
+                                value="{{ old('nome_solicitante') }}" placeholder="Digite o nome completo"
+                                class="@error('nome_solicitante') border-red-500 @enderror">
+                            @error('nome_solicitante')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="form-group">
+                            <label for="telefone_solicitante">
                                 Telefone
                             </label>
-                            <input type="text" name="telefone_solicitante" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" name="telefone_solicitante" id="telefone_solicitante"
+                                value="{{ old('telefone_solicitante') }}" placeholder="(00) 00000-0000"
+                                class="telefone @error('telefone_solicitante') border-red-500 @enderror">
+                            @error('telefone_solicitante')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="form-group">
+                            <label for="email_solicitante">
                                 E-mail
                             </label>
-                            <input type="email" name="email_solicitante" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="email" name="email_solicitante" id="email_solicitante"
+                                value="{{ old('email_solicitante') }}" placeholder="seu.email@exemplo.com"
+                                class="@error('email_solicitante') border-red-500 @enderror">
+                            @error('email_solicitante')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
                         </div>
-
                     </div>
+                </section>
 
-                    {{-- ASSUNTO --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Assunto *
-                        </label>
-                        <select name="assunto_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Selecione o assunto</option>
-                            @foreach($assuntos as $assunto)
-                            <option value="{{ $assunto->id }}">
-                                {{ $assunto->nome }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
+                {{-- ================= SEÇÃO: EMPRESA E ASSUNTO ================= --}}
+                <section class="form-section">
+                    <h3 class="form-section-title">
+                        <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z">
+                            </path>
+                        </svg>
+                        Empresa e Assunto
+                    </h3>
 
-                    {{-- DESCRIÇÃO --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Descrição do Atendimento *
-                        </label>
-                        <textarea name="descricao" rows="4" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
-
-                    {{-- PRIORIDADE / EMPRESA / TÉCNICO --}}
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Prioridade *
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="empresa_id">
+                                Empresa
+                                <span class="required">*</span>
                             </label>
-                            <select name="prioridade" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="baixa">Baixa</option>
-                                <option value="media" selected>Média</option>
-                                <option value="alta">Alta</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Status Inicial *
-                            </label>
-
-                            <select name="status_inicial" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="aberto" selected>Aberto</option>
-                                <option value="orcamento">Orçamento</option>
-                                <option value="garantia">Garantia</option>
-                            </select>
-                        </div>
-
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Empresa *
-                            </label>
-                            <select name="empresa_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="empresa_id" id="empresa_id" required
+                                class="@error('empresa_id') border-red-500 @enderror">
                                 <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->id }}">
+                                <option value="{{ $empresa->id }}" @selected(old('empresa_id')==$empresa->id)>
                                     {{ $empresa->nome_fantasia }}
                                 </option>
                                 @endforeach
                             </select>
+                            @error('empresa_id')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="form-group">
+                            <label for="assunto_id">
+                                Assunto
+                                <span class="required">*</span>
+                            </label>
+                            <select name="assunto_id" id="assunto_id" required
+                                class="@error('assunto_id') border-red-500 @enderror">
+                                <option value="">Selecione a empresa primeiro</option>
+                            </select>
+                            @error('assunto_id')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ================= SEÇÃO: DESCRIÇÃO ================= --}}
+                <section class="form-section">
+                    <h3 class="form-section-title">
+                        <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Descrição
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="descricao">
+                            Descrição do Atendimento
+                            <span class="required">*</span>
+                        </label>
+                        <textarea name="descricao" id="descricao" required
+                            placeholder="Descreva detalhadamente o problema ou solicitação"
+                            class="@error('descricao') border-red-500 @enderror">{{ old('descricao') }}</textarea>
+                        @error('descricao')
+                        <p class="form-help text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </section>
+
+                {{-- ================= SEÇÃO: CONFIGURAÇÃO ================= --}}
+                <section class="form-section">
+                    <h3 class="form-section-title">
+                        <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Configuração
+                    </h3>
+
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label for="prioridade">
+                                Prioridade
+                                <span class="required">*</span>
+                            </label>
+                            <select name="prioridade" id="prioridade" required
+                                class="@error('prioridade') border-red-500 @enderror">
+                                <option value="baixa" @selected(old('prioridade')=='baixa' )>Baixa</option>
+                                <option value="media" @selected(old('prioridade', 'media' )=='media' )>Média</option>
+                                <option value="alta" @selected(old('prioridade')=='alta' )>Alta</option>
+                            </select>
+                            @error('prioridade')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status_inicial">
+                                Status Inicial
+                                <span class="required">*</span>
+                            </label>
+                            <select name="status_inicial" id="status_inicial" required
+                                class="@error('status_inicial') border-red-500 @enderror">
+                                <option value="aberto" @selected(old('status_inicial', 'aberto' )=='aberto' )>Aberto
+                                </option>
+                                <option value="orcamento" @selected(old('status_inicial')=='orcamento' )>Orçamento
+                                </option>
+                                <option value="garantia" @selected(old('status_inicial')=='garantia' )>Garantia</option>
+                            </select>
+                            @error('status_inicial')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="funcionario_id">
                                 Técnico
                             </label>
-                            <select name="funcionario_id" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="funcionario_id" id="funcionario_id"
+                                class="@error('funcionario_id') border-red-500 @enderror">
                                 <option value="">— Não atribuído —</option>
                                 @foreach($funcionarios as $funcionario)
-                                <option value="{{ $funcionario->id }}">
+                                <option value="{{ $funcionario->id }}" @selected(old('funcionario_id')==$funcionario->
+                                    id)>
                                     {{ $funcionario->nome }}
                                 </option>
                                 @endforeach
                             </select>
+                            @error('funcionario_id')
+                            <p class="form-help text-red-500">{{ $message }}</p>
+                            @enderror
                         </div>
-
                     </div>
+                </section>
 
-                    {{-- BOTÕES --}}
-                    <div class="flex justify-end gap-3 pt-4">
-                        <a href="{{ route('atendimentos.index') }}"
-                            class="px-4 py-2 bg-gray-300 text-red-600 rounded hover:bg-gray-400">
-                            Cancelar
-                        </a>
+                {{-- ================= BOTÕES ================= --}}
+                <div class="form-actions">
+                    <a href="{{ route('atendimentos.index') }}" class="btn btn-secondary">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Cancelar
+                    </a>
 
-                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-green-600 rounded">
-                            Salvar Atendimento
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Salvar Atendimento
+                    </button>
+                </div>
 
-                </form>
+            </form>
 
-            </div>
         </div>
     </div>
+
+    {{-- ================= SCRIPTS ================= --}}
+    <script>
+    /* =========================
+       MÁSCARA DE TELEFONE
+    ========================= */
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('telefone')) {
+            let v = e.target.value.replace(/\D/g, '');
+            e.target.value = v.length <= 10 ?
+                v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
+        }
+    });
+
+    /* =========================
+       CARREGAMENTO DE ASSUNTOS
+    ========================= */
+    document.addEventListener('DOMContentLoaded', function() {
+        const empresaSelect = document.getElementById('empresa_id');
+        const assuntoSelect = document.getElementById('assunto_id');
+        const formAtendimento = document.getElementById('formAtendimento');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        if (!empresaSelect || !assuntoSelect) return;
+
+        /* =========================
+           FUNÇÃO: CARREGAR ASSUNTOS
+        ========================= */
+        async function carregarAssuntos(empresaId) {
+            if (!empresaId) {
+                assuntoSelect.innerHTML = '<option value="">Selecione a empresa primeiro</option>';
+                assuntoSelect.disabled = false;
+                return;
+            }
+
+            assuntoSelect.disabled = true;
+            assuntoSelect.innerHTML = '<option value="">Carregando assuntos...</option>';
+
+            try {
+                const response = await fetch(`/empresas/${empresaId}/assuntos`);
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    assuntoSelect.innerHTML = '<option value="">Nenhum assunto disponível</option>';
+                    assuntoSelect.disabled = false;
+                    return;
+                }
+
+                assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
+
+                data.forEach(assunto => {
+                    const option = document.createElement('option');
+                    option.value = assunto.id;
+                    option.textContent = assunto.nome;
+                    assuntoSelect.appendChild(option);
+                });
+
+                assuntoSelect.disabled = false;
+
+            } catch (error) {
+                console.error('Erro ao carregar assuntos:', error);
+                assuntoSelect.innerHTML = '<option value="">Erro ao carregar assuntos</option>';
+                assuntoSelect.disabled = false;
+            }
+        }
+
+        /* =========================
+           EVENT LISTENER: MUDANÇA DE EMPRESA
+        ========================= */
+        empresaSelect.addEventListener('change', function() {
+            carregarAssuntos(this.value);
+        });
+
+        /* =========================
+           EVENT LISTENER: SUBMIT DO FORMULÁRIO
+        ========================= */
+        formAtendimento.addEventListener('submit', function(e) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="loading-spinner"></span>Salvando...';
+        });
+
+        /* =========================
+           CARREGAR ASSUNTOS SE EMPRESA JÁ SELECIONADA
+        ========================= */
+        if (empresaSelect.value) {
+            carregarAssuntos(empresaSelect.value);
+        }
+    });
+    </script>
+
 </x-app-layout>

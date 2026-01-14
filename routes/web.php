@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
+use App\Models\Empresa;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CobrancaController;
@@ -169,6 +171,7 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
 | PERFIL (todos logados)
 |--------------------------------------------------------------------------
 */
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])
@@ -179,7 +182,14 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
 });
+
+    Route::get('/empresas/{empresa}/assuntos', function (Empresa $empresa) {
+        return $empresa->assuntos()
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+    });
 
 /*
 |--------------------------------------------------------------------------

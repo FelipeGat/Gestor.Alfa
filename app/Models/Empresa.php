@@ -43,4 +43,10 @@ class Empresa extends Model
     {
         return $this->belongsToMany(Funcionario::class);
     }
+
+    public function assuntos()
+    {
+        return $this->hasMany(Assunto::class);
+    }
+
 }
