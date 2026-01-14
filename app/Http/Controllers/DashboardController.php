@@ -55,7 +55,7 @@ class DashboardController extends Controller
 
         $valoresEmpresa = $assuntosPorEmpresa->pluck('total');
 
-        // Serviço x Venda
+        // Serviço x Venda x Administrativo x Comercial
         $assuntosPorTipo = Assunto::select('tipo', DB::raw('COUNT(*) as total'))
             ->whereNotNull('tipo')
             ->groupBy('tipo')

@@ -286,7 +286,7 @@
                 </div>
 
                 <div class="dashboard-chart">
-                    <h4>Serviço x Venda</h4>
+                    <h4>Demandas</h4>
                     <div id="graficoTipoContainer">
                         <div class="chart-loading">
                             <div class="spinner"></div>
@@ -464,7 +464,7 @@
     }
 
     /* =========================
-       GRÁFICO: SERVIÇO X VENDA
+       GRÁFICO: SERVIÇO X VENDA X ADMINISTRATIVO x COMERCIAL
     ========================= */
     try {
         const labelsTipo = @json($labelsTipo ?? []);
@@ -479,7 +479,7 @@
                         labels: labelsTipo,
                         datasets: [{
                             data: valoresTipo,
-                            backgroundColor: ['#0ea5e9', '#f97316'],
+                            backgroundColor: ['#0ea5e9', '#3f01a3', '#f97316', '#069948'],
                             borderColor: '#ffffff',
                             borderWidth: 2
                         }]
