@@ -89,8 +89,8 @@
 
                     {{-- MENU FUNCIONÁRIO --}}
                     @if(Auth::user()->tipo === 'funcionario')
-                    <x-nav-link :href="route('portal-funcionario.dashboard')"
-                        :active="request()->routeIs('portal-funcionario.*')">
+                    <x-nav-link :href="route('portal-funcionario.atendimentos.index')"
+                        :active="request()->routeIs('portal-funcionario.atendimentos.*')">
                         Meus Atendimentos
                     </x-nav-link>
                     @endif
@@ -171,7 +171,7 @@
             @endif
 
             @if(Auth::user()->tipo === 'funcionario')
-            <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">
+            <x-responsive-nav-link :href="route('portal-funcionario.atendimentos.index')">
                 Meus Atendimentos
             </x-responsive-nav-link>
             @endif

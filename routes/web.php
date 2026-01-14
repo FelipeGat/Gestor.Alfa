@@ -137,6 +137,12 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])
             ->name('agenda');
 
+        // Lista de atendimentos do técnico
+        Route::get('/atendimentos', [PortalFuncionarioController::class, 'atendimentos'])
+            ->name('atendimentos.index');
+
+
+
         // Visualizar atendimento (somente leitura)
         Route::get('/atendimentos/{atendimento}', [PortalFuncionarioController::class, 'show'])
             ->name('atendimentos.show');

@@ -6,25 +6,55 @@ use App\Models\Atendimento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class PortalFuncionarioController extends Controller
 {
+
     public function dashboard()
     {
         $funcionarioId = Auth::user()->funcionario_id;
 
-        $atendimentos = Atendimento::with([
-                'cliente',
-                'assunto',
-                'empresa'
-            ])
-            ->where('funcionario_id', $funcionarioId)
-            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
-            ->orderByDesc('data_atendimento')
-            ->get();
+        $baseQuery = Atendimento::where('funcionario_id', $funcionarioId);
 
-        return view('portal-funcionario.dashboard', compact('atendimentos'));
+        // Em aberto (tudo menos concluído)
+        $totalEmAberto = (clone $baseQuery)
+            ->whereNotIn('status_atual', ['concluido'])
+            ->count();
+
+        // Finalizados
+        $totalFinalizados = (clone $baseQuery)
+            ->where('status_atual', 'concluido')
+            ->count();
+
+        // Por status
+        $porStatus = (clone $baseQuery)
+            ->select('status_atual', DB::raw('count(*) as total'))
+            ->groupBy('status_atual')
+            ->pluck('total', 'status_atual');
+
+        // Por assunto
+        $porAssunto = (clone $baseQuery)
+            ->join('assuntos', 'atendimentos.assunto_id', '=', 'assuntos.id')
+            ->select('assuntos.nome', DB::raw('count(*) as total'))
+            ->groupBy('assuntos.nome')
+            ->pluck('total', 'assuntos.nome');
+
+        // Por prioridade
+        $porPrioridade = (clone $baseQuery)
+            ->select('prioridade', DB::raw('count(*) as total'))
+            ->groupBy('prioridade')
+            ->pluck('total', 'prioridade');
+
+        return view('portal-funcionario.dashboard', compact(
+            'totalEmAberto',
+            'totalFinalizados',
+            'porStatus',
+            'porAssunto',
+            'porPrioridade'
+        ));
     }
+
 
     public function agenda()
     {
@@ -81,4 +111,22 @@ class PortalFuncionarioController extends Controller
 
         return back()->with('success', 'Atendimento enviado para avaliação do administrador.');
     }
+
+    public function atendimentos()
+    {
+        $funcionarioId = Auth::user()->funcionario_id;
+
+        $atendimentos = Atendimento::with([
+                'cliente',
+                'assunto',
+                'empresa'
+            ])
+            ->where('funcionario_id', $funcionarioId)
+            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
+            ->orderByDesc('data_atendimento')
+            ->get();
+
+        return view('portal-funcionario.atendimentos.index', compact('atendimentos'));
+    }
+
 }
