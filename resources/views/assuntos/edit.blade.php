@@ -85,6 +85,12 @@
                                 <option value="VENDA" @selected(old('tipo', $assunto->tipo)=='VENDA')>
                                     Venda
                                 </option>
+                                <option value="COMERCIAL" @selected(old('tipo', $assunto->tipo)=='COMERCIAL')>
+                                    Comercial
+                                </option>
+                                <option value="ADMINISTRATIVO" @selected(old('tipo', $assunto->tipo)=='ADMINISTRATIVO')>
+                                    Administrativo
+                                </option>
                             </select>
                         </div>
 

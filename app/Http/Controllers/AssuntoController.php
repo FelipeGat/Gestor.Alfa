@@ -64,7 +64,7 @@ class AssuntoController extends Controller
         $request->validate([
             'empresa_id'   => 'required|exists:empresas,id',
             'nome'         => 'required|string|max:255',
-            'tipo'         => 'required|in:SERVICO,VENDA',
+            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO,',
             'categoria'    => 'required|string|max:255',
             'subcategoria' => 'required|string|max:255',
             'ativo'        => 'required|boolean',
@@ -106,7 +106,7 @@ class AssuntoController extends Controller
         $request->validate([
             'empresa_id'   => 'required|exists:empresas,id',
             'nome'         => 'required|string|max:255',
-            'tipo'         => 'required|in:SERVICO,VENDA',
+            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO,',
             'categoria'    => 'required|string|max:255',
             'subcategoria' => 'required|string|max:255',
             'ativo'        => 'required|boolean',

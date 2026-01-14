@@ -154,15 +154,16 @@
                             <div>
                                 <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Assunto</p>
                                 <p class="text-sm text-gray-900 font-medium">
-                                    {{ $atendimento->assunto->nome }}
+                                    {{ optional($atendimento->assunto)->nome ?? '—' }}
                                 </p>
                             </div>
 
                             <div>
                                 <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Empresa</p>
                                 <p class="text-sm text-gray-900 font-medium">
-                                    {{ $atendimento->empresa->nome_fantasia }}
+                                    {{ optional($atendimento->empresa)->nome_fantasia ?? '—' }}
                                 </p>
+
                             </div>
 
                             <div>
@@ -324,14 +325,14 @@
                                     {{-- Assunto --}}
                                     <td class="px-6 py-4">
                                         <p class="text-sm text-gray-700">
-                                            {{ $atendimento->assunto->nome }}
+                                            {{ optional($atendimento->assunto)->nome ?? '—' }}
                                         </p>
                                     </td>
 
                                     {{-- Empresa --}}
                                     <td class="px-6 py-4">
                                         <p class="text-sm text-gray-700">
-                                            {{ $atendimento->empresa->nome_fantasia }}
+                                            {{ optional($atendimento->empresa)->nome_fantasia ?? '—' }}
                                         </p>
                                     </td>
 

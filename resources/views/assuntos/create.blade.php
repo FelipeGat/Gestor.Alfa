@@ -79,6 +79,10 @@
                                 <option value="">Selecione</option>
                                 <option value="SERVICO" @selected(old('tipo')=='SERVICO' )>Serviço</option>
                                 <option value="VENDA" @selected(old('tipo')=='VENDA' )>Venda</option>
+                                <option value="COMERCIAL" @selected(old('tipo')=='COMERCIAL' )>Comercial</option>
+                                <option value="ADMINISTRATIVO" @selected(old('tipo')=='ADMINISTRATIVO' )>Administrativo
+                                </option>
+
                             </select>
                         </div>
 
