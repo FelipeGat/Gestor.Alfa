@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\PrimeiroAcessoMail;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class ClienteController extends Controller
 {
@@ -83,7 +84,7 @@ class ClienteController extends Controller
                     Rule::unique('clientes', 'cpf_cnpj'),
                 ],
                 'nome'          => 'required|string|max:255',
-                'nome_fantasia' => 'nullable|string|max:255',
+                'razao_social' => 'required_if:tipo_pessoa,PJ|string|max:255|nullable',
                 'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
                 'data_cadastro' => 'required|date',
 
@@ -115,12 +116,14 @@ class ClienteController extends Controller
             ]
         );
         
+        $dadosNome = $this->resolverNomeCliente($request);
+
         $cliente = Cliente::create([
-            'nome'           => $request->nome,
+            'nome'           => $dadosNome['nome'],
+            'razao_social'   => $dadosNome['razao_social'],
             'ativo'          => $request->ativo ?? true,
             'tipo_pessoa'    => $request->tipo_pessoa,
             'cpf_cnpj'       => preg_replace('/\D/', '', $request->cpf_cnpj),
-            'nome_fantasia'  => $request->nome_fantasia,
             'tipo_cliente'   => $request->tipo_cliente,
             'data_cadastro'  => $request->data_cadastro,
             'cep'            => $request->cep,
@@ -136,6 +139,7 @@ class ClienteController extends Controller
             'dia_vencimento' => $request->tipo_cliente === 'CONTRATO' ? $request->dia_vencimento : null,
             'observacoes'    => $request->observacoes,
         ]);
+
 
         foreach ($request->emails as $i => $email) {
             $cliente->emails()->create([
@@ -210,6 +214,10 @@ class ClienteController extends Controller
                     Rule::unique('clientes', 'cpf_cnpj')->ignore($cliente->id),
                 ],
 
+                'tipo_pessoa' => 'required|in:PF,PJ',
+                'razao_social' => 'nullable|required_if:tipo_pessoa,PJ|string|max:255',
+
+
                 'valor_mensal'   => 'nullable|numeric|min:0',
                 'dia_vencimento' => 'nullable|integer|min:1|max:28',
 
@@ -221,19 +229,25 @@ class ClienteController extends Controller
             ]
         );
 
-        $cliente->update($request->only([
-            'nome',
-            'ativo',
-            'valor_mensal',
-            'dia_vencimento',
-            'bairro',
-            'cidade',
-            'estado',
-            'complemento',
-            'inscricao_estadual',
-            'inscricao_municipal',
-            'observacoes'
-        ]));
+        $dadosNome = $this->resolverNomeCliente($request);
+
+        $cliente->update([
+            'nome'           => $dadosNome['nome'],
+            'razao_social'   => $dadosNome['razao_social'],
+            'tipo_pessoa'    => $request->tipo_pessoa,
+            'cpf_cnpj'       => preg_replace('/\D/', '', $request->cpf_cnpj),
+            'tipo_cliente'   => $request->tipo_cliente,
+            'ativo'          => $request->boolean('ativo'),
+            'valor_mensal'   => $request->valor_mensal,
+            'dia_vencimento' => $request->dia_vencimento,
+            'bairro'         => $request->bairro,
+            'cidade'         => $request->cidade,
+            'estado'         => $request->estado,
+            'complemento'    => $request->complemento,
+            'inscricao_estadual'  => $request->inscricao_estadual,
+            'inscricao_municipal' => $request->inscricao_municipal,
+            'observacoes'    => $request->observacoes,
+        ]);
 
 
         $cliente->emails()->delete();
@@ -276,4 +290,61 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente excluído com sucesso!');
     }
+
+    public function buscar(Request $request)
+    {
+        try {
+            $search = trim((string) $request->query('q'));
+
+            if (mb_strlen($search) < 2) {
+                return response()->json([]);
+            }
+
+            $clientes = Cliente::query()
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($search) {
+                    $q->where('cpf_cnpj', 'like', "%{$search}%")
+                    ->orWhere('razao_social', 'like', "%{$search}%")
+                    ->orWhere('nome', 'like', "%{$search}%");
+                })
+                ->orderBy('nome')
+                ->limit(10)
+                ->get()
+                ->map(fn ($cliente) => [
+                    'id'       => $cliente->id,
+                    'cpf_cnpj' => $cliente->cpf_cnpj,
+                    'nome'     => $cliente->nome, // já normalizado
+                ]);
+
+            return response()->json($clientes);
+
+        } catch (\Throwable $e) {
+            Log::error('Erro ao buscar cliente', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([], 500);
+        }
+    }
+
+
+    private function resolverNomeCliente(Request $request): array
+    {
+        if ($request->tipo_pessoa === 'PF') {
+            return [
+                'nome' => $request->nome,
+                'razao_social' => $request->nome,
+            ];
+        }
+
+        // PJ
+        $nomeExibido = $request->nome ?: $request->razao_social;
+
+        return [
+            'nome' => $nomeExibido,
+            'razao_social' => $request->razao_social,
+        ];
+    }
+
+
 }

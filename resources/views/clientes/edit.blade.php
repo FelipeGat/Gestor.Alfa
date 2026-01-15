@@ -1,4 +1,9 @@
 <x-app-layout>
+
+    @push('styles')
+    @vite('resources/css/clientes/edit.css')
+    @endpush
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ✏️ Editar Cliente
@@ -164,7 +169,7 @@
                 return;
             }
 
-            document.querySelector('[name="nome"]').value = data.nome || '';
+            document.querySelector('[name="razao_social"]').value = data.nome || '';
             document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
             document.querySelector('[name="cep"]').value = data.cep || '';
             document.querySelector('[name="logradouro"]').value = data.logradouro || '';
@@ -219,6 +224,33 @@
         if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
         if (e.target.name === 'cep') buscarCEP(e.target.value);
     }, true);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector(
+            "form[action='{{ route('clientes.update', $cliente) }}']"
+        );
+
+        if (!form) return;
+
+        form.addEventListener('submit', function() {
+            const tipo = document.querySelector('[name="tipo_pessoa"]')?.value;
+            const razao = document.querySelector('[name="razao_social"]');
+            const fantasia = document.querySelector('[name="nome_fantasia"]');
+            const nome = document.querySelector('[name="nome"]');
+
+            if (!nome || !razao) return;
+
+            if (tipo === 'PF') {
+                // PF → nome = razão (nome da pessoa)
+                nome.value = razao.value.trim();
+            } else {
+                // PJ → nome = fantasia OU razão
+                nome.value = fantasia && fantasia.value.trim() !== '' ?
+                    fantasia.value.trim() :
+                    razao.value.trim();
+            }
+        });
+    });
     </script>
 
     <div class="py-8">
@@ -256,6 +288,7 @@
             <form method="POST" action="{{ route('clientes.update', $cliente) }}" class="space-y-6">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="nome" value="">
 
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
@@ -299,15 +332,15 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nome / Razão Social <span
                                     class="text-red-500">*</span></label>
-                            <input type="text" name="nome" value="{{ old('nome', $cliente->nome) }}"
+                            <input type="text" name="razao_social"
+                                value="{{ old('razao_social', $cliente->razao_social) }}"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                                placeholder="Digite o nome completo" required>
+                                required>
                         </div>
 
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia</label>
-                            <input type="text" name="nome_fantasia"
-                                value="{{ old('nome_fantasia', $cliente->nome_fantasia) }}"
+                            <input type="text" name="nome_fantasia" value="{{ old('nome_fantasia', $cliente->nome) }}"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                                 placeholder="Digite o nome fantasia (opcional)">
                         </div>

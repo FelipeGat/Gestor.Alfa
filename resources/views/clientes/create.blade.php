@@ -1,4 +1,9 @@
 <x-app-layout>
+
+    @push('styles')
+    @vite('resources/css/clientes/create.css')
+    @endpush
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ➕ Novo Cliente
@@ -32,39 +37,39 @@
         document.getElementById('emails').insertAdjacentHTML(
             'beforeend',
             `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
-            <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
-            <div class="flex items-center gap-2 whitespace-nowrap">
-                <input type="radio" name="email_principal" value="1" class="rounded text-blue-600">
-                <span class="text-sm text-gray-600">Principal</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
-                Remover
-            </button>
-        </div>`
+                <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                    <input type="radio" name="email_principal" value="1" class="rounded text-blue-600">
+                    <span class="text-sm text-gray-600">Principal</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                    Remover
+                </button>
+            </div>`
         );
     }
 
     /* =========================
-       ADIÇÃO DINÂICA DE TELEFONES
+    ADIÇÃO DINÂICA DE TELEFONES
     ========================= */
     function addTelefone() {
         document.getElementById('telefones').insertAdjacentHTML(
             'beforeend',
             `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
-            <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-            <div class="flex items-center gap-2 whitespace-nowrap">
-                <input type="radio" name="telefone_principal" value="1" class="rounded text-blue-600">
-                <span class="text-sm text-gray-600">Principal</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
-                Remover
-            </button>
-        </div>`
+                <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                    <input type="radio" name="telefone_principal" value="1" class="rounded text-blue-600">
+                    <span class="text-sm text-gray-600">Principal</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                    Remover
+                </button>
+            </div>`
         );
     }
 
     /* =========================
-       MÁSCARAS (INPUT)
+    MÁSCARAS (INPUT)
     ========================= */
     document.addEventListener('input', function(e) {
 
@@ -97,7 +102,7 @@
     });
 
     /* =========================
-       TOGGLE CONTRATO
+    TOGGLE CONTRATO
     ========================= */
     function toggleContrato() {
         const tipo = document.querySelector('[name="tipo_cliente"]')?.value;
@@ -132,11 +137,11 @@
 
         el.classList.remove('hidden');
         el.innerHTML = `
-            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 13l4 4L19 7"/>
-            </svg>
-        `;
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 13l4 4L19 7"/>
+                </svg>
+            `;
     }
 
     function setCnpjError() {
@@ -145,11 +150,11 @@
 
         el.classList.remove('hidden');
         el.innerHTML = `
-            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        `;
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            `;
     }
 
     function clearCnpjStatus() {
@@ -162,7 +167,7 @@
 
 
     /* =========================
-       BUSCAR CNPJ (RECEITA)
+    BUSCAR CNPJ (RECEITA)
     ========================= */
     async function buscarCNPJ(cnpj) {
         cnpj = cnpj.replace(/\D/g, '');
@@ -184,7 +189,7 @@
                 return;
             }
 
-            document.querySelector('[name="nome"]').value = data.nome || '';
+            document.querySelector('[name="razao_social"]').value = data.nome || '';
             document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
             document.querySelector('[name="cep"]').value = data.cep || '';
             document.querySelector('[name="logradouro"]').value = data.logradouro || '';
@@ -207,7 +212,7 @@
 
 
     /* =========================
-       BUSCAR CEP (VIACEP)
+    BUSCAR CEP (VIACEP)
     ========================= */
     async function buscarCEP(cep) {
         cep = cep.replace(/\D/g, '');
@@ -234,12 +239,37 @@
     }
 
     /* =========================
-       DISPARO AUTOMÁTICO (BLUR)
+    DISPARO AUTOMÁTICO (BLUR)
     ========================= */
     document.addEventListener('blur', function(e) {
         if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
         if (e.target.name === 'cep') buscarCEP(e.target.value);
     }, true);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector(
+            "form[action='{{ route('clientes.store') }}']"
+        );
+
+        if (!form) return;
+
+        form.addEventListener('submit', function() {
+            const tipo = document.querySelector('[name="tipo_pessoa"]')?.value;
+            const razao = document.querySelector('[name="razao_social"]');
+            const fantasia = document.querySelector('[name="nome_fantasia"]');
+            const nome = document.querySelector('[name="nome"]');
+
+            if (!nome || !razao) return;
+
+            if (tipo === 'PF') {
+                nome.value = razao.value.trim();
+            } else {
+                nome.value = fantasia && fantasia.value.trim() !== '' ?
+                    fantasia.value.trim() :
+                    razao.value.trim();
+            }
+        });
+    });
     </script>
 
 
@@ -278,6 +308,8 @@
 
             <form action="{{ route('clientes.store') }}" method="POST" class="space-y-6">
                 @csrf
+                <input type="hidden" name="nome" value="">
+
 
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
@@ -328,7 +360,7 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nome / Razão Social <span
                                     class="text-red-500">*</span></label>
-                            <input type="text" name="nome"
+                            <input type="text" name="razao_social"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                                 placeholder="Digite o nome completo" required>
                         </div>

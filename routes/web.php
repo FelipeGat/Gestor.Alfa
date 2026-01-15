@@ -50,6 +50,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::resource('cobrancas', CobrancaController::class);
 
     // Clientes
+    Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])
+        ->name('clientes.buscar');
+        
     Route::resource('clientes', ClienteController::class);
 
     // Empresas
@@ -72,6 +75,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     '/atendimentos/{atendimento}/andamentos',
     [\App\Http\Controllers\AtendimentoAndamentoController::class, 'store']
     )->name('atendimentos.andamentos.store');
+
 
     Route::post(
     '/atendimentos/{atendimento}/atualizar-status',
@@ -190,6 +194,7 @@ Route::middleware('auth')->group(function () {
             ->orderBy('nome')
             ->get(['id', 'nome']);
     });
+
 
 /*
 |--------------------------------------------------------------------------

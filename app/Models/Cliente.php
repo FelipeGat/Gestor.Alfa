@@ -24,7 +24,6 @@ class Cliente extends Model
         'tipo_pessoa',
         'cpf_cnpj',
         'razao_social',
-        'nome_fantasia',
         'tipo_cliente',
         'data_cadastro',
         'cep',
@@ -85,4 +84,20 @@ class Cliente extends Model
     {
         return $this->belongsToMany(Empresa::class);
     }
+
+    public function getNomeExibicaoAttribute(): string
+{
+    // Pessoa Física
+    if ($this->tipo_pessoa === 'PF') {
+        return $this->nome;
+    }
+
+    // Pessoa Jurídica
+    if (!empty($this->nome)) {
+        return $this->nome;
+    }
+
+    return $this->razao_social;
+}
+
 }

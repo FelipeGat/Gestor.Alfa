@@ -22,9 +22,9 @@ class AtendimentoController extends Controller
             'funcionario'
         ]);
 
-        // BUSCA (cliente ou solicitante)
+        // 🔎 BUSCA (cliente ou solicitante)
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('nome_solicitante', 'like', "%{$search}%")
@@ -34,27 +34,31 @@ class AtendimentoController extends Controller
             });
         }
 
-        // PRIORIDADE
+        // 🚨 PRIORIDADE
         if ($request->filled('prioridade')) {
             $query->where('prioridade', $request->prioridade);
         }
 
-        // STATUS
+        // 📌 STATUS
         if ($request->filled('status')) {
             $query->where('status_atual', $request->status);
         }
 
-        // PERÍODO
-        $periodo = $request->periodo ?? 'mes';
+        // 📅 PERÍODO
+        $periodo = $request->input('periodo', 'mes');
 
         match ($periodo) {
             'dia' => $query->whereDate('data_atendimento', today()),
+
             'semana' => $query->whereBetween('data_atendimento', [
                 now()->startOfWeek(),
-                now()->endOfWeek()
+                now()->endOfWeek(),
             ]),
+
             'ano' => $query->whereYear('data_atendimento', now()->year),
-            default => $query->whereMonth('data_atendimento', now()->month),
+
+            default => $query->whereMonth('data_atendimento', now()->month)
+                            ->whereYear('data_atendimento', now()->year),
         };
 
         $atendimentos = $query
@@ -62,7 +66,6 @@ class AtendimentoController extends Controller
             ->orderByDesc('data_atendimento')
             ->paginate(10)
             ->withQueryString();
-
 
         $funcionarios = Funcionario::where('ativo', true)
             ->orderBy('nome')
@@ -73,6 +76,7 @@ class AtendimentoController extends Controller
             'funcionarios'
         ));
     }
+
 
 
     public function create()
@@ -212,4 +216,5 @@ class AtendimentoController extends Controller
             ->route('atendimentos.index')
             ->with('success', 'Atendimento excluído com sucesso!');
     }
+
 }
