@@ -89,6 +89,16 @@
         color: #1f2937;
     }
 
+    .dashboard-card.orange {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        color: white;
+    }
+
+    .dashboard-card.purple {
+        background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+        color: white;
+    }
+
     /* ========================= CHARTS ========================= */
     .dashboard-charts-grid {
         display: grid;
@@ -275,7 +285,58 @@
         <section class="dashboard-section">
             <h3 class="dashboard-section-title">🛠️ Técnico</h3>
 
+            {{-- CARDS DE ATENDIMENTOS --}}
+            <div class="dashboard-cards">
+                <div class="dashboard-card blue" role="region" aria-label="Total de Chamados">
+                    <span>Total de Chamados</span>
+                    <strong>{{ $totalChamados ?? 0 }}</strong>
+                </div>
+
+                <div class="dashboard-card green" role="region" aria-label="Chamados em Aberto">
+                    <span>Chamados em Aberto</span>
+                    <strong>{{ $chamadosAbertos ?? 0 }}</strong>
+                </div>
+
+                <div class="dashboard-card orange" role="region" aria-label="Chamados em Atendimento">
+                    <span>Chamados em Atendimento</span>
+                    <strong>{{ $chamadosEmAtendimento ?? 0 }}</strong>
+                </div>
+
+                <div class="dashboard-card purple" role="region" aria-label="Chamados Concluído">
+                    <span>Chamados Concluído</span>
+                    <strong>{{ $chamadosConcluidos ?? 0 }}</strong>
+                </div>
+            </div>
+
+            {{-- GRÁFICOS --}}
             <div class="dashboard-charts-grid">
+                <div class="dashboard-chart">
+                    <h4>Chamados por Empresa</h4>
+                    <div id="graficoChamadosEmpresaContainer">
+                        <div class="chart-loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-chart">
+                    <h4>Chamados por Status</h4>
+                    <div id="graficoChamadosStatusContainer">
+                        <div class="chart-loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-chart">
+                    <h4>Chamados por Prioridade</h4>
+                    <div id="graficoChamadosPrioridadeContainer">
+                        <div class="chart-loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="dashboard-chart">
                     <h4>Assuntos por Empresa</h4>
                     <div id="graficoEmpresaContainer">
@@ -420,6 +481,140 @@
     } catch (error) {
         console.error('Erro ao renderizar gráfico de receita:', error);
         mostrarErro('graficoReceitaContainer', 'Erro ao carregar gráfico de receita');
+    }
+
+    /* =========================
+       GRÁFICO: CHAMADOS POR EMPRESA
+    ========================= */
+    try {
+        const labelsChamadosEmpresa = @json($labelsChamadosEmpresa ?? []);
+        const valoresChamadosEmpresa = @json($valoresChamadosEmpresa ?? []);
+
+        if (validarDados(labelsChamadosEmpresa) && validarDados(valoresChamadosEmpresa)) {
+            const canvas = criarCanvas('graficoChamadosEmpresaContainer', 'graficoChamadosEmpresa');
+            if (canvas) {
+                new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsChamadosEmpresa,
+                        datasets: [{
+                            data: valoresChamadosEmpresa,
+                            backgroundColor: ['#3b82f6', '#22c55e', '#facc15', '#ef4444', '#6366f1',
+                                '#f97316', '#a855f7'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            mostrarVazio('graficoChamadosEmpresaContainer', 'Nenhum chamado por empresa');
+        }
+    } catch (error) {
+        console.error('Erro ao renderizar gráfico de chamados por empresa:', error);
+        mostrarErro('graficoChamadosEmpresaContainer', 'Erro ao carregar gráfico de chamados por empresa');
+    }
+
+    /* =========================
+       GRÁFICO: CHAMADOS POR STATUS
+    ========================= */
+    try {
+        const labelsChamadosStatus = @json($labelsChamadosStatus ?? []);
+        const valoresChamadosStatus = @json($valoresChamadosStatus ?? []);
+
+        if (validarDados(labelsChamadosStatus) && validarDados(valoresChamadosStatus)) {
+            const canvas = criarCanvas('graficoChamadosStatusContainer', 'graficoChamadosStatus');
+            if (canvas) {
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsChamadosStatus,
+                        datasets: [{
+                            label: 'Quantidade',
+                            data: valoresChamadosStatus,
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1e40af',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            mostrarVazio('graficoChamadosStatusContainer', 'Nenhum chamado por status');
+        }
+    } catch (error) {
+        console.error('Erro ao renderizar gráfico de chamados por status:', error);
+        mostrarErro('graficoChamadosStatusContainer', 'Erro ao carregar gráfico de chamados por status');
+    }
+
+    /* =========================
+       GRÁFICO: CHAMADOS POR PRIORIDADE
+    ========================= */
+    try {
+        const labelsChamadosPrioridade = @json($labelsChamadosPrioridade ?? []);
+        const valoresChamadosPrioridade = @json($valoresChamadosPrioridade ?? []);
+
+        if (validarDados(labelsChamadosPrioridade) && validarDados(valoresChamadosPrioridade)) {
+            const canvas = criarCanvas('graficoChamadosPrioridadeContainer', 'graficoChamadosPrioridade');
+            if (canvas) {
+                new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsChamadosPrioridade,
+                        datasets: [{
+                            data: valoresChamadosPrioridade,
+                            backgroundColor: ['#ef4444', '#facc15', '#22c55e'],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            mostrarVazio('graficoChamadosPrioridadeContainer', 'Nenhum chamado por prioridade');
+        }
+    } catch (error) {
+        console.error('Erro ao renderizar gráfico de chamados por prioridade:', error);
+        mostrarErro('graficoChamadosPrioridadeContainer', 'Erro ao carregar gráfico de chamados por prioridade');
     }
 
     /* =========================

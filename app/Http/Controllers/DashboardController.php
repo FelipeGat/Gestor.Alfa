@@ -6,6 +6,7 @@ use App\Models\Cliente;
 use App\Models\Cobranca;
 use App\Models\Boleto;
 use App\Models\Assunto;
+use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -75,6 +76,57 @@ class DashboardController extends Controller
         $labelsCategoria  = $topCategorias->pluck('categoria');
         $valoresCategoria = $topCategorias->pluck('total');
 
+        /* ================= ATENDIMENTOS ================= */
+
+        // Total de Chamados
+        $totalChamados = Atendimento::count();
+
+        // Chamados em Aberto
+        $chamadosAbertos = Atendimento::where('status_atual', 'aberto')->count();
+
+        // Chamados em Atendimento
+        $chamadosEmAtendimento = Atendimento::where('status_atual', 'em_atendimento')->count();
+
+        // Chamados Concluído
+        $chamadosConcluidos = Atendimento::where('status_atual', 'concluido')->count();
+
+        // Chamados por Empresa (para gráfico)
+        $chamadosPorEmpresa = Atendimento::select('empresa_id', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('empresa_id')
+            ->groupBy('empresa_id')
+            ->with('empresa:id,nome_fantasia,razao_social')
+            ->get();
+
+        $labelsChamadosEmpresa = $chamadosPorEmpresa->map(function ($item) {
+            return $item->empresa->nome_fantasia ?? $item->empresa->razao_social ?? 'Sem Empresa';
+        });
+
+        $valoresChamadosEmpresa = $chamadosPorEmpresa->pluck('total');
+
+        // Chamados por Status (para gráfico)
+        $chamadosPorStatus = Atendimento::select('status_atual', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('status_atual')
+            ->groupBy('status_atual')
+            ->get();
+
+        $labelsChamadosStatus = $chamadosPorStatus->map(function ($item) {
+            return ucfirst(str_replace('_', ' ', $item->status_atual));
+        });
+
+        $valoresChamadosStatus = $chamadosPorStatus->pluck('total');
+
+        // Chamados por Prioridade (para gráfico)
+        $chamadosPorPrioridade = Atendimento::select('prioridade', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('prioridade')
+            ->groupBy('prioridade')
+            ->get();
+
+        $labelsChamadosPrioridade = $chamadosPorPrioridade->map(function ($item) {
+            return ucfirst($item->prioridade);
+        });
+
+        $valoresChamadosPrioridade = $chamadosPorPrioridade->pluck('total');
+
         return view('dashboard', compact(
             'totalClientes',
             'clientesAtivos',
@@ -90,7 +142,17 @@ class DashboardController extends Controller
             'labelsTipo',
             'valoresTipo',
             'labelsCategoria',
-            'valoresCategoria'
+            'valoresCategoria',
+            'totalChamados',
+            'chamadosAbertos',
+            'chamadosEmAtendimento',
+            'chamadosConcluidos',
+            'labelsChamadosEmpresa',
+            'valoresChamadosEmpresa',
+            'labelsChamadosStatus',
+            'valoresChamadosStatus',
+            'labelsChamadosPrioridade',
+            'valoresChamadosPrioridade'
         ));
     }
 }
