@@ -35,16 +35,16 @@
                     </div>
                     <br>
                     <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
-                        <button type="submit"
-                            class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                        bg-blue-600 hover:bg-blue-700 text-green-600 text-sm font-medium rounded-lg shadow transition duration-200">
+                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
+                                   bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                                   rounded-lg shadow transition">
                             🔍 Filtrar
                         </button>
 
                         @if(auth()->user()->canPermissao('clientes', 'incluir'))
-                        <a href="{{ route('clientes.create') }}"
-                            class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                    bg-green-600 hover:bg-green-700 text-blue text-sm font-medium rounded-lg shadow transition duration-200">
+                        <a href="{{ route('clientes.create') }}" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
+                                   bg-green-600 hover:bg-green-700 text-white text-sm font-medium
+                                   rounded-lg shadow transition">
                             ➕ Novo Cliente
                         </a>
                         @endif
@@ -209,8 +209,9 @@
 
                                         @if(auth()->user()->tipo === 'admin' || auth()->user()->canPermissao('clientes',
                                         'editar'))
-                                        <a href="{{ route('clientes.edit', $cliente) }}" class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700
-                                              text-white text-xs rounded-md transition">
+                                        <a href="{{ route('clientes.edit', $cliente) }}" class="inline-flex items-center px-3 py-1
+                                                      bg-white hover:bg-blue-700
+                                                      text-white text-xs rounded-md transition">
                                             ✏️
                                         </a>
                                         @endif
@@ -221,8 +222,9 @@
                                             onsubmit="return confirm('Tem certeza que deseja excluir este cliente?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="inline-flex items-center px-2 py-1 border border-red-600
-                                                   text-red-600 hover:bg-red-50 text-xs rounded-md transition">
+                                            <button class="inline-flex items-center px-3 py-1
+                                                            text-red-600
+                                                           hover:bg-red-600 text-xs rounded-md transition">
                                                 🗑️
                                             </button>
                                         </form>

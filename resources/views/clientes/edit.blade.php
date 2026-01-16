@@ -257,9 +257,9 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- HEADER DO FORMULÁRIO --}}
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
+            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
                 <h1 class="text-2xl font-bold text-black">Editar Cliente</h1>
-                <p class="text-blue-100 text-sm mt-1">Atualize os dados do cliente conforme necessário</p>
+                <p class="text-sm text-gray-600 mt-1">Atualize os dados do cliente conforme necessário</p>
             </div>
 
             {{-- ERROS --}}
@@ -560,22 +560,19 @@
                 </div>
 
                 {{-- AÇÕES --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 bg-white shadow rounded-lg p-6 sm:p-8">
-                    <a href="{{ route('clientes.index') }}"
-                        class="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Cancelar
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
+                            bg-white shadow rounded-lg p-6 sm:p-8">
+
+                    <a href="{{ route('clientes.index') }}" class="inline-flex items-center justify-center px-6 py-2
+                               rounded-lg border border-gray-300 text-gray-700 font-medium
+                               hover:bg-red-50 transition">
+                        ❌ Cancelar
                     </a>
 
-                    <button type="submit"
-                        class="inline-flex items-center justify-center px-8 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-green-600 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition duration-200 shadow-md hover:shadow-lg">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Atualizar Cliente
+                    <button type="submit" class="inline-flex items-center justify-center px-6 py-2
+                               rounded-lg border border-gray-300 text-gray-700 font-medium
+                               hover:bg-green-50 transition">
+                        ✔️ Atualizar Cliente
                     </button>
                 </div>
 

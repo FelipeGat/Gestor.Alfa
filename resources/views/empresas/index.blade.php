@@ -36,13 +36,13 @@
 
                     <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
                         <button type="submit" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                   bg-blue-600 hover:bg-blue-700 text-green-600 text-sm font-medium
+                                   bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
                                    rounded-lg shadow transition">
                             🔍 Filtrar
                         </button>
 
                         <a href="{{ route('empresas.create') }}" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                   bg-green-600 hover:bg-green-700 text-blue text-sm font-medium
+                                   bg-green-600 hover:bg-green-700 text-white text-sm font-medium
                                    rounded-lg shadow transition">
                             ➕ Nova Empresa
                         </a>
@@ -143,7 +143,7 @@
                                     <div class="flex gap-2">
 
                                         <a href="{{ route('empresas.edit', $empresa) }}" class="inline-flex items-center px-3 py-1
-                                                      bg-blue-600 hover:bg-blue-700
+                                                      bg-white hover:bg-blue-700
                                                       text-white text-xs rounded-md transition">
                                             ✏️
                                         </a>
@@ -154,8 +154,8 @@
                                             @method('DELETE')
 
                                             <button type="submit" class="inline-flex items-center px-3 py-1
-                                                           border border-red-600 text-red-600
-                                                           hover:bg-red-50 text-xs rounded-md transition">
+                                                            text-red-600
+                                                           hover:bg-red-600 text-xs rounded-md transition">
                                                 🗑️
                                             </button>
                                         </form>
