@@ -140,7 +140,7 @@
                                     <div class="inline-flex items-center gap-2">
 
                                         @if(auth()->user()->isAdminPanel() ||
-                                        auth()->user()->canPermissao('assuntos','editar'))
+                                        auth()->user()->canPermissao('assuntos','incluir'))
                                         <a href="{{ route('assuntos.edit', $assunto) }}" class="inline-flex items-center justify-center w-8 h-8
                                                               bg-blue-600 hover:bg-blue-700
                                                               text-white text-xs rounded-md transition">

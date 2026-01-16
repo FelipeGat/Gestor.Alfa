@@ -90,7 +90,7 @@ class AssuntoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'editar'),
+            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'incluir'),
             403
         );
 
@@ -106,7 +106,7 @@ class AssuntoController extends Controller
         $request->validate([
             'empresa_id'   => 'required|exists:empresas,id',
             'nome'         => 'required|string|max:255',
-            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO,',
+            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO',
             'categoria'    => 'required|string|max:255',
             'subcategoria' => 'required|string|max:255',
             'ativo'        => 'required|boolean',
@@ -132,7 +132,7 @@ class AssuntoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'editar'),
+            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'excluir'),
             403
         );
 

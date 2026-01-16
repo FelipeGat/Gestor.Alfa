@@ -20,6 +20,7 @@ use App\Http\Controllers\AssuntoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\PortalFuncionarioController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
+use App\Http\Controllers\UsuarioController;
 
 
 /*
@@ -40,7 +41,15 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('dashboard.admin')
         ->name('dashboard');
+
+    // DASHBOARD COMERCIAL
+    Route::get('/dashboard-comercial', function () {
+        return view('dashboard-comercial.index');
+        })
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial');
 
     // Cobranças
     Route::patch('/cobrancas/{cobranca}/pagar',
@@ -68,6 +77,13 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::resource('atendimentos', AtendimentoController::class)
     ->except(['show']);
 
+    // Usuarios
+    Route::middleware('admin.panel')->group(function () {
+        Route::resource('usuarios', UsuarioController::class);
+
+    });
+
+
     Route::patch('/atendimentos/{atendimento}/atualizar-campo',
     [AtendimentoController::class, 'atualizarCampo']);
 
@@ -82,17 +98,16 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
     )->name('atendimentos.status.update');
 
-    Route::get('/teste-permissao', function () {
-         /** @var \App\Models\User $user */
-    $user = Auth::user();
+    // Route::get('/teste-permissao', function () {
+    //      /** @var \App\Models\User $user */
+    //     $user = Auth::user();
 
-    return [
-        'clientes_ler' => $user->canPermissao('clientes', 'ler'),
-        'clientes_excluir' => $user->canPermissao('clientes', 'excluir'),
-        'empresas_ler' => $user->canPermissao('empresas', 'ler'),
-    ];
-    })->middleware('auth');
-
+    //     return [
+    //         'clientes_ler' => $user->canPermissao('clientes', 'ler'),
+    //         'clientes_excluir' => $user->canPermissao('clientes', 'excluir'),
+    //         'empresas_ler' => $user->canPermissao('empresas', 'ler'),
+    //     ];
+    // })->middleware('auth');
 
 
     // Upload de fotos
@@ -189,6 +204,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
+
     Route::get('/empresas/{empresa}/assuntos', function (Empresa $empresa) {
         return $empresa->assuntos()
             ->orderBy('nome')
@@ -222,11 +238,13 @@ Route::middleware('auth')->group(function () {
         ]);
 
         return redirect()->route(
-            $user->isAdminPanel()
-                ? 'dashboard'
-                : ($user->tipo === 'cliente'
-                    ? 'portal.index'
-                    : 'portal-funcionario.dashboard')
+            $user->tipo === 'comercial'
+                ? 'dashboard.comercial'
+                : ($user->isAdminPanel()
+                    ? 'dashboard'
+                    : ($user->tipo === 'cliente'
+                        ? 'portal.index'
+                        : 'portal-funcionario.dashboard'))
         );
 
     })->name('password.first.store');

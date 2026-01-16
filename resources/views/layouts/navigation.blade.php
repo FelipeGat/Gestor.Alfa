@@ -8,44 +8,75 @@
 
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    @if(auth()->user()->isAdminPanel())
-                    <a href="{{ route('dashboard') }}">
-                        @elseif(Auth::user()->tipo === 'cliente')
-                        <a href="{{ route('portal.index') }}">
-                            @else
-                            <a href="{{ route('portal-funcionario.dashboard') }}">
-                                @endif
-                                <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                            </a>
+                    @php
+                    $user = auth()->user();
+                    @endphp
+
+                    @if($user->tipo === 'comercial')
+                    <a href="{{ route('dashboard.comercial') }}">
+                        @elseif($user->isAdminPanel())
+                        <a href="{{ route('dashboard') }}">
+                            @elseif($user->tipo === 'cliente')
+                            <a href="{{ route('portal.index') }}">
+                                @else
+                                <a href="{{ route('portal-funcionario.dashboard') }}">
+                                    @endif
+
+                                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                                </a>
                 </div>
+
 
                 <!-- Navigation Links -->
                 <div class="hidden sm:flex sm:ms-10 space-x-8 py-6">
 
-                    {{-- MENU ADMIN / ADMINISTRATIVO --}}
-                    @if(auth()->user()->isAdminPanel())
+                    {{-- MENU ADMIN / COMERCIAL --}}
+                    @php
+                    $isAdmin = auth()->user()->isAdminPanel() && auth()->user()->tipo !== 'comercial';
+                    $isComercial = auth()->user()->tipo === 'comercial';
+                    @endphp
 
-                    <!-- Gestão -->
+                    @if($isAdmin || $isComercial)
                     <div x-data="{ openMenu: false }" class="relative">
                         <button @click="openMenu = !openMenu" class="text-gray-600 hover:text-gray-800 font-medium">
                             Gestão
                         </button>
 
                         <div x-show="openMenu" @click.outside="openMenu = false"
-                            class="absolute mt-2 w-48 bg-white border rounded shadow-md z-50">
+                            class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
+
+                            {{-- Dashboard Administrativo (SÓ ADMIN) --}}
+                            @if($isAdmin)
                             <x-nav-link :href="route('dashboard')" class="block px-4 py-2">
-                                Dashboard
+                                🧭 Dashboard Administrativo
                             </x-nav-link>
+                            @endif
 
+                            {{-- Dashboard Comercial (ADMIN + COMERCIAL) --}}
+                            @if($isAdmin || $isComercial)
+                            <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
+                                📈 Dashboard Comercial
+                            </x-nav-link>
+                            @endif
+
+                            {{-- Atendimentos --}}
+                            @if(auth()->user()->canPermissao('atendimentos', 'ler'))
                             <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
-                                Atendimentos
+                                📋 Atendimentos
                             </x-nav-link>
+                            @endif
 
+                            {{-- Cobranças --}}
+                            @if(auth()->user()->canPermissao('cobrancas', 'ler'))
                             <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
-                                Cobranças
+                                💰 Cobranças
                             </x-nav-link>
+                            @endif
+
                         </div>
                     </div>
+                    @endif
+
 
                     <!-- Cadastros -->
                     <div x-data="{ openMenu: false }" class="relative">
@@ -53,8 +84,8 @@
                             Cadastros
                         </button>
 
-                        <div x-show="openMenu" @click.outside="openMenu = false"
-                            class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
+                        <div x-show="openMenu" @click.outside="openMenu = false" class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50
+                            flex flex-col">
                             <x-nav-link :href="route('empresas.index')" class="block px-4 py-2">
                                 Empresas
                             </x-nav-link>
@@ -70,6 +101,10 @@
                             <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
                                 Assuntos
                             </x-nav-link>
+
+                            <x-nav-link :href="route('usuarios.index')" class="block px-4 py-2">
+                                Usuarios
+                            </x-nav-link>
                         </div>
                     </div>
 
@@ -77,8 +112,6 @@
                     <span class="text-gray-400 cursor-not-allowed">
                         Relatórios
                     </span>
-
-                    @endif
 
                     {{-- MENU CLIENTE --}}
                     @if(Auth::user()->tipo === 'cliente')
@@ -155,14 +188,35 @@
     <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
 
-            @if(auth()->user()->isAdminPanel())
-            <x-responsive-nav-link :href="route('dashboard')">Dashboard</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('empresas.index')">Empresas</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('funcionarios.index')">Funcionários</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('clientes.index')">Clientes</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
+            @php
+            $isAdmin = auth()->user()->isAdminPanel() && auth()->user()->tipo !== 'comercial';
+            $isComercial = auth()->user()->tipo === 'comercial';
+            @endphp
+
+            @if($isAdmin)
+            <x-responsive-nav-link :href="route('dashboard')">
+                🧭 Dashboard Administrativo
+            </x-responsive-nav-link>
             @endif
+
+            @if($isAdmin || $isComercial)
+            <x-responsive-nav-link :href="route('dashboard.comercial')">
+                📈 Dashboard Comercial
+            </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->canPermissao('atendimentos', 'ler'))
+            <x-responsive-nav-link :href="route('atendimentos.index')">
+                📋 Atendimentos
+            </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->canPermissao('cobrancas', 'ler'))
+            <x-responsive-nav-link :href="route('cobrancas.index')">
+                💰 Cobranças
+            </x-responsive-nav-link>
+            @endif
+
 
             @if(Auth::user()->tipo === 'cliente')
             <x-responsive-nav-link :href="route('portal.index')">

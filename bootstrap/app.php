@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'   => \App\Http\Middleware\AdminMiddleware::class,
             'funcionario' => \App\Http\Middleware\FuncionarioMiddleware::class,
             'primeiro_acesso' => \App\Http\Middleware\PrimeiroAcesso::class,
+            'admin.panel' => \App\Http\Middleware\AdminPanelMiddleware::class,
+            'dashboard.comercial' => \App\Http\Middleware\DashboardComercialMiddleware::class,
+            'dashboard.admin' => \App\Http\Middleware\DashboardAdminMiddleware::class,
+
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
