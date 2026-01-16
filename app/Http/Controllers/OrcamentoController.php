@@ -75,32 +75,64 @@ class OrcamentoController extends Controller
             'Acesso não autorizado'
         );
 
+        // ================= VALIDAÇÃO BASE =================
         $request->validate([
             'empresa_id'      => 'required|exists:empresas,id',
             'descricao'       => 'required|string|max:255',
             'validade'        => 'nullable|date|after_or_equal:' . now()->addDays(5)->format('Y-m-d'),
             'observacoes'     => 'nullable|string',
-            'cliente_id'      => 'nullable|exists:clientes,id',
+            'cliente_tipo'    => 'required|in:cliente,pre_cliente',
+
             'desconto'        => 'nullable|numeric|min:0',
             'taxas'           => 'nullable|numeric|min:0',
             'forma_pagamento' => 'nullable|string|max:50',
+        ], [
+            'cliente_tipo.required' => 'Selecione um cliente ou pré-cliente.',
         ]);
 
-        // Geração segura do número
-        $numero = \App\Models\Orcamento::gerarNumero($request->empresa_id);
+        // ================= REGRA CLIENTE / PRÉ-CLIENTE =================
+        $clienteId = null;
+        $preClienteId = null;
 
-        // Cálculo simples do valor total (por enquanto)
+        if ($request->cliente_tipo === 'cliente') {
+            abort_if(
+                !$request->filled('cliente_id'),
+                422,
+                'Cliente inválido.'
+            );
+
+            $clienteId = $request->cliente_id;
+        }
+
+        if ($request->cliente_tipo === 'pre_cliente') {
+            abort_if(
+                !$request->filled('pre_cliente_id'),
+                422,
+                'Pré-cliente inválido.'
+            );
+
+            $preClienteId = $request->pre_cliente_id;
+        }
+
+        // ================= GERA NÚMERO =================
+        $numero = Orcamento::gerarNumero($request->empresa_id);
+
+        // ================= CÁLCULO DO VALOR =================
         $valorTotal = ($request->valor_total ?? 0)
             - ($request->desconto ?? 0)
             + ($request->taxas ?? 0);
 
-        $orcamento = \App\Models\Orcamento::create([
+        // ================= CRIA ORÇAMENTO =================
+        $orcamento = Orcamento::create([
             'empresa_id'       => $request->empresa_id,
             'numero_orcamento' => $numero,
             'descricao'        => $request->descricao,
             'validade'         => $request->validade,
             'status'           => 'em_elaboracao',
-            'cliente_id'       => $request->cliente_id,
+
+            'cliente_id'       => $clienteId,
+            'pre_cliente_id'   => $preClienteId,
+
             'valor_total'      => $valorTotal,
             'desconto'         => $request->desconto,
             'taxas'            => $request->taxas,
@@ -113,6 +145,7 @@ class OrcamentoController extends Controller
             ->route('orcamentos.index')
             ->with('success', 'Orçamento criado com sucesso!');
     }
+
 
 
     public function edit(Orcamento $orcamento)

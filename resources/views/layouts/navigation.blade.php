@@ -111,7 +111,7 @@
                     <!-- Comercial -->
                     <div x-data="{ openMenu: false }" class="relative">
                         <button @click="openMenu = !openMenu" class="text-gray-600 hover:text-gray-800 font-medium">
-                            Orçamentos
+                            Comercial
                         </button>
 
                         <div x-show="openMenu" @click.outside="openMenu = false" class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50
@@ -119,6 +119,11 @@
                             <x-nav-link :href="route('orcamentos.index')" class="block px-4 py-2">
                                 Orcamentos
                             </x-nav-link>
+
+                            <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
+                                Pré Clientes
+                            </x-nav-link>
+
                         </div>
                     </div>
 

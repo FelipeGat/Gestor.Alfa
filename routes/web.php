@@ -22,6 +22,10 @@ use App\Http\Controllers\PortalFuncionarioController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\OrcamentoController;
+use App\Http\Controllers\PreClienteController;
+use App\Http\Controllers\BuscaClienteController;
+
+
 
 
 /*
@@ -61,11 +65,20 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     Route::resource('cobrancas', CobrancaController::class);
 
+    // Busca unificada Cliente + Pré-Cliente (Orçamentos)
+    Route::get('/busca-clientes', [BuscaClienteController::class, 'buscar'])
+        ->middleware('dashboard.comercial')
+        ->name('busca-clientes');
+
     // Clientes
     Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])
         ->name('clientes.buscar');
         
     Route::resource('clientes', ClienteController::class);
+
+        // Pré-Clientes (Admin e Comercial)
+    Route::resource('pre-clientes', PreClienteController::class)
+        ->middleware(['dashboard.comercial']);
 
     // Empresas
     Route::resource('empresas', EmpresaController::class);
@@ -157,7 +170,6 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         // Lista de atendimentos do técnico
         Route::get('/atendimentos', [PortalFuncionarioController::class, 'atendimentos'])
             ->name('atendimentos.index');
-
 
 
         // Visualizar atendimento (somente leitura)

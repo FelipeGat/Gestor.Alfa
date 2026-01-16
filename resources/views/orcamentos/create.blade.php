@@ -28,70 +28,98 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        const inputCliente = document.getElementById('cliente_nome');
+        const inputNome = document.getElementById('cliente_nome');
         const inputClienteId = document.getElementById('cliente_id');
+        const inputPreClienteId = document.getElementById('pre_cliente_id');
+        const inputTipo = document.getElementById('cliente_tipo');
         const resultados = document.getElementById('cliente-resultados');
-
-        if (!inputCliente) {
-            console.error('Campo cliente_nome NÃO encontrado');
-            return;
-        }
+        const btnPreCadastro = document.getElementById('btn-pre-cadastro');
 
         let timeout = null;
 
-        async function buscarClientes(q = '') {
-            const res = await fetch('/clientes/buscar?q=' + encodeURIComponent(q));
+        async function buscar(q = '') {
+            const res = await fetch('/busca-clientes?q=' + encodeURIComponent(q));
             return await res.json();
         }
 
-        function renderResultados(clientes) {
+        function limparSelecao() {
+            inputClienteId.value = '';
+            inputPreClienteId.value = '';
+            inputTipo.value = '';
+        }
+
+        function render(lista) {
             resultados.innerHTML = '';
 
-            if (!clientes.length) {
+            if (!lista.length) {
                 resultados.classList.add('hidden');
+                btnPreCadastro.classList.remove('hidden');
                 return;
             }
 
-            clientes.forEach(cliente => {
-                const nomeExibido = cliente.nome_fantasia || cliente.razao_social;
+            btnPreCadastro.classList.add('hidden');
 
-                const item = document.createElement('div');
-                item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
-                item.innerHTML = `
-                <strong>${nomeExibido}</strong><br>
-                <span class="text-xs text-gray-500">${cliente.cpf_cnpj}</span>
-            `;
+            lista.forEach(item => {
+                const nomeExibido = item.nome_fantasia || item.razao_social || '—';
 
-                item.onclick = () => {
-                    inputCliente.value = nomeExibido;
-                    inputClienteId.value = cliente.id;
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+
+                div.innerHTML = `
+                        <strong>${nomeExibido}</strong><br>
+                        <span class="text-xs text-gray-500">
+                            ${item.cpf_cnpj} • ${item.tipo === 'cliente' ? 'Cliente' : 'Pré-Cliente'}
+                        </span>
+                    `;
+
+                div.onclick = () => {
+                    inputNome.value = nomeExibido;
+
+                    // LIMPA
+                    inputClienteId.value = '';
+                    inputPreClienteId.value = '';
+                    inputTipo.value = '';
+
+                    if (item.tipo === 'cliente') {
+                        inputClienteId.value = item.id;
+                        inputTipo.value = 'cliente';
+                    }
+
+                    if (item.tipo === 'pre_cliente') {
+                        inputPreClienteId.value = item.id;
+                        inputTipo.value = 'pre_cliente';
+                    }
+
                     resultados.classList.add('hidden');
                 };
 
-                resultados.appendChild(item);
+
+                resultados.appendChild(div);
             });
 
             resultados.classList.remove('hidden');
         }
 
-        /* 👉 BUSCA AO CLICAR */
-        inputCliente.addEventListener('focus', async () => {
-            const data = await buscarClientes();
-            renderResultados(data);
-        });
-
-        /* 👉 BUSCA AO DIGITAR */
-        inputCliente.addEventListener('input', () => {
+        /* BUSCA AO DIGITAR */
+        inputNome.addEventListener('input', () => {
             clearTimeout(timeout);
-            const q = inputCliente.value.trim();
+            limparSelecao();
+
+            const q = inputNome.value.trim();
 
             timeout = setTimeout(async () => {
-                const data = await buscarClientes(q);
-                renderResultados(data);
+                if (!q) {
+                    resultados.classList.add('hidden');
+                    btnPreCadastro.classList.add('hidden');
+                    return;
+                }
+
+                const data = await buscar(q);
+                render(data);
             }, 300);
         });
 
-        /* 👉 FECHAR AO CLICAR FORA */
+        /* FECHAR AO CLICAR FORA */
         document.addEventListener('click', e => {
             if (!e.target.closest('#cliente_nome')) {
                 resultados.classList.add('hidden');
@@ -100,6 +128,20 @@
 
     });
     </script>
+
+    <script>
+    document.getElementById('btn-pre-cadastro')?.addEventListener('click', () => {
+        const nome = document.getElementById('cliente_nome').value || '';
+
+        const url = new URL('/pre-clientes/create', window.location.origin);
+        url.searchParams.set('q', nome);
+        url.searchParams.set('from', 'orcamento');
+
+        window.location.href = url.toString();
+    });
+    </script>
+
+
 
 
     <x-slot name="header">
@@ -176,16 +218,28 @@
                         {{-- CLIENTE (DIGITÁVEL) --}}
                         <div class="md:col-span-2 relative">
                             <label class="text-sm font-medium text-gray-700">Cliente</label>
+
                             <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off"
                                 placeholder="Digite nome ou CPF/CNPJ"
                                 class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
 
                             <input type="hidden" name="cliente_id" id="cliente_id">
+                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id">
+                            <input type="hidden" name="cliente_tipo" id="cliente_tipo">
 
                             <div id="cliente-resultados"
                                 class="absolute z-10 w-full bg-white border rounded-lg shadow mt-1 hidden">
                             </div>
+
+                            {{-- BOTÃO PRÉ-CADASTRO --}}
+                            <div class="mt-2">
+                                <button type="button" id="btn-pre-cadastro"
+                                    class="text-sm text-blue-600 hover:underline hidden">
+                                    ➕ Cliente não possui cadastro
+                                </button>
+                            </div>
                         </div>
+
 
                         {{-- VALIDADE --}}
                         <div>
