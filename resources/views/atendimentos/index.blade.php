@@ -4,7 +4,6 @@
     @vite('resources/css/atendimentos/index.css')
     @endpush
 
-
     {{-- ================= HEADER ================= --}}
     <x-slot name="header">
         <h1 class="page-title">📋 Atendimentos</h1>
@@ -159,9 +158,12 @@
                             <td style="text-align: center;">
                                 <select data-id="{{ $atendimento->id }}" data-campo="prioridade"
                                     class="campo-editavel table-select">
-                                    <option value="baixa" @selected($atendimento->prioridade === 'baixa')>Baixa</option>
-                                    <option value="media" @selected($atendimento->prioridade === 'media')>Média</option>
-                                    <option value="alta" @selected($atendimento->prioridade === 'alta')>Alta</option>
+                                    <option value="baixa" @selected($atendimento->prioridade === 'baixa')>Baixa
+                                    </option>
+                                    <option value="media" @selected($atendimento->prioridade === 'media')>Média
+                                    </option>
+                                    <option value="alta" @selected($atendimento->prioridade === 'alta')>Alta
+                                    </option>
                                 </select>
                             </td>
 
@@ -295,7 +297,8 @@
         {{-- ================= PAGINAÇÃO ================= --}}
         <div class="pagination-wrapper">
             <div class="pagination-info">
-                Mostrando <strong>{{ $atendimentos->count() }}</strong> de <strong>{{ $atendimentos->total() }}</strong>
+                Mostrando <strong>{{ $atendimentos->count() }}</strong> de
+                <strong>{{ $atendimentos->total() }}</strong>
                 atendimentos
             </div>
 
@@ -360,7 +363,8 @@
                 const response = await fetch(`/atendimentos/${id}/atualizar-campo`, {
                     method: 'PATCH',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                        'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]')
                             .content,
                         'Content-Type': 'application/json'
                     },

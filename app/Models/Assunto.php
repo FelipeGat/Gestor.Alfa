@@ -34,4 +34,5 @@ class Assunto extends Model
     {
         return $this->belongsTo(Empresa::class);
     }
+
 }

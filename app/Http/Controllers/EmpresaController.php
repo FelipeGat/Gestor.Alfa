@@ -138,4 +138,20 @@ class EmpresaController extends Controller
             ->route('empresas.index')
             ->with('success', 'Empresa excluída com sucesso!');
     }
+
+    public function assuntos(Empresa $empresa)
+    {
+        return $empresa->assuntos()
+            ->where('ativo', true)
+            ->orderBy('categoria')
+            ->orderBy('subcategoria')
+            ->orderBy('nome')
+            ->get([
+                'id',
+                'nome',
+                'categoria',
+                'subcategoria'
+            ]);
+    }
+
 }

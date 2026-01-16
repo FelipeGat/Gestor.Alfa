@@ -1,32 +1,10 @@
 <x-app-layout>
 
-    @push('styles')
-    @vite('resources/css/clientes/create.css')
-    @endpush
-
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ➕ Novo Cliente
         </h2>
     </x-slot>
-
-    {{-- ================= ESTILO SPINNER ================= --}}
-    <style>
-    .cnpj-spinner {
-        width: 50px;
-        height: 50px;
-        border: 2px solid #cbd5e1;
-        border-top-color: #2563eb;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-    </style>
 
 
     {{-- ================= JS ================= --}}

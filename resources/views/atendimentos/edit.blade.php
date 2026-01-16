@@ -114,7 +114,8 @@
                         @if($atendimento->andamentos->count())
 
                         {{-- ===== UPLOAD DE FOTOS ===== --}}
-                        @if($atendimento->status_atual !== 'finalizacao' && $atendimento->status_atual !== 'concluido')
+                        @if($atendimento->status_atual !== 'finalizacao' && $atendimento->status_atual !==
+                        'concluido')
                         <div class="form-section" style="margin-bottom: 2rem;">
                             <h4 class="form-section-title">
                                 <svg class="form-section-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -155,7 +156,8 @@
 
                                 <div class="timeline-content">
                                     <div class="timeline-header">{{ $andamento->user->name ?? 'Sistema' }}</div>
-                                    <div class="timeline-time">{{ $andamento->created_at->format('d/m/Y \à\s H:i') }}
+                                    <div class="timeline-time">
+                                        {{ $andamento->created_at->format('d/m/Y \à\s H:i') }}
                                     </div>
                                     <div class="timeline-text">{{ $andamento->descricao }}</div>
 
@@ -245,7 +247,8 @@
                                 <select name="status" id="status" required
                                     class="@error('status') border-red-500 @enderror">
                                     <option value="">Selecione</option>
-                                    @foreach(['orcamento' => 'Orçamento', 'aberto' => 'Aberto', 'em_atendimento' => 'Em
+                                    @foreach(['orcamento' => 'Orçamento', 'aberto' => 'Aberto', 'em_atendimento' =>
+                                    'Em
                                     Atendimento', 'pendente_cliente' => 'Pendente Cliente', 'pendente_fornecedor' =>
                                     'Pendente Fornecedor', 'finalizacao' => 'Finalização', 'garantia' => 'Garantia',
                                     'concluido' => 'Concluído'] as $v => $l)
@@ -265,9 +268,12 @@
                                 </label>
                                 <select name="prioridade" id="prioridade" required
                                     class="@error('prioridade') border-red-500 @enderror">
-                                    <option value="baixa" @selected($atendimento->prioridade === 'baixa')>Baixa</option>
-                                    <option value="media" @selected($atendimento->prioridade === 'media')>Média</option>
-                                    <option value="alta" @selected($atendimento->prioridade === 'alta')>Alta</option>
+                                    <option value="baixa" @selected($atendimento->prioridade === 'baixa')>Baixa
+                                    </option>
+                                    <option value="media" @selected($atendimento->prioridade === 'media')>Média
+                                    </option>
+                                    <option value="alta" @selected($atendimento->prioridade === 'alta')>Alta
+                                    </option>
                                 </select>
                                 @error('prioridade')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

@@ -205,11 +205,11 @@ Route::middleware('auth')->group(function () {
 });
 
 
-    Route::get('/empresas/{empresa}/assuntos', function (Empresa $empresa) {
-        return $empresa->assuntos()
-            ->orderBy('nome')
-            ->get(['id', 'nome']);
-    });
+    Route::get(
+        '/empresas/{empresa}/assuntos',
+            [EmpresaController::class, 'assuntos']
+    );
+
 
 
 /*

@@ -4,7 +4,6 @@
     @vite('resources/css/atendimentos/create.css')
     @endpush
 
-
     {{-- ================= CONTEÚDO ================= --}}
     <div class="form-wrapper">
         <div class="form-container">
@@ -202,7 +201,8 @@
                             <select name="prioridade" id="prioridade" required
                                 class="@error('prioridade') border-red-500 @enderror">
                                 <option value="baixa" @selected(old('prioridade')=='baixa' )>Baixa</option>
-                                <option value="media" @selected(old('prioridade', 'media' )=='media' )>Média</option>
+                                <option value="media" @selected(old('prioridade', 'media' )=='media' )>Média
+                                </option>
                                 <option value="alta" @selected(old('prioridade')=='alta' )>Alta</option>
                             </select>
                             @error('prioridade')
@@ -221,7 +221,8 @@
                                 </option>
                                 <option value="orcamento" @selected(old('status_inicial')=='orcamento' )>Orçamento
                                 </option>
-                                <option value="garantia" @selected(old('status_inicial')=='garantia' )>Garantia</option>
+                                <option value="garantia" @selected(old('status_inicial')=='garantia' )>Garantia
+                                </option>
                             </select>
                             @error('status_inicial')
                             <p class="form-help text-red-500">{{ $message }}</p>
@@ -330,12 +331,39 @@
 
                 assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
 
+                // Limpa e adiciona opção inicial
+                assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
+
+                // Agrupar por categoria
+                const grupos = {};
+
                 data.forEach(assunto => {
+                    const categoria = assunto.categoria || 'Outros';
+
+                    if (!grupos[categoria]) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = categoria;
+                        grupos[categoria] = optgroup;
+                    }
+
                     const option = document.createElement('option');
                     option.value = assunto.id;
-                    option.textContent = assunto.nome;
-                    assuntoSelect.appendChild(option);
+
+                    if (assunto.subcategoria) {
+                        option.textContent = `${assunto.subcategoria} › ${assunto.nome}`;
+                    } else {
+                        option.textContent = assunto.nome;
+                    }
+
+                    grupos[categoria].appendChild(option);
                 });
+
+                // Anexa os grupos ao select
+                Object.values(grupos).forEach(grupo => {
+                    assuntoSelect.appendChild(grupo);
+                });
+
+
 
                 assuntoSelect.disabled = false;
 
@@ -369,5 +397,4 @@
         }
     });
     </script>
-
 </x-app-layout>
