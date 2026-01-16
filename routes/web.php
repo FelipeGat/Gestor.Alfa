@@ -21,6 +21,7 @@ use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\PortalFuncionarioController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\OrcamentoController;
 
 
 /*
@@ -50,6 +51,8 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         })
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
+        
+    Route::resource('orcamentos', OrcamentoController::class);
 
     // Cobranças
     Route::patch('/cobrancas/{cobranca}/pagar',
@@ -83,6 +86,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     });
 
+    Route::get('/orcamentos/gerar-numero/{empresa}',
+    [\App\Http\Controllers\OrcamentoController::class, 'gerarNumero']
+    )->middleware('dashboard.comercial');
+
 
     Route::patch('/atendimentos/{atendimento}/atualizar-campo',
     [AtendimentoController::class, 'atualizarCampo']);
@@ -97,17 +104,6 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     '/atendimentos/{atendimento}/atualizar-status',
     [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
     )->name('atendimentos.status.update');
-
-    // Route::get('/teste-permissao', function () {
-    //      /** @var \App\Models\User $user */
-    //     $user = Auth::user();
-
-    //     return [
-    //         'clientes_ler' => $user->canPermissao('clientes', 'ler'),
-    //         'clientes_excluir' => $user->canPermissao('clientes', 'excluir'),
-    //         'empresas_ler' => $user->canPermissao('empresas', 'ler'),
-    //     ];
-    // })->middleware('auth');
 
 
     // Upload de fotos

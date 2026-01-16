@@ -31,7 +31,9 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Tipo</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Perfis</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Status</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase">Ações</th>
                             </tr>
+
                         </thead>
 
                         <tbody class="divide-y divide-gray-200">
@@ -47,11 +49,11 @@
 
                                 <td class="px-4 py-3 text-sm">
                                     <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                            {{ $usuario->tipo === 'admin'
-                                                ? 'bg-red-100 text-red-800'
-                                                : ($usuario->tipo === 'administrativo'
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-green-100 text-green-800') }}">
+            {{ $usuario->tipo === 'admin'
+                ? 'bg-red-100 text-red-800'
+                : ($usuario->tipo === 'administrativo'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-green-100 text-green-800') }}">
                                         {{ ucfirst($usuario->tipo) }}
                                     </span>
                                 </td>
@@ -67,7 +69,18 @@
                                     <span class="text-green-600 font-medium">Ativo</span>
                                     @endif
                                 </td>
+
+                                {{-- AÇÕES --}}
+                                <td class="px-4 py-3 text-sm text-center">
+                                    <a href="{{ route('usuarios.edit', $usuario) }}" class="inline-flex items-center px-3 py-1.5
+                                            bg-blue-600 hover:bg-blue-700
+                                            text-white text-xs font-medium
+                                            rounded-lg shadow transition">
+                                        ✏️ Editar
+                                    </a>
+                                </td>
                             </tr>
+
                             @empty
                             <tr>
                                 <td colspan="5" class="px-4 py-8 text-center text-gray-500">

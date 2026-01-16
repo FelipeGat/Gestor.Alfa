@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Notifications\ResetPasswordNotification;
 use App\Models\Cliente;
 use App\Models\Perfil;
+use App\Models\Empresa;
 
 /**
  * @property bool $primeiro_acesso
@@ -94,5 +95,10 @@ class User extends Authenticatable
     public function isAdminPanel(): bool
     {
         return $this->perfis()->whereIn('slug', ['admin', 'administrativo'])->exists();
+    }
+
+        public function empresas()
+    {
+        return $this->belongsToMany(Empresa::class, 'user_empresa');
     }
 }

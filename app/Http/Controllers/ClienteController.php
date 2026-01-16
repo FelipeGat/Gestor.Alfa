@@ -296,24 +296,23 @@ class ClienteController extends Controller
         try {
             $search = trim((string) $request->query('q'));
 
-            if (mb_strlen($search) < 2) {
-                return response()->json([]);
-            }
-
             $clientes = Cliente::query()
                 ->whereNull('deleted_at')
-                ->where(function ($q) use ($search) {
-                    $q->where('cpf_cnpj', 'like', "%{$search}%")
-                    ->orWhere('razao_social', 'like', "%{$search}%")
-                    ->orWhere('nome', 'like', "%{$search}%");
+                ->when($search !== '', function ($q) use ($search) {
+                    $q->where(function ($sub) use ($search) {
+                        $sub->where('cpf_cnpj', 'like', "%{$search}%")
+                            ->orWhere('razao_social', 'like', "%{$search}%")
+                            ->orWhere('nome_fantasia', 'like', "%{$search}%");
+                    });
                 })
-                ->orderBy('nome')
+                ->orderBy('nome_fantasia')
                 ->limit(10)
                 ->get()
                 ->map(fn ($cliente) => [
-                    'id'       => $cliente->id,
-                    'cpf_cnpj' => $cliente->cpf_cnpj,
-                    'nome'     => $cliente->nome, // já normalizado
+                    'id'             => $cliente->id,
+                    'cpf_cnpj'       => $cliente->cpf_cnpj,
+                    'nome_fantasia'  => $cliente->nome_fantasia,
+                    'razao_social'   => $cliente->razao_social,
                 ]);
 
             return response()->json($clientes);
@@ -326,6 +325,7 @@ class ClienteController extends Controller
             return response()->json([], 500);
         }
     }
+
 
 
     private function resolverNomeCliente(Request $request): array
