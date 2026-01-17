@@ -173,8 +173,26 @@
             </div>
             @endif
 
+            {{-- ================= VÍNCULO COM ATENDIMENTO ================= --}}
+            @if(isset($atendimento))
+            <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow">
+                <strong>Orçamento vinculado ao atendimento:</strong>
+                <br>
+                Nº {{ $atendimento->numero_atendimento }}
+                @if($atendimento->cliente)
+                — {{ $atendimento->cliente->nome }}
+                @endif
+            </div>
+            @endif
+
+
             <form action="{{ route('orcamentos.store') }}" method="POST" class="space-y-6">
                 @csrf
+
+                @if(isset($atendimento))
+                <input type="hidden" name="atendimento_id" value="{{ $atendimento->id }}">
+                @endif
+
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
                 <div class="bg-white shadow rounded-lg p-6 mb-6">
@@ -192,7 +210,9 @@
                                 class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                                 <option value="">Selecione</option>
                                 @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->id }}">
+                                <option value="{{ $empresa->id }}" @if(isset($atendimento) && $atendimento->empresa_id
+                                    == $empresa->id) selected @endif
+                                    >
                                     {{ $empresa->nome_fantasia ?? $empresa->nome }}
                                 </option>
                                 @endforeach
@@ -211,8 +231,10 @@
                             <label class="text-sm font-medium text-gray-700">Descrição / Referência <span
                                     class="text-red-500">*</span></label>
                             <input type="text" name="descricao" required
+                                value="{{ old('descricao', $atendimento->descricao ?? '') }}"
                                 placeholder="Ex: Manutenção preventiva, Instalação de câmeras..."
                                 class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+
                         </div>
 
                         {{-- CLIENTE (DIGITÁVEL) --}}
@@ -220,12 +242,19 @@
                             <label class="text-sm font-medium text-gray-700">Cliente</label>
 
                             <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off"
+                                value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}"
                                 placeholder="Digite nome ou CPF/CNPJ"
                                 class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
 
-                            <input type="hidden" name="cliente_id" id="cliente_id">
-                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id">
-                            <input type="hidden" name="cliente_tipo" id="cliente_tipo">
+                            <input type="hidden" name="cliente_id" id="cliente_id"
+                                value="{{ old('cliente_id', $atendimento?->cliente_id ?? '') }}">
+
+                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id"
+                                value="{{ old('pre_cliente_id') }}">
+
+                            <input type="hidden" name="cliente_tipo" id="cliente_tipo"
+                                value="{{ old('cliente_tipo', $atendimento?->cliente_id ? 'cliente' : '') }}">
+
 
                             <div id="cliente-resultados"
                                 class="absolute z-10 w-full bg-white border rounded-lg shadow mt-1 hidden">

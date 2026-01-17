@@ -44,9 +44,12 @@ class AtendimentoStatusController extends Controller
         // Atualiza atendimento
         $statusAnterior = $atendimento->status_atual;
 
+        $novoStatus = $request->status;
+
         $atendimento->update([
-            'status_atual' => $request->status,
+            'status_atual' => $novoStatus,
             'prioridade'   => $request->prioridade,
+            'is_orcamento' => $novoStatus === 'orcamento',
         ]);
 
         // Registra andamento (obrigatório)

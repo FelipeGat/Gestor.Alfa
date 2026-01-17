@@ -8,6 +8,7 @@ use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Funcionario;
 use App\Models\Assunto;
+use App\Models\Orcamento;
 
 class Atendimento extends Model
 {
@@ -78,6 +79,11 @@ class Atendimento extends Model
     {
         return $this->hasMany(AtendimentoAndamento::class)
                     ->orderBy('created_at', 'desc');
+    }
+
+    public function orcamento()
+    {
+        return $this->hasOne(Orcamento::class);
     }
 
     public function statusHistoricos()

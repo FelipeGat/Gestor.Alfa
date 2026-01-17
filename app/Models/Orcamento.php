@@ -63,4 +63,27 @@ class Orcamento extends Model
 
         return "{$sequencial}/{$ano}";
     }
+
+    public function preCliente()
+    {
+        return $this->belongsTo(\App\Models\PreCliente::class, 'pre_cliente_id');
+    }
+
+    public function getNomeClienteAttribute(): string
+    {
+        if ($this->cliente) {
+            return $this->cliente->nome_fantasia
+                ?? $this->cliente->razao_social
+                ?? '—';
+        }
+
+        if ($this->preCliente) {
+            return $this->preCliente->nome_fantasia
+                ?? $this->preCliente->razao_social
+                ?? '—';
+        }
+
+        return '—';
+    }
+
 }

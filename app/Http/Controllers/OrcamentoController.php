@@ -8,6 +8,8 @@ use App\Models\Cliente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Atendimento;
+
 
 
 class OrcamentoController extends Controller
@@ -22,7 +24,8 @@ class OrcamentoController extends Controller
             403,
             'Acesso não autorizado'
         );
-
+        
+        // ================= ORÇAMENTOS =================
         $query = Orcamento::with(['empresa', 'cliente'])
             ->orderByDesc('created_at');
 
@@ -33,7 +36,8 @@ class OrcamentoController extends Controller
             // segurança extra
             if ($empresaIds->isEmpty()) {
                 $orcamentos = collect();
-                return view('orcamentos.index', compact('orcamentos'));
+                $atendimentosParaOrcamento = collect();
+                return view('orcamentos.index', compact('orcamentos', 'atendimentosParaOrcamento'));
             }
 
             $query->whereIn('empresa_id', $empresaIds);
@@ -41,13 +45,29 @@ class OrcamentoController extends Controller
 
         // Admin vê tudo
         $orcamentos = $query->get();
+        
+        // ================= ATENDIMENTOS AGUARDANDO ORÇAMENTO =================
+            $atendimentosQuery = Atendimento::with(['cliente', 'empresa'])
+                ->where('status_atual', 'orcamento')
+                ->whereDoesntHave('orcamento');
 
-        return view('orcamentos.index', compact('orcamentos'));
+            if ($user->tipo === 'comercial') {
+                $atendimentosQuery->whereIn('empresa_id', $empresaIds);
+            }
+
+            $atendimentosParaOrcamento = $atendimentosQuery
+                ->orderByDesc('created_at')
+                ->get();
+
+            return view(
+                'orcamentos.index',
+                compact('orcamentos', 'atendimentosParaOrcamento')
+        );
     }
 
 
 
-    public function create()
+    public function create(Request $request)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -61,7 +81,19 @@ class OrcamentoController extends Controller
         $empresas = Empresa::orderBy('nome_fantasia')->get();
         $clientes = Cliente::orderBy('nome')->get();
 
-        return view('orcamentos.create', compact('empresas', 'clientes'));
+        $atendimento = null;
+
+            if ($request->filled('atendimento')) {
+            $atendimento = Atendimento::with(['empresa', 'cliente'])
+                ->where('id', $request->atendimento)
+                ->where('status_atual', 'orcamento')
+                ->firstOrFail();
+        }
+
+        return view(
+            'orcamentos.create',
+            compact('empresas', 'clientes', 'atendimento')
+        );
     }
 
     public function store(Request $request)
@@ -125,6 +157,7 @@ class OrcamentoController extends Controller
         // ================= CRIA ORÇAMENTO =================
         $orcamento = Orcamento::create([
             'empresa_id'       => $request->empresa_id,
+            'atendimento_id'   => $request->atendimento_id,
             'numero_orcamento' => $numero,
             'descricao'        => $request->descricao,
             'validade'         => $request->validade,
@@ -196,7 +229,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            !$user->isAdminPanel() && $user->tipo,
             403,
             'Acesso não autorizado'
         );
