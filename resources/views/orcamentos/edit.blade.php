@@ -576,11 +576,7 @@
         let itens = [];
 
         // ================= CARREGAR ITENS EXISTENTES =================
-        const itensExistentes = {
-            {
-                json_encode($itensArray)
-            }
-        };
+        const itensExistentes = {!!json_encode($itensArray) !!};
 
         if (itensExistentes && itensExistentes.length > 0) {
             itens = itensExistentes;
@@ -628,7 +624,8 @@
 
                 timeout = setTimeout(async () => {
                     try {
-                        const res = await fetch(`${urlBusca}?q=${encodeURIComponent(q)}`);
+                        const res = await fetch(
+                            `${urlBusca}?q=${encodeURIComponent(q)}`);
                         if (!res.ok) throw new Error('Erro na busca');
                         const data = await res.json();
 
