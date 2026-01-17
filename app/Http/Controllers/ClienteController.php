@@ -43,9 +43,20 @@ class ClienteController extends Controller
             $query->where('ativo', $request->status === 'ativo');
         }
 
-        $clientes = $query->orderBy('nome')->get();
+        $totalClientes     = Cliente::count();
+        $clientesAtivos    = Cliente::where('ativo', true)->count();
+        $clientesInativos  = Cliente::where('ativo', false)->count();
+        $receitaMensal     = Cliente::where('ativo', true)->sum('valor_mensal');
 
-        return view('clientes.index', compact('clientes'));
+        $clientes = $query->orderBy('nome')->paginate(10)->withQueryString();
+
+        return view('clientes.index', compact(
+            'clientes',
+            'totalClientes',
+            'clientesAtivos',
+            'clientesInativos',
+            'receitaMensal'
+        ));
     }
 
     public function create()

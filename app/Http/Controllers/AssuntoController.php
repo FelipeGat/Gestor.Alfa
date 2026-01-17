@@ -4,43 +4,78 @@ namespace App\Http\Controllers;
 
 use App\Models\Assunto;
 use App\Models\Empresa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AssuntoController extends Controller
 {
     public function index(Request $request)
-{
-    /** @var User $user */
-    $user = Auth::user();
+    {
+        /** @var User $user */
+        $user = Auth::user();
 
-    abort_if(
-        !$user->canPermissao('assuntos', 'ler'),
-        403
-    );
+        abort_if(
+            !$user->canPermissao('assuntos', 'ler'),
+            403,
+            'Acesso não autorizado'
+        );
 
-    $query = Assunto::with('empresa');
+        /*
+        |--------------------------------------------------------------------------
+        | Query base (listagem)
+        |--------------------------------------------------------------------------
+        */
+        $query = Assunto::with('empresa');
 
-    if ($request->filled('search')) {
-        $query->where('nome', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $query->where('nome', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('status')) {
+            $query->where('ativo', $request->status === 'ativo');
+        }
+
+        if ($request->filled('empresa_id')) {
+            $query->where('empresa_id', $request->empresa_id);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Paginação (NUNCA usar get em listagem)
+        |--------------------------------------------------------------------------
+        */
+        $assuntos = $query
+            ->orderBy('nome')
+            ->paginate(10)
+            ->withQueryString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Resumo (dados REAIS do banco, não da página)
+        |--------------------------------------------------------------------------
+        */
+        $totalAssuntos     = Assunto::count();
+        $assuntosAtivos    = Assunto::where('ativo', true)->count();
+        $assuntosInativos  = Assunto::where('ativo', false)->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Empresas para filtro
+        |--------------------------------------------------------------------------
+        */
+        $empresas = Empresa::where('ativo', true)
+            ->orderBy('nome_fantasia')
+            ->get();
+
+        return view('assuntos.index', compact(
+            'assuntos',
+            'empresas',
+            'totalAssuntos',
+            'assuntosAtivos',
+            'assuntosInativos'
+        ));
     }
-
-    if ($request->filled('status')) {
-        $query->where('ativo', $request->status === 'ativo');
-    }
-
-    if ($request->filled('empresa_id')) {
-        $query->where('empresa_id', $request->empresa_id);
-    }
-
-    $assuntos = $query->orderBy('nome')->get();
-
-    $empresas = Empresa::where('ativo', true)
-        ->orderBy('nome_fantasia')
-        ->get();
-
-    return view('assuntos.index', compact('assuntos', 'empresas'));
-}
 
     public function create()
     {
@@ -49,7 +84,8 @@ class AssuntoController extends Controller
 
         abort_if(
             !$user->canPermissao('assuntos', 'incluir'),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
         $empresas = Empresa::where('ativo', true)
@@ -64,7 +100,7 @@ class AssuntoController extends Controller
         $request->validate([
             'empresa_id'   => 'required|exists:empresas,id',
             'nome'         => 'required|string|max:255',
-            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO,',
+            'tipo'         => 'required|in:SERVICO,VENDA,COMERCIAL,ADMINISTRATIVO',
             'categoria'    => 'required|string|max:255',
             'subcategoria' => 'required|string|max:255',
             'ativo'        => 'required|boolean',
@@ -90,8 +126,9 @@ class AssuntoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'incluir'),
-            403
+            !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'editar'),
+            403,
+            'Acesso não autorizado'
         );
 
         $empresas = Empresa::where('ativo', true)
@@ -133,7 +170,8 @@ class AssuntoController extends Controller
 
         abort_if(
             !$user->isAdminPanel() && !$user->canPermissao('assuntos', 'excluir'),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
         $assunto->delete();

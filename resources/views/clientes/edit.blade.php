@@ -1,7 +1,7 @@
 <x-app-layout>
 
     @push('styles')
-    @vite('resources/css/clientes/edit.css')
+    @vite('resources/css/atendimentos/index.css')
     @endpush
 
     <x-slot name="header">
@@ -563,16 +563,25 @@
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
                             bg-white shadow rounded-lg p-6 sm:p-8">
 
-                    <a href="{{ route('clientes.index') }}" class="inline-flex items-center justify-center px-6 py-2
-                               rounded-lg border border-gray-300 text-gray-700 font-medium
-                               hover:bg-red-50 transition">
-                        ❌ Cancelar
+                    <a href="{{ route('clientes.index') }}"
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
+
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        Cancelar
                     </a>
 
-                    <button type="submit" class="inline-flex items-center justify-center px-6 py-2
-                               rounded-lg border border-gray-300 text-gray-700 font-medium
-                               hover:bg-green-50 transition">
-                        ✔️ Atualizar Cliente
+                    <button type="submit" class="btn btn-primary">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Atualizar Cliente
                     </button>
                 </div>
 

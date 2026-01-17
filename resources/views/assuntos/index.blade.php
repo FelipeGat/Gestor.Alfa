@@ -1,4 +1,9 @@
 <x-app-layout>
+
+    @push('styles')
+    @vite('resources/css/atendimentos/index.css')
+    @endpush
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             🏷️ Assuntos
@@ -52,18 +57,24 @@
                     </div><br>
 
                     {{-- AÇÕES --}}
-                    <div class="flex gap-3 flex-col lg:flex-row lg:col-span-3 justify-end">
-                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                       bg-blue-600 hover:bg-blue-700 text-green-600 text-sm font-medium
-                                       rounded-lg shadow transition">
-                            🔍 Filtrar
+                    <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
+                        <button type="submit" class="btn btn-primary">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Filtrar
                         </button>
 
                         @if(auth()->user()->canPermissao('assuntos','incluir'))
-                        <a href="{{ route('assuntos.create') }}" class="inline-flex items-center justify-center px-4 py-2 w-full lg:w-auto
-                                      bg-green-600 hover:bg-green-700 text-blue text-sm font-medium
-                                      rounded-lg shadow transition">
-                            ➕ Novo Assunto
+                        <a href="{{ route('assuntos.create') }}" class="btn btn-success">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Cliente
                         </a>
                         @endif
                     </div>
@@ -141,23 +152,29 @@
 
                                         @if(auth()->user()->isAdminPanel() ||
                                         auth()->user()->canPermissao('assuntos','incluir'))
-                                        <a href="{{ route('assuntos.edit', $assunto) }}" class="inline-flex items-center justify-center w-8 h-8
-                                                              bg-blue-600 hover:bg-blue-700
-                                                              text-white text-xs rounded-md transition">
-                                            ✏️
+                                        <a href="{{ route('assuntos.edit', $assunto) }}" class="btn btn-sm btn-edit">
+                                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                                <path
+                                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                            Editar
                                         </a>
                                         @endif
 
                                         @if(auth()->user()->isAdminPanel() ||
                                         auth()->user()->canPermissao('assuntos','excluir'))
                                         <form action="{{ route('assuntos.destroy', $assunto) }}" method="POST"
-                                            onsubmit="return confirm('Deseja excluir este assunto?')">
+                                            onsubmit="return confirm('Tem certeza que deseja excluir este cliente?')"
+                                            style="display: inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center justify-center w-8 h-8
-                                                                       border border-red-600 text-red-600
-                                                                       hover:bg-red-50 text-xs rounded-md transition">
-                                                🗑️
+                                            <button type="submit" class="btn btn-sm btn-delete">
+                                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                                Excluir
                                             </button>
                                         </form>
                                         @endif
@@ -171,6 +188,42 @@
                     </table>
                 </div>
             </div>
+            <br>
+
+            {{-- ================= PAGINAÇÃO ================= --}}
+            <div class="pagination-wrapper">
+                <div class="pagination-info">
+                    Mostrando <strong>{{ $assuntos->count() }}</strong> de
+                    <strong>{{ $assuntos->total() }}</strong>
+                    assuntos
+                </div>
+
+                <div class="pagination-links">
+                    {{-- Link Anterior --}}
+                    @if($assuntos->onFirstPage())
+                    <span class="pagination-link disabled">← Anterior</span>
+                    @else
+                    <a href="{{ $assuntos->previousPageUrl() }}" class="pagination-link">← Anterior</a>
+                    @endif
+
+                    {{-- Links de Página --}}
+                    @foreach($assuntos->getUrlRange(1, $assuntos->lastPage()) as $page => $url)
+                    @if($page == $assuntos->currentPage())
+                    <span class="pagination-link active">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="pagination-link">{{ $page }}</a>
+                    @endif
+                    @endforeach
+
+                    {{-- Link Próximo --}}
+                    @if($assuntos->hasMorePages())
+                    <a href="{{ $assuntos->nextPageUrl() }}" class="pagination-link">Próximo →</a>
+                    @else
+                    <span class="pagination-link disabled">Próximo →</span>
+                    @endif
+                </div>
+            </div>
+
             @else
             <div class="bg-white shadow rounded-lg p-12 text-center">
                 <h3 class="text-lg font-medium text-gray-900">

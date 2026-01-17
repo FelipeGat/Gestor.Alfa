@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\OrcamentoItem;
 
 class Orcamento extends Model
 {
@@ -26,6 +27,10 @@ class Orcamento extends Model
         'validade',
         'observacoes',
         'created_by',
+    ];
+
+    protected $casts = [
+        'validade' => 'date',
     ];
 
     /* ===================== RELACIONAMENTOS ===================== */
@@ -84,6 +89,11 @@ class Orcamento extends Model
         }
 
         return '—';
+    }
+
+    public function itens()
+    {
+        return $this->hasMany(OrcamentoItem::class);
     }
 
 }

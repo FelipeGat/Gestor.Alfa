@@ -120,6 +120,10 @@
                                 Orcamentos
                             </x-nav-link>
 
+                            <x-nav-link :href="route('itemcomercial.index')" class="block px-4 py-2">
+                                Produtos/Serviços
+                            </x-nav-link>
+
                             <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
                                 Pré Clientes
                             </x-nav-link>

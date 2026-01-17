@@ -24,6 +24,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\BuscaClienteController;
+use App\Http\Controllers\ItemComercialController;
 
 
 
@@ -55,8 +56,17 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         })
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
-        
+    
+    // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class);
+
+    // Serviços e Produtos
+    Route::get('/itemcomercial/buscar', [ItemComercialController::class, 'buscar'])
+        ->middleware(['auth', 'dashboard.comercial'])
+        ->name('itemcomercial.buscar');
+
+    Route::resource('itemcomercial', \App\Http\Controllers\ItemComercialController::class)
+    ->middleware(['dashboard.comercial']);
 
     // Cobranças
     Route::patch('/cobrancas/{cobranca}/pagar',
@@ -76,7 +86,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         
     Route::resource('clientes', ClienteController::class);
 
-        // Pré-Clientes (Admin e Comercial)
+    // Pré-Clientes (Admin e Comercial)
     Route::resource('pre-clientes', PreClienteController::class)
         ->middleware(['dashboard.comercial']);
 

@@ -1,4 +1,9 @@
 <x-app-layout>
+
+    @push('styles')
+    @vite('resources/css/atendimentos/index.css')
+    @endpush
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ✏️ Editar Assunto
@@ -9,10 +14,9 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- HEADER DO FORMULÁRIO --}}
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg rounded-lg
-                        px-6 py-4 sm:px-8 sm:py-6 mb-6">
+            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
                 <h1 class="text-2xl font-bold text-black">Editar Assunto</h1>
-                <p class="text-blue-100 text-sm mt-1">
+                <p class="text-sm text-gray-600 mt-1">
                     Atualize as informações do assunto
                 </p>
             </div>
@@ -153,23 +157,23 @@
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
                             bg-white shadow rounded-lg p-6 sm:p-8">
 
-                    <a href="{{ route('assuntos.index') }}" class="inline-flex items-center justify-center px-6 py-2
-                              rounded-lg border border-gray-300 text-gray-700 font-medium
-                              hover:bg-gray-50 transition duration-200">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
+                    <a href="{{ route('assuntos.index') }}"
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
+
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
                         </svg>
+
                         Cancelar
                     </a>
 
-                    <button type="submit" class="inline-flex items-center justify-center px-8 py-2
-                                   bg-gradient-to-r from-blue-600 to-blue-700
-                                   text-green-600 rounded-lg font-medium
-                                   hover:from-blue-700 hover:to-blue-800
-                                   transition duration-200 shadow-md hover:shadow-lg">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <button type="submit" class="btn btn-primary">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
                         </svg>
                         Atualizar Assunto
                     </button>
