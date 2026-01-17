@@ -92,6 +92,16 @@
         color: white;
     }
 
+    .btn-pre {
+        background: linear-gradient(135deg, #995405 0%, #e2af06 100%);
+        color: white;
+    }
+
+    .btn-pre:hover:not(:disabled) {
+        box-shadow: 0 4px 6px rgba(111, 150, 6, 0.3);
+        transform: translateY(-1px);
+    }
+
     .btn-cancelar {
         background: linear-gradient(135deg, #f80404 0%, #e93535 100%);
         color: white;
