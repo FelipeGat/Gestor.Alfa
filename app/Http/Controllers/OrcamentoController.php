@@ -123,6 +123,7 @@ class OrcamentoController extends Controller
             'itens' => 'required|array|min:1',
             'itens.*.item_comercial_id' => 'required|exists:itens_comerciais,id',
             'itens.*.quantidade' => 'required|integer|min:1',
+            'itens.*.valor_unitario' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $user) {
@@ -152,6 +153,7 @@ class OrcamentoController extends Controller
                 'forma_pagamento'  => $request->forma_pagamento,
                 'observacoes'      => $request->observacoes,
                 'created_by'       => $user->id,
+            
             ]);
 
             // ---------- ITENS ----------
@@ -160,9 +162,11 @@ class OrcamentoController extends Controller
 
             foreach ($request->itens as $itemData) {
 
-                $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
+            $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
 
-                $subtotal = $itemData['quantidade'] * $item->preco_venda;
+            $valorUnitario = (float) $itemData['valor_unitario'];
+            $subtotal = $itemData['quantidade'] * $valorUnitario;
+
 
                 OrcamentoItem::create([
                     'orcamento_id'       => $orcamento->id,
@@ -170,7 +174,7 @@ class OrcamentoController extends Controller
                     'tipo'               => $item->tipo,
                     'nome'               => $item->nome,
                     'quantidade'         => $itemData['quantidade'],
-                    'valor_unitario'     => $item->preco_venda,
+                    'valor_unitario'     => $valorUnitario,
                     'subtotal'           => $subtotal,
                 ]);
 
@@ -217,7 +221,21 @@ class OrcamentoController extends Controller
             }
         ]);
 
-        return view('orcamentos.edit', compact('orcamento', 'empresas'));
+        // ================= ITENS PARA O JS =================
+        $itensArray = $orcamento->itens->map(function ($item) {
+            return [
+                'id'           => $item->item_comercial_id,
+                'nome'         => $item->nome,
+                'tipo'         => $item->tipo,
+                'preco_venda'  => (float) $item->valor_unitario,
+                'quantidade'   => (int) $item->quantidade,
+            ];
+        })->values();
+
+        return view(
+            'orcamentos.edit',
+            compact('orcamento', 'empresas', 'itensArray')
+        );
     }
 
 
@@ -247,6 +265,7 @@ class OrcamentoController extends Controller
             'itens' => 'required|array|min:1',
             'itens.*.item_comercial_id' => 'required|exists:itens_comerciais,id',
             'itens.*.quantidade' => 'required|integer|min:1',
+            'itens.*.valor_unitario' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $user, $orcamento) {
@@ -285,7 +304,9 @@ class OrcamentoController extends Controller
 
                 $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
 
-                $subtotal = $itemData['quantidade'] * $item->preco_venda;
+                $valorUnitario = (float) $itemData['valor_unitario'];
+                $subtotal = $itemData['quantidade'] * $valorUnitario;
+
 
                 OrcamentoItem::create([
                     'orcamento_id'       => $orcamento->id,
@@ -293,7 +314,7 @@ class OrcamentoController extends Controller
                     'tipo'               => $item->tipo,
                     'nome'               => $item->nome,
                     'quantidade'         => $itemData['quantidade'],
-                    'valor_unitario'     => $item->preco_venda,
+                    'valor_unitario'     => $valorUnitario,
                     'subtotal'           => $subtotal,
                 ]);
 
