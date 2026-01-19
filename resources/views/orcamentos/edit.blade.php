@@ -1,5 +1,4 @@
 <x-app-layout>
-
     @push('styles')
         @vite('resources/css/atendimentos/index.css')
     @endpush
@@ -8,402 +7,298 @@
         @vite('resources/js/orcamento.js')
     @endpush
 
-    
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ✏️ Editar Orçamento
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-bold text-2xl text-gray-800 leading-tight flex items-center gap-2">
+                <span class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                </span>
+                Editar Orçamento #{{ $orcamento->numero_orcamento }}
+            </h2>
+            <div class="text-sm text-gray-500 font-medium">{{ now()->format('d/m/Y') }}</div>
+        </div>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-10 bg-gray-50 min-h-screen">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- ================= HEADER DO FORMULÁRIO ================= --}}
-            <div
-                class="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg rounded-lg px-6 py-4 mb-6 border-l-4 border-blue-500">
-                <h1 class="text-2xl font-bold text-gray-900">Editar Orçamento</h1>
-                <p class="text-sm text-gray-600 mt-1">
-                    Atualize os dados do orçamento abaixo
-                </p>
-            </div>
 
             {{-- ================= ERROS ================= --}}
             @if ($errors->any())
-            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <div>
-                        <h3 class="font-semibold text-red-800 mb-2">Erros encontrados:</h3>
-                        <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
-                            @foreach ($errors->all() as $erro)
-                            <li>{{ $erro }}</li>
-                            @endforeach
+            <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0"><svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide">Erros encontrados:</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
+                            @foreach ($errors->all() as $erro) <li>{{ $erro }}</li> @endforeach
                         </ul>
                     </div>
                 </div>
             </div>
             @endif
 
-            {{-- ================= SUCESSO ================= --}}
-            @if (session('success'))
-            <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg shadow">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor"
-                        viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm text-green-700">{{ session('success') }}</span>
-                </div>
-            </div>
-            @endif
-
-            <form action="{{ route('orcamentos.update', $orcamento->id) }}" method="POST" class="space-y-6">
+            <form action="{{ route('orcamentos.update', $orcamento->id) }}" method="POST" class="space-y-8">
                 @csrf
                 @method('PUT')
 
-                {{-- ROOT PARA JS DO ORÇAMENTO --}}
-
-                <div id="orcamento-root"
-                    data-url-busca="{{ url('/itemcomercial/buscar') }}"
-                    data-itens='@json($itensArray)'>
+                {{-- Root do JS com dados para edição --}}
+                <div id="orcamento-root" 
+                     data-url-busca="{{ url('/itemcomercial/buscar') }}"
+                     data-itens="{{ json_encode($orcamento->itens) }}"
+                     data-taxas="{{ json_encode($orcamento->taxas_detalhe ?? []) }}">
                 </div>
-
+                
                 <div id="inputs-itens-hidden"></div>
 
+                @if(isset($orcamento->atendimento_id))
+                    <input type="hidden" name="atendimento_id" value="{{ $orcamento->atendimento_id }}">
+                @endif
+
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
-                <div class="bg-white shadow rounded-lg p-6 border-t-4 border-blue-500">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Informações Básicas</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        {{-- EMPRESA --}}
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Empresa <span
-                                    class="text-red-500">*</span></label>
-                            <select name="empresa_id" required
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Selecione</option>
+                <div class="form-card" >
+                    <div class="card-header">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            Dados do Orçamento
+                        </h3>
+                    </div>
+                    
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-6">
+                            <label class="label-text">Empresa <span class="text-red-500">*</span></label>
+                            <select name="empresa_id" required class="input-field w-full" >
+                                <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->id }}" @selected($orcamento->empresa_id == $empresa->id)>
-                                    {{ $empresa->nome_fantasia ?? $empresa->nome }}
-                                </option>
+                                    <option value="{{ $empresa->id }}" @if(old('empresa_id', $orcamento->empresa_id) == $empresa->id) selected @endif>
+                                        {{ $empresa->nome_fantasia ?? $empresa->nome }}
+                                    </option>
                                 @endforeach
                             </select>
-                            @error('empresa_id')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
                         </div>
 
-                        {{-- Nº ORÇAMENTO --}}
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Nº do Orçamento</label>
-                            <input type="text" name="numero_orcamento" readonly placeholder="Gerado automaticamente"
-                                value="{{ $orcamento->numero_orcamento }}"
-                                class="mt-1 w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600">
+                        <div class="md:col-span-6">
+                            <label class="label-text">Número do Orçamento</label>
+                            <input type="text" name="numero_orcamento" readonly value="{{ $orcamento->numero_orcamento }}" class="input-field w-full bg-gray-50 font-mono font-bold text-blue-600 ">
                         </div>
 
-                        {{-- DESCRIÇÃO / REFERÊNCIA --}}
-                        <div class="md:col-span-2">
-                            <label class="text-sm font-medium text-gray-700">Descrição / Referência <span
-                                    class="text-red-500">*</span></label>
-                            <input type="text" name="descricao" required
-                                value="{{ old('descricao', $orcamento->descricao) }}"
-                                placeholder="Ex: Manutenção preventiva, Instalação de câmeras..."
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('descricao')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                        <div class="md:col-span-12">
+                            <label class="label-text">Descrição / Referência <span class="text-red-500">*</span></label>
+                            <input type="text" name="descricao" required value="{{ old('descricao', $orcamento->descricao) }}" class="input-field w-full">
                         </div>
 
-                        {{-- CLIENTE (DIGITÁVEL) --}}
-                        <div class="md:col-span-2 relative">
-                            <label class="text-sm font-medium text-gray-700">Cliente</label>
-
-                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off"
-                                value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? '') }}"
-                                placeholder="Digite nome ou CPF/CNPJ"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-
-                            <input type="hidden" name="cliente_id" id="cliente_id"
-                                value="{{ old('cliente_id', $orcamento->cliente_id ?? '') }}">
-
-                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id"
-                                value="{{ old('pre_cliente_id', $orcamento->pre_cliente_id ?? '') }}">
-
-                            <input type="hidden" name="cliente_tipo" id="cliente_tipo"
-                                value="{{ old('cliente_tipo', $orcamento->cliente_id ? 'cliente' : ($orcamento->pre_cliente_id ? 'pre_cliente' : '')) }}">
-
-                            <div id="cliente-resultados"
-                                class="absolute z-10 w-full bg-white border rounded-lg shadow mt-1 hidden max-h-64 overflow-y-auto">
-                            </div>
-
-                            {{-- BOTÃO PRÉ-CADASTRO --}}
-                            <div class="mt-2">
-                                <button type="button" id="btn-pre-cadastro"
-                                    class="text-sm text-blue-600 hover:text-blue-800 hover:underline hidden flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path
-                                            d="M10.5 1.5H5.75A2.25 2.25 0 003.5 3.75v12.5A2.25 2.25 0 005.75 18.5h8.5a2.25 2.25 0 002.25-2.25V9.5M10.5 1.5v4M10.5 1.5H14.25M10.5 5.5h3.75"
-                                            stroke="currentColor" stroke-width="1.5" fill="none" />
-                                    </svg>
-                                    ➕ Cliente não possui cadastro
-                                </button>
-                            </div>
+                        <div class="md:col-span-8 relative">
+                            <label class="label-text">Cliente</label>
+                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? $orcamento->preCliente?->nome ?? '') }}" placeholder="Buscar cliente..." class="input-field w-full">
+                            <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $orcamento->cliente_id) }}">
+                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id" value="{{ old('pre_cliente_id', $orcamento->pre_cliente_id) }}">
+                            <input type="hidden" name="cliente_tipo" id="cliente_tipo" value="{{ old('cliente_tipo', $orcamento->cliente_id ? 'cliente' : ($orcamento->pre_cliente_id ? 'pre_cliente' : '')) }}">
+                            
+                            <div id="cliente-resultados" class="search-results-container hidden"></div>
+                            
+                            <button type="button" id="btn-pre-cadastro" class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">➕ Novo Pré-Cadastro</button>
                         </div>
 
-                        {{-- VALIDADE --}}
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Validade do Orçamento</label>
-                            <input type="date" name="validade"
-                                value="{{ old('validade', $orcamento->validade?->format('Y-m-d')) }}"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('validade')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                        <div class="md:col-span-4">
+                            <label class="label-text">Validade</label>
+                            <input type="date" name="validade" value="{{ old('validade', $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') : '') }}" class="input-field w-full">
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= ITENS DO ORÇAMENTO ================= --}}
-                <div class="bg-white shadow rounded-lg p-6 border-t-4 border-green-500">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6">🧾 Serviços e Produtos</h3>
-
-                    {{-- ================= BUSCA DE SERVIÇOS ================= --}}
-                    <div class="mb-6 pb-6 border-b">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="font-semibold text-gray-800 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z" />
-                                    <path fill-rule="evenodd"
-                                        d="M3 10a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Serviços
-                            </h4>
-                            <button type="button" id="btn-add-servico"
-                                class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM11 7a1 1 0 11-2 0 1 1 0 012 0zM8 9a1 1 0 100 2h4a1 1 0 100-2H8z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                ➕ Adicionar Serviço
-                            </button>
-                        </div>
-
-                        <div class="relative hidden" id="busca-servico-wrapper">
-                            <input type="text" id="busca-servico" placeholder="Digite o nome do serviço..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-
-                            <div id="resultado-servico"
-                                class="absolute z-20 w-full bg-white border rounded-lg shadow mt-1 hidden max-h-60 overflow-auto">
-                            </div>
-                        </div>
-
-                        <div class="mt-3 overflow-x-auto">
-                            <table class="w-full table-auto border-collapse">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-semibold text-gray-700">Serviço</th>
-                                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-700">Qtd</th>
-                                        <th class="px-3 py-2 text-right text-xs font-semibold text-gray-700">Valor Unit.
-                                        </th>
-                                        <th class="px-3 py-2 text-right text-xs font-semibold text-gray-700">Subtotal
-                                        </th>
-                                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-700">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="itens-servicos" class="divide-y"></tbody>
-                            </table>
-                            <div class="text-right mt-2 font-semibold text-gray-900">
-                                Total Serviços: <span class="text-green-600">R$ <span
-                                        id="total-servicos">0,00</span></span>
-                            </div>
-                        </div>
+                <div class="form-card border-t-4 border-t-green-500">
+                    <div class="card-header">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                            Itens e Serviços
+                        </h3>
                     </div>
 
-                    {{-- ================= BUSCA DE PRODUTOS ================= --}}
-                    <div class="mb-6">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="font-semibold text-gray-800 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z" />
-                                    <path
-                                        d="M16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                                </svg>
-                                Materiais / Produtos
-                            </h4>
-                            <button type="button" id="btn-add-produto"
-                                class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM11 7a1 1 0 11-2 0 1 1 0 012 0zM8 9a1 1 0 100 2h4a1 1 0 100-2H8z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                ➕ Adicionar Produto
-                            </button>
-                        </div>
-
-                        <div class="relative hidden" id="busca-produto-wrapper">
-                            <input type="text" id="busca-produto" placeholder="Digite o nome do produto..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-
-                            <div id="resultado-produto"
-                                class="absolute z-20 w-full bg-white border rounded-lg shadow mt-1 hidden max-h-60 overflow-auto">
-                            </div>
-                        </div>
-
-                        <div class="mt-3 overflow-x-auto">
-                            <table class="w-full table-auto border-collapse">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-semibold text-gray-700">Material
-                                        </th>
-                                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-700">Qtd</th>
-                                        <th class="px-3 py-2 text-right text-xs font-semibold text-gray-700">Valor Unit.
-                                        </th>
-                                        <th class="px-3 py-2 text-right text-xs font-semibold text-gray-700">Subtotal
-                                        </th>
-                                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-700">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="itens-produtos" class="divide-y"></tbody>
-                            </table>
-                            <div class="text-right mt-2 font-semibold text-gray-900">
-                                Total Materiais: <span class="text-green-600">R$ <span
-                                        id="total-produtos">0,00</span></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ================= RESUMO FINAL ================= --}}
-                    <div class="mt-6 pt-4 border-t space-y-2 text-right bg-gray-50 p-4 rounded">
-                        <div class="flex justify-between">
-                            <span class="text-gray-700">Serviços:</span>
-                            <span class="font-semibold text-gray-900">R$ <span id="resumo-servicos">0,00</span></span>
-                        </div>
-
-                        <div class="flex justify-between">
-                            <span class="text-gray-700">Materiais:</span>
-                            <span class="font-semibold text-gray-900">R$ <span id="resumo-produtos">0,00</span></span>
-                        </div>
-
-                        <div id="resumo-desconto-wrapper" class="hidden flex justify-between">
-                            <span class="text-gray-700">Descontos:</span>
-                            <span class="font-semibold text-red-600">− R$ <span id="resumo-desconto">0,00</span></span>
-                        </div>
-
-                        <div id="resumo-taxas-wrapper" class="hidden flex justify-between">
-                            <span class="text-gray-700">Taxas Adicionais:</span>
-                            <span class="font-semibold text-orange-600">R$ <span id="resumo-taxas">0,00</span></span>
-                        </div>
-
-                        <div class="flex justify-between border-t pt-2 mt-2">
-                            <span class="text-lg font-bold text-gray-900">Total:</span>
-                            <span class="text-lg font-bold text-blue-600">R$ <span
-                                    id="total-orcamento">0,00</span></span>
-                        </div>
-                    </div>
-
-                </div>
-
-                {{-- ================= VALORES E PAGAMENTO ================= --}}
-                <div class="bg-white shadow rounded-lg p-6 border-t-4 border-purple-500">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">💰 Valores e Pagamento</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                        {{-- DESCONTO --}}
+                    <div class="p-6 space-y-8">
+                        {{-- SERVIÇOS --}}
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Desconto</label>
-                            <input type="number" step="0.01" name="desconto" placeholder="0,00"
-                                value="{{ old('desconto', $orcamento->desconto) }}"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('desconto')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-full"></span> Serviços</h4>
+                                <button type="button" id="btn-add-servico" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">➕ Adicionar Serviço</button>
+                            </div>
+                            <div class="relative hidden mb-4" id="busca-servico-wrapper">
+                                <input type="text" id="busca-servico" placeholder="Pesquisar serviço..." class="input-field border-orange-200">
+                                <div id="resultado-servico" class="search-results-container hidden"></div>
+                            </div>
+                            <div class="overflow-hidden rounded-xl border border-gray-100">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr>
+                                            <th class="table-header">Descrição</th>
+                                            <th class="table-header text-center w-24">Qtd</th>
+                                            <th class="table-header text-right w-32">Valor Unit.</th>
+                                            <th class="table-header text-right w-32">Subtotal</th>
+                                            <th class="table-header text-center w-16"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itens-servicos" class="bg-white divide-y divide-gray-50"></tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        {{-- TAXAS --}}
+                        {{-- PRODUTOS --}}
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Taxas Adicionais</label>
-                            <input type="number" step="0.01" name="taxas" placeholder="0,00"
-                                value="{{ old('taxas', $orcamento->taxas) }}"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('taxas')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-full"></span> Materiais e Produtos</h4>
+                                <button type="button" id="btn-add-produto" class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">➕ Adicionar Produto</button>
+                            </div>
+                            <div class="relative hidden mb-4" id="busca-produto-wrapper">
+                                <input type="text" id="busca-produto" placeholder="Pesquisar produto..." class="input-field border-blue-200">
+                                <div id="resultado-produto" class="search-results-container hidden"></div>
+                            </div>
+                            <div class="overflow-hidden rounded-xl border border-gray-100">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr>
+                                            <th class="table-header">Nome do Produto</th>
+                                            <th class="table-header text-center w-24">Qtd</th>
+                                            <th class="table-header text-right w-32">Valor Unit.</th>
+                                            <th class="table-header text-right w-32">Subtotal</th>
+                                            <th class="table-header text-center w-16"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itens-produtos" class="bg-white divide-y divide-gray-50"></tbody>
+                                </table>
+                            </div>
                         </div>
-
-                        {{-- FORMA DE PAGAMENTO --}}
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Forma de Pagamento</label>
-                            <select name="forma_pagamento"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Selecione</option>
-                                <option value="pix" @selected(old('forma_pagamento', $orcamento->forma_pagamento) ==
-                                    'pix')>PIX</option>
-                                <option value="boleto" @selected(old('forma_pagamento', $orcamento->forma_pagamento) ==
-                                    'boleto')>Boleto</option>
-                                <option value="credito" @selected(old('forma_pagamento', $orcamento->forma_pagamento) ==
-                                    'credito')>Cartão de Crédito</option>
-                                <option value="debito" @selected(old('forma_pagamento', $orcamento->forma_pagamento) ==
-                                    'debito')>Cartão de Débito</option>
-                                <option value="transferencia" @selected(old('forma_pagamento', $orcamento->
-                                    forma_pagamento) == 'transferencia')>Transferência</option>
-                            </select>
-                            @error('forma_pagamento')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
-                        </div>
-
                     </div>
                 </div>
 
-                {{-- ================= OBSERVAÇÕES ================= --}}
-                <div class="bg-white shadow rounded-lg p-6 border-t-4 border-indigo-500">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 Observações</h3>
-                    <textarea name="observacoes" rows="4" placeholder="Observações importantes sobre o orçamento..."
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('observacoes', $orcamento->observacoes) }}</textarea>
-                    @error('observacoes')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                    @enderror
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        
+                        {{-- ================= BLOCO DE DESCONTOS ================= --}}
+                        <div class="form-card border-t-4 border-t-red-400">
+                            <div class="card-header">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                                    Descontos por Categoria
+                                </h3>
+                            </div>
+                            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="label-text">Desconto em Serviços</label>
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="number" step="0.01" id="desconto-servico-valor" name="desconto_servico_valor" value="{{ old('desconto_servico_valor', $orcamento->desconto_servico_valor) }}" class="input-field flex-1" placeholder="0,00">
+                                        <select id="desconto-servico-tipo" name="desconto_servico_tipo" class="input-field w-24">
+                                            <option value="valor" @if(old('desconto_servico_tipo', $orcamento->desconto_servico_tipo) == 'valor') selected @endif>R$</option>
+                                            <option value="percentual" @if(old('desconto_servico_tipo', $orcamento->desconto_servico_tipo) == 'percentual') selected @endif>%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="label-text">Desconto em Materiais</label>
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="number" step="0.01" id="desconto-produto-valor" name="desconto_produto_valor" value="{{ old('desconto_produto_valor', $orcamento->desconto_produto_valor) }}" class="input-field flex-1" placeholder="0,00">
+                                        <select id="desconto-produto-tipo" name="desconto_produto_tipo" class="input-field w-24">
+                                            <option value="valor" @if(old('desconto_produto_tipo', $orcamento->desconto_produto_tipo) == 'valor') selected @endif>R$</option>
+                                            <option value="percentual" @if(old('desconto_produto_tipo', $orcamento->desconto_produto_tipo) == 'percentual') selected @endif>%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- TAXAS ADICIONAIS --}}
+                        <div class="form-card border-t-4 border-t-purple-500">
+                            <div class="card-header">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Taxas e Impostos
+                                </h3>
+                                <button type="button" id="btn-add-taxa" class="text-xs font-bold text-purple-600 hover:underline">➕ Nova Taxa</button>
+                            </div>
+                            <div class="p-6"><div id="lista-taxas" class="space-y-3"></div></div>
+                        </div>
+
+                        {{-- FORMAS DE PAGAMENTO --}}
+                        <div class="form-card border-t-4 border-t-emerald-500">
+                            <div class="card-header">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    Condições de Pagamento
+                                </h3>
+                            </div>
+                            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @php
+                                    $pagamentos = is_array($orcamento->pagamento) ? $orcamento->pagamento : json_decode($orcamento->pagamento ?? '[]', true);
+                                @endphp
+                                <div class="space-y-3">
+                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
+                                        <input type="checkbox" name="pagamento[]" value="pix" class="rounded text-emerald-500 mr-3" @if(in_array('pix', $pagamentos)) checked @endif>
+                                        <span class="text-sm font-medium text-gray-700">À Vista (Pix / Dinheiro)</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
+                                        <input type="checkbox" name="pagamento[]" value="debito" class="rounded text-emerald-500 mr-3" @if(in_array('debito', $pagamentos)) checked @endif>
+                                        <span class="text-sm font-medium text-gray-700">Cartão de Débito</span>
+                                    </label>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                        <input type="checkbox" name="pagamento[]" value="credito" class="rounded text-emerald-500 mr-3 fp-check" @if(in_array('credito', $pagamentos)) checked @endif>
+                                        <div class="flex-1 flex items-center justify-between ml-1">
+                                            <span class="text-sm font-medium text-gray-700">Crédito</span>
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" name="parcelas_credito" min="1" value="{{ $orcamento->parcelas_credito ?? 1 }}" class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas" @if(!in_array('credito', $pagamentos)) disabled @endif>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                        <input type="checkbox" name="pagamento[]" value="boleto" class="rounded text-emerald-500 mr-3 fp-check" @if(in_array('boleto', $pagamentos)) checked @endif>
+                                        <div class="flex-1 flex items-center justify-between ml-1">
+                                            <span class="text-sm font-medium text-gray-700">Boleto</span>
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" name="parcelas_boleto" min="1" value="{{ $orcamento->parcelas_boleto ?? 1 }}" class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas" @if(!in_array('boleto', $pagamentos)) disabled @endif>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- COLUNA DIREITA: RESUMO --}}
+                    <div class="space-y-8">
+                        <div class="form-card bg-gray-900 border-none text-green-600 sticky top-8">
+                            <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                <h3 class="text-sm font-bold uppercase tracking-widest">Resumo Financeiro</h3>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <div class="flex justify-between text-sm"><span class="text-gray-400">Serviços</span><span class="font-mono font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
+                                <div class="flex justify-between text-sm"><span class="text-gray-400">Materiais</span><span class="font-mono font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
+                                <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-400"><span>Descontos</span><span class="font-mono font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
+                                <div id="resumo-taxas-wrapper" class="hidden flex justify-between text-sm text-orange-400"><span>Taxas</span><span class="font-mono font-bold">+ R$ <span id="resumo-taxas">0,00</span></span></div>
+                                <div class="pt-4 border-t border-gray-800 flex justify-between items-end">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Total Geral</p>
+                                        <p class="text-3xl font-bold text-blue-400 font-mono">R$ <span id="total-orcamento">0,00</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-gray-800/50">
+                                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    ATUALIZAR ORÇAMENTO
+                                </button>
+                                <a href="{{ route('orcamentos.index') }}" class="block text-center mt-3 text-red-700 hover:text-red-300 font-medium uppercase tracking-widest">Cancelar</a>
+                            </div>
+                        </div>
+
+                        <div class="form-card border-t-4 border-t-indigo-500">
+                            <div class="card-header"><h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Observações</h3></div>
+                            <div class="p-4"><textarea name="observacoes" rows="4" class="input-field w-full bg-gray-50 border-none focus:ring-indigo-100">{{ old('observacoes', $orcamento->observacoes) }}</textarea></div>
+                        </div>
+                    </div>
                 </div>
-
-                {{-- ================= AÇÕES ================= --}}
-                <div class="flex justify-end gap-3 bg-white shadow rounded-lg p-6">
-                    <a href="{{ route('orcamentos.index') }}"
-                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
-
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-
-                        Cancelar
-                    </a>
-
-                    <button type="submit" class="btn btn-primary">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Atualizar Orçamento
-                    </button>
-                </div>
-
             </form>
         </div>
     </div>
-
 </x-app-layout>

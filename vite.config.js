@@ -9,8 +9,6 @@ export default defineConfig({
 
                 // ATENDIMENTOS
                 'resources/css/atendimentos/index.css',
-                'resources/css/atendimentos/create.css',
-                'resources/css/atendimentos/edit.css',
 
                 // ORCAMENTOS
                 'resources/css/orcamentos/index.css',

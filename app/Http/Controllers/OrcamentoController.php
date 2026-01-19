@@ -147,8 +147,15 @@ class OrcamentoController extends Controller
                 'status'           => 'em_elaboracao',
                 'cliente_id'       => $clienteId,
                 'pre_cliente_id'   => $preClienteId,
-                'desconto'         => $request->desconto ?? 0,
-                'taxas'            => $request->taxas ?? 0,
+                'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
+                'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
+                'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
+                'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
+                'desconto'               => $request->desconto_total ?? 0,
+                'taxas'                  => $request->taxas_total ?? 0,
+                'forma_pagamento' => $request->forma_pagamento,
+                'observacoes'     => $request->observacoes,
+                'created_by'      => $user->id,
                 'forma_pagamento'  => $request->forma_pagamento,
                 'observacoes'      => $request->observacoes,
                 'created_by'       => $user->id,
@@ -187,8 +194,8 @@ class OrcamentoController extends Controller
             // ---------- TOTAL FINAL ----------
             $valorTotal = $totalServicos
                 + $totalProdutos
-                - ($request->desconto ?? 0)
-                + ($request->taxas ?? 0);
+                - ($request->desconto_total ?? 0)
+                + ($request->taxas_total ?? 0);
 
             $orcamento->update([
                 'valor_total' => $valorTotal,
@@ -282,14 +289,25 @@ class OrcamentoController extends Controller
             // ---------- ATUALIZAR ORÇAMENTO ----------
             $orcamento->update([
                 'empresa_id'       => $request->empresa_id,
+                'atendimento_id'   => $request->atendimento_id,
+                'numero_orcamento' => Orcamento::gerarNumero($request->empresa_id),
                 'descricao'        => $request->descricao,
                 'validade'         => $request->validade,
+                'status'           => 'em_elaboracao',
                 'cliente_id'       => $clienteId,
                 'pre_cliente_id'   => $preClienteId,
-                'desconto'         => $request->desconto ?? 0,
-                'taxas'            => $request->taxas ?? 0,
+                'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
+                'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
+                'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
+                'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
+                'desconto'               => $request->desconto_total ?? 0,
+                'taxas'                  => $request->taxas_total ?? 0,
+                'forma_pagamento' => $request->forma_pagamento,
+                'observacoes'     => $request->observacoes,
+                'created_by'      => $user->id,
                 'forma_pagamento'  => $request->forma_pagamento,
                 'observacoes'      => $request->observacoes,
+                'created_by'       => $user->id,
             ]);
 
             // ---------- REMOVER ITENS ANTIGOS ----------
@@ -327,8 +345,8 @@ class OrcamentoController extends Controller
             // ---------- RECALCULAR TOTAL FINAL ----------
             $valorTotal = $totalServicos
                 + $totalProdutos
-                - ($request->desconto ?? 0)
-                + ($request->taxas ?? 0);
+                - ($request->desconto_total ?? 0)
+                + ($request->taxas_total ?? 0);
 
             $orcamento->update([
                 'valor_total' => $valorTotal,

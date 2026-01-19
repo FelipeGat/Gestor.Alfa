@@ -1,12 +1,29 @@
-/* =========================================================
-   ORÇAMENTO - CREATE & EDIT (INTEGRADO E CORRIGIDO)
-   ========================================================= */
 
-/* ================= ESTADO GLOBAL ================= */
 window.itens = [];
 window.taxas = [];
 
-/* ================= FUNÇÕES GLOBAIS (HTML inline) ================= */
+function fecharBuscas() {
+    const ws = document.getElementById('busca-servico-wrapper');
+    const wp = document.getElementById('busca-produto-wrapper');
+    const rs = document.getElementById('resultado-servico');
+    const rp = document.getElementById('resultado-produto');
+    const is = document.getElementById('busca-servico');
+    const ip = document.getElementById('busca-produto');
+
+    ws?.classList.add('hidden');
+    wp?.classList.add('hidden');
+    rs?.classList.add('hidden');
+    rp?.classList.add('hidden');
+
+    if (rs) rs.innerHTML = '';
+    if (rp) rp.innerHTML = '';
+    if (is) is.value = '';
+    if (ip) ip.value = '';
+
+    document.activeElement?.blur();
+}
+
+
 window.atualizarQtd = (index, qtd) => {
     if (itens[index]) {
         itens[index].quantidade = Math.max(1, parseInt(qtd || 1));
@@ -27,19 +44,17 @@ window.removerItem = (index) => {
     renderTabela();
 };
 
-/* ================= DOM READY ================= */
 document.addEventListener('DOMContentLoaded', () => {
-
-    /* ================= ROOT ================= */
     const root = document.getElementById('orcamento-root');
     if (!root) return;
 
     const urlBusca = root.dataset.urlBusca;
+    
+    // Carregamento de dados iniciais (Modo Edição)
     const itensIniciais = root.dataset.itens ? JSON.parse(root.dataset.itens) : [];
+    const taxasIniciais = root.dataset.taxas ? JSON.parse(root.dataset.taxas) : [];
 
-    /* =========================================================
-       NÚMERO DO ORÇAMENTO (AUTOMÁTICO POR EMPRESA)
-    ========================================================= */
+    /* ================= NÚMERO AUTOMÁTICO ================= */
     const empresaSelect = document.querySelector('[name="empresa_id"]');
     const numeroInput = document.querySelector('[name="numero_orcamento"]');
 
@@ -47,23 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
         empresaSelect.addEventListener('change', async () => {
             const empresaId = empresaSelect.value;
             numeroInput.value = '';
-
             if (!empresaId) return;
-
             try {
                 const res = await fetch(`/orcamentos/gerar-numero/${empresaId}`);
-                if (!res.ok) throw new Error('Erro ao gerar número');
                 const data = await res.json();
                 numeroInput.value = data.numero ?? '';
-            } catch (e) {
-                console.error('Erro ao gerar número do orçamento:', e);
-            }
+            } catch (e) { console.error('Erro ao gerar número:', e); }
         });
     }
 
-    /* =========================================================
-       BUSCA DE CLIENTES E PRÉ-CLIENTES
-    ========================================================= */
+    /* ================= BUSCA CLIENTES ================= */
     const inputNome = document.getElementById('cliente_nome');
     const inputClienteId = document.getElementById('cliente_id');
     const inputPreClienteId = document.getElementById('pre_cliente_id');
@@ -76,131 +84,64 @@ document.addEventListener('DOMContentLoaded', () => {
     async function buscarClientes(q = '') {
         try {
             const res = await fetch('/busca-clientes?q=' + encodeURIComponent(q));
-            if (!res.ok) throw new Error('Erro na busca');
             return await res.json();
-        } catch (e) {
-            console.error('Erro ao buscar clientes:', e);
-            return [];
-        }
-    }
-
-    function limparSelecaoCliente() {
-        if (inputClienteId) inputClienteId.value = '';
-        if (inputPreClienteId) inputPreClienteId.value = '';
-        if (inputTipo) inputTipo.value = '';
+        } catch (e) { return []; }
     }
 
     function renderClientes(lista) {
         if (!resultados) return;
         resultados.innerHTML = '';
-
         if (!lista.length) {
             resultados.classList.add('hidden');
             btnPreCadastro?.classList.remove('hidden');
             return;
         }
-
         btnPreCadastro?.classList.add('hidden');
-
         lista.forEach(item => {
             const nome = item.nome_fantasia || item.razao_social || item.nome || '—';
             const div = document.createElement('div');
-            div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm border-b';
-            div.innerHTML = `
-                <strong>${nome}</strong><br>
-                <span class="text-xs text-gray-500">
-                    ${item.cpf_cnpj ?? ''} • ${item.tipo === 'cliente' ? 'Cliente' : 'Pré-Cliente'}
-                </span>
-            `;
-
+            div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 transition-colors';
+            div.innerHTML = `<strong>${nome}</strong><br><span class="text-xs text-gray-500">${item.cpf_cnpj ?? ''} • ${item.tipo === 'cliente' ? 'Cliente' : 'Pré-Cliente'}</span>`;
             div.onclick = () => {
                 inputNome.value = nome;
-                limparSelecaoCliente();
-
-                if (item.tipo === 'cliente') {
-                    if (inputClienteId) inputClienteId.value = item.id;
-                    if (inputTipo) inputTipo.value = 'cliente';
-                } else {
-                    if (inputPreClienteId) inputPreClienteId.value = item.id;
-                    if (inputTipo) inputTipo.value = 'pre_cliente';
-                }
+                if (inputClienteId) inputClienteId.value = item.tipo === 'cliente' ? item.id : '';
+                if (inputPreClienteId) inputPreClienteId.value = item.tipo !== 'cliente' ? item.id : '';
+                if (inputTipo) inputTipo.value = item.tipo;
                 resultados.classList.add('hidden');
             };
             resultados.appendChild(div);
         });
-
         resultados.classList.remove('hidden');
     }
 
     inputNome?.addEventListener('input', () => {
         clearTimeout(timeoutCliente);
-        limparSelecaoCliente();
-
         const q = inputNome.value.trim();
-        if (!q) {
+        if (!q) { resultados?.classList.add('hidden'); return; }
+        timeoutCliente = setTimeout(async () => { renderClientes(await buscarClientes(q)); }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#cliente_nome') && !e.target.closest('#cliente-resultados')) {
             resultados?.classList.add('hidden');
-            btnPreCadastro?.classList.add('hidden');
-            return;
-        }
-
-        timeoutCliente = setTimeout(async () => {
-            const data = await buscarClientes(q);
-            renderClientes(data);
-        }, 300);
-    });
-
-    document.addEventListener('click', e => {
-        if (resultados && !e.target.closest('#cliente_nome') && !e.target.closest('#cliente-resultados')) {
-            resultados.classList.add('hidden');
         }
     });
 
-    /* =========================================================
-       ELEMENTOS DA TABELA E RESUMO
-    ========================================================= */
-    const tabelaServicos = document.getElementById('itens-servicos');
-    const tabelaProdutos = document.getElementById('itens-produtos');
-    const totalServicosSpan = document.getElementById('total-servicos');
-    const totalProdutosSpan = document.getElementById('total-produtos');
-    const resumoServicos = document.getElementById('resumo-servicos');
-    const resumoProdutos = document.getElementById('resumo-produtos');
-    const totalOrcamentoSpan = document.getElementById('total-orcamento');
+    /* ================= DESCONTOS ================= */
+    const descServValor = document.getElementById('desconto-servico-valor');
+    const descServTipo = document.getElementById('desconto-servico-tipo');
+    const descProdValor = document.getElementById('desconto-produto-valor');
+    const descProdTipo = document.getElementById('desconto-produto-tipo');
+
+    [descServValor, descServTipo, descProdValor, descProdTipo].forEach(el => {
+        el?.addEventListener('change', () => renderTabela());
+        el?.addEventListener('input', () => renderTabela());
+    });
+
+    /* ================= TAXAS ================= */
     const btnAddTaxa = document.getElementById('btn-add-taxa');
     const listaTaxas = document.getElementById('lista-taxas');
 
-    /* ================= UTIL ================= */
-    const formatar = (valor) => Number(valor || 0).toFixed(2).replace('.', ',');
-
-    function atualizarInputsHidden(totalTaxasCalculado) {
-        const container = document.getElementById('inputs-itens-hidden');
-        if (!container) return;
-        container.innerHTML = '';
-
-        // Itens (Serviços e Produtos)
-        itens.forEach((item, i) => {
-            container.innerHTML += `
-                <input type="hidden" name="itens[${i}][item_comercial_id]" value="${item.id}">
-                <input type="hidden" name="itens[${i}][quantidade]" value="${item.quantidade}">
-                <input type="hidden" name="itens[${i}][valor_unitario]" value="${item.preco_venda}">
-            `;
-        });
-
-        // Taxas individuais (para persistência se necessário)
-        taxas.forEach((t, i) => {
-            container.innerHTML += `
-                <input type="hidden" name="taxas_detalhe[${i}][nome]" value="${t.nome}">
-                <input type="hidden" name="taxas_detalhe[${i}][tipo]" value="${t.tipo}">
-                <input type="hidden" name="taxas_detalhe[${i}][valor]" value="${t.valor}">
-            `;
-        });
-
-        // Valor total das taxas (conforme solicitado no segundo código)
-        container.innerHTML += `<input type="hidden" name="taxas" value="${totalTaxasCalculado.toFixed(2)}">`;
-    }
-
-    /* =========================================================
-       TAXAS / IMPOSTOS
-    ========================================================= */
     btnAddTaxa?.addEventListener('click', () => {
         taxas.push({ nome: '', tipo: 'valor', valor: 0 });
         renderTaxas();
@@ -209,224 +150,195 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderTaxas = function() {
         if (!listaTaxas) return;
         listaTaxas.innerHTML = '';
-
         taxas.forEach((taxa, index) => {
             const div = document.createElement('div');
-            div.className = 'flex gap-2 items-center mb-2';
+            div.className = 'flex gap-2 items-center mb-2 animate-fadeIn';
             div.innerHTML = `
-                <input type="text" placeholder="Nome" class="w-1/3 border rounded px-2 py-1 text-sm" 
-                    value="${taxa.nome}" onchange="taxas[${index}].nome = this.value">
-                
-                <input type="number" step="0.01" class="w-1/3 border rounded px-2 py-1 text-sm" 
-                    value="${taxa.valor}" onchange="taxas[${index}].valor = parseFloat(this.value || 0); renderTabela();">
-                
-                <select class="border rounded px-2 py-1 text-sm" 
-                    onchange="taxas[${index}].tipo = this.value; renderTabela();">
+                <input type="text" placeholder="Nome da Taxa" class="input-field flex-1" value="${taxa.nome}" onchange="taxas[${index}].nome = this.value">
+                <input type="number" step="0.01" class="input-field w-24" value="${taxa.valor}" onchange="taxas[${index}].valor = parseFloat(this.value || 0); renderTabela();">
+                <select class="input-field w-20" onchange="taxas[${index}].tipo = this.value; renderTabela();">
                     <option value="valor" ${taxa.tipo === 'valor' ? 'selected' : ''}>R$</option>
                     <option value="percentual" ${taxa.tipo === 'percentual' ? 'selected' : ''}>%</option>
                 </select>
-                
-                <button type="button" class="text-red-500" onclick="taxas.splice(${index},1); renderTaxas(); renderTabela();">
-                    🗑️
-                </button>
+                <button type="button" class="text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors" onclick="taxas.splice(${index},1); renderTaxas();">🗑️</button>
             `;
             listaTaxas.appendChild(div);
         });
         renderTabela();
     };
 
-    /* =========================================================
-       RENDERIZAR TABELA PRINCIPAL
-    ========================================================= */
-    window.renderTabela = function () {
-        if (!tabelaServicos || !tabelaProdutos) return;
+    /* ================= CONDIÇÕES DE PAGAMENTO ================= */
+    const fpChecks = document.querySelectorAll('.fp-check');
 
-        tabelaServicos.innerHTML = '';
-        tabelaProdutos.innerHTML = '';
+    fpChecks.forEach(check => {
+        check.addEventListener('change', function () {
 
-        let totalServicos = 0;
-        let totalProdutos = 0;
+            // sobe até o bloco do método de pagamento
+            const container = this.closest('.flex.items-center');
 
-        // Renderiza itens (do mais novo para o mais antigo)
-        for (let i = itens.length - 1; i >= 0; i--) {
-            const item = itens[i];
-            const subtotal = item.quantidade * item.preco_venda;
+            if (!container) return;
 
-            const linha = `
-                <tr class="border-b">
-                    <td class="px-3 py-2 text-sm">${item.nome}</td>
-                    <td class="px-3 py-2 text-center">
-                        <input type="number" min="1" class="w-16 border rounded text-center" 
-                            value="${item.quantidade}" onchange="atualizarQtd(${i}, this.value)">
-                    </td>
-                    <td class="px-3 py-2 text-right">
-                        <input type="number" step="0.01" class="w-24 border rounded text-right" 
-                            value="${item.preco_venda}" onchange="atualizarPreco(${i}, this.value)">
-                    </td>
-                    <td class="px-3 py-2 text-right text-sm">
-                        R$ ${formatar(subtotal)}
-                    </td>
-                    <td class="px-3 py-2 text-center">
-                        <button type="button" class="text-red-500" onclick="removerItem(${i})">🗑️</button>
-                    </td>
-                </tr>
-            `;
+            const parcelasInput = container.querySelector('.fp-parcelas');
 
-            if (item.tipo === 'servico') {
-                totalServicos += subtotal;
-                tabelaServicos.innerHTML += linha;
+            if (!parcelasInput) return;
+
+            if (this.checked) {
+                parcelasInput.disabled = false;
+                parcelasInput.focus();
+                parcelasInput.select();
             } else {
-                totalProdutos += subtotal;
-                tabelaProdutos.innerHTML += linha;
+                parcelasInput.disabled = true;
+                parcelasInput.value = 1;
             }
-        }
+        });
+    });
 
-        // Cálculo de Taxas
-        const baseCalculo = totalServicos + totalProdutos;
+    /* ================= RENDER TABELA ================= */
+    window.renderTabela = function () {
+        const tabServ = document.getElementById('itens-servicos');
+        const tabProd = document.getElementById('itens-produtos');
+        if (!tabServ || !tabProd) return;
+
+        tabServ.innerHTML = ''; tabProd.innerHTML = '';
+        let totalServ = 0; let totalProd = 0;
+
+        itens.forEach((item, i) => {
+            const subtotal = item.quantidade * item.preco_venda;
+            const linha = `<tr class="hover:bg-gray-50 transition-colors">
+                <td class="table-cell font-medium">${item.nome}</td>
+                <td class="table-cell text-center"><input type="number" min="1" class="w-16 border-gray-200 rounded text-center text-xs" value="${item.quantidade}" onchange="atualizarQtd(${i}, this.value)"></td>
+                <td class="table-cell text-right"><input type="number" step="0.01" class="w-24 border-gray-200 rounded text-right text-xs" value="${item.preco_venda}" onchange="atualizarPreco(${i}, this.value)"></td>
+                <td class="table-cell text-right font-mono font-bold text-gray-900">R$ ${subtotal.toFixed(2).replace('.',',')}</td>
+                <td class="table-cell text-center"><button type="button" class="text-red-400 hover:text-red-600" onclick="removerItem(${i})">🗑️</button></td>
+            </tr>`;
+            if (item.tipo === 'servico') { totalServ += subtotal; tabServ.innerHTML += linha; }
+            else { totalProd += subtotal; tabProd.innerHTML += linha; }
+        });
+
+        // Cálculo Descontos
+        let dServ = parseFloat(descServValor?.value || 0);
+        if (descServTipo?.value === 'percentual') dServ = (totalServ * dServ) / 100;
+        
+        let dProd = parseFloat(descProdValor?.value || 0);
+        if (descProdTipo?.value === 'percentual') dProd = (totalProd * dProd) / 100;
+
+        const totalDescontos = dServ + dProd;
+        const baseComDesconto = (totalServ - dServ) + (totalProd - dProd);
+
+        // Cálculo Taxas
         let totalTaxas = 0;
         taxas.forEach(t => {
             if (!t.valor) return;
-            totalTaxas += (t.tipo === 'percentual') ? (baseCalculo * t.valor / 100) : t.valor;
+            totalTaxas += (t.tipo === 'percentual') ? (baseComDesconto * t.valor / 100) : t.valor;
         });
 
-        // Atualização da UI
-        if (totalServicosSpan) totalServicosSpan.textContent = formatar(totalServicos);
-        if (totalProdutosSpan) totalProdutosSpan.textContent = formatar(totalProdutos);
-        if (resumoServicos) resumoServicos.textContent = formatar(totalServicos);
-        if (resumoProdutos) resumoProdutos.textContent = formatar(totalProdutos);
-        if (totalOrcamentoSpan) totalOrcamentoSpan.textContent = formatar(baseCalculo + totalTaxas);
+        // Atualiza UI
+        document.getElementById('resumo-servicos').textContent = totalServ.toFixed(2).replace('.',',');
+        document.getElementById('resumo-produtos').textContent = totalProd.toFixed(2).replace('.',',');
+        
+        const resDesc = document.getElementById('resumo-desconto');
+        const resDescWrap = document.getElementById('resumo-desconto-wrapper');
+        if (totalDescontos > 0) {
+            resDesc.textContent = totalDescontos.toFixed(2).replace('.',',');
+            resDescWrap.classList.remove('hidden');
+        } else { resDescWrap.classList.add('hidden'); }
 
-        atualizarInputsHidden(totalTaxas);
+        const resTax = document.getElementById('resumo-taxas');
+        const resTaxWrap = document.getElementById('resumo-taxas-wrapper');
+        if (totalTaxas > 0) {
+            resTax.textContent = totalTaxas.toFixed(2).replace('.',',');
+            resTaxWrap.classList.remove('hidden');
+        } else { resTaxWrap.classList.add('hidden'); }
+
+        document.getElementById('total-orcamento').textContent = (baseComDesconto + totalTaxas).toFixed(2).replace('.',',');
+
+        // Hidden Inputs
+        const container = document.getElementById('inputs-itens-hidden');
+        if (container) {
+            container.innerHTML = '';
+            itens.forEach((item, i) => {
+                container.innerHTML += `<input type="hidden" name="itens[${i}][item_comercial_id]" value="${item.id}">
+                    <input type="hidden" name="itens[${i}][quantidade]" value="${item.quantidade}">
+                    <input type="hidden" name="itens[${i}][valor_unitario]" value="${item.preco_venda}">`;
+            });
+            container.innerHTML += `<input type="hidden" name="taxas_total" value="${totalTaxas.toFixed(2)}">`;
+            container.innerHTML += `<input type="hidden" name="desconto_total" value="${totalDescontos.toFixed(2)}">`;
+            
+            // Taxas detalhadas para persistência
+            taxas.forEach((t, i) => {
+                container.innerHTML += `<input type="hidden" name="taxas_detalhe[${i}][nome]" value="${t.nome}">
+                    <input type="hidden" name="taxas_detalhe[${i}][tipo]" value="${t.tipo}">
+                    <input type="hidden" name="taxas_detalhe[${i}][valor]" value="${t.valor}">`;
+            });
+        }
     };
 
-    /* =========================================================
-       BUSCA DE SERVIÇOS / PRODUTOS
-    ========================================================= */
-    const btnAddServico = document.getElementById('btn-add-servico');
-    const btnAddProduto = document.getElementById('btn-add-produto');
-
-    btnAddServico?.addEventListener('click', () => toggleBusca('servico'));
-    btnAddProduto?.addEventListener('click', () => toggleBusca('produto'));
-
-    function toggleBusca(tipo) {
-        document.getElementById('busca-servico-wrapper')?.classList.add('hidden');
-        document.getElementById('busca-produto-wrapper')?.classList.add('hidden');
-        
-        const wrapper = document.getElementById(`busca-${tipo}-wrapper`);
-        if (!wrapper) return;
-        
-        wrapper.classList.remove('hidden');
-        wrapper.querySelector('input')?.focus();
-    }
-
-    // Setup para ambos os tipos
+    /* ================= BUSCA ITENS ================= */
     ['servico', 'produto'].forEach(tipo => {
-        const input = document.getElementById(`busca-${tipo}`);
-        const resultado = document.getElementById(`resultado-${tipo}`);
-        if (!input || !resultado) return;
+        const btn = document.getElementById(`btn-add-${tipo}`);
+        const wrap = document.getElementById(`busca-${tipo}-wrapper`);
+        const inp = document.getElementById(`busca-${tipo}`);
+        const res = document.getElementById(`resultado-${tipo}`);
 
-        let timeout;
-        input.addEventListener('input', () => {
-            clearTimeout(timeout);
-            const q = input.value.trim();
-            if (!q) {
-                resultado.classList.add('hidden');
-                return;
-            }
+        btn?.addEventListener('click', () => {
+            fecharBuscas();
+            wrap.classList.remove('hidden');
+            inp.focus();
+        });
 
-            timeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`${urlBusca}?q=${encodeURIComponent(q)}`);
-                    const data = await res.json();
-                    renderResultadoItens(data.filter(i => i.tipo === tipo), resultado);
-                } catch (e) {
-                    console.error(`Erro ao buscar ${tipo}:`, e);
-                }
+        let t;
+        inp?.addEventListener('input', () => {
+            clearTimeout(t);
+            const q = inp.value.trim();
+            if (!q) { res.classList.add('hidden'); return; }
+            t = setTimeout(async () => {
+                const r = await fetch(`${urlBusca}?q=${encodeURIComponent(q)}`);
+                const data = await r.json();
+                const filtered = data.filter(i => i.tipo === tipo);
+                res.innerHTML = '';
+                if (!filtered.length) { res.classList.add('hidden'); return; }
+                filtered.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 transition-colors';
+                    div.innerHTML = `<strong>${item.nome}</strong><br><span class="text-xs text-gray-500">R$ ${item.preco_venda}</span>`;
+                    div.onclick = () => {
+                        itens.push({
+                            id: item.id,
+                            nome: item.nome,
+                            tipo: item.tipo,
+                            preco_venda: Number(item.preco_venda),
+                            quantidade: 1
+                        });
+
+                        renderTabela();
+                        fecharBuscas();
+                    };
+                    res.appendChild(div);
+                });
+                res.classList.remove('hidden');
             }, 300);
         });
     });
 
-    function renderResultadoItens(lista, container) {
-        container.innerHTML = '';
-        if (!lista.length) {
-            container.classList.add('hidden');
-            return;
-        }
-
-        lista.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b';
-            div.innerHTML = `
-                <strong>${item.nome}</strong><br>
-                <span class="text-xs text-gray-500">R$ ${formatar(item.preco_venda)}</span>
-            `;
-            div.onclick = () => {
-                itens.push({
-                    id: item.id,
-                    nome: item.nome,
-                    tipo: item.tipo,
-                    preco_venda: Number(item.preco_venda),
-                    quantidade: 1
-                });
-                renderTabela();
-                container.classList.add('hidden');
-                // Limpa o input após adicionar
-                const input = container.id.includes('servico') ? document.getElementById('busca-servico') : document.getElementById('busca-produto');
-                if (input) input.value = '';
-            };
-            container.appendChild(div);
-        });
-        container.classList.remove('hidden');
-    }
-
-    /* =========================================================
-       CARREGAR DADOS INICIAIS (MODO EDIÇÃO)
-    ========================================================= */
-    if (Array.isArray(itensIniciais) && itensIniciais.length) {
-        window.itens = itensIniciais.map(item => ({
-            id: item.id,
-            nome: item.nome,
-            tipo: item.tipo,
-            preco_venda: Number(item.preco_venda),
-            quantidade: Number(item.quantidade)
+    // Inicialização dos dados (Modo Edição)
+    if (itensIniciais.length) {
+        window.itens = itensIniciais.map(i => ({ 
+            id: i.item_comercial_id || i.id, 
+            nome: i.item_comercial?.nome || i.nome, 
+            tipo: i.item_comercial?.tipo || i.tipo, 
+            preco_venda: Number(i.valor_unitario || i.preco_venda), 
+            quantidade: Number(i.quantidade) 
         }));
-        renderTabela();
+    }
+    
+    if (taxasIniciais.length) {
+        window.taxas = taxasIniciais.map(t => ({
+            nome: t.nome,
+            tipo: t.tipo,
+            valor: Number(t.valor)
+        }));
+        renderTaxas();
     }
 
-    /* =========================================================
-                FORMAS DE PAGAMENTO
-    ========================================================= */
-    function atualizarFormasPagamento() {
-        const formas = [];
-
-        document.querySelectorAll('.fp-check').forEach((check, index) => {
-            const wrapper = check.closest('div, label');
-            const parcelasInput = wrapper?.querySelector('.fp-parcelas');
-
-            if (check.checked) {
-                formas.push({
-                    tipo: check.value,
-                    parcelas: parcelasInput ? Number(parcelasInput.value || 1) : 1
-                });
-            }
-
-            if (parcelasInput) {
-                parcelasInput.disabled = !check.checked;
-            }
-        });
-
-        let hidden = document.querySelector('[name="forma_pagamento"]');
-        if (!hidden) {
-            hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = 'forma_pagamento';
-            document.querySelector('form').appendChild(hidden);
-        }
-
-        hidden.value = JSON.stringify(formas);
-    }
-
-    document.querySelectorAll('.fp-check, .fp-parcelas')
-        .forEach(el => el.addEventListener('change', atualizarFormasPagamento));
-
+    renderTabela();
 });

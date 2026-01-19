@@ -25,6 +25,13 @@ class Orcamento extends Model
         'status',
         'valor_total',
         'desconto',
+        'desconto_servico_valor',
+        'desconto_servico_tipo',
+        'desconto_produto_valor',
+        'desconto_produto_tipo',
+        'taxas',
+        'forma_pagamento',
+        'desconto',
         'taxas',
         'forma_pagamento',
         'validade',
@@ -33,7 +40,9 @@ class Orcamento extends Model
     ];
 
     protected $casts = [
-        'validade' => 'date',
+        'valor_total' => 'float',
+        'desconto' => 'float',
+        'taxas' => 'float',
         'desconto_servico_valor' => 'float',
         'desconto_produto_valor' => 'float',
     ];
