@@ -51,14 +51,17 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->name('dashboard');
 
     // DASHBOARD COMERCIAL
-    Route::get('/dashboard-comercial', function () {
-        return view('dashboard-comercial.index');
-        })
+    Route::get( '/dashboard-comercial',
+            [DashboardController::class, 'comercial'])
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
     
     // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class);
+
+    Route::patch( '/orcamentos/{orcamento}/status',[OrcamentoController::class, 'updateStatus'])
+        ->name('orcamentos.updateStatus');
+
 
     // Serviços e Produtos
     Route::get('/itemcomercial/buscar', [ItemComercialController::class, 'buscar'])

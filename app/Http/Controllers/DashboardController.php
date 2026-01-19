@@ -8,6 +8,7 @@ use App\Models\Boleto;
 use App\Models\Assunto;
 use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
+use App\Models\Orcamento;
 
 class DashboardController extends Controller
 {
@@ -155,4 +156,35 @@ class DashboardController extends Controller
             'valoresChamadosPrioridade'
         ));
     }
+
+    public function comercial()
+    {
+        // Orçamentos por Status
+        $orcamentosPorStatus = Orcamento::select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        // Orçamentos por Empresa (valor total)
+        $orcamentosPorEmpresa = Orcamento::select(
+                'empresa_id',
+                DB::raw('SUM(valor_total) as total_valor'),
+                DB::raw('COUNT(*) as total_qtd')
+            )
+            ->whereNotNull('valor_total')
+            ->groupBy('empresa_id')
+            ->with('empresa')
+            ->get();
+
+        // Conversão
+        $aprovados = Orcamento::where('status', 'aprovado')->count();
+        $recusados = Orcamento::where('status', 'recusado')->count();
+
+        return view('dashboard-comercial.index', compact(
+            'orcamentosPorStatus',
+            'orcamentosPorEmpresa',
+            'aprovados',
+            'recusados'
+        ));
+    }
+
 }

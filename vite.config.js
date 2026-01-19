@@ -16,6 +16,7 @@ export default defineConfig({
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',
+                'resources/js/dashboard.js',
             ],
             refresh: true,
         }),

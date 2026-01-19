@@ -391,4 +391,29 @@ class OrcamentoController extends Controller
         ]);
     }
 
+    public function updateStatus(Request $request, Orcamento $orcamento)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            403,
+            'Acesso não autorizado'
+        );
+
+        $request->validate([
+            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,enviado,aprovado,recusado,concluido,garantia,cancelado',
+        ]);
+
+        $orcamento->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Status do orçamento atualizado com sucesso.');
+    }
+
+
 }

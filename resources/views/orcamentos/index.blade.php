@@ -113,10 +113,39 @@
                             </td>
 
                             <td>
-                                <span class="badge badge-{{ $orcamento->status }}">
-                                    {{ ucfirst(str_replace('_',' ', $orcamento->status)) }}
-                                </span>
+                                <form action="{{ route('orcamentos.updateStatus', $orcamento) }}"
+                                    method="POST">
+                                    @csrf
+                                    @method('PATCH')
+
+                                    @php
+                                        $statusList = [
+                                            'em_elaboracao' => 'Em elaboração',
+                                            'aguardando_aprovacao' => 'Aguardando aprovação',
+                                            'enviado' => 'Enviado',
+                                            'aprovado' => 'Aprovado',
+                                            'recusado' => 'Recusado',
+                                            'concluido' => 'Concluído',
+                                            'garantia' => 'Garantia',
+                                            'cancelado' => 'Cancelado',
+                                        ];
+                                    @endphp
+
+                                    <select name="status"
+                                            onchange="this.form.submit()"
+                                            class="badge badge-{{ $orcamento->status }}"
+                                            style="cursor:pointer">
+
+                                        @foreach($statusList as $key => $label)
+                                            <option value="{{ $key }}"
+                                                @selected($orcamento->status === $key)>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </form>
                             </td>
+
 
                             <td>
                                 @if($orcamento->valor_total)
