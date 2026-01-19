@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/css/orcamentos/create.css',
 
                 'resources/js/app.js',
+                'resources/js/orcamento.js',
             ],
             refresh: true,
         }),

@@ -117,8 +117,7 @@ class OrcamentoController extends Controller
             'cliente_tipo'    => 'required|in:cliente,pre_cliente',
 
             'desconto'        => 'nullable|numeric|min:0',
-            'taxas'           => 'nullable|numeric|min:0',
-            'forma_pagamento' => 'nullable|string|max:50',
+            'forma_pagamento' => 'nullable|string',
 
             'itens' => 'required|array|min:1',
             'itens.*.item_comercial_id' => 'required|exists:itens_comerciais,id',

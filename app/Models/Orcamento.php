@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrcamentoItem;
+use App\Models\OrcamentoTaxa;
+use App\Models\OrcamentoPagamento;
+
 
 class Orcamento extends Model
 {
@@ -31,7 +34,10 @@ class Orcamento extends Model
 
     protected $casts = [
         'validade' => 'date',
+        'desconto_servico_valor' => 'float',
+        'desconto_produto_valor' => 'float',
     ];
+
 
     /* ===================== RELACIONAMENTOS ===================== */
 
@@ -95,5 +101,15 @@ class Orcamento extends Model
     {
         return $this->hasMany(OrcamentoItem::class);
     }
+
+    public function taxas()
+    {
+        return $this->hasMany(OrcamentoTaxa::class);
+    }
+
+    public function pagamentos()
+    {
+        return $this->hasMany(OrcamentoPagamento::class);
+}
 
 }

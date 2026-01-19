@@ -324,55 +324,99 @@
 
                 </div>
 
-                {{-- ================= VALORES E PAGAMENTO ================= --}}
+                {{-- ================= DESCONTOS E VALORES ================= --}}
                 <div class="bg-white shadow rounded-lg p-6 border-t-4 border-purple-500">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">💰 Valores e Pagamento</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">💰 Descontos e Valores</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{-- DESCONTOS --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
-                        {{-- DESCONTO --}}
+                        {{-- DESCONTO SERVIÇO --}}
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Desconto</label>
-                            <input type="number" step="0.01" name="desconto" placeholder="0,00"
-                                value="{{ old('desconto') }}"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('desconto')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                            <label class="text-sm font-medium text-gray-700">Desconto Serviços</label>
+                            <div class="flex gap-2">
+                                <input type="number" step="0.01" id="desconto-servico-valor"
+                                    class="w-full border rounded px-3 py-2 text-sm">
+                                <select id="desconto-servico-tipo"
+                                    class="border rounded px-2 text-sm">
+                                    <option value="valor">R$</option>
+                                    <option value="percentual">%</option>
+                                </select>
+                            </div>
                         </div>
 
-                        {{-- TAXAS --}}
+                        {{-- DESCONTO PRODUTO --}}
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Taxas Adicionais</label>
-                            <input type="number" step="0.01" name="taxas" placeholder="0,00" value="{{ old('taxas') }}"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            @error('taxas')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- FORMA DE PAGAMENTO --}}
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Forma de Pagamento</label>
-                            <select name="forma_pagamento"
-                                class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Selecione</option>
-                                <option value="pix" @selected(old('forma_pagamento')=='pix' )>PIX</option>
-                                <option value="boleto" @selected(old('forma_pagamento')=='boleto' )>Boleto</option>
-                                <option value="credito" @selected(old('forma_pagamento')=='credito' )>Cartão de Crédito
-                                </option>
-                                <option value="debito" @selected(old('forma_pagamento')=='debito' )>Cartão de Débito
-                                </option>
-                                <option value="transferencia" @selected(old('forma_pagamento')=='transferencia' )>
-                                    Transferência</option>
-                            </select>
-                            @error('forma_pagamento')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                            @enderror
+                            <label class="text-sm font-medium text-gray-700">Desconto Materiais</label>
+                            <div class="flex gap-2">
+                                <input type="number" step="0.01" id="desconto-produto-valor"
+                                    class="w-full border rounded px-3 py-2 text-sm">
+                                <select id="desconto-produto-tipo"
+                                    class="border rounded px-2 text-sm">
+                                    <option value="valor">R$</option>
+                                    <option value="percentual">%</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>
+
+                    {{-- TAXAS ADICIONAIS --}}
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-medium text-gray-700">Taxas Adicionais</label>
+                            <button type="button" id="btn-add-taxa"
+                                class="text-sm text-blue-600 hover:underline">
+                                ➕ Adicionar Taxa
+                            </button>
+                        </div>
+
+                        <div id="lista-taxas" class="space-y-2"></div>
+                    </div>
                 </div>
+
+                {{-- ================= FORMAS DE PAGAMENTO ================= --}}
+            <div class="bg-white shadow rounded-lg p-6 border-t-4 border-emerald-500">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">💳 Formas de Pagamento</h3>
+
+                <div id="formas-pagamento" class="space-y-3">
+
+                    {{-- PIX / DINHEIRO --}}
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" value="pix" class="fp-check">
+                        À Vista (Pix / Dinheiro)
+                    </label>
+
+                    {{-- DÉBITO --}}
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" value="debito" class="fp-check">
+                        Cartão de Débito
+                    </label>
+
+                    {{-- CRÉDITO --}}
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" value="credito" class="fp-check">
+                        <span>Cartão de Crédito</span>
+                        <input type="number" min="1" value="1"
+                            class="w-20 border rounded px-2 py-1 text-sm fp-parcelas"
+                            placeholder="x"
+                            disabled>
+                    </div>
+
+                    {{-- BOLETO --}}
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" value="boleto" class="fp-check">
+                        <span>Boleto Bancário</span>
+                        <input type="number" min="1" value="1"
+                            class="w-20 border rounded px-2 py-1 text-sm fp-parcelas"
+                            placeholder="x"
+                            disabled>
+                    </div>
+
+                </div>
+            </div>
+
+
 
                 {{-- ================= OBSERVAÇÕES ================= --}}
                 <div class="bg-white shadow rounded-lg p-6 border-t-4 border-indigo-500">
