@@ -22,22 +22,33 @@ class ItemComercialController extends Controller
 
         $query = ItemComercial::query();
 
-        if ($request->filled('tipo')) {
-            $query->where('tipo', $request->tipo);
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('nome', 'like', "%{$search}%");
+            });
         }
 
         if ($request->filled('status')) {
             $query->where('ativo', $request->status === 'ativo');
         }
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('nome', 'like', "%{$search}%");
-        }
+        $totalItemComercial    = ItemComercial::count();
+        $itemAtivos            = ItemComercial::where('ativo', true)->count();
+        $itemInativos          = ItemComercial::where('ativo', false)->count();
 
-        $itens = $query->orderBy('nome')->get();
+        $itemcomercial = $query
+            ->orderBy('nome')
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('itemcomercial.index', compact('itens'));
+        return view('itemcomercial.index', compact(
+            'itemcomercial',
+            'totalItemComercial',
+            'itemAtivos',
+            'itemInativos'
+        ));
     }
 
     public function create()
@@ -95,7 +106,7 @@ class ItemComercialController extends Controller
             ->with('success', 'Item cadastrado com sucesso!');
     }
 
-    public function edit(ItemComercial $item)
+    public function edit(ItemComercial $item_comercial)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -107,11 +118,11 @@ class ItemComercialController extends Controller
         );
 
         return view('itemcomercial.edit', [
-            'item' => $item
-        ]);
+        'itemComercial' => $item_comercial
+    ]);
     }
 
-    public function update(Request $request, ItemComercial $item)
+    public function update(Request $request, ItemComercial $itemComercial)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -130,7 +141,7 @@ class ItemComercialController extends Controller
             'unidade_medida' => 'required|string',
         ]);
 
-        $item->update([
+        $itemComercial->update([
             'tipo'            => $request->tipo,
             'nome'            => $request->nome,
             'sku_ou_referencia'=> $request->sku_ou_referencia,
@@ -150,7 +161,7 @@ class ItemComercialController extends Controller
             ->with('success', 'Item atualizado com sucesso!');
     }
 
-    public function destroy(ItemComercial $item)
+    public function destroy(ItemComercial $itemComercial)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -161,7 +172,7 @@ class ItemComercialController extends Controller
             'Acesso não autorizado'
         );
 
-        $item->delete();
+        $itemComercial->delete();
 
         return redirect()
             ->route('itemcomercial.index')

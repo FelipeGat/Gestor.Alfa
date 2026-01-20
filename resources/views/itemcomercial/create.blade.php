@@ -1,4 +1,9 @@
 <x-app-layout>
+
+    @push('styles')
+    @vite('resources/css/atendimentos/index.css')
+    @endpush
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ➕ Novo Serviço / Produto
@@ -346,8 +351,8 @@
                             <label class="text-sm font-medium text-gray-700">Status</label>
                             <select name="ativo"
                                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="1" @selected(old('ativo', 1)==1)>Ativo</option>
-                                <option value="0" @selected(old('ativo')==0)>Inativo</option>
+                                <option value="1" @selected(old('ativo', 1) == 1)>Ativo</option>
+                                <option value="0" @selected(old('ativo', 1) == 0)>Inativo</option>
                             </select>
                             @error('ativo')
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -358,15 +363,28 @@
                 </div>
 
                 {{-- ================= AÇÕES ================= --}}
-                <div class="flex justify-end gap-3 bg-white shadow rounded-lg p-6">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
+                            bg-white shadow rounded-lg p-6 sm:p-8">
+
                     <a href="{{ route('itemcomercial.index') }}"
-                        class="px-6 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
-                        ❌ Cancelar
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
+
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        Cancelar
                     </a>
 
-                    <button type="submit"
-                        class="px-6 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition">
-                        ✔️ Salvar Item
+                    <button type="submit" class="btn btn-primary">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Salvar Item
                     </button>
                 </div>
 

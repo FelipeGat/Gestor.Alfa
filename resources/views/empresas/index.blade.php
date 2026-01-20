@@ -58,7 +58,7 @@
                             </svg>
                             Empresa
                         </a>
-
+                        @endif
                     </div>
                 </div>
             </form>
@@ -181,11 +181,11 @@
 
                             </tr>
                             @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                                    Nenhuma empresa cadastrada.
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                        Nenhuma empresa cadastrada.
+                                    </td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>

@@ -57,19 +57,23 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->name('dashboard.comercial');
     
     // Orçamentos
-    Route::resource('orcamentos', OrcamentoController::class);
+    Route::resource('orcamentos', OrcamentoController::class)
+        ->middleware('dashboard.comercial');
 
     Route::patch( '/orcamentos/{orcamento}/status',[OrcamentoController::class, 'updateStatus'])
         ->name('orcamentos.updateStatus');
-
 
     // Serviços e Produtos
     Route::get('/itemcomercial/buscar', [ItemComercialController::class, 'buscar'])
         ->middleware(['auth', 'dashboard.comercial'])
         ->name('itemcomercial.buscar');
 
-    Route::resource('itemcomercial', \App\Http\Controllers\ItemComercialController::class)
-    ->middleware(['dashboard.comercial']);
+    Route::resource('itemcomercial', ItemComercialController::class)
+        ->parameters([
+            'itemcomercial' => 'item_comercial'
+        ])
+        ->except(['show'])
+        ->middleware(['dashboard.comercial']);
 
     // Cobranças
     Route::patch('/cobrancas/{cobranca}/pagar',
@@ -107,10 +111,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     ->except(['show']);
 
     // Usuarios
-    Route::middleware('admin.panel')->group(function () {
-        Route::resource('usuarios', UsuarioController::class);
+    Route::resource('usuarios', UsuarioController::class)
+        ->middleware('dashboard.comercial');
 
-    });
 
     Route::get('/orcamentos/gerar-numero/{empresa}',
     [\App\Http\Controllers\OrcamentoController::class, 'gerarNumero']
