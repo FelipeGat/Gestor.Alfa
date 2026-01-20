@@ -63,6 +63,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::patch( '/orcamentos/{orcamento}/status',[OrcamentoController::class, 'updateStatus'])
         ->name('orcamentos.updateStatus');
 
+    Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
+        ->name('orcamentos.imprimir');
+
     // Serviços e Produtos
     Route::get('/itemcomercial/buscar', [ItemComercialController::class, 'buscar'])
         ->middleware(['auth', 'dashboard.comercial'])

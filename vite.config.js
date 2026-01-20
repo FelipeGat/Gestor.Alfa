@@ -9,10 +9,13 @@ export default defineConfig({
 
                 // ATENDIMENTOS
                 'resources/css/atendimentos/index.css',
+                'resources/css/atendimentos/edit.css',
+                'resources/css/atendimentos/create.css',
 
                 // ORCAMENTOS
                 'resources/css/orcamentos/index.css',
                 'resources/css/orcamentos/create.css',
+                'resources/css/orcamentos/edit.css',
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',

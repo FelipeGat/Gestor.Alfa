@@ -12,12 +12,13 @@ use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
 use App\Models\ItemComercial;
 use App\Models\OrcamentoItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
 class OrcamentoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -27,45 +28,86 @@ class OrcamentoController extends Controller
             403,
             'Acesso não autorizado'
         );
-        
-        // ================= ORÇAMENTOS =================
-        $query = Orcamento::with(['empresa', 'cliente'])
-            ->orderByDesc('created_at');
 
-        // Comercial: apenas empresas vinculadas
+        // ================= CONFIG ORDENAÇÃO =================
+        $sortable = [
+            'numero_orcamento',
+            'status',
+            'valor_total',
+            'created_at',
+        ];
+
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+
+        if (!in_array($sort, $sortable)) {
+            $sort = 'created_at';
+        }
+
+        // ================= QUERY BASE =================
+        $query = Orcamento::with(['empresa', 'cliente']);
+
+        // ================= COMERCIAL: LIMITA EMPRESAS =================
         if ($user->tipo === 'comercial') {
             $empresaIds = $user->empresas->pluck('id');
 
-            // segurança extra
             if ($empresaIds->isEmpty()) {
-                $orcamentos = collect();
-                $atendimentosParaOrcamento = collect();
-                return view('orcamentos.index', compact('orcamentos', 'atendimentosParaOrcamento'));
+                return view('orcamentos.index', [
+                    'orcamentos' => collect(),
+                    'atendimentosParaOrcamento' => collect(),
+                ]);
             }
 
             $query->whereIn('empresa_id', $empresaIds);
         }
 
-        // Admin vê tudo
-        $orcamentos = $query->get();
-        
+        // ================= FILTRO DE BUSCA =================
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                // Nº Orçamento
+                $q->where('numero_orcamento', 'like', "%{$search}%")
+
+                // Status
+                ->orWhere('status', 'like', "%{$search}%")
+
+                // Cliente
+                ->orWhereHas('cliente', function ($qc) use ($search) {
+                    $qc->where('nome', 'like', "%{$search}%");
+                })
+
+                // Empresa
+                ->orWhereHas('empresa', function ($qe) use ($search) {
+                    $qe->where('nome_fantasia', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // ================= ORÇAMENTOS (PAGINADO) =================
+        $orcamentos = $query
+            ->orderBy($sort, $direction)
+            ->paginate(10)
+            ->withQueryString();
+
         // ================= ATENDIMENTOS AGUARDANDO ORÇAMENTO =================
-            $atendimentosQuery = Atendimento::with(['cliente', 'empresa'])
-                ->where('status_atual', 'orcamento')
-                ->whereDoesntHave('orcamento');
+        $atendimentosQuery = Atendimento::with(['cliente', 'empresa'])
+            ->where('status_atual', 'orcamento')
+            ->whereDoesntHave('orcamento');
 
-            if ($user->tipo === 'comercial') {
-                $atendimentosQuery->whereIn('empresa_id', $empresaIds);
-            }
+        if ($user->tipo === 'comercial') {
+            $atendimentosQuery->whereIn('empresa_id', $empresaIds);
+        }
 
-            $atendimentosParaOrcamento = $atendimentosQuery
-                ->orderByDesc('created_at')
-                ->get();
+        $atendimentosParaOrcamento = $atendimentosQuery
+            ->orderByDesc('created_at')
+            ->get();
 
-            return view(
-                'orcamentos.index',
-                compact('orcamentos', 'atendimentosParaOrcamento')
-        );
+        return view('orcamentos.index', compact(
+            'orcamentos',
+            'atendimentosParaOrcamento'
+        ));
     }
 
 
@@ -403,7 +445,7 @@ class OrcamentoController extends Controller
         );
 
         $request->validate([
-            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,enviado,aprovado,recusado,concluido,garantia,cancelado',
+            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,enviado,aprovado,recusado,concluido,garantia,cancelado,aguardando_pagamento,agendado,em_andamento,'
         ]);
 
         $orcamento->update([
@@ -413,6 +455,36 @@ class OrcamentoController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Status do orçamento atualizado com sucesso.');
+    }
+
+    public function imprimir($id)
+    {
+        $orcamento = Orcamento::with([
+            'empresa',
+            'cliente',
+            'itens'
+        ])->findOrFail($id);
+
+        // layout_pdf vem da tabela empresas (empresa1)
+        $view = 'orcamentos.' . $orcamento->empresa->layout_pdf;
+
+        // fallback de segurança
+        if (!view()->exists($view)) {
+            abort(500, 'Layout de impressão não encontrado.');
+        }
+
+        $pdf = Pdf::loadView($view, [
+            'orcamento' => $orcamento,
+            'empresa'   => $orcamento->empresa
+        ])->setPaper('A4', 'portrait');
+
+        $filename = 'orcamento_' . str_replace(
+            ['/', '\\'],
+            '-',
+            $orcamento->numero_orcamento
+        ) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
 

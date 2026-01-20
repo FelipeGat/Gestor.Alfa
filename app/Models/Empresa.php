@@ -49,4 +49,9 @@ class Empresa extends Model
         return $this->hasMany(Assunto::class);
     }
 
+    public function orcamentos()
+    {
+        return $this->hasMany(Orcamento::class);
+    }
+
 }

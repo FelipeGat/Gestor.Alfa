@@ -10,14 +10,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ================= TRADUÇÃO STATUS =================
     const statusLabels = {
-        em_elaboracao: 'Em elaboração',
-        aguardando_aprovacao: 'Aguardando aprovação',
+        em_elaboracao: 'Elaboração',
+        aguardando_aprovacao: 'A. A.',
+        aguardando_pagamento: 'A. P.',
         enviado: 'Enviado',
         aprovado: 'Aprovado',
         recusado: 'Recusado',
         concluido: 'Concluído',
         garantia: 'Garantia',
         cancelado: 'Cancelado',
+        agendado: 'Agendado',
+        em_andamento: 'Andamento',
+
     };
 
     const statusKeys = Object.keys(statusDataRaw);
@@ -26,12 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const statusColors = [
         '#60A5FA', // azul
-        '#FBBF24', // amarelo
-        '#A78BFA', // roxo
-        '#34D399', // verde
-        '#F87171', // vermelho
-        '#22D3EE', // ciano
-        '#FDBA74', // laranja
+        '#08aa51', // amarelo
+        '#f8fc07', // roxo
+        '#aa173c', // verde
+        '#080aaf', // vermelho
+        '#0c811b', // ciano
+        '#e08700', // laranja
         '#9CA3AF', // cinza
     ];
 
@@ -69,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ================= GRÁFICO EMPRESAS =================
+    // ================= GRÁFICO EMPRESAS VALOR =================
     const chartEmpresa = document.getElementById('chartEmpresa');
     if (chartEmpresa) {
         new Chart(chartEmpresa, {
@@ -108,13 +112,52 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ================= GRÁFICO EMPRESAS QTDA =================
+    const chartQtdaEmpresa = document.getElementById('chartQtdaEmpresa');
+    if (chartQtdaEmpresa) {
+        new Chart(chartQtdaEmpresa, {
+            type: 'bar',
+            data: {
+                labels: empresas.map(e => e.empresa?.nome_fantasia ?? '—'),
+                datasets: [{
+                    label: 'Qtda Total',
+                    data: empresas.map(e => e.total_qtda),
+                    backgroundColor: '#065f41',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx =>
+                                ` R$ ${Number(ctx.raw).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: value =>
+                                `R$ ${Number(value).toLocaleString('pt-BR')}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     // ================= CONVERSÃO =================
     const chartConversao = document.getElementById('chartConversao');
     if (chartConversao) {
         new Chart(chartConversao, {
             type: 'doughnut',
             data: {
-                labels: ['Aprovados', 'Recusados'],
+                labels: ['Concluido', 'Recusados'],
                 datasets: [{
                     data: [aprovados, recusados],
                     backgroundColor: ['#10B981', '#EF4444'],
