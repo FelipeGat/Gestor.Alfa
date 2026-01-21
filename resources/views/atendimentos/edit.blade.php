@@ -97,6 +97,31 @@
                 </div>
                 @endif
 
+                {{-- ===== DESCRIÇÃO DO ATENDIMENTO ===== --}}
+                @if(!empty($atendimento->descricao))
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Descrição do Atendimento
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-section">
+                            <p class="text-sm text-gray-900 whitespace-pre-line">
+                                {{ $atendimento->descricao }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+
                 {{-- ===== HISTÓRICO ===== --}}
                 <div class="card">
                     <div class="card-header">
