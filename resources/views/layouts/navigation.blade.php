@@ -39,7 +39,7 @@
                     @if($isAdmin || $isComercial)
                     <div x-data="{ openMenu: false }" class="relative">
                         <button @click="openMenu = !openMenu" class="text-gray-600 hover:text-gray-800 font-medium">
-                            Gestão
+                            Gestao
                         </button>
 
                         <div x-show="openMenu" @click.outside="openMenu = false"
@@ -48,28 +48,28 @@
                             {{-- Dashboard Administrativo (SÓ ADMIN) --}}
                             @if($isAdmin)
                             <x-nav-link :href="route('dashboard')" class="block px-4 py-2">
-                                🧭 Dashboard Administrativo
+                                Dashboard Administrativo
                             </x-nav-link>
                             @endif
 
                             {{-- Dashboard Comercial (ADMIN + COMERCIAL) --}}
                             @if($isAdmin || $isComercial)
                             <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
-                                📈 Dashboard Comercial
+                                Dashboard Comercial
                             </x-nav-link>
                             @endif
 
                             {{-- Atendimentos --}}
                             @if(auth()->user()->canPermissao('atendimentos', 'ler'))
                             <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
-                                📋 Atendimentos
+                                Atendimentos
                             </x-nav-link>
                             @endif
 
-                            {{-- Cobranças --}}
+                            {{-- Cobrancas --}}
                             @if(auth()->user()->canPermissao('cobrancas', 'ler'))
                             <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
-                                💰 Cobranças
+                                Cobrancas
                             </x-nav-link>
                             @endif
 
@@ -91,7 +91,7 @@
                             </x-nav-link>
 
                             <x-nav-link :href="route('funcionarios.index')" class="block px-4 py-2">
-                                Funcionários
+                                Funcionarios
                             </x-nav-link>
 
                             <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
@@ -121,11 +121,11 @@
                             </x-nav-link>
 
                             <x-nav-link :href="route('itemcomercial.index')" class="block px-4 py-2">
-                                Produtos/Serviços
+                                Produtos/Servicos
                             </x-nav-link>
 
                             <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
-                                Pré Clientes
+                                Pre Clientes
                             </x-nav-link>
 
                         </div>
@@ -134,7 +134,7 @@
 
                     <!-- Relatórios (placeholder) -->
                     <span class="text-gray-400 cursor-not-allowed">
-                        Relatórios
+                        Relatorios
                     </span>
 
                     {{-- MENU CLIENTE --}}

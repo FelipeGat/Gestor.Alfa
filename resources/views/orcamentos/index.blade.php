@@ -4,6 +4,22 @@
     @vite('resources/css/orcamentos/index.css')
     @endpush
 
+        @php
+            $statusList = [
+                'em_elaboracao' => 'Em elaboração',
+                'aguardando_aprovacao' => 'Aguardando aprovação',
+                'enviado' => 'Enviado',
+                'aprovado' => 'Aprovado',
+                'aguardando_pagamento'  => 'Aguardando Pagamento',
+                'concluido' => 'Concluído',
+                'recusado' => 'Recusado',
+                'agendado' => 'Agendado',
+                'em_andamento' => 'Em Andamento', 
+                'garantia' => 'Garantia',
+                'cancelado' => 'Cancelado',
+            ];
+        @endphp
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             📄 Orçamentos
@@ -15,42 +31,108 @@
 
                 {{-- ================= FILTROS ================= --}}
                 <form method="GET" class="bg-white shadow rounded-lg p-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
 
-                        <div class="flex flex-col lg:col-span-6">
-                            <label class="text-sm font-medium text-gray-700 mb-2">
-                                🔍 Pesquisar Orçamentos
-                            </label>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cliente, Empresa, Status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm
-                                focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+        {{-- 🔍 PESQUISA --}}
+        <div class="flex flex-col lg:col-span-6">
+            <label class="text-sm font-medium text-gray-700 mb-2">
+                🔍 Pesquisar Orçamentos
+            </label>
+            <input type="text" name="search" value="{{ request('search') }}"
+                placeholder="Cliente, Empresa, Status"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
 
-                       
-                        <br>
-                        <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
-                            <button type="submit" class="btn btn-primary">
-                                <svg fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Filtrar
-                            </button>
+        {{-- 📌 STATUS --}}
+        <div class="flex flex-col lg:col-span-3">
+            <label class="text-sm font-medium text-gray-700 mb-2">
+                📌 Status
+            </label>
+            <select name="status[]" multiple
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 h-32">
+                @foreach($statusList as $key => $label)
+                    <option value="{{ $key }}"
+                        @selected(collect(request('status'))->contains($key))>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-                            @if(auth()->user()->canPermissao('clientes', 'incluir'))
-                            <a href="{{ route('orcamentos.create') }}" class="btn btn-success">
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                           Orçamento
-                        </a>
-                            @endif
-                        </div>
-                    </div>
-                </form>
+        {{-- 🏢 EMPRESA --}}
+        <div class="flex flex-col lg:col-span-3">
+            <label class="text-sm font-medium text-gray-700 mb-2">
+                🏢 Empresa
+            </label>
+            <select name="empresa_id[]" multiple
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 h-32">
+                @foreach($empresas as $empresa)
+                    <option value="{{ $empresa->id }}"
+                        @selected(collect(request('empresa_id'))->contains($empresa->id))>
+                        {{ $empresa->nome_fantasia }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- 📅 PERÍODO --}}
+        <div class="flex flex-col lg:col-span-3">
+            <label class="text-sm font-medium text-gray-700 mb-2">
+                📅 Período
+            </label>
+            <select name="periodo"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Todos</option>
+                <option value="ano" @selected(request('periodo') === 'ano')>Ano Atual</option>
+                <option value="mes" @selected(request('periodo') === 'mes')>Mês Atual</option>
+                <option value="semana" @selected(request('periodo') === 'semana')>Semana Atual</option>
+                <option value="dia" @selected(request('periodo') === 'dia')>Hoje</option>
+                <option value="intervalo" @selected(request('periodo') === 'intervalo')>
+                    Intervalo de Datas
+                </option>
+            </select>
+        </div>
+
+        {{-- 📆 DATA INICIAL --}}
+        <div class="flex flex-col lg:col-span-2">
+            <label class="text-sm text-gray-600">Data Inicial</label>
+            <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        {{-- 📆 DATA FINAL --}}
+        <div class="flex flex-col lg:col-span-2">
+            <label class="text-sm text-gray-600">Data Final</label>
+            <input type="date" name="data_fim" value="{{ request('data_fim') }}"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        {{-- 🔘 BOTÕES --}}
+        <div class="flex gap-3 items-end lg:col-span-5 justify-end">
+            <button type="submit" class="btn btn-primary">
+                🔍 Filtrar
+            </button>
+
+            @if(auth()->user()->canPermissao('clientes', 'incluir'))
+                <a href="{{ route('orcamentos.create') }}" class="btn btn-success">
+                    ➕ Orçamento
+                </a>
+            @endif
+            
+            {{-- 🧹 LIMPAR FILTROS --}}
+                <a href="{{ route('orcamentos.index') }}"
+                class="btn btn-secondary">
+                    🧹 Limpar
+                </a>
+        </div>
+
+    </div>
+</form>
+
 
             {{-- ================= ATENDIMENTOS AGUARDANDO ORÇAMENTO ================= --}}
             @if(isset($atendimentosParaOrcamento) && $atendimentosParaOrcamento->count())
@@ -139,21 +221,7 @@
                                     <form action="{{ route('orcamentos.updateStatus', $orcamento) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-                                        @php
-                                            $statusList = [
-                                                'em_elaboracao' => 'Em elaboração',
-                                                'aguardando_aprovacao' => 'Aguardando aprovação',
-                                                'enviado' => 'Enviado',
-                                                'aprovado' => 'Aprovado',
-                                                'aguardando_pagamento'  => 'Aguardando Pagamento',
-                                                'concluido' => 'Concluído',
-                                                'recusado' => 'Recusado',
-                                                'agendado' => 'Agendado',
-                                                'em_andamento' => 'Em Andamento', 
-                                                'garantia' => 'Garantia',
-                                                'cancelado' => 'Cancelado',
-                                            ];
-                                        @endphp
+
                                         <select name="status" onchange="this.form.submit()" class="status-select status-{{ $orcamento->status }}">
                                             @foreach($statusList as $key => $label)
                                                 <option value="{{ $key }}" @selected($orcamento->status === $key)>

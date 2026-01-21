@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ItemComercial;
 use App\Models\OrcamentoItem;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 
 
@@ -85,6 +86,57 @@ class OrcamentoController extends Controller
             });
         }
 
+        // ================= FILTRO POR STATUS (MÚLTIPLO) =================
+        if ($request->filled('status')) {
+            $query->whereIn('status', (array) $request->status);
+        }
+
+        // ================= FILTRO POR EMPRESA (MÚLTIPLA) =================
+        if ($request->filled('empresa_id')) {
+            $query->whereIn('empresa_id', (array) $request->empresa_id);
+        }
+
+        // ================= FILTRO POR PERÍODO =================
+        if ($request->filled('periodo')) {
+
+            $hoje = Carbon::now();
+
+            switch ($request->periodo) {
+
+                case 'ano':
+                    $query->whereYear('created_at', $hoje->year);
+                    break;
+
+                case 'mes':
+                    $ano = $request->get('ano', now()->year);
+                    $mes = $request->get('mes', now()->month);
+
+                    $query->whereYear('created_at', $ano)
+                        ->whereMonth('created_at', $mes);
+                    break;
+
+                case 'semana':
+                    $query->whereBetween('created_at', [
+                        $hoje->startOfWeek(),
+                        $hoje->endOfWeek()
+                    ]);
+                    break;
+
+                case 'dia':
+                    $query->whereDate('created_at', $hoje->toDateString());
+                    break;
+
+                case 'intervalo':
+                    if ($request->filled('data_inicio') && $request->filled('data_fim')) {
+                        $query->whereBetween('created_at', [
+                            $request->data_inicio . ' 00:00:00',
+                            $request->data_fim . ' 23:59:59'
+                        ]);
+                    }
+                    break;
+            }
+        }
+
         // ================= ORÇAMENTOS (PAGINADO) =================
         $orcamentos = $query
             ->orderBy($sort, $direction)
@@ -104,9 +156,12 @@ class OrcamentoController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $empresas = Empresa::orderBy('nome_fantasia')->get();
+
         return view('orcamentos.index', compact(
             'orcamentos',
-            'atendimentosParaOrcamento'
+            'atendimentosParaOrcamento', 
+            'empresas'
         ));
     }
 
@@ -198,9 +253,6 @@ class OrcamentoController extends Controller
                 'forma_pagamento' => $request->forma_pagamento,
                 'observacoes'     => $request->observacoes,
                 'created_by'      => $user->id,
-                'forma_pagamento'  => $request->forma_pagamento,
-                'observacoes'      => $request->observacoes,
-                'created_by'       => $user->id,
             
             ]);
 
@@ -347,9 +399,6 @@ class OrcamentoController extends Controller
                 'forma_pagamento' => $request->forma_pagamento,
                 'observacoes'     => $request->observacoes,
                 'created_by'      => $user->id,
-                'forma_pagamento'  => $request->forma_pagamento,
-                'observacoes'      => $request->observacoes,
-                'created_by'       => $user->id,
             ]);
 
             // ---------- REMOVER ITENS ANTIGOS ----------
