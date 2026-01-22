@@ -49,7 +49,7 @@
                             Filtrar
                         </button>
 
-                        @if(auth()->user()->canPermissao('clientes', 'incluir'))
+                        {{--@if(auth()->user()->canPermissao('clientes', 'incluir'))--}}
                         <a href="{{ route('itemcomercial.create') }}" class="btn btn-success">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -58,7 +58,7 @@
                             </svg>
                             Novo Item
                         </a>
-                        @endif
+                        {{--@endif--}}
                     </div>
                 </div>
             </form>

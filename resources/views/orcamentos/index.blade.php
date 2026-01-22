@@ -117,11 +117,11 @@
                 🔍 Filtrar
             </button>
 
-            @if(auth()->user()->canPermissao('clientes', 'incluir'))
+            {{--@if(auth()->user()->canPermissao('clientes', 'incluir'))--}}
                 <a href="{{ route('orcamentos.create') }}" class="btn btn-success">
                     ➕ Orçamento
                 </a>
-            @endif
+            {{--@endif--}}
             
             {{-- 🧹 LIMPAR FILTROS --}}
                 <a href="{{ route('orcamentos.index') }}"
