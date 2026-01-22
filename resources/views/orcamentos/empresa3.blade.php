@@ -166,27 +166,50 @@
         </tr>
     </table>
 
-    {{-- DADOS DO CLIENTE --}}
-    <div class="section-header">Dados do Cliente</div>
+    {{-- CLIENTE (CAMPOS ESPECÍFICOS FORNECIDOS) --}}
+    @php
+        $pessoa = $orcamento->cliente ?? $orcamento->preCliente;
+    @endphp
+
+        <div style="margin-bottom: 5px;">
+            <span class="label">
+                Cliente: {{ $pessoa->nome_fantasia ?? $pessoa->nome ?? $pessoa->razao_social ?? 'Não informado' }}
+            </span>
+        </div>
+
         <table class="info-grid">
-        <tr>
-            <td width="60%">
-                <span class="label">Cliente: {{ $orcamento->cliente->nome ?? 'Não informado' }}</span><br>
-                <strong>{{ $orcamento->cliente->razao_social ?? $orcamento->cliente->nome }}</strong><br>
-                CPF / CNPJ: {{ $orcamento->cliente->cpf_cnpj ?? '-' }}<br>
-                {{ $orcamento->cliente->logradouro ?? '-' }} - {{ $orcamento->cliente->numero ?? '-' }}<br>
-                {{ $orcamento->cliente->cidade ?? '-' }} - {{ $orcamento->cliente->estado ?? '-' }}<br>
-                CEP: {{ $orcamento->cliente->cep ?? '-' }}<br>
-                COMPLEMENTO: {{ $orcamento->cliente->complemento ?? '-' }}
-            </td>
-            <td width="40%" class="right">
-                <div>
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAXUlEQVR42mNgGAWjYBSMAtIAmIGYEYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGQAAtA8v+X6mYAAAAABJRU5ErkJggg==" style="width:12px; vertical-align:middle;"> {{ optional($orcamento->cliente->emails->first())->valor ?? '-' }}<br>
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAXUlEQVR42mNgGAWjYBSMAtIAmIGYEYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGYiZgZgZiJmBmBmImYGYGQAAtA8v+X6mYAAAAABJRU5ErkJggg==" style="width:12px; vertical-align:middle;"> {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
-                </div>
-            </td>
-        </tr>
-    </table>
+            <tr>
+                <td width="60%">
+                    {{ $pessoa->razao_social ?? $pessoa->nome ?? '-' }}<br>
+                    CPF / CNPJ: {{ $pessoa->cpf_cnpj ?? '-' }}<br>
+                    {{ $pessoa->logradouro ?? '-' }} - {{ $pessoa->numero ?? '-' }}<br>
+                    {{ $pessoa->cidade ?? '-' }} - {{ $pessoa->estado ?? '-' }}<br>
+                    CEP: {{ $pessoa->cep ?? '-' }}<br>
+                    COMPLEMENTO: {{ $pessoa->complemento ?? '-' }}
+                </td>
+
+                <td width="40%" class="right">
+                    <div style="display: inline-block; text-align: left;">
+
+                        {{-- EMAIL --}}
+                        @if($orcamento->cliente)
+                            {{ optional($orcamento->cliente->emails->first())->valor ?? '-' }}
+                        @else
+                            {{ $pessoa->email ?? '-' }}
+                        @endif
+                        <br>
+
+                        {{-- TELEFONE --}}
+                        @if($orcamento->cliente)
+                            {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
+                        @else
+                            {{ $pessoa->telefone ?? '-' }}
+                        @endif
+
+                    </div>
+                </td>
+            </tr>
+        </table>
 
     {{-- PRODUTOS E SERVIÇOS --}}
     <div class="section-header">Produtos e Serviços</div>

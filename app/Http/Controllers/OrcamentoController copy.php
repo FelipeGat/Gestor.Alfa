@@ -12,6 +12,7 @@ use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
 use App\Models\ItemComercial;
 use App\Models\OrcamentoItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 
@@ -159,7 +160,7 @@ class OrcamentoController extends Controller
 
         return view('orcamentos.index', compact(
             'orcamentos',
-            'atendimentosParaOrcamento',
+            'atendimentosParaOrcamento', 
             'empresas'
         ));
     }
@@ -252,7 +253,7 @@ class OrcamentoController extends Controller
                 'forma_pagamento' => $request->forma_pagamento,
                 'observacoes'     => $request->observacoes,
                 'created_by'      => $user->id,
-
+            
             ]);
 
             // ---------- ITENS ----------
@@ -510,23 +511,21 @@ class OrcamentoController extends Controller
         $orcamento = Orcamento::with([
             'empresa',
             'cliente',
-            'cliente.emails',
-            'cliente.telefones',
             'itens'
         ])->findOrFail($id);
 
+        // layout_pdf vem da tabela empresas (empresa1)
         $view = 'orcamentos.' . $orcamento->empresa->layout_pdf;
 
+        // fallback de segurança
         if (!view()->exists($view)) {
             abort(500, 'Layout de impressão não encontrado.');
         }
 
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadView($view, [
+        $pdf = Pdf::loadView($view, [
             'orcamento' => $orcamento,
             'empresa'   => $orcamento->empresa
-        ]);
-        $pdf->setPaper('A4', 'portrait');
+        ])->setPaper('A4', 'portrait');
 
         $filename = 'orcamento_' . str_replace(
             ['/', '\\'],
@@ -536,7 +535,6 @@ class OrcamentoController extends Controller
 
         return $pdf->stream($filename);
     }
-
 
 
 }

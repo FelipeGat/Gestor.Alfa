@@ -119,6 +119,7 @@ class Orcamento extends Model
     public function pagamentos()
     {
         return $this->hasMany(OrcamentoPagamento::class);
-}
+    }
+
 
 }
