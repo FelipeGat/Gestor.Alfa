@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <style>
         @page {
-        margin: 1cm;
+            margin: 1cm;
         }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -56,73 +56,81 @@
         }
 
         .section-header {
-            font-size: 16px;
-            margin: 20px 0 10px 0;
+            font-size: 14px;
+            margin: 15px 0 8px 0;
             color: #333;
-        }
-
-        .client-data {
-            margin-bottom: 25px;
-            line-height: 1.5;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+            text-transform: uppercase;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 5px;
+            margin-bottom: 15px;
         }
         .items-table th {
-            background-color: #d9d9d9;
-            padding: 5px;
+            background-color: #f2f2f2;
+            padding: 6px 5px;
             text-align: left;
-            font-weight: normal;
-            border: 1px solid #fff;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            font-size: 10px;
         }
         .items-table td {
-            padding: 4px 5px;
-            border-bottom: 1px solid #eee;
+            padding: 5px;
+            border: 1px solid #eee;
         }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
 
         .totals-container {
             width: 100%;
-            margin-top: 5px;
+            margin-top: 10px;
+            border-collapse: collapse;
         }
-        .total-row {
-            width: 100%;
+        .total-row td {
+            padding: 4px 8px;
         }
         .total-label {
             text-align: right;
-            padding: 3px 10px;
             font-weight: bold;
-            width: 80%;
+            width: 85%;
         }
         .total-value {
             text-align: right;
-            padding: 3px 5px;
             font-weight: bold;
-            width: 20%;
+            width: 15%;
+            white-space: nowrap;
         }
-
-        .footer-note {
-            font-size: 10px;
-            text-align: right;
-            margin-top: 5px;
-            font-style: italic;
-        }
+        .color-desconto { color: #0056b3; } /* Azul */
+        .color-taxa { color: #e67e22; } /* Laranja */
+        .color-total { font-size: 14px; border-top: 2px solid #333; padding-top: 8px !important; }
 
         .payment-info {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            line-height: 1.5;
         }
 
         .observations {
-            margin-top: 20px;
-            line-height: 1.6;
+            margin-top: 15px;
+            line-height: 1.5;
         }
         .obs-item {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+        }
+        .fixed-terms {
+            margin-top: 15px;
+            font-size: 10px;
+            color: #444;
+        }
+        .fixed-terms ul {
+            padding-left: 15px;
+            margin: 5px 0;
         }
 
         .page-footer {
@@ -134,7 +142,6 @@
             padding-top: 5px;
             font-size: 10px;
         }
-
     </style>
 </head>
 <body>
@@ -160,153 +167,174 @@
                 <div class="budget-date">{{ $orcamento->created_at->format('d/m/Y') }}</div>
                 <div class="vendedor-info">
                     Vendedor:<br>
-                    <strong>{{ strtoupper($orcamento->vendedor->name ?? 'INVEST') }} ({{ strtoupper($orcamento->vendedor->name ?? 'INVEST') }})</strong>
+                    <strong>{{ strtoupper($orcamento->vendedor->name ?? 'INVEST') }}</strong>
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- CLIENTE (CAMPOS ESPECÍFICOS FORNECIDOS) --}}
-    @php
-        $pessoa = $orcamento->cliente ?? $orcamento->preCliente;
-    @endphp
+    {{-- CLIENTE --}}
+    @php $pessoa = $orcamento->cliente ?? $orcamento->preCliente; @endphp
+    <div style="margin-bottom: 15px;">
+        <strong>CLIENTE:</strong> {{ strtoupper($pessoa->nome_fantasia ?? $pessoa->nome ?? $pessoa->razao_social ?? 'Não informado') }}<br>
+        <strong>CPF/CNPJ:</strong> {{ $pessoa->cpf_cnpj ?? '-' }} | <strong>FONE:</strong> 
+        @if($orcamento->cliente)
+            {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
+        @else
+            {{ $pessoa->telefone ?? '-' }}
+        @endif
+        <br>
+        <strong>ENDEREÇO:</strong> {{ $pessoa->logradouro ?? $pessoa->endereco ?? '-' }}, {{ $pessoa->numero ?? '-' }} - {{ $pessoa->bairro ?? '-' }} - {{ $pessoa->cidade ?? '-' }}/{{ $pessoa->estado ?? '-' }}
+    </div>
 
-        <div style="margin-bottom: 5px;">
-            <span class="label">
-                Cliente: {{ $pessoa->nome_fantasia ?? $pessoa->nome ?? $pessoa->razao_social ?? 'Não informado' }}
-            </span>
+        <div class="obs-item">
+            <strong>DESCRIÇÃO:</strong> 
+            <br>{{ $orcamento->descricao }}
         </div>
 
-        <table class="info-grid">
-            <tr>
-                <td width="60%">
-                    {{ $pessoa->razao_social ?? $pessoa->nome ?? '-' }}<br>
-                    CPF / CNPJ: {{ $pessoa->cpf_cnpj ?? '-' }}<br>
-                    {{ $pessoa->logradouro ?? '-' }} - {{ $pessoa->numero ?? '-' }}<br>
-                    {{ $pessoa->cidade ?? '-' }} - {{ $pessoa->estado ?? '-' }}<br>
-                    CEP: {{ $pessoa->cep ?? '-' }}<br>
-                    COMPLEMENTO: {{ $pessoa->complemento ?? '-' }}
-                </td>
+    @php
+        $servicos = $orcamento->itens->where('tipo', 'servico');
+        $produtos = $orcamento->itens->where('tipo', 'produto');
+        $totalServicos = $servicos->sum('subtotal');
+        $totalProdutos = $produtos->sum('subtotal');
+    @endphp
 
-                <td width="40%" class="right">
-                    <div style="display: inline-block; text-align: left;">
-
-                        {{-- EMAIL --}}
-                        @if($orcamento->cliente)
-                            {{ optional($orcamento->cliente->emails->first())->valor ?? '-' }}
-                        @else
-                            {{ $pessoa->email ?? '-' }}
-                        @endif
-                        <br>
-
-                        {{-- TELEFONE --}}
-                        @if($orcamento->cliente)
-                            {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
-                        @else
-                            {{ $pessoa->telefone ?? '-' }}
-                        @endif
-
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-    {{-- PRODUTOS E SERVIÇOS --}}
-    <div class="section-header">Produtos e Serviços</div>
-    <table class="items-table">
-        <thead>
-            <tr>
-                <th width="5%">Item</th>
-                <th width="55%">Descrição</th>
-                <th width="5%" class="text-center">T</th>
-                <th width="10%" class="text-right">Qtd.</th>
-                <th width="5%" class="text-center">Unid.</th>
-                <th width="10%" class="text-right">Valor Un.</th>
-                <th width="10%" class="text-right">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php 
-                $i = 1; 
-                $totalProdutos = 0;
-                $totalServicos = 0;
-                $qtdProdutos = 0;
-                $qtdServicos = 0;
-            @endphp
-            @foreach($orcamento->itens as $item)
-                @php
-                    $tipo = $item->tipo == 'produto' ? 'P' : 'S';
-                    if($item->tipo == 'produto') {
-                        $totalProdutos += $item->subtotal;
-                        $qtdProdutos += $item->quantidade;
-                    } else {
-                        $totalServicos += $item->subtotal;
-                        $qtdServicos += $item->quantidade;
-                    }
-                @endphp
+    {{-- BLOCO SERVIÇOS --}}
+    @if($servicos->count() > 0)
+        <div class="section-header">Serviços</div>
+        <table class="items-table">
+            <thead>
                 <tr>
-                    <td class="text-center">{{ $i++ }}</td>
-                    <td>{{ strtoupper($item->nome) }} *</td>
-                    <td class="text-center">{{ $tipo }}</td>
-                    <td class="text-right">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
-                    <td class="text-center">un.</td>
+                    <th width="60%">Serviço</th>
+                    <th width="10%" class="text-center">Qtd.</th>
+                    <th width="15%" class="text-right">Valor Un.</th>
+                    <th width="15%" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($servicos as $item)
+                <tr>
+                    <td>{{ strtoupper($item->nome) }}</td>
+                    <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
                     <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
                     <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    {{-- BLOCO PRODUTOS --}}
+    @if($produtos->count() > 0)
+        <div class="section-header">Produtos / Materiais</div>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th width="60%">Produto</th>
+                    <th width="10%" class="text-center">Qtd.</th>
+                    <th width="15%" class="text-right">Valor Un.</th>
+                    <th width="15%" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($produtos as $item)
+                <tr>
+                    <td>{{ strtoupper($item->nome) }}</td>
+                    <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
+                    <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
+                    <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     {{-- TOTAIS --}}
     <table class="totals-container">
-        <tr>
-            <td class="total-label">Totais Produtos</td>
-            <td class="total-value" style="width: 5%; text-align: center;">{{ number_format($qtdProdutos, 0, ',', '.') }}</td>
-            <td class="total-value">{{ number_format($totalProdutos, 2, ',', '.') }}</td>
+        @if($totalServicos > 0)
+        <tr class="total-row">
+            <td class="total-label">Subtotal Serviços:</td>
+            <td class="total-value">R$ {{ number_format($totalServicos, 2, ',', '.') }}</td>
         </tr>
-        <tr>
-            <td class="total-label">Totais Serviços</td>
-            <td class="total-value" style="width: 5%; text-align: center;">{{ number_format($qtdServicos, 0, ',', '.') }}</td>
-            <td class="total-value">{{ number_format($totalServicos, 2, ',', '.') }}</td>
+        @endif
+        @if($totalProdutos > 0)
+        <tr class="total-row">
+            <td class="total-label">Subtotal Produtos:</td>
+            <td class="total-value">R$ {{ number_format($totalProdutos, 2, ',', '.') }}</td>
         </tr>
-        <tr>
-            <td class="total-label">Totais Produtos/Serviços</td>
-            <td class="total-value" style="width: 5%; text-align: center;">{{ number_format($qtdProdutos + $qtdServicos, 0, ',', '.') }}</td>
-            <td class="total-value">{{ number_format($orcamento->valor_total, 2, ',', '.') }}</td>
+        @endif
+        @if($orcamento->desconto > 0)
+        <tr class="total-row color-desconto">
+            <td class="total-label">(-) Descontos:</td>
+            <td class="total-value">R$ {{ number_format($orcamento->desconto, 2, ',', '.') }}</td>
+        </tr>
+        @endif
+        @if($orcamento->taxas > 0)
+        <tr class="total-row color-taxa">
+            <td class="total-label">(+) Taxas:</td>
+            <td class="total-value">R$ {{ number_format($orcamento->taxas, 2, ',', '.') }}</td>
+        </tr>
+        @endif
+        <tr class="total-row color-total">
+            <td class="total-label">VALOR TOTAL DO ORÇAMENTO:</td>
+            <td class="total-value">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</td>
         </tr>
     </table>
 
     {{-- FORMA DE PAGAMENTO --}}
     <div class="section-header">Forma de Pagamento</div>
     <div class="payment-info">
-        {{ $orcamento->forma_pagamento ?? '5% para Dinheiro ou Pix (Entrada + restante ao final do atendimento)' }}
+        @php
+            $fp = $orcamento->forma_pagamento;
+            $parcelasCredito = $orcamento->parcelas_credito ?? 1;
+            $parcelasBoleto = $orcamento->parcelas_boleto ?? 1;
+        @endphp
+
+        @if($fp == 'pix')
+            <strong>Pix:</strong> {{ $empresa->cnpj ?? 'Buscar CNPJ no cadastro' }}<br>
+            50% de Entrada e Restante na Entrega
+        @elseif($fp == 'boleto')
+            <strong>Boleto Bancário:</strong> {{ $parcelasBoleto }} vezes 
+            (Entrada 
+            @for($i = 1; $i < $parcelasBoleto; $i++)
+                + {{ $i * 30 - 1 }} dias
+            @endfor)
+        @elseif($fp == 'debito')
+            <strong>Cartão de Débito:</strong> À vista
+        @elseif($fp == 'credito')
+            <strong>Cartão de Crédito:</strong> {{ $parcelasCredito }} vezes
+        @elseif($fp == 'faturado')
+            <strong>Boleto Bancário:</strong> Faturado para {{ $orcamento->prazo_faturamento ?? 'X' }} dias
+        @else
+            {{ $fp ?? 'A combinar' }}
+        @endif
     </div>
 
     {{-- OBSERVAÇÕES --}}
-    <div class="section-header">Observações</div>
+    <div class="section-header">Observações e Termos</div>
     <div class="observations">
+        @if($orcamento->observacoes)
         <div class="obs-item">
-            Orçamento Válido até {{ $orcamento->validade_dias ?? '5' }} dias corridos;<br>
-            Produtos Novos com 12 meses de Garantia
+            <strong>OBSERVAÇÃO:</strong><br>
+            {!! nl2br(e($orcamento->observacoes)) !!}
         </div>
-        <div class="obs-item">
-            Garantia Não Contempla Deslocamento;<br>
-            Garantia Não Coberta por outros Técnicos;
-        </div>
-        <div class="obs-item">
-            Peças não inclusas, Caso necessário será reposto a peça e passado ao cliente ao final o valor.
-        </div>
-        <div class="obs-item">
-            Prazo para execução {{ $orcamento->prazo_execucao ?? '3' }} dias após o pagamebto da entrada.
-        </div>
-        <div class="obs-item">
-            Valores com recibo
+        @endif
+
+        <div class="fixed-terms">
+            <ul>
+                <li>Orçamento Válido até <strong>{{ $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') : '5 dias' }}</strong>;</li>
+                <li>Produtos Novos com 12 meses de Garantia;</li>
+                <li>Garantia Não Contempla Deslocamento;</li>
+                <li>Garantia Não Coberta por atendimentos de terceiros;</li>
+                <li>Serviços ou Materiais que não foram adicionadas no orçamento não inclusas;</li>
+                <li>Prazo para execução padrão é de 3 dias após o pagamento da entrada;</li>
+                <li>Valores com desconto para Recibo.</li>
+            </ul>
         </div>
     </div>
 
-    {{-- RODAPÉ DE PÁGINA --}}
     <div class="page-footer">
-        1/1
+        Página 1/1 - Desenvolvido por <strong>Alfa Soluções</strong> Gerado em {{ now()->format('d/m/Y H:i') }}
     </div>
 
 </body>
