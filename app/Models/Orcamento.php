@@ -31,6 +31,7 @@ class Orcamento extends Model
         'desconto_produto_valor',
         'desconto_produto_tipo',
         'taxas',
+        'descricao_taxas',
         'forma_pagamento',
         'validade',
         'observacoes',
@@ -41,6 +42,7 @@ class Orcamento extends Model
         'valor_total' => 'float',
         'desconto' => 'float',
         'taxas' => 'float',
+        'descricao_taxas' => 'array',
         'desconto_servico_valor' => 'float',
         'desconto_produto_valor' => 'float',
     ];
@@ -118,6 +120,4 @@ class Orcamento extends Model
     {
         return $this->hasMany(OrcamentoPagamento::class);
     }
-
-
 }

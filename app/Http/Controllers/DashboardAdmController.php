@@ -10,7 +10,7 @@ use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
 use App\Models\Orcamento;
 
-class DashboardController extends Controller
+class DashboardAdmController extends Controller
 {
     public function index()
     {
@@ -166,10 +166,10 @@ class DashboardController extends Controller
 
         // Orçamentos por Empresa (valor total)
         $orcamentosPorEmpresa = Orcamento::select(
-                'empresa_id',
-                DB::raw('SUM(valor_total) as total_valor'),
-                DB::raw('COUNT(*) as total_qtd')
-            )
+            'empresa_id',
+            DB::raw('SUM(valor_total) as total_valor'),
+            DB::raw('COUNT(*) as total_qtd')
+        )
             ->whereNotNull('valor_total')
             ->groupBy('empresa_id')
             ->with('empresa')
@@ -186,5 +186,4 @@ class DashboardController extends Controller
             'recusados'
         ));
     }
-
 }

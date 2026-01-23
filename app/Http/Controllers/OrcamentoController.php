@@ -202,83 +202,65 @@ class OrcamentoController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
-            403,
-            'Acesso não autorizado'
-        );
+        abort_if(!$user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
 
         $request->validate([
             'empresa_id'      => 'required|exists:empresas,id',
             'descricao'       => 'required|string|max:255',
-            'validade'        => 'nullable|date|after_or_equal:' . now()->addDays(5)->format('Y-m-d'),
+            'validade'        => 'nullable|date',
             'cliente_tipo'    => 'required|in:cliente,pre_cliente',
-            'cliente_id'      => 'required_if:cliente_tipo,cliente|nullable|exists:clientes,id',
-            'pre_cliente_id'  => 'required_if:cliente_tipo,pre_cliente|nullable|exists:pre_clientes,id',
-
-            'desconto'        => 'nullable|numeric|min:0',
-            'taxas'           => 'nullable|numeric|min:0',
-            'forma_pagamento' => 'nullable|string',
-
-            'itens' => 'required|array|min:1',
-            'itens.*.item_comercial_id' => 'required|exists:itens_comerciais,id',
-            'itens.*.quantidade' => 'required|integer|min:1',
-            'itens.*.valor_unitario' => 'required|numeric|min:0',
+            'itens'           => 'required|array|min:1',
         ]);
-
-        if ($request->filled('atendimento_id')) {
-            $existe = Orcamento::where('atendimento_id', $request->atendimento_id)->exists();
-
-            if ($existe) {
-                return redirect()
-                    ->route('orcamentos.index')
-                    ->with('error', 'Este atendimento já possui um orçamento.');
-            }
-        }
 
         DB::transaction(function () use ($request, $user) {
 
-            // ---------- DESCONTO / TAXAS ----------
-            $desconto = (float) str_replace(',', '.', $request->input('desconto', 0));
-            $taxas    = (float) str_replace(',', '.', $request->input('taxas', 0));
+            // ================= TAXAS =================
+            $taxasLista = [];
+            $totalTaxasCalculado = 0;
 
-            // ---------- CLIENTE / PRÉ CLIENTE ----------
-            $clienteId    = null;
-            $preClienteId = null;
+            if ($request->has('taxas_detalhe') && is_array($request->taxas_detalhe)) {
+                foreach ($request->taxas_detalhe as $itemTaxa) {
+                    $nome = $itemTaxa['nome'] ?? '';
+                    $valor = (float) str_replace(',', '.', $itemTaxa['valor'] ?? 0);
 
-            if ($request->cliente_tipo === 'cliente') {
-                $clienteId = $request->cliente_id;
-            } else {
-                $preClienteId = $request->pre_cliente_id;
+                    if (!empty($nome) && $valor > 0) {
+                        $taxasLista[] = ['nome' => $nome, 'valor' => $valor];
+                        $totalTaxasCalculado += $valor;
+                    }
+                }
             }
 
-            // ---------- CRIA ORÇAMENTO ----------
+            $clienteId    = ($request->cliente_tipo === 'cliente') ? $request->cliente_id : null;
+            $preClienteId = ($request->cliente_tipo === 'pre_cliente') ? $request->pre_cliente_id : null;
+
+            // ================= CRIA ORÇAMENTO (SEM TOTAL AINDA) =================
             $orcamento = Orcamento::create([
-                'empresa_id'       => $request->empresa_id,
-                'atendimento_id'   => $request->atendimento_id,
-                'numero_orcamento' => Orcamento::gerarNumero($request->empresa_id),
-                'descricao'        => $request->descricao,
-                'validade'         => $request->validade,
-                'status'           => 'em_elaboracao',
-                'cliente_id'       => $clienteId,
-                'pre_cliente_id'   => $preClienteId,
+                'empresa_id'             => $request->empresa_id,
+                'atendimento_id'         => $request->atendimento_id,
+                'numero_orcamento'       => Orcamento::gerarNumero($request->empresa_id),
+                'descricao'              => $request->descricao,
+                'validade'               => $request->validade,
+                'status'                 => 'em_elaboracao',
+                'cliente_id'             => $clienteId,
+                'pre_cliente_id'         => $preClienteId,
+
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
                 'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
                 'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
                 'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
-                'desconto'          => $desconto,
-                'taxas'             => $taxas,
-                'forma_pagamento'   => $request->forma_pagamento,
-                'observacoes'       => $request->observacoes,
-                'created_by'        => $user->id,
+
+                'taxas'           => $totalTaxasCalculado,
+                'descricao_taxas' => json_encode($taxasLista),
+                'forma_pagamento' => $request->forma_pagamento,
+                'observacoes'     => $request->observacoes,
+                'created_by'      => $user->id,
             ]);
 
-            // ---------- ITENS DO ORÇAMENTO ----------
+            // ================= ITENS =================
             $totalServicos = 0;
             $totalProdutos = 0;
 
             foreach ($request->itens as $itemData) {
-
                 $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
 
                 $valorUnitario = (float) $itemData['valor_unitario'];
@@ -301,24 +283,44 @@ class OrcamentoController extends Controller
                 }
             }
 
-            // ---------- TOTAL FINAL ----------
-            $valorTotal = $totalServicos
+            // ================= DESCONTOS REAIS =================
+
+            // Serviços
+            $descontoServicos = 0;
+            if ($request->desconto_servico_valor > 0) {
+                if ($request->desconto_servico_tipo === 'percentual') {
+                    $descontoServicos = ($totalServicos * $request->desconto_servico_valor) / 100;
+                } else {
+                    $descontoServicos = (float) $request->desconto_servico_valor;
+                }
+            }
+
+            // Produtos
+            $descontoProdutos = 0;
+            if ($request->desconto_produto_valor > 0) {
+                if ($request->desconto_produto_tipo === 'percentual') {
+                    $descontoProdutos = ($totalProdutos * $request->desconto_produto_valor) / 100;
+                } else {
+                    $descontoProdutos = (float) $request->desconto_produto_valor;
+                }
+            }
+
+            $descontoTotalCalculado = $descontoServicos + $descontoProdutos;
+
+            // ================= TOTAL FINAL =================
+            $valorFinal = $totalServicos
                 + $totalProdutos
-                - $desconto
-                + $taxas;
+                - $descontoTotalCalculado
+                + $totalTaxasCalculado;
 
             $orcamento->update([
-                'valor_total' => $valorTotal,
+                'desconto'    => $descontoTotalCalculado,
+                'valor_total' => $valorFinal,
             ]);
         });
 
-        return redirect()
-            ->route('orcamentos.index')
-            ->with('success', 'Orçamento criado com sucesso!');
+        return redirect()->route('orcamentos.index')->with('success', 'Orçamento criado com sucesso!');
     }
-
-
-
 
     public function edit(Orcamento $orcamento)
     {
@@ -368,113 +370,113 @@ class OrcamentoController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
-            403,
-            'Acesso não autorizado'
-        );
+        abort_if(!$user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
 
         $request->validate([
             'empresa_id'      => 'required|exists:empresas,id',
             'descricao'       => 'required|string|max:255',
-            'validade'        => 'nullable|date',
-            'cliente_tipo'    => 'required|in:cliente,pre_cliente',
-
-            'desconto'        => 'nullable|numeric|min:0',
-            'taxas'           => 'nullable|numeric|min:0',
-            'forma_pagamento' => 'nullable|string|max:50',
-            'observacoes'     => 'nullable|string',
-
-            'itens' => 'required|array|min:1',
-            'itens.*.item_comercial_id' => 'required|exists:itens_comerciais,id',
-            'itens.*.quantidade' => 'required|integer|min:1',
-            'itens.*.valor_unitario' => 'required|numeric|min:0',
+            'itens'           => 'required|array|min:1',
         ]);
 
         DB::transaction(function () use ($request, $user, $orcamento) {
+            // Desconto Total (calculado pelo JS)
+            $descontoTotal = (float) str_replace(',', '.', $request->input('desconto', 0));
 
-            $desconto = (float) str_replace(',', '.', $request->input('desconto', 0));
-
-            $taxas = (float) str_replace(
-                ',',
-                '.',
-                $request->input('taxas', 0)
-            );
-
-            // ---------- CLIENTE / PRÉ ----------
-            $clienteId = null;
-            $preClienteId = null;
-
-            if ($request->cliente_tipo === 'cliente') {
-                $clienteId = $request->cliente_id;
-            } else {
-                $preClienteId = $request->pre_cliente_id;
+            // Taxas
+            $taxasLista = [];
+            $totalTaxasCalculado = 0;
+            if ($request->has('taxas_detalhe') && is_array($request->taxas_detalhe)) {
+                foreach ($request->taxas_detalhe as $itemTaxa) {
+                    $nome = $itemTaxa['nome'] ?? '';
+                    $valor = (float) str_replace(',', '.', $itemTaxa['valor'] ?? 0);
+                    if (!empty($nome) && $valor > 0) {
+                        $taxasLista[] = ['nome' => $nome, 'valor' => $valor];
+                        $totalTaxasCalculado += $valor;
+                    }
+                }
             }
 
-            // ---------- ATUALIZAR ORÇAMENTO ----------
+            $clienteId = ($request->cliente_tipo === 'cliente') ? $request->cliente_id : null;
+            $preClienteId = ($request->cliente_tipo === 'pre_cliente') ? $request->pre_cliente_id : null;
+
             $orcamento->update([
-                'empresa_id'       => $request->empresa_id,
-                'atendimento_id'   => $request->atendimento_id,
-                'descricao'        => $request->descricao,
-                'validade'         => $request->validade,
-                'status'           => 'em_elaboracao',
-                'cliente_id'       => $clienteId,
-                'pre_cliente_id'   => $preClienteId,
+                'empresa_id'             => $request->empresa_id,
+                'descricao'              => $request->descricao,
+                'validade'               => $request->validade,
+                'cliente_id'             => $clienteId,
+                'pre_cliente_id'         => $preClienteId,
+
+                // Salvando descontos por categoria
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
                 'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
                 'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
                 'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
-                'desconto'          => $desconto,
-                'taxas'             => $taxas,
-                'forma_pagamento' => $request->forma_pagamento,
-                'observacoes'     => $request->observacoes,
+
+                'desconto'               => $descontoTotal,
+                'taxas'                  => $totalTaxasCalculado,
+                'descricao_taxas'        => json_encode($taxasLista),
+                'forma_pagamento'        => $request->forma_pagamento,
+                'observacoes'            => $request->observacoes,
             ]);
 
-            // ---------- REMOVER ITENS ANTIGOS ----------
             $orcamento->itens()->delete();
 
-            // ---------- ADICIONAR NOVOS ITENS ----------
             $totalServicos = 0;
             $totalProdutos = 0;
-
             foreach ($request->itens as $itemData) {
-
                 $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
-
                 $valorUnitario = (float) $itemData['valor_unitario'];
                 $subtotal = $itemData['quantidade'] * $valorUnitario;
 
                 OrcamentoItem::create([
-                    'orcamento_id'       => $orcamento->id,
-                    'item_comercial_id'  => $item->id,
-                    'tipo'               => $item->tipo,
-                    'nome'               => $item->nome,
-                    'quantidade'         => $itemData['quantidade'],
-                    'valor_unitario'     => $valorUnitario,
-                    'subtotal'           => $subtotal,
+                    'orcamento_id'      => $orcamento->id,
+                    'item_comercial_id' => $item->id,
+                    'tipo'              => $item->tipo,
+                    'nome'              => $item->nome,
+                    'quantidade'        => $itemData['quantidade'],
+                    'valor_unitario'    => $valorUnitario,
+                    'subtotal'          => $subtotal,
                 ]);
 
-                if ($item->tipo === 'servico') {
-                    $totalServicos += $subtotal;
+                if ($item->tipo === 'servico') $totalServicos += $subtotal;
+                else $totalProdutos += $subtotal;
+            }
+
+            // Desconto Serviços
+            $descontoServicos = 0;
+            if ($request->desconto_servico_valor > 0) {
+                if ($request->desconto_servico_tipo === 'percentual') {
+                    $descontoServicos = ($totalServicos * $request->desconto_servico_valor) / 100;
                 } else {
-                    $totalProdutos += $subtotal;
+                    $descontoServicos = (float) $request->desconto_servico_valor;
                 }
             }
 
-            // ---------- RECALCULAR TOTAL FINAL ----------
-            $valorTotal = $totalServicos
+            // Desconto Produtos
+            $descontoProdutos = 0;
+            if ($request->desconto_produto_valor > 0) {
+                if ($request->desconto_produto_tipo === 'percentual') {
+                    $descontoProdutos = ($totalProdutos * $request->desconto_produto_valor) / 100;
+                } else {
+                    $descontoProdutos = (float) $request->desconto_produto_valor;
+                }
+            }
+
+            $descontoTotalCalculado = $descontoServicos + $descontoProdutos;
+
+            // ================= TOTAL FINAL =================
+            $valorFinal = $totalServicos
                 + $totalProdutos
-                - $desconto
-                + $taxas;
+                - $descontoTotalCalculado
+                + $totalTaxasCalculado;
 
             $orcamento->update([
-                'valor_total' => $valorTotal,
+                'desconto'    => $descontoTotalCalculado,
+                'valor_total' => $valorFinal
             ]);
         });
 
-        return redirect()
-            ->route('orcamentos.index')
-            ->with('success', 'Orçamento atualizado com sucesso!');
+        return redirect()->route('orcamentos.index')->with('success', 'Orçamento atualizado com sucesso!');
     }
 
 

@@ -208,21 +208,53 @@
                             </div>
                         </div>
 
-                        {{-- TAXAS ADICIONAIS - INVERTIDO TAMANHOS --}}
+                        {{-- TAXAS ADICIONAIS --}}
                         <div class="form-card border-t-4 border-t-purple-500">
-                            <div class="card-header">
+                            <div class="card-header flex justify-between items-center p-4 bg-gray-50">
                                 <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
                                     <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     Taxas e Impostos
                                 </h3>
-                                <button type="button" id="btn-add-taxa" class="text-xs font-bold text-purple-600 hover:underline">➕ Nova Taxa</button>
+                                <button type="button" id="btn-add-taxa" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-purple-200 transition">
+                                    ➕ Adicionar Taxa
+                                </button>
                             </div>
                             <div class="p-6">
-                                <div id="lista-taxas" class="space-y-3"></div>
+                                <div id="lista-taxas" class="space-y-3">
+                                    {{-- As taxas dinâmicas entrarão aqui --}}
+                                </div>
                             </div>
                         </div>
+
+                        <script>
+                            document.getElementById('btn-add-taxa').addEventListener('click', function() {
+                                const container = document.getElementById('lista-taxas');
+                                const novoId = Date.now();
+
+                                // Onde você gera o HTML da nova taxa, certifique-se de que os nomes sejam exatamente estes:
+                                const html = `
+                                    <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200 animate-fade-in" id="taxa-${novoId}">
+                                        <div class="flex-1">
+                                            <input type="text" name="taxa_nomes[]" placeholder="Descrição (ex: ISS, Frete)" 
+                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm" required>
+                                        </div>
+                                        <div class="w-32">
+                                            <input type="number" name="taxa_valores[]" step="0.01" placeholder="R$ 0,00" 
+                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm" required>
+                                        </div>
+                                        <button type="button" onclick="document.getElementById('taxa-${novoId}').remove()" class="text-red-500 hover:text-red-700 p-1">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                `;
+
+                                container.insertAdjacentHTML('beforeend', html);
+                            });
+                        </script>
 
                         {{-- FORMAS DE PAGAMENTO --}}
                         <div class="form-card border-t-4 border-t-emerald-500">

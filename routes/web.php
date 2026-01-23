@@ -6,14 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
-use App\Models\Empresa;
-
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CobrancaController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\BoletoController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardAdmController;
+use App\Http\Controllers\DashboardComercialController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\AssuntoController;
@@ -34,6 +33,7 @@ use App\Http\Controllers\ItemComercialController;
 | Redirecionamento inicial
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -45,22 +45,21 @@ Route::get('/', function () {
 */
 Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])
+    // Dashboard ADMIN
+    Route::get('/dashboard', [DashboardAdmController::class, 'index'])
         ->middleware('dashboard.admin')
         ->name('dashboard');
 
-    // DASHBOARD COMERCIAL
-    Route::get( '/dashboard-comercial',
-            [DashboardController::class, 'comercial'])
+    // Dashboard COMERCIAL
+    Route::get('/dashboard-comercial', [DashboardComercialController::class, 'index'])
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
-    
+
     // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class)
         ->middleware('dashboard.comercial');
 
-    Route::patch( '/orcamentos/{orcamento}/status',[OrcamentoController::class, 'updateStatus'])
+    Route::patch('/orcamentos/{orcamento}/status', [OrcamentoController::class, 'updateStatus'])
         ->name('orcamentos.updateStatus');
 
     Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
@@ -79,7 +78,8 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware(['dashboard.comercial']);
 
     // Cobranças
-    Route::patch('/cobrancas/{cobranca}/pagar',
+    Route::patch(
+        '/cobrancas/{cobranca}/pagar',
         [CobrancaController::class, 'marcarComoPago']
     )->name('cobrancas.pagar');
 
@@ -93,7 +93,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     // Clientes
     Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])
         ->name('clientes.buscar');
-        
+
     Route::resource('clientes', ClienteController::class);
 
     // Pré-Clientes (Admin e Comercial)
@@ -111,42 +111,46 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Atendimentos
     Route::resource('atendimentos', AtendimentoController::class)
-    ->except(['show']);
+        ->except(['show']);
 
     // Usuarios
     Route::resource('usuarios', UsuarioController::class)
         ->middleware('dashboard.comercial');
 
 
-    Route::get('/orcamentos/gerar-numero/{empresa}',
-    [\App\Http\Controllers\OrcamentoController::class, 'gerarNumero']
+    Route::get(
+        '/orcamentos/gerar-numero/{empresa}',
+        [\App\Http\Controllers\OrcamentoController::class, 'gerarNumero']
     )->middleware('dashboard.comercial');
 
 
-    Route::patch('/atendimentos/{atendimento}/atualizar-campo',
-    [AtendimentoController::class, 'atualizarCampo']);
+    Route::patch(
+        '/atendimentos/{atendimento}/atualizar-campo',
+        [AtendimentoController::class, 'atualizarCampo']
+    );
 
     Route::post(
-    '/atendimentos/{atendimento}/andamentos',
-    [\App\Http\Controllers\AtendimentoAndamentoController::class, 'store']
+        '/atendimentos/{atendimento}/andamentos',
+        [\App\Http\Controllers\AtendimentoAndamentoController::class, 'store']
     )->name('atendimentos.andamentos.store');
 
 
     Route::post(
-    '/atendimentos/{atendimento}/atualizar-status',
-    [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
+        '/atendimentos/{atendimento}/atualizar-status',
+        [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
     )->name('atendimentos.status.update');
 
 
     // Upload de fotos
     Route::post(
-    '/andamentos/{andamento}/fotos',
-    [AtendimentoAndamentoFotoController::class, 'store']
+        '/andamentos/{andamento}/fotos',
+        [AtendimentoAndamentoFotoController::class, 'store']
     )->name('andamentos.fotos.store');
-    
+
 
     // Upload de boletos
-    Route::post('/boletos/{cliente}/upload',
+    Route::post(
+        '/boletos/{cliente}/upload',
         [BoletoController::class, 'upload']
     )->name('boletos.upload');
 });
@@ -161,11 +165,13 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
 
-    Route::get('/portal/boletos/{boleto}/download',
+    Route::get(
+        '/portal/boletos/{boleto}/download',
         [PortalController::class, 'downloadBoleto']
     )->name('portal.boletos.download');
 
-    Route::get('/portal/notas/{nota}/download',
+    Route::get(
+        '/portal/notas/{nota}/download',
         [PortalController::class, 'downloadNotaFiscal']
     )->name('portal.notas.download');
 });
@@ -206,9 +212,6 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         // Técnico deleta Fotos
         Route::delete('/andamentos/fotos/{foto}',    [AtendimentoAndamentoFotoController::class, 'destroy'])
             ->name('andamentos.fotos.destroy');
-
-
-            
     });
 
 
@@ -228,14 +231,13 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
-
 });
 
 
-    Route::get(
-        '/empresas/{empresa}/assuntos',
-            [EmpresaController::class, 'assuntos']
-    );
+Route::get(
+    '/empresas/{empresa}/assuntos',
+    [EmpresaController::class, 'assuntos']
+);
 
 
 
@@ -273,7 +275,6 @@ Route::middleware('auth')->group(function () {
                         ? 'portal.index'
                         : 'portal-funcionario.dashboard'))
         );
-
     })->name('password.first.store');
 });
 
@@ -308,7 +309,6 @@ Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
         });
 
         return response()->json($data);
-
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'ERROR',
@@ -318,4 +318,4 @@ Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
 });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
