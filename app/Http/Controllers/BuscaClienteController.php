@@ -20,12 +20,13 @@ class BuscaClienteController extends Controller
                     $query->where(function ($sub) use ($q) {
                         $sub->where('cpf_cnpj', 'like', "%{$q}%")
                             ->orWhere('nome_fantasia', 'like', "%{$q}%")
+                            ->orWhere('nome', 'like', "%{$q}%")
                             ->orWhere('razao_social', 'like', "%{$q}%");
                     });
                 })
                 ->limit(10)
                 ->get()
-                ->map(fn ($cliente) => [
+                ->map(fn($cliente) => [
                     'id'            => $cliente->id,
                     'tipo'          => 'cliente',
                     'cpf_cnpj'      => $cliente->cpf_cnpj,
@@ -44,7 +45,7 @@ class BuscaClienteController extends Controller
                 })
                 ->limit(10)
                 ->get()
-                ->map(fn ($pre) => [
+                ->map(fn($pre) => [
                     'id'            => $pre->id,
                     'tipo'          => 'pre_cliente',
                     'cpf_cnpj'      => $pre->cpf_cnpj,
@@ -60,7 +61,6 @@ class BuscaClienteController extends Controller
                 ->values();
 
             return response()->json($resultado);
-
         } catch (\Throwable $e) {
             Log::error('Erro na busca de clientes', [
                 'error' => $e->getMessage()

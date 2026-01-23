@@ -21,7 +21,7 @@ class ClienteController extends Controller
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'ler'),
+                !$user->canPermissao('clientes', 'ler'),
             403,
             'Acesso não autorizado'
         );
@@ -33,9 +33,9 @@ class ClienteController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
-                  ->orWhereHas('emails', function ($emailQuery) use ($search) {
-                      $emailQuery->where('valor', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('emails', function ($emailQuery) use ($search) {
+                        $emailQuery->where('valor', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -66,7 +66,7 @@ class ClienteController extends Controller
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'incluir'),
+                !$user->canPermissao('clientes', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -76,12 +76,13 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
+
         /** @var User $user */
         $user = Auth::user();
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'incluir'),
+                !$user->canPermissao('clientes', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -94,8 +95,9 @@ class ClienteController extends Controller
                     'string',
                     Rule::unique('clientes', 'cpf_cnpj'),
                 ],
-                'nome'          => 'required|string|max:255',
-                'razao_social' => 'required_if:tipo_pessoa,PJ|string|max:255|nullable',
+                'nome'          => 'required_if:tipo_pessoa,PF|string|max:255',
+                'razao_social'  => 'required_if:tipo_pessoa,PJ|string|max:255|',
+                'nome_fantasia' => 'required_if:tipo_pessoa,PJ|string|max:255|',
                 'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
                 'data_cadastro' => 'required|date',
 
@@ -126,11 +128,12 @@ class ClienteController extends Controller
                 'cpf_cnpj.required' => 'Informe o CPF ou CNPJ.',
             ]
         );
-        
+
         $dadosNome = $this->resolverNomeCliente($request);
 
         $cliente = Cliente::create([
             'nome'           => $dadosNome['nome'],
+            'nome_fantasia'  => $dadosNome['nome_fantasia'],
             'razao_social'   => $dadosNome['razao_social'],
             'ativo'          => $request->ativo ?? true,
             'tipo_pessoa'    => $request->tipo_pessoa,
@@ -193,7 +196,7 @@ class ClienteController extends Controller
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'editar'),
+                !$user->canPermissao('clientes', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -210,7 +213,7 @@ class ClienteController extends Controller
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'editar'),
+                !$user->canPermissao('clientes', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -244,6 +247,7 @@ class ClienteController extends Controller
 
         $cliente->update([
             'nome'           => $dadosNome['nome'],
+            'nome_fantasia'  => $dadosNome['nome_fantasia'],
             'razao_social'   => $dadosNome['razao_social'],
             'tipo_pessoa'    => $request->tipo_pessoa,
             'cpf_cnpj'       => preg_replace('/\D/', '', $request->cpf_cnpj),
@@ -291,7 +295,7 @@ class ClienteController extends Controller
 
         abort_if(
             !$user->isAdminPanel() &&
-            !$user->canPermissao('clientes', 'excluir'),
+                !$user->canPermissao('clientes', 'excluir'),
             403,
             'Acesso não autorizado'
         );
@@ -319,7 +323,7 @@ class ClienteController extends Controller
                 ->orderBy('nome_fantasia')
                 ->limit(10)
                 ->get()
-                ->map(fn ($cliente) => [
+                ->map(fn($cliente) => [
                     'id'             => $cliente->id,
                     'cpf_cnpj'       => $cliente->cpf_cnpj,
                     'nome_fantasia'  => $cliente->nome_fantasia,
@@ -327,7 +331,6 @@ class ClienteController extends Controller
                 ]);
 
             return response()->json($clientes);
-
         } catch (\Throwable $e) {
             Log::error('Erro ao buscar cliente', [
                 'error' => $e->getMessage()
@@ -341,21 +344,23 @@ class ClienteController extends Controller
 
     private function resolverNomeCliente(Request $request): array
     {
+        // Pessoa Física
         if ($request->tipo_pessoa === 'PF') {
             return [
-                'nome' => $request->nome,
-                'razao_social' => $request->nome,
+                'nome'           => trim((string) $request->nome),
+                'nome_fantasia'  => null,
+                'razao_social'   => trim((string) $request->nome),
             ];
         }
 
-        // PJ
-        $nomeExibido = $request->nome ?: $request->razao_social;
+        // Pessoa Jurídica
+        $nomeFantasia = trim((string) $request->nome_fantasia);
+        $razaoSocial  = trim((string) $request->razao_social);
 
         return [
-            'nome' => $nomeExibido,
-            'razao_social' => $request->razao_social,
+            'nome'           => $nomeFantasia !== '' ? $nomeFantasia : $razaoSocial,
+            'nome_fantasia'  => $nomeFantasia !== '' ? $nomeFantasia : $razaoSocial,
+            'razao_social'   => $razaoSocial,
         ];
     }
-
-
 }

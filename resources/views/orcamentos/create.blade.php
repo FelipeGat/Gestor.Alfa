@@ -87,15 +87,19 @@
 
                         <div class="md:col-span-8 relative">
                             <label class="label-text">Cliente</label>
-                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}" placeholder="Buscar cliente..." class="input-field w-full">
+                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}" placeholder="Buscar cliente...ou Pré Cliente" class="input-field w-full">
                             <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $atendimento?->cliente_id ?? '') }}">
                             <input type="hidden" name="pre_cliente_id" id="pre_cliente_id" value="{{ old('pre_cliente_id') }}">
                             <input type="hidden" name="cliente_tipo" id="cliente_tipo" value="{{ old('cliente_tipo', $atendimento?->cliente_id ? 'cliente' : '') }}">
 
-                            {{-- Lista de resultados com classe corrigida --}}
+                            {{-- Lista de resultados --}}
                             <div id="cliente-resultados" class="search-results-container hidden"></div>
 
-                            <button type="button" id="btn-pre-cadastro" class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">➕ Novo Pré-Cadastro</button>
+                            <a href="{{ route('pre-clientes.create') }}"
+                                id="btn-pre-cadastro"
+                                class="hidden mt-2 inline-block text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
+                                ➕ Novo Pré-Cadastro
+                            </a>
                         </div>
 
                         <div class="md:col-span-4">

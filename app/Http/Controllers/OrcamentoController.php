@@ -209,10 +209,27 @@ class OrcamentoController extends Controller
             'descricao'       => 'required|string|max:255',
             'validade'        => 'nullable|date',
             'cliente_tipo'    => 'required|in:cliente,pre_cliente',
+            'cliente_id'      => 'nullable|exists:clientes,id',
+            'pre_cliente_id'  => 'nullable|exists:pre_clientes,id',
             'itens'           => 'required|array|min:1',
         ]);
 
+        if (
+            ($request->cliente_tipo === 'cliente' && !$request->filled('cliente_id')) ||
+            ($request->cliente_tipo === 'pre_cliente' && !$request->filled('pre_cliente_id'))
+        ) {
+            return back()
+                ->withErrors(['cliente_nome' => 'Selecione um cliente ou pré-cliente válido.'])
+                ->withInput();
+        }
+
         DB::transaction(function () use ($request, $user) {
+
+            if (!is_array($request->itens) || count($request->itens) === 0) {
+                return back()
+                    ->withErrors(['itens' => 'Adicione pelo menos um serviço ou produto.'])
+                    ->withInput();
+            }
 
             // ================= TAXAS =================
             $taxasLista = [];
@@ -261,10 +278,24 @@ class OrcamentoController extends Controller
             $totalProdutos = 0;
 
             foreach ($request->itens as $itemData) {
-                $item = ItemComercial::findOrFail($itemData['item_comercial_id']);
+                $itemId = $itemData['item_comercial_id'] ?? null;
+                $qtd    = $itemData['quantidade'] ?? null;
+                $valor  = $itemData['valor_unitario'] ?? null;
 
-                $valorUnitario = (float) $itemData['valor_unitario'];
-                $subtotal      = $itemData['quantidade'] * $valorUnitario;
+                if (!$itemId || !$qtd || !$valor) {
+                    throw new \Exception('Item inválido no orçamento.');
+                }
+
+                $item = ItemComercial::findOrFail($itemId);
+
+                $valorUnitario = (float) $valor;
+                $quantidade    = (int) $qtd;
+
+                if ($quantidade < 1 || $valorUnitario < 0) {
+                    throw new \Exception('Quantidade ou valor inválido.');
+                }
+
+                $subtotal = $quantidade * $valorUnitario;
 
                 OrcamentoItem::create([
                     'orcamento_id'      => $orcamento->id,
@@ -306,6 +337,23 @@ class OrcamentoController extends Controller
             }
 
             $descontoTotalCalculado = $descontoServicos + $descontoProdutos;
+
+            // ================= TRAVAS DE DESCONTO =================
+
+            // Não permitir desconto maior que o total da categoria
+            if ($descontoServicos > $totalServicos) {
+                throw new \Exception('O desconto em serviços não pode ser maior que o total de serviços.');
+            }
+
+            if ($descontoProdutos > $totalProdutos) {
+                throw new \Exception('O desconto em produtos não pode ser maior que o total de produtos.');
+            }
+
+            // Não permitir total negativo
+            if (($totalServicos + $totalProdutos - $descontoTotalCalculado + $totalTaxasCalculado) < 0) {
+                throw new \Exception('O valor final do orçamento não pode ser negativo.');
+            }
+
 
             // ================= TOTAL FINAL =================
             $valorFinal = $totalServicos
@@ -469,6 +517,20 @@ class OrcamentoController extends Controller
                 + $totalProdutos
                 - $descontoTotalCalculado
                 + $totalTaxasCalculado;
+
+            // ================= TRAVAS DE DESCONTO =================
+            if ($descontoServicos > $totalServicos) {
+                throw new \Exception('O desconto em serviços não pode ser maior que o total de serviços.');
+            }
+
+            if ($descontoProdutos > $totalProdutos) {
+                throw new \Exception('O desconto em produtos não pode ser maior que o total de produtos.');
+            }
+
+            if ($valorFinal < 0) {
+                throw new \Exception('O valor final do orçamento não pode ser negativo.');
+            }
+
 
             $orcamento->update([
                 'desconto'    => $descontoTotalCalculado,

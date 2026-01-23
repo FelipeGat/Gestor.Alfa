@@ -18,6 +18,7 @@ class Cliente extends Model
 
     protected $fillable = [
         'nome',
+        'nome_fantasia',
         'ativo',
         'valor_mensal',
         'dia_vencimento',
@@ -41,7 +42,7 @@ class Cliente extends Model
     protected $casts = [
         'ativo'          => 'boolean',
         'valor_mensal'   => 'decimal:2',
-        'dia_vencimento'=> 'integer',
+        'dia_vencimento' => 'integer',
     ];
 
     /*
@@ -86,18 +87,17 @@ class Cliente extends Model
     }
 
     public function getNomeExibicaoAttribute(): string
-{
-    // Pessoa Física
-    if ($this->tipo_pessoa === 'PF') {
-        return $this->nome;
+    {
+        // Pessoa Física
+        if ($this->tipo_pessoa === 'PF') {
+            return $this->nome;
+        }
+
+        // Pessoa Jurídica
+        if (!empty($this->nome)) {
+            return $this->nome;
+        }
+
+        return $this->razao_social;
     }
-
-    // Pessoa Jurídica
-    if (!empty($this->nome)) {
-        return $this->nome;
-    }
-
-    return $this->razao_social;
-}
-
 }

@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nome = item.nome_fantasia || item.razao_social || item.nome || '—';
             const div = document.createElement('div');
             div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 transition-colors';
-            div.innerHTML = `<strong>${nome}</strong><br><span class="text-xs text-gray-500">${item.cpf_cnpj ?? ''} • ${item.tipo === 'cliente' ? 'Cliente' : 'Pré-Cliente'}</span>`;
+            div.innerHTML = `<strong>${nome}</strong><br><span class="text-xs text-gray-500">${item.cpf_cnpj ?? ''} • ${item.razao_social ?? ''} • ${item.tipo === 'cliente' ? 'Cliente' : 'Pré-Cliente'}</span>`;
             div.onclick = () => {
                 inputNome.value = nome;
                 if (inputClienteId) inputClienteId.value = item.tipo === 'cliente' ? item.id : '';
