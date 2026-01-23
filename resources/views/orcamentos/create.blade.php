@@ -221,17 +221,17 @@
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-3">
                                     <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="pix" class="rounded text-emerald-500 mr-3">
+                                        <input type="radio" name="forma_pagamento" value="pix" class="rounded text-emerald-500 mr-3">
                                         <span class="text-sm font-medium text-gray-700">À Vista (Pix / Dinheiro)</span>
                                     </label>
                                     <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="debito" class="rounded text-emerald-500 mr-3">
+                                        <input type="radio" name="forma_pagamento" value="debito" class="rounded text-emerald-500 mr-3">
                                         <span class="text-sm font-medium text-gray-700">Cartão de Débito</span>
                                     </label>
                                 </div>
                                 <div class="space-y-3">
                                     <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="credito" class="rounded text-emerald-500 mr-3 fp-check">
+                                        <input type="radio" name="forma_pagamento" value="credito" class="rounded text-emerald-500 mr-3 fp-check">
                                         <div class="flex-1 flex items-center justify-between ml-1">
                                             <span class="text-sm font-medium text-gray-700">Crédito</span>
                                             <div class="flex items-center gap-1">
@@ -241,7 +241,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="boleto" class="rounded text-emerald-500 mr-3 fp-check">
+                                        <input type="radio" name="forma_pagamento" value="boleto" class="rounded text-emerald-500 mr-3 fp-check">
                                         <div class="flex-1 flex items-center justify-between ml-1">
                                             <span class="text-sm font-medium text-gray-700">Boleto</span>
                                             <div class="flex items-center gap-1">

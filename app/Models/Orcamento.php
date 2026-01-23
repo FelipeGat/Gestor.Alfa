@@ -19,6 +19,7 @@ class Orcamento extends Model
     protected $fillable = [
         'empresa_id',
         'atendimento_id',
+        'descricao',
         'cliente_id',
         'pre_cliente_id',
         'numero_orcamento',
@@ -29,9 +30,6 @@ class Orcamento extends Model
         'desconto_servico_tipo',
         'desconto_produto_valor',
         'desconto_produto_tipo',
-        'taxas',
-        'forma_pagamento',
-        'desconto',
         'taxas',
         'forma_pagamento',
         'validade',
@@ -111,7 +109,7 @@ class Orcamento extends Model
         return $this->hasMany(OrcamentoItem::class);
     }
 
-    public function taxas()
+    public function taxasItens()
     {
         return $this->hasMany(OrcamentoTaxa::class);
     }

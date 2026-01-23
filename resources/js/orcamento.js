@@ -45,6 +45,9 @@ window.removerItem = (index) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+                
+        window.taxas = window.taxas || [];
+
     const root = document.getElementById('orcamento-root');
     if (!root) return;
 
@@ -148,24 +151,63 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.renderTaxas = function() {
-        if (!listaTaxas) return;
-        listaTaxas.innerHTML = '';
-        taxas.forEach((taxa, index) => {
-            const div = document.createElement('div');
-            div.className = 'flex gap-2 items-center mb-2 animate-fadeIn';
-            div.innerHTML = `
-                <input type="text" placeholder="Nome da Taxa" class="input-field flex-1" value="${taxa.nome}" onchange="taxas[${index}].nome = this.value">
-                <input type="number" step="0.01" class="input-field w-24" value="${taxa.valor}" onchange="taxas[${index}].valor = parseFloat(this.value || 0); renderTabela();">
-                <select class="input-field w-20" onchange="taxas[${index}].tipo = this.value; renderTabela();">
-                    <option value="valor" ${taxa.tipo === 'valor' ? 'selected' : ''}>R$</option>
-                    <option value="percentual" ${taxa.tipo === 'percentual' ? 'selected' : ''}>%</option>
-                </select>
-                <button type="button" class="text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors" onclick="taxas.splice(${index},1); renderTaxas();">🗑️</button>
-            `;
-            listaTaxas.appendChild(div);
+    if (!listaTaxas) return;
+    listaTaxas.innerHTML = '';
+
+    taxas.forEach((taxa, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 items-center mb-2 animate-fadeIn';
+
+        const nome = document.createElement('input');
+        nome.type = 'text';
+        nome.placeholder = 'Nome da Taxa';
+        nome.className = 'input-field flex-1';
+        nome.value = taxa.nome || '';
+        nome.addEventListener('input', e => {
+            taxas[index].nome = e.target.value;
         });
-        renderTabela();
-    };
+
+        const valor = document.createElement('input');
+        valor.type = 'number';
+        valor.step = '0.01';
+        valor.className = 'input-field w-24';
+        valor.value = taxa.valor ?? 0;
+        valor.addEventListener('input', e => {
+            taxas[index].valor = parseFloat(e.target.value || 0);
+            renderTabela();
+        });
+
+        const tipo = document.createElement('select');
+        tipo.className = 'input-field w-20';
+        tipo.innerHTML = `
+            <option value="valor">R$</option>
+            <option value="percentual">%</option>
+        `;
+        tipo.value = taxa.tipo || 'valor';
+        tipo.addEventListener('change', e => {
+            taxas[index].tipo = e.target.value;
+            renderTabela();
+        });
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors';
+        btn.textContent = '🗑️';
+        btn.addEventListener('click', () => {
+            taxas.splice(index, 1);
+            renderTaxas();
+            renderTabela();
+        });
+
+        div.appendChild(nome);
+        div.appendChild(valor);
+        div.appendChild(tipo);
+        div.appendChild(btn);
+
+        listaTaxas.appendChild(div);
+    });
+};
+
 
     /* ================= CONDIÇÕES DE PAGAMENTO ================= */
     const fpChecks = document.querySelectorAll('.fp-check');
@@ -226,11 +268,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const baseComDesconto = (totalServ - dServ) + (totalProd - dProd);
 
         // Cálculo Taxas
-        let totalTaxas = 0;
-        taxas.forEach(t => {
-            if (!t.valor) return;
-            totalTaxas += (t.tipo === 'percentual') ? (baseComDesconto * t.valor / 100) : t.valor;
-        });
+            let totalTaxas = 0;
+
+            taxas.forEach(t => {
+                const valor = parseFloat(t.valor);
+
+                if (isNaN(valor) || valor <= 0) return;
+
+                totalTaxas += (t.tipo === 'percentual')
+                    ? (baseComDesconto * valor / 100)
+                    : valor;
+            });
 
         // Atualiza UI
         document.getElementById('resumo-servicos').textContent = totalServ.toFixed(2).replace('.',',');
@@ -261,12 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="hidden" name="itens[${i}][quantidade]" value="${item.quantidade}">
                     <input type="hidden" name="itens[${i}][valor_unitario]" value="${item.preco_venda}">`;
             });
-            container.innerHTML += `<input type="hidden" name="taxas_total" value="${totalTaxas.toFixed(2)}">`;
-            container.innerHTML += `<input type="hidden" name="desconto_total" value="${totalDescontos.toFixed(2)}">`;
-            
+
+            const totalTaxasFormatada = Number(totalTaxas || 0).toFixed(2);
+            container.innerHTML += `<input type="hidden" name="taxas" value="${totalTaxasFormatada}">`;
+
             // Taxas detalhadas para persistência
             taxas.forEach((t, i) => {
-                container.innerHTML += `<input type="hidden" name="taxas_detalhe[${i}][nome]" value="${t.nome}">
+                container.innerHTML += `
+                    <input type="hidden" name="taxas_detalhe[${i}][nome]" value="${t.nome}">
                     <input type="hidden" name="taxas_detalhe[${i}][tipo]" value="${t.tipo}">
                     <input type="hidden" name="taxas_detalhe[${i}][valor]" value="${t.valor}">`;
             });
@@ -331,14 +381,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
     
-    if (taxasIniciais.length) {
+    if (taxasIniciais && taxasIniciais.length > 0) {
         window.taxas = taxasIniciais.map(t => ({
-            nome: t.nome,
-            tipo: t.tipo,
-            valor: Number(t.valor)
+        nome: t.nome,
+        tipo: t.tipo,
+        valor: Number(t.valor)
         }));
+    } else {
+            // Se não tem detalhes, mas o root tem um valor de taxa total, cria uma taxa padrão
+            const valorTaxaTotal = Number(root.dataset.taxaValor || 0);
+            if (valorTaxaTotal > 0) {
+                window.taxas = [{
+                    nome: 'Taxas Adicionais',
+                    tipo: 'valor',
+                    valor: valorTaxaTotal
+                }];
+            }
+        }
         renderTaxas();
-    }
 
     renderTabela();
+
+        const form = document.querySelector('form');
+        form?.addEventListener('submit', () => {
+            renderTabela();
+        });
 });

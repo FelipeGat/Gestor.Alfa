@@ -43,33 +43,42 @@
 
                 {{-- Root do JS com dados para edição --}}
                 <div id="orcamento-root" 
-                     data-url-busca="{{ url('/itemcomercial/buscar') }}"
-                     data-itens="{{ json_encode($orcamento->itens) }}"
-                     data-taxas="{{ json_encode($orcamento->taxas_detalhe ?? []) }}">
+                    data-url-busca="{{ url('/itemcomercial/buscar') }}"
+                    data-itens="{{ json_encode($orcamento->itens) }}"
+                    data-taxas="{{ json_encode($orcamento->taxas_detalhe ?? []) }}"
+                    data-taxa-valor="{{ $orcamento->taxas ?? 0 }}">
                 </div>
-                
+
                 <div id="inputs-itens-hidden"></div>
+
+                {{-- HIDDEN INPUTS PARA EXTRAS --}}
+                <input type="hidden" name="desconto" id="desconto-hidden">
+                <input type="hidden" name="taxas" id="taxas-hidden">
 
                 @if(isset($orcamento->atendimento_id))
                     <input type="hidden" name="atendimento_id" value="{{ $orcamento->atendimento_id }}">
                 @endif
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
-                <div class="form-card" >
+                <div class="form-card">
                     <div class="card-header">
                         <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
                             Dados do Orçamento
                         </h3>
                     </div>
-                    
+
                     <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-6">
                             <label class="label-text">Empresa <span class="text-red-500">*</span></label>
-                            <select name="empresa_id" required class="input-field w-full" >
+                            <select name="empresa_id" required class="input-field w-full">
                                 <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
-                                    <option value="{{ $empresa->id }}" @if(old('empresa_id', $orcamento->empresa_id) == $empresa->id) selected @endif>
+                                    <option value="{{ $empresa->id }}"
+                                        @if(old('empresa_id', $orcamento->empresa_id) == $empresa->id) selected @endif>
                                         {{ $empresa->nome_fantasia ?? $empresa->nome }}
                                     </option>
                                 @endforeach
@@ -78,29 +87,49 @@
 
                         <div class="md:col-span-6">
                             <label class="label-text">Número do Orçamento</label>
-                            <input type="text" name="numero_orcamento" readonly value="{{ $orcamento->numero_orcamento }}" class="input-field w-full bg-gray-50 font-mono font-bold text-blue-600 ">
+                            <input type="text" name="numero_orcamento" readonly
+                                value="{{ $orcamento->numero_orcamento }}"
+                                class="input-field w-full bg-gray-50 font-mono font-bold text-blue-600">
                         </div>
 
                         <div class="md:col-span-12">
                             <label class="label-text">Descrição / Referência <span class="text-red-500">*</span></label>
-                            <input type="text" name="descricao" required value="{{ old('descricao', $orcamento->descricao) }}" class="input-field w-full">
+                            <input type="text" name="descricao" required
+                                value="{{ old('descricao', $orcamento->descricao) }}"
+                                class="input-field w-full">
                         </div>
 
                         <div class="md:col-span-8 relative">
                             <label class="label-text">Cliente</label>
-                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? $orcamento->preCliente?->nome ?? '') }}" placeholder="Buscar cliente..." class="input-field w-full">
-                            <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $orcamento->cliente_id) }}">
-                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id" value="{{ old('pre_cliente_id', $orcamento->pre_cliente_id) }}">
-                            <input type="hidden" name="cliente_tipo" id="cliente_tipo" value="{{ old('cliente_tipo', $orcamento->cliente_id ? 'cliente' : ($orcamento->pre_cliente_id ? 'pre_cliente' : '')) }}">
-                            
+                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off"
+                                value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? $orcamento->preCliente?->nome ?? '') }}"
+                                placeholder="Buscar cliente..." class="input-field w-full">
+
+                            <input type="hidden" name="cliente_id" id="cliente_id"
+                                value="{{ old('cliente_id', $orcamento->cliente_id) }}">
+
+                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id"
+                                value="{{ old('pre_cliente_id', $orcamento->pre_cliente_id) }}">
+
+                            <input type="hidden" name="cliente_tipo" id="cliente_tipo"
+                                value="{{ old('cliente_tipo',
+                                    $orcamento->cliente_id ? 'cliente' :
+                                    ($orcamento->pre_cliente_id ? 'pre_cliente' : '')
+                                ) }}">
+
                             <div id="cliente-resultados" class="search-results-container hidden"></div>
-                            
-                            <button type="button" id="btn-pre-cadastro" class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">➕ Novo Pré-Cadastro</button>
+
+                            <button type="button" id="btn-pre-cadastro"
+                                    class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
+                                ➕ Novo Pré-Cadastro
+                            </button>
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="label-text">Validade</label>
-                            <input type="date" name="validade" value="{{ old('validade', $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') : '') }}" class="input-field w-full">
+                            <input type="date" name="validade"
+                                value="{{ old('validade', $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') : '') }}"
+                                class="input-field w-full">
                         </div>
                     </div>
                 </div>
@@ -109,7 +138,10 @@
                 <div class="form-card border-t-4 border-t-green-500">
                     <div class="card-header">
                         <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+                            </svg>
                             Itens e Serviços
                         </h3>
                     </div>
@@ -118,23 +150,25 @@
                         {{-- SERVIÇOS --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-full"></span> Serviços</h4>
-                                <button type="button" id="btn-add-servico" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">➕ Adicionar Serviço</button>
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-orange-400 rounded-full"></span> Serviços
+                                </h4>
+                                <button type="button" id="btn-add-servico"
+                                        class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">
+                                    ➕ Adicionar Serviço
+                                </button>
                             </div>
-                            <div class="relative hidden mb-4" id="busca-servico-wrapper">
-                                <input type="text" id="busca-servico" placeholder="Pesquisar serviço..." class="input-field border-orange-200">
-                                <div id="resultado-servico" class="search-results-container hidden"></div>
-                            </div>
+
                             <div class="overflow-hidden rounded-xl border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
-                                        <tr>
-                                            <th class="table-header">Descrição</th>
-                                            <th class="table-header text-center w-24">Qtd</th>
-                                            <th class="table-header text-right w-32">Valor Unit.</th>
-                                            <th class="table-header text-right w-32">Subtotal</th>
-                                            <th class="table-header text-center w-16"></th>
-                                        </tr>
+                                    <tr>
+                                        <th class="table-header">Descrição</th>
+                                        <th class="table-header text-center w-24">Qtd</th>
+                                        <th class="table-header text-right w-32">Valor Unit.</th>
+                                        <th class="table-header text-right w-32">Subtotal</th>
+                                        <th class="table-header text-center w-16"></th>
+                                    </tr>
                                     </thead>
                                     <tbody id="itens-servicos" class="bg-white divide-y divide-gray-50"></tbody>
                                 </table>
@@ -144,23 +178,25 @@
                         {{-- PRODUTOS --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-full"></span> Materiais e Produtos</h4>
-                                <button type="button" id="btn-add-produto" class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">➕ Adicionar Produto</button>
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full"></span> Materiais e Produtos
+                                </h4>
+                                <button type="button" id="btn-add-produto"
+                                        class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">
+                                    ➕ Adicionar Produto
+                                </button>
                             </div>
-                            <div class="relative hidden mb-4" id="busca-produto-wrapper">
-                                <input type="text" id="busca-produto" placeholder="Pesquisar produto..." class="input-field border-blue-200">
-                                <div id="resultado-produto" class="search-results-container hidden"></div>
-                            </div>
+
                             <div class="overflow-hidden rounded-xl border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
-                                        <tr>
-                                            <th class="table-header">Nome do Produto</th>
-                                            <th class="table-header text-center w-24">Qtd</th>
-                                            <th class="table-header text-right w-32">Valor Unit.</th>
-                                            <th class="table-header text-right w-32">Subtotal</th>
-                                            <th class="table-header text-center w-16"></th>
-                                        </tr>
+                                    <tr>
+                                        <th class="table-header">Nome do Produto</th>
+                                        <th class="table-header text-center w-24">Qtd</th>
+                                        <th class="table-header text-right w-32">Valor Unit.</th>
+                                        <th class="table-header text-right w-32">Subtotal</th>
+                                        <th class="table-header text-center w-16"></th>
+                                    </tr>
                                     </thead>
                                     <tbody id="itens-produtos" class="bg-white divide-y divide-gray-50"></tbody>
                                 </table>
@@ -225,42 +261,57 @@
                                 </h3>
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                @php
-                                    $pagamentos = is_array($orcamento->pagamento) ? $orcamento->pagamento : json_decode($orcamento->pagamento ?? '[]', true);
-                                @endphp
                                 <div class="space-y-3">
                                     <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="pix" class="rounded text-emerald-500 mr-3" @if(in_array('pix', $pagamentos)) checked @endif>
+                                        <input type="radio" name="forma_pagamento" value="pix"
+                                            class="rounded text-emerald-500 mr-3"
+                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'pix') checked @endif>
                                         <span class="text-sm font-medium text-gray-700">À Vista (Pix / Dinheiro)</span>
                                     </label>
+
                                     <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="debito" class="rounded text-emerald-500 mr-3" @if(in_array('debito', $pagamentos)) checked @endif>
+                                        <input type="radio" name="forma_pagamento" value="debito"
+                                            class="rounded text-emerald-500 mr-3"
+                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'debito') checked @endif>
                                         <span class="text-sm font-medium text-gray-700">Cartão de Débito</span>
                                     </label>
                                 </div>
+
                                 <div class="space-y-3">
-                                    <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="credito" class="rounded text-emerald-500 mr-3 fp-check" @if(in_array('credito', $pagamentos)) checked @endif>
+                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                        <input type="radio" name="forma_pagamento" value="credito"
+                                            class="rounded text-emerald-500 mr-3 fp-check"
+                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'credito') checked @endif>
                                         <div class="flex-1 flex items-center justify-between ml-1">
                                             <span class="text-sm font-medium text-gray-700">Crédito</span>
                                             <div class="flex items-center gap-1">
-                                                <input type="number" name="parcelas_credito" min="1" value="{{ $orcamento->parcelas_credito ?? 1 }}" class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas" @if(!in_array('credito', $pagamentos)) disabled @endif>
+                                                <input type="number" name="parcelas_credito" min="1"
+                                                    value="{{ old('parcelas_credito', 1) }}"
+                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas"
+                                                    @if(old('forma_pagamento', $orcamento->forma_pagamento) !== 'credito') disabled @endif>
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
-                                        <input type="checkbox" name="pagamento[]" value="boleto" class="rounded text-emerald-500 mr-3 fp-check" @if(in_array('boleto', $pagamentos)) checked @endif>
+                                    </label>
+
+                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                        <input type="radio" name="forma_pagamento" value="boleto"
+                                            class="rounded text-emerald-500 mr-3 fp-check"
+                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'boleto') checked @endif>
                                         <div class="flex-1 flex items-center justify-between ml-1">
                                             <span class="text-sm font-medium text-gray-700">Boleto</span>
                                             <div class="flex items-center gap-1">
-                                                <input type="number" name="parcelas_boleto" min="1" value="{{ $orcamento->parcelas_boleto ?? 1 }}" class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas" @if(!in_array('boleto', $pagamentos)) disabled @endif>
+                                                <input type="number" name="parcelas_boleto" min="1"
+                                                    value="{{ old('parcelas_boleto', 1) }}"
+                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas"
+                                                    @if(old('forma_pagamento', $orcamento->forma_pagamento) !== 'boleto') disabled @endif>
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </label>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -301,4 +352,25 @@
             </form>
         </div>
     </div>
+        @push('scripts')
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+
+                const extras = window.extras || { desconto: 0, taxas: 0 };
+
+                const descontoInput = document.getElementById('desconto-hidden');
+                const taxasInput    = document.getElementById('taxas-hidden');
+
+                if (descontoInput) descontoInput.value = extras.desconto;
+                if (taxasInput)    taxasInput.value    = extras.taxas;
+
+                if (typeof recalcularTotais === 'function') {
+                    recalcularTotais();
+                }
+
+            });
+            </script>
+            @endpush
+
+
 </x-app-layout>
