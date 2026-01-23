@@ -229,6 +229,7 @@
         .status-agendado { background-color: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
         .status-em_andamento { background-color: #e0f2fe; color: #075985; border-color: #7dd3fc; }
         .status-garantia { background-color: #ffedd5; color: #9a3412; border-color: #fdba74; }
+        .status-financeiro { background-color: #00000049; color: #ff0000; border-color: #49030391; }
         .status-cancelado { background-color: #f3f4f6; color: #6b7280; border-color: #d1d5db; text-decoration: line-through; }
 
         /* ========================= EMPTY STATE ========================= */

@@ -4,21 +4,22 @@
     @vite('resources/css/orcamentos/index.css')
     @endpush
 
-        @php
-            $statusList = [
-                'em_elaboracao' => 'Em elaboração',
-                'aguardando_aprovacao' => 'Aguardando aprovação',
-                'enviado' => 'Enviado',
-                'aprovado' => 'Aprovado',
-                'aguardando_pagamento'  => 'Aguardando Pagamento',
-                'concluido' => 'Concluído',
-                'recusado' => 'Recusado',
-                'agendado' => 'Agendado',
-                'em_andamento' => 'Em Andamento', 
-                'garantia' => 'Garantia',
-                'cancelado' => 'Cancelado',
-            ];
-        @endphp
+    @php
+    $statusList = [
+    'em_elaboracao' => 'Em Elaboração',
+    'enviado' => 'Enviado',
+    'aguardando_aprovacao' => 'Aguardando Aprovação',
+    'aprovado' => 'Aprovado',
+    'aguardando_pagamento' => 'Aguardando Pag. Entrada',
+    'agendado' => 'Agendado',
+    'recusado' => 'Recusado',
+    'em_andamento' => 'Em Andamento',
+    'financeiro' => 'Financeiro',
+    'concluido' => 'Concluído',
+    'garantia' => 'Garantia',
+    'cancelado' => 'Cancelado',
+    ];
+    @endphp
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -26,112 +27,112 @@
         </h2>
     </x-slot>
 
-        <div class="py-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-                {{-- ================= FILTROS ================= --}}
-                <form method="GET" class="bg-white shadow rounded-lg p-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+            {{-- ================= FILTROS ================= --}}
+            <form method="GET" class="bg-white shadow rounded-lg p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
 
-        {{-- 🔍 PESQUISA --}}
-        <div class="flex flex-col lg:col-span-6">
-            <label class="text-sm font-medium text-gray-700 mb-2">
-                🔍 Pesquisar Orçamentos
-            </label>
-            <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Cliente, Empresa, Status"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                    {{-- 🔍 PESQUISA --}}
+                    <div class="flex flex-col lg:col-span-6">
+                        <label class="text-sm font-medium text-gray-700 mb-2">
+                            🔍 Pesquisar Orçamentos
+                        </label>
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Cliente, Empresa, Status"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
+                    </div>
 
-        {{-- 📌 STATUS --}}
-        <div class="flex flex-col lg:col-span-3">
-            <label class="text-sm font-medium text-gray-700 mb-2">
-                📌 Status
-            </label>
-            <select name="status[]" multiple
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                    {{-- 📌 STATUS --}}
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">
+                            📌 Status
+                        </label>
+                        <select name="status[]" multiple
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-blue-500 h-32">
-                @foreach($statusList as $key => $label)
-                    <option value="{{ $key }}"
-                        @selected(collect(request('status'))->contains($key))>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                            @foreach($statusList as $key => $label)
+                            <option value="{{ $key }}"
+                                @selected(collect(request('status'))->contains($key))>
+                                {{ $label }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-        {{-- 🏢 EMPRESA --}}
-        <div class="flex flex-col lg:col-span-3">
-            <label class="text-sm font-medium text-gray-700 mb-2">
-                🏢 Empresa
-            </label>
-            <select name="empresa_id[]" multiple
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                    {{-- 🏢 EMPRESA --}}
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">
+                            🏢 Empresa
+                        </label>
+                        <select name="empresa_id[]" multiple
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-blue-500 h-32">
-                @foreach($empresas as $empresa)
-                    <option value="{{ $empresa->id }}"
-                        @selected(collect(request('empresa_id'))->contains($empresa->id))>
-                        {{ $empresa->nome_fantasia }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                            @foreach($empresas as $empresa)
+                            <option value="{{ $empresa->id }}"
+                                @selected(collect(request('empresa_id'))->contains($empresa->id))>
+                                {{ $empresa->nome_fantasia }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-        {{-- 📅 PERÍODO --}}
-        <div class="flex flex-col lg:col-span-3">
-            <label class="text-sm font-medium text-gray-700 mb-2">
-                📅 Período
-            </label>
-            <select name="periodo"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm
+                    {{-- 📅 PERÍODO --}}
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">
+                            📅 Período
+                        </label>
+                        <select name="periodo"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Todos</option>
-                <option value="ano" @selected(request('periodo') === 'ano')>Ano Atual</option>
-                <option value="mes" @selected(request('periodo') === 'mes')>Mês Atual</option>
-                <option value="semana" @selected(request('periodo') === 'semana')>Semana Atual</option>
-                <option value="dia" @selected(request('periodo') === 'dia')>Hoje</option>
-                <option value="intervalo" @selected(request('periodo') === 'intervalo')>
-                    Intervalo de Datas
-                </option>
-            </select>
-        </div>
+                            <option value="">Todos</option>
+                            <option value="ano" @selected(request('periodo')==='ano' )>Ano Atual</option>
+                            <option value="mes" @selected(request('periodo')==='mes' )>Mês Atual</option>
+                            <option value="semana" @selected(request('periodo')==='semana' )>Semana Atual</option>
+                            <option value="dia" @selected(request('periodo')==='dia' )>Hoje</option>
+                            <option value="intervalo" @selected(request('periodo')==='intervalo' )>
+                                Intervalo de Datas
+                            </option>
+                        </select>
+                    </div>
 
-        {{-- 📆 DATA INICIAL --}}
-        <div class="flex flex-col lg:col-span-2">
-            <label class="text-sm text-gray-600">Data Inicial</label>
-            <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-        </div>
+                    {{-- 📆 DATA INICIAL --}}
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm text-gray-600">Data Inicial</label>
+                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
 
-        {{-- 📆 DATA FINAL --}}
-        <div class="flex flex-col lg:col-span-2">
-            <label class="text-sm text-gray-600">Data Final</label>
-            <input type="date" name="data_fim" value="{{ request('data_fim') }}"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-        </div>
+                    {{-- 📆 DATA FINAL --}}
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm text-gray-600">Data Final</label>
+                        <input type="date" name="data_fim" value="{{ request('data_fim') }}"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
 
-        {{-- 🔘 BOTÕES --}}
-        <div class="flex gap-3 items-end lg:col-span-5 justify-end">
-            <button type="submit" class="btn btn-primary">
-                🔍 Filtrar
-            </button>
+                    {{-- 🔘 BOTÕES --}}
+                    <div class="flex gap-3 items-end lg:col-span-5 justify-end">
+                        <button type="submit" class="btn btn-primary">
+                            🔍 Filtrar
+                        </button>
 
-            {{--@if(auth()->user()->canPermissao('clientes', 'incluir'))--}}
-                <a href="{{ route('orcamentos.create') }}" class="btn btn-success">
-                    ➕ Orçamento
-                </a>
-            {{--@endif--}}
-            
-            {{-- 🧹 LIMPAR FILTROS --}}
-                <a href="{{ route('orcamentos.index') }}"
-                class="btn btn-secondary">
-                    🧹 Limpar
-                </a>
-        </div>
+                        {{--@if(auth()->user()->canPermissao('clientes', 'incluir'))--}}
+                        <a href="{{ route('orcamentos.create') }}" class="btn btn-success">
+                            ➕ Orçamento
+                        </a>
+                        {{--@endif--}}
 
-    </div>
-</form>
+                        {{-- 🧹 LIMPAR FILTROS --}}
+                        <a href="{{ route('orcamentos.index') }}"
+                            class="btn btn-secondary">
+                            🧹 Limpar
+                        </a>
+                    </div>
+
+                </div>
+            </form>
 
 
             {{-- ================= ATENDIMENTOS AGUARDANDO ORÇAMENTO ================= --}}
@@ -176,19 +177,19 @@
             {{-- ================= LISTA DE ORÇAMENTOS ================= --}}
             @if($orcamentos->count() > 0)
             @php
-                function sortLink($label, $column) {
-                    $direction = request('direction') === 'asc' ? 'desc' : 'asc';
+            function sortLink($label, $column) {
+            $direction = request('direction') === 'asc' ? 'desc' : 'asc';
 
-                    return '<a href="' . request()->fullUrlWithQuery([
+            return '<a href="' . request()->fullUrlWithQuery([
                         'sort' => $column,
                         'direction' => $direction
                     ]) . '" class="flex items-center gap-1 hover:text-blue-600">'
-                        . $label .
-                        (request('sort') === $column
-                            ? (request('direction') === 'asc' ? ' ▲' : ' ▼')
-                            : '') .
-                    '</a>';
-                }
+                . $label .
+                (request('sort') === $column
+                ? (request('direction') === 'asc' ? ' ▲' : ' ▼')
+                : '') .
+                '</a>';
+            }
             @endphp
             <div class="table-card">
                 <div class="table-wrapper">
@@ -224,9 +225,9 @@
 
                                         <select name="status" onchange="this.form.submit()" class="status-select status-{{ $orcamento->status }}">
                                             @foreach($statusList as $key => $label)
-                                                <option value="{{ $key }}" @selected($orcamento->status === $key)>
-                                                    {{ $label }}
-                                                </option>
+                                            <option value="{{ $key }}" @selected($orcamento->status === $key)>
+                                                {{ $label }}
+                                            </option>
                                             @endforeach
                                         </select>
                                     </form>
@@ -307,5 +308,5 @@
             @endif
         </div>
     </div>
-</div>
+    </div>
 </x-app-layout>
