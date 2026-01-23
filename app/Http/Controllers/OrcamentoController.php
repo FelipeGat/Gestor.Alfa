@@ -282,7 +282,7 @@ class OrcamentoController extends Controller
                 $qtd    = $itemData['quantidade'] ?? null;
                 $valor  = $itemData['valor_unitario'] ?? null;
 
-                if (!$itemId || !$qtd || !$valor) {
+                if (empty($itemId) || $qtd === null || $valor === null) {
                     throw new \Exception('Item inválido no orçamento.');
                 }
 
@@ -302,7 +302,7 @@ class OrcamentoController extends Controller
                     'item_comercial_id' => $item->id,
                     'tipo'              => $item->tipo,
                     'nome'              => $item->nome,
-                    'quantidade'        => $itemData['quantidade'],
+                    'quantidade'        => $quantidade,
                     'valor_unitario'    => $valorUnitario,
                     'subtotal'          => $subtotal,
                 ]);
