@@ -1,17 +1,19 @@
 <x-app-layout>
     @push('styles')
-        @vite('resources/css/atendimentos/index.css')
+    @vite('resources/css/atendimentos/index.css')
     @endpush
 
     @push('scripts')
-        @vite('resources/js/orcamento.js')
+    @vite('resources/js/orcamento.js')
     @endpush
 
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-bold text-2xl text-gray-800 leading-tight flex items-center gap-2">
                 <span class="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
                 </span>
                 Editar Orçamento #{{ $orcamento->numero_orcamento }}
             </h2>
@@ -26,7 +28,9 @@
             @if ($errors->any())
             <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
                 <div class="flex">
-                    <div class="flex-shrink-0"><svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></div>
+                    <div class="flex-shrink-0"><svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg></div>
                     <div class="ml-3">
                         <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide">Erros encontrados:</h3>
                         <ul class="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
@@ -42,7 +46,7 @@
                 @method('PUT')
 
                 {{-- Root do JS com dados para edição --}}
-                <div id="orcamento-root" 
+                <div id="orcamento-root"
                     data-url-busca="{{ url('/itemcomercial/buscar') }}"
                     data-itens="{{ json_encode($orcamento->itens) }}"
                     data-taxas="{{ json_encode($orcamento->taxas_detalhe ?? []) }}"
@@ -56,7 +60,7 @@
                 <input type="hidden" name="taxas" id="taxas-hidden">
 
                 @if(isset($orcamento->atendimento_id))
-                    <input type="hidden" name="atendimento_id" value="{{ $orcamento->atendimento_id }}">
+                <input type="hidden" name="atendimento_id" value="{{ $orcamento->atendimento_id }}">
                 @endif
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
@@ -65,7 +69,7 @@
                         <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                             <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Dados do Orçamento
                         </h3>
@@ -77,10 +81,10 @@
                             <select name="empresa_id" required class="input-field w-full">
                                 <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
-                                    <option value="{{ $empresa->id }}"
-                                        @if(old('empresa_id', $orcamento->empresa_id) == $empresa->id) selected @endif>
-                                        {{ $empresa->nome_fantasia ?? $empresa->nome }}
-                                    </option>
+                                <option value="{{ $empresa->id }}"
+                                    @if(old('empresa_id', $orcamento->empresa_id) == $empresa->id) selected @endif>
+                                    {{ $empresa->nome_fantasia ?? $empresa->nome }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -120,7 +124,7 @@
                             <div id="cliente-resultados" class="search-results-container hidden"></div>
 
                             <button type="button" id="btn-pre-cadastro"
-                                    class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
+                                class="hidden mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
                                 ➕ Novo Pré-Cadastro
                             </button>
                         </div>
@@ -140,7 +144,7 @@
                         <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                             <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
                             </svg>
                             Itens e Serviços
                         </h3>
@@ -154,7 +158,7 @@
                                     <span class="w-2 h-2 bg-orange-400 rounded-full"></span> Serviços
                                 </h4>
                                 <button type="button" id="btn-add-servico"
-                                        class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">
+                                    class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">
                                     ➕ Adicionar Serviço
                                 </button>
                             </div>
@@ -162,13 +166,13 @@
                             <div class="overflow-hidden rounded-xl border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
-                                    <tr>
-                                        <th class="table-header">Descrição</th>
-                                        <th class="table-header text-center w-24">Qtd</th>
-                                        <th class="table-header text-right w-32">Valor Unit.</th>
-                                        <th class="table-header text-right w-32">Subtotal</th>
-                                        <th class="table-header text-center w-16"></th>
-                                    </tr>
+                                        <tr>
+                                            <th class="table-header">Descrição</th>
+                                            <th class="table-header text-center w-24">Qtd</th>
+                                            <th class="table-header text-right w-32">Valor Unit.</th>
+                                            <th class="table-header text-right w-32">Subtotal</th>
+                                            <th class="table-header text-center w-16"></th>
+                                        </tr>
                                     </thead>
                                     <tbody id="itens-servicos" class="bg-white divide-y divide-gray-50"></tbody>
                                 </table>
@@ -182,7 +186,7 @@
                                     <span class="w-2 h-2 bg-blue-400 rounded-full"></span> Materiais e Produtos
                                 </h4>
                                 <button type="button" id="btn-add-produto"
-                                        class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">
+                                    class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">
                                     ➕ Adicionar Produto
                                 </button>
                             </div>
@@ -190,13 +194,13 @@
                             <div class="overflow-hidden rounded-xl border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
-                                    <tr>
-                                        <th class="table-header">Nome do Produto</th>
-                                        <th class="table-header text-center w-24">Qtd</th>
-                                        <th class="table-header text-right w-32">Valor Unit.</th>
-                                        <th class="table-header text-right w-32">Subtotal</th>
-                                        <th class="table-header text-center w-16"></th>
-                                    </tr>
+                                        <tr>
+                                            <th class="table-header">Nome do Produto</th>
+                                            <th class="table-header text-center w-24">Qtd</th>
+                                            <th class="table-header text-right w-32">Valor Unit.</th>
+                                            <th class="table-header text-right w-32">Subtotal</th>
+                                            <th class="table-header text-center w-16"></th>
+                                        </tr>
                                     </thead>
                                     <tbody id="itens-produtos" class="bg-white divide-y divide-gray-50"></tbody>
                                 </table>
@@ -207,12 +211,14 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 space-y-8">
-                        
+
                         {{-- ================= BLOCO DE DESCONTOS ================= --}}
                         <div class="form-card border-t-4 border-t-red-400">
                             <div class="card-header">
                                 <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                                    </svg>
                                     Descontos por Categoria
                                 </h3>
                             </div>
@@ -244,74 +250,99 @@
                         <div class="form-card border-t-4 border-t-purple-500">
                             <div class="card-header">
                                 <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
                                     Taxas e Impostos
                                 </h3>
                                 <button type="button" id="btn-add-taxa" class="text-xs font-bold text-purple-600 hover:underline">➕ Nova Taxa</button>
                             </div>
-                            <div class="p-6"><div id="lista-taxas" class="space-y-3"></div></div>
+                            <div class="p-6">
+                                <div id="lista-taxas" class="space-y-3"></div>
+                            </div>
                         </div>
 
                         {{-- FORMAS DE PAGAMENTO --}}
                         <div class="form-card border-t-4 border-t-emerald-500">
                             <div class="card-header">
                                 <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
                                     Condições de Pagamento
                                 </h3>
                             </div>
+
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-3">
-                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
+                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
                                         <input type="radio" name="forma_pagamento" value="pix"
-                                            class="rounded text-emerald-500 mr-3"
-                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'pix') checked @endif>
-                                        <span class="text-sm font-medium text-gray-700">À Vista (Pix / Dinheiro)</span>
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500"
+                                            @checked(old('forma_pagamento', $orcamento->forma_pagamento) === 'pix')>
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">À Vista (Pix / Dinheiro)</span>
                                     </label>
 
-                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-all">
+                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
                                         <input type="radio" name="forma_pagamento" value="debito"
-                                            class="rounded text-emerald-500 mr-3"
-                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'debito') checked @endif>
-                                        <span class="text-sm font-medium text-gray-700">Cartão de Débito</span>
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500"
+                                            @checked(old('forma_pagamento', $orcamento->forma_pagamento) === 'debito')>
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">Cartão de Débito</span>
                                     </label>
                                 </div>
 
                                 <div class="space-y-3">
-                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
                                         <input type="radio" name="forma_pagamento" value="credito"
-                                            class="rounded text-emerald-500 mr-3 fp-check"
-                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'credito') checked @endif>
-                                        <div class="flex-1 flex items-center justify-between ml-1">
-                                            <span class="text-sm font-medium text-gray-700">Crédito</span>
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check"
+                                            @checked(old('forma_pagamento', $orcamento->forma_pagamento) === 'credito')>
+                                        <div class="flex-1 flex items-center justify-between ml-3">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Crédito</span>
                                             <div class="flex items-center gap-1">
                                                 <input type="number" name="parcelas_credito" min="1"
-                                                    value="{{ old('parcelas_credito', 1) }}"
-                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas"
-                                                    @if(old('forma_pagamento', $orcamento->forma_pagamento) !== 'credito') disabled @endif>
+                                                    value="{{ old('parcelas_credito', $orcamento->parcelas_credito ?? 1) }}"
+                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    @disabled(old('forma_pagamento', $orcamento->forma_pagamento) !== 'credito')
+                                                onclick="event.stopPropagation()">
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
                                             </div>
                                         </div>
                                     </label>
 
-                                    <label class="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
                                         <input type="radio" name="forma_pagamento" value="boleto"
-                                            class="rounded text-emerald-500 mr-3 fp-check"
-                                            @if(old('forma_pagamento', $orcamento->forma_pagamento) === 'boleto') checked @endif>
-                                        <div class="flex-1 flex items-center justify-between ml-1">
-                                            <span class="text-sm font-medium text-gray-700">Boleto</span>
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check"
+                                            @checked(old('forma_pagamento', $orcamento->forma_pagamento) === 'boleto')>
+                                        <div class="flex-1 flex items-center justify-between ml-3">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Boleto</span>
                                             <div class="flex items-center gap-1">
                                                 <input type="number" name="parcelas_boleto" min="1"
-                                                    value="{{ old('parcelas_boleto', 1) }}"
-                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas"
-                                                    @if(old('forma_pagamento', $orcamento->forma_pagamento) !== 'boleto') disabled @endif>
+                                                    value="{{ old('parcelas_boleto', $orcamento->parcelas_boleto ?? 1) }}"
+                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    @disabled(old('forma_pagamento', $orcamento->forma_pagamento) !== 'boleto')
+                                                onclick="event.stopPropagation()">
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="Faturado"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check"
+                                            @checked(old('forma_pagamento', $orcamento->forma_pagamento) === 'Faturado')>
+                                        <div class="flex-1 flex items-center justify-between ml-3">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Faturado</span>
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" name="faturado" min="1" max="28"
+                                                    value="{{ old('faturado', $orcamento->faturado ?? 1) }}"
+                                                    class="w-14 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    @disabled(old('forma_pagamento', $orcamento->forma_pagamento) !== 'Faturado')
+                                                onclick="event.stopPropagation()">
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase">Dias</span>
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
@@ -319,7 +350,9 @@
                     <div class="space-y-8">
                         <div class="form-card bg-gray-900 border-none text-green-600 sticky top-8">
                             <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
                                 <h3 class="text-sm font-bold uppercase tracking-widest">Resumo Financeiro</h3>
                             </div>
                             <div class="p-6 space-y-4">
@@ -336,7 +369,9 @@
                             </div>
                             <div class="p-4 bg-gray-800/50">
                                 <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
                                     ATUALIZAR ORÇAMENTO
                                 </button>
                                 <a href="{{ route('orcamentos.index') }}" class="block text-center mt-3 text-red-700 hover:text-red-300 font-medium uppercase tracking-widest">Cancelar</a>
@@ -344,7 +379,9 @@
                         </div>
 
                         <div class="form-card border-t-4 border-t-indigo-500">
-                            <div class="card-header"><h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Observações</h3></div>
+                            <div class="card-header">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Observações</h3>
+                            </div>
                             <div class="p-4"><textarea name="observacoes" rows="4" class="input-field w-full bg-gray-50 border-none focus:ring-indigo-100">{{ old('observacoes', $orcamento->observacoes) }}</textarea></div>
                         </div>
                     </div>
@@ -352,25 +389,28 @@
             </form>
         </div>
     </div>
-        @push('scripts')
-            <script>
-            document.addEventListener('DOMContentLoaded', function () {
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
-                const extras = window.extras || { desconto: 0, taxas: 0 };
+            const extras = window.extras || {
+                desconto: 0,
+                taxas: 0
+            };
 
-                const descontoInput = document.getElementById('desconto-hidden');
-                const taxasInput    = document.getElementById('taxas-hidden');
+            const descontoInput = document.getElementById('desconto-hidden');
+            const taxasInput = document.getElementById('taxas-hidden');
 
-                if (descontoInput) descontoInput.value = extras.desconto;
-                if (taxasInput)    taxasInput.value    = extras.taxas;
+            if (descontoInput) descontoInput.value = extras.desconto;
+            if (taxasInput) taxasInput.value = extras.taxas;
 
-                if (typeof recalcularTotais === 'function') {
-                    recalcularTotais();
-                }
+            if (typeof recalcularTotais === 'function') {
+                recalcularTotais();
+            }
 
-            });
-            </script>
-            @endpush
+        });
+    </script>
+    @endpush
 
 
 </x-app-layout>
