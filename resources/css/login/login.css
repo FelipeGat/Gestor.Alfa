@@ -1,0 +1,73 @@
+/* 
+   C:\xampp\htdocs\cobranca\resources\css\login
+   Estilos personalizados para a tela de login com foco em centralização mobile
+*/
+
+@keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Ajustes de Responsividade e Centralização */
+@media (max-width: 1023px) {
+    .login-card-container {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 1.5rem;
+    }
+    
+    /* Centralização de textos e elementos no mobile */
+    .mobile-center-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .branding-section {
+        padding: 2.5rem 1.5rem !important;
+    }
+}
+
+/* Melhoria na experiência de toque */
+input, button {
+    touch-action: manipulation;
+}
+
+/* Suavização de transições */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}

@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/css/atendimentos/index.css',
                 'resources/css/atendimentos/edit.css',
                 'resources/css/atendimentos/create.css',
+                'resources/css/login/login.css',
 
                 // ORCAMENTOS
                 'resources/css/orcamentos/index.css',
