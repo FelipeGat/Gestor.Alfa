@@ -4,6 +4,7 @@
     @vite('resources/css/atendimentos/index.css')
     @endpush
 
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             ✏️ Editar Cliente
@@ -12,29 +13,29 @@
 
     {{-- ================= ESTILO SPINNER ================= --}}
     <style>
-    .cnpj-spinner {
-        width: 36px;
-        height: 36px;
-        border: 4px solid #cbd5e1;
-        border-top-color: #2563eb;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
+        .cnpj-spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #cbd5e1;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
-    }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 
     {{-- ================= JS ================= --}}
     <script>
-    /* =========================
+        /* =========================
            ADIÇÃO DINÂMICA
         ========================= */
-    function addEmail() {
-        document.getElementById('emails').insertAdjacentHTML('beforeend', `
+        function addEmail() {
+            document.getElementById('emails').insertAdjacentHTML('beforeend', `
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="email" name="emails[]" class="w-full sm:flex-1 rounded-md border px-3 py-2" required>
                     <label class="flex items-center gap-2 text-sm">
@@ -43,10 +44,10 @@
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
             `);
-    }
+        }
 
-    function addTelefone() {
-        document.getElementById('telefones').insertAdjacentHTML('beforeend', `
+        function addTelefone() {
+            document.getElementById('telefones').insertAdjacentHTML('beforeend', `
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="text" name="telefones[]" class="telefone w-full sm:flex-1 rounded-md border px-3 py-2">
                     <label class="flex items-center gap-2 text-sm">
@@ -55,202 +56,202 @@
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
             `);
-    }
-
-    /* =========================
-       MÁSCARAS
-    ========================= */
-    document.addEventListener('input', e => {
-        if (e.target.classList.contains('telefone')) {
-            let v = e.target.value.replace(/\D/g, '');
-            e.target.value = v.length <= 10 ?
-                v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
-                v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
         }
 
-        if (e.target.name === 'cpf_cnpj') {
-            let v = e.target.value.replace(/\D/g, '');
-            e.target.value = v.length <= 11 ?
-                v.replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d{1,2})$/, '$1-$2') :
-                v.replace(/(\d{2})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1/$2')
-                .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+        /* =========================
+           MÁSCARAS
+        ========================= */
+        document.addEventListener('input', e => {
+            if (e.target.classList.contains('telefone')) {
+                let v = e.target.value.replace(/\D/g, '');
+                e.target.value = v.length <= 10 ?
+                    v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                    v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
+            }
+
+            if (e.target.name === 'cpf_cnpj') {
+                let v = e.target.value.replace(/\D/g, '');
+                e.target.value = v.length <= 11 ?
+                    v.replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2') :
+                    v.replace(/(\d{2})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1/$2')
+                    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+
+            if (e.target.name === 'cep') {
+                let v = e.target.value.replace(/\D/g, '');
+                e.target.value = v.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
+            }
+        });
+
+        /* =========================
+           TOGGLE CONTRATO
+        ========================= */
+        function toggleContrato() {
+            const tipo = document.querySelector('[name="tipo_cliente"]')?.value;
+            const bloco = document.getElementById('bloco-contrato');
+            if (bloco) bloco.style.display = tipo === 'AVULSO' ? 'none' : 'block';
+        }
+        document.addEventListener('DOMContentLoaded', toggleContrato);
+        document.addEventListener('change', e => {
+            if (e.target.name === 'tipo_cliente') toggleContrato();
+        });
+
+        /* =========================
+        STATUS VISUAL CNPJ
+        ========================= */
+        const cnpjStatusEl = () => document.getElementById('cnpj-status');
+
+        function setCnpjLoading() {
+            const el = cnpjStatusEl();
+            if (!el) return;
+
+            el.classList.remove('hidden');
+            el.innerHTML = `<div class="cnpj-spinner"></div>`;
         }
 
-        if (e.target.name === 'cep') {
-            let v = e.target.value.replace(/\D/g, '');
-            e.target.value = v.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
-        }
-    });
+        function setCnpjSuccess() {
+            const el = cnpjStatusEl();
+            if (!el) return;
 
-    /* =========================
-       TOGGLE CONTRATO
-    ========================= */
-    function toggleContrato() {
-        const tipo = document.querySelector('[name="tipo_cliente"]')?.value;
-        const bloco = document.getElementById('bloco-contrato');
-        if (bloco) bloco.style.display = tipo === 'AVULSO' ? 'none' : 'block';
-    }
-    document.addEventListener('DOMContentLoaded', toggleContrato);
-    document.addEventListener('change', e => {
-        if (e.target.name === 'tipo_cliente') toggleContrato();
-    });
-
-    /* =========================
-    STATUS VISUAL CNPJ
-    ========================= */
-    const cnpjStatusEl = () => document.getElementById('cnpj-status');
-
-    function setCnpjLoading() {
-        const el = cnpjStatusEl();
-        if (!el) return;
-
-        el.classList.remove('hidden');
-        el.innerHTML = `<div class="cnpj-spinner"></div>`;
-    }
-
-    function setCnpjSuccess() {
-        const el = cnpjStatusEl();
-        if (!el) return;
-
-        el.classList.remove('hidden');
-        el.innerHTML = `
+            el.classList.remove('hidden');
+            el.innerHTML = `
             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M5 13l4 4L19 7"/>
             </svg>
         `;
-    }
+        }
 
-    function setCnpjError() {
-        const el = cnpjStatusEl();
-        if (!el) return;
+        function setCnpjError() {
+            const el = cnpjStatusEl();
+            if (!el) return;
 
-        el.classList.remove('hidden');
-        el.innerHTML = `
+            el.classList.remove('hidden');
+            el.innerHTML = `
             <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M6 18L18 6M6 6l12 12"/>
             </svg>
         `;
-    }
-
-    function clearCnpjStatus() {
-        const el = cnpjStatusEl();
-        if (!el) return;
-
-        el.classList.add('hidden');
-        el.innerHTML = '';
-    }
-
-    /* =========================
-       BUSCAR CNPJ (RECEITA)
-    ========================= */
-    async function buscarCNPJ(cnpj) {
-        cnpj = cnpj.replace(/\D/g, '');
-
-        // ignora CPF
-        if (cnpj.length !== 14) {
-            clearCnpjStatus();
-            return;
         }
 
-        setCnpjLoading();
+        function clearCnpjStatus() {
+            const el = cnpjStatusEl();
+            if (!el) return;
 
-        try {
-            const response = await fetch(`/api/cnpj/${cnpj}`);
-            const data = await response.json();
+            el.classList.add('hidden');
+            el.innerHTML = '';
+        }
 
-            if (data.status === 'ERROR') {
+        /* =========================
+           BUSCAR CNPJ (RECEITA)
+        ========================= */
+        async function buscarCNPJ(cnpj) {
+            cnpj = cnpj.replace(/\D/g, '');
+
+            // ignora CPF
+            if (cnpj.length !== 14) {
+                clearCnpjStatus();
+                return;
+            }
+
+            setCnpjLoading();
+
+            try {
+                const response = await fetch(`/api/cnpj/${cnpj}`);
+                const data = await response.json();
+
+                if (data.status === 'ERROR') {
+                    setCnpjError();
+                    return;
+                }
+
+                document.querySelector('[name="razao_social"]').value = data.nome || '';
+                document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
+                document.querySelector('[name="cep"]').value = data.cep || '';
+                document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+                document.querySelector('[name="numero"]').value = data.numero || '';
+                document.querySelector('[name="bairro"]').value = data.bairro || '';
+                document.querySelector('[name="cidade"]').value = data.municipio || '';
+                document.querySelector('[name="estado"]').value = data.uf || '';
+
+                if (data.cep) {
+                    buscarCEP(data.cep.replace(/\D/g, ''));
+                }
+
+                setCnpjSuccess();
+
+            } catch (error) {
+                console.error(error);
                 setCnpjError();
-                return;
             }
-
-            document.querySelector('[name="razao_social"]').value = data.nome || '';
-            document.querySelector('[name="nome_fantasia"]').value = data.fantasia || '';
-            document.querySelector('[name="cep"]').value = data.cep || '';
-            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
-            document.querySelector('[name="numero"]').value = data.numero || '';
-            document.querySelector('[name="bairro"]').value = data.bairro || '';
-            document.querySelector('[name="cidade"]').value = data.municipio || '';
-            document.querySelector('[name="estado"]').value = data.uf || '';
-
-            if (data.cep) {
-                buscarCEP(data.cep.replace(/\D/g, ''));
-            }
-
-            setCnpjSuccess();
-
-        } catch (error) {
-            console.error(error);
-            setCnpjError();
         }
-    }
 
-    /* =========================
-       BUSCAR CEP (VIACEP)
-    ========================= */
-    async function buscarCEP(cep) {
-        cep = cep.replace(/\D/g, '');
+        /* =========================
+           BUSCAR CEP (VIACEP)
+        ========================= */
+        async function buscarCEP(cep) {
+            cep = cep.replace(/\D/g, '');
 
-        if (cep.length !== 8) return;
+            if (cep.length !== 8) return;
 
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-            const data = await response.json();
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
 
-            if (data.erro) {
-                console.warn('CEP não encontrado');
-                return;
+                if (data.erro) {
+                    console.warn('CEP não encontrado');
+                    return;
+                }
+
+                document.querySelector('[name="logradouro"]').value = data.logradouro || '';
+                document.querySelector('[name="bairro"]').value = data.bairro || '';
+                document.querySelector('[name="cidade"]').value = data.localidade || '';
+                document.querySelector('[name="estado"]').value = data.uf || '';
+
+            } catch (error) {
+                console.error('Erro ao consultar CEP', error);
             }
-
-            document.querySelector('[name="logradouro"]').value = data.logradouro || '';
-            document.querySelector('[name="bairro"]').value = data.bairro || '';
-            document.querySelector('[name="cidade"]').value = data.localidade || '';
-            document.querySelector('[name="estado"]').value = data.uf || '';
-
-        } catch (error) {
-            console.error('Erro ao consultar CEP', error);
         }
-    }
 
-    /* =========================
-       DISPARO AUTOMÁTICO (BLUR)
-    ========================= */
-    document.addEventListener('blur', function(e) {
-        if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
-        if (e.target.name === 'cep') buscarCEP(e.target.value);
-    }, true);
+        /* =========================
+           DISPARO AUTOMÁTICO (BLUR)
+        ========================= */
+        document.addEventListener('blur', function(e) {
+            if (e.target.name === 'cpf_cnpj') buscarCNPJ(e.target.value);
+            if (e.target.name === 'cep') buscarCEP(e.target.value);
+        }, true);
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector(
-            "form[action='{{ route('clientes.update', $cliente) }}']"
-        );
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector(
+                "form[action='{{ route('clientes.update', $cliente) }}']"
+            );
 
-        if (!form) return;
+            if (!form) return;
 
-        form.addEventListener('submit', function() {
-            const tipo = document.querySelector('[name="tipo_pessoa"]')?.value;
-            const razao = document.querySelector('[name="razao_social"]');
-            const fantasia = document.querySelector('[name="nome_fantasia"]');
-            const nome = document.querySelector('[name="nome"]');
+            form.addEventListener('submit', function() {
+                const tipo = document.querySelector('[name="tipo_pessoa"]')?.value;
+                const razao = document.querySelector('[name="razao_social"]');
+                const fantasia = document.querySelector('[name="nome_fantasia"]');
+                const nome = document.querySelector('[name="nome"]');
 
-            if (!nome || !razao) return;
+                if (!nome || !razao) return;
 
-            if (tipo === 'PF') {
-                // PF → nome = razão (nome da pessoa)
-                nome.value = razao.value.trim();
-            } else {
-                // PJ → nome = fantasia OU razão
-                nome.value = fantasia && fantasia.value.trim() !== '' ?
-                    fantasia.value.trim() :
-                    razao.value.trim();
-            }
+                if (tipo === 'PF') {
+                    // PF → nome = razão (nome da pessoa)
+                    nome.value = razao.value.trim();
+                } else {
+                    // PJ → nome = fantasia OU razão
+                    nome.value = fantasia && fantasia.value.trim() !== '' ?
+                        fantasia.value.trim() :
+                        razao.value.trim();
+                }
+            });
         });
-    });
     </script>
 
     <div class="py-8">
@@ -415,6 +416,53 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {{-- ================= RESPONSÁVEIS DO PORTAL ================= --}}
+                <div class="bg-white shadow rounded-lg p-6 mt-6">
+                    <h3 class="text-lg font-semibold mb-4">
+                        Responsáveis do Portal
+                    </h3>
+
+                    {{-- Campo de busca --}}
+                    <div class="mb-4">
+                        <input
+                            type="text"
+                            id="busca-usuarios-portal"
+                            placeholder="Buscar por nome ou e-mail..."
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    {{-- Lista de usuários --}}
+                    <div
+                        id="lista-usuarios-portal"
+                        class="max-h-32 overflow-y-auto border rounded-md p-3 space-y-2">
+                        @foreach($usuarios as $usuario)
+                        <label
+                            class="flex items-center gap-2 usuario-portal"
+                            data-nome="{{ Str::lower($usuario->name) }}"
+                            data-email="{{ Str::lower($usuario->email) }}"
+                            data-selecionado="{{ in_array($usuario->id, $usuariosVinculados) ? '1' : '0' }}">
+                            <input
+                                type="checkbox"
+                                name="usuarios_portal[]"
+                                value="{{ $usuario->id }}"
+                                @checked(in_array($usuario->id, $usuariosVinculados))
+                            >
+
+                            <span class="text-sm">
+                                <strong>{{ $usuario->name }}</strong>
+                                <span class="text-gray-500">
+                                    ({{ $usuario->email }})
+                                </span>
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+
+                    <p class="text-sm text-gray-500 mt-3">
+                        Apenas usuários selecionados terão acesso a esta unidade no Portal do Cliente.
+                    </p>
                 </div>
 
                 {{-- SEÇÃO 3: ENDEREÇO --}}
@@ -588,4 +636,41 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const container = document.getElementById('lista-usuarios-portal');
+            const usuarios = Array.from(container.querySelectorAll('.usuario-portal'));
+
+            // 🔹 Ordena: selecionados primeiro
+            usuarios.sort((a, b) => {
+                return b.dataset.selecionado.localeCompare(a.dataset.selecionado);
+            });
+
+            // 🔹 Reanexa na ordem correta
+            usuarios.forEach(usuario => container.appendChild(usuario));
+
+            // 🔹 Busca em tempo real
+            const busca = document.getElementById('busca-usuarios-portal');
+
+            busca.addEventListener('keyup', function() {
+                const termo = this.value.toLowerCase();
+
+                usuarios.forEach(function(usuario) {
+                    const nome = usuario.dataset.nome;
+                    const email = usuario.dataset.email;
+
+                    if (nome.includes(termo) || email.includes(termo)) {
+                        usuario.style.display = 'flex';
+                    } else {
+                        usuario.style.display = 'none';
+                    }
+                });
+            });
+
+        });
+    </script>
+
+
 </x-app-layout>

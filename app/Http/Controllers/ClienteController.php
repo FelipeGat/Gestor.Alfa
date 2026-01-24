@@ -201,9 +201,12 @@ class ClienteController extends Controller
             'Acesso não autorizado'
         );
 
+        $usuarios = User::where('tipo', 'cliente')->orderBy('name')->get();
+        $usuariosVinculados = $cliente->users->pluck('id')->toArray();
+
         $cliente->load(['emails', 'telefones']);
 
-        return view('clientes.edit', compact('cliente'));
+        return view('clientes.edit', compact('cliente', 'usuarios', 'usuariosVinculados'));
     }
 
     public function update(Request $request, Cliente $cliente)
@@ -284,9 +287,18 @@ class ClienteController extends Controller
             }
         }
 
+        // Responsáveis do Portal (vínculo usuário / cliente)
+        if ($request->has('usuarios_portal')) {
+            $cliente->users()->sync($request->usuarios_portal);
+        } else {
+            // Se desmarcar todos, remove todos os acessos ao portal
+            $cliente->users()->detach();
+        }
+
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente atualizado com sucesso!');
     }
+
 
     public function destroy(Cliente $cliente)
     {

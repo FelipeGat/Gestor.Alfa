@@ -165,6 +165,15 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
 
+    Route::get('/portal/unidade', [PortalController::class, 'selecionarUnidade'])
+        ->name('portal.unidade');
+
+    Route::post('/portal/unidade', [PortalController::class, 'definirUnidade'])
+        ->name('portal.unidade.definir');
+
+    Route::post('/portal/trocar-unidade', [PortalController::class, 'trocarUnidade'])
+        ->name('portal.trocar-unidade');
+
     Route::get(
         '/portal/boletos/{boleto}/download',
         [PortalController::class, 'downloadBoleto']

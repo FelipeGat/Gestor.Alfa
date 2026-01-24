@@ -32,9 +32,10 @@ class DashboardComercialController extends Controller
 
         $totalOrcamentos = (clone $queryBase)->count();
 
+        $qtdAguardando = (clone $queryBase)->where('status', 'aguardando_aprovacao')->count();
         $qtdFinanceiro = (clone $queryBase)->where('status', 'financeiro')->count();
         $qtdAprovado   = (clone $queryBase)->where('status', 'aprovado')->count();
-        $qtdAguardando = (clone $queryBase)->where('status', 'aguardando_aprovacao')->count(); // 👈 ajuste aqui
+        $qtdAguardandoPagamento   = (clone $queryBase)->where('status', 'aguardando_pagamento')->count();
 
         $orcamentosPorStatus = (clone $queryBase)
             ->select('status', DB::raw('COUNT(*) as total'))
@@ -66,6 +67,7 @@ class DashboardComercialController extends Controller
         return view('dashboard-comercial.index', compact(
             'totalOrcamentos',
             'qtdFinanceiro',
+            'qtdAguardandoPagamento',
             'qtdAprovado',
             'qtdAguardando',
             'orcamentosPorStatus',

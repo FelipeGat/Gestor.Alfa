@@ -23,6 +23,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/orcamento.js',
                 'resources/js/dashboard.js',
+                'resources/js/cliente-busca.js',
             ],
             refresh: true,
         }),

@@ -2,6 +2,7 @@
 
     @push('styles')
     @vite('resources/css/atendimentos/create.css')
+    @vite('resources/js/cliente-busca.js')
     @endpush
 
     {{-- ================= CONTEÚDO ================= --}}
@@ -41,17 +42,21 @@
                     </h3>
 
                     <div class="form-group">
-                        <label for="cliente_id">
-                            Cliente (opcional)
-                        </label>
-                        <select name="cliente_id" id="cliente_id" class="@error('cliente_id') border-red-500 @enderror">
-                            <option value="">— Não informado —</option>
-                            @foreach($clientes as $cliente)
-                            <option value="{{ $cliente->id }}" @selected(old('cliente_id')==$cliente->id)>
-                                {{ $cliente->nome }}
-                            </option>
-                            @endforeach
-                        </select>
+                        <div class="form-group relative">
+                            <label>Cliente (opcional)</label>
+
+                            <input type="text"
+                                id="cliente_nome"
+                                name="cliente_nome"
+                                placeholder="Buscar cliente ou pré-cliente..."
+                                autocomplete="off">
+
+                            <input type="hidden" name="cliente_id" id="cliente_id">
+                            <input type="hidden" name="pre_cliente_id" id="pre_cliente_id">
+                            <input type="hidden" name="cliente_tipo" id="cliente_tipo">
+
+                            <div id="cliente-resultados" class="search-results-container hidden"></div>
+                        </div>
                         @error('cliente_id')
                         <p class="form-help text-red-500">{{ $message }}</p>
                         @enderror
@@ -278,123 +283,123 @@
 
     {{-- ================= SCRIPTS ================= --}}
     <script>
-    /* =========================
+        /* =========================
        MÁSCARA DE TELEFONE
     ========================= */
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('telefone')) {
-            let v = e.target.value.replace(/\D/g, '');
-            e.target.value = v.length <= 10 ?
-                v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
-                v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
-        }
-    });
-
-    /* =========================
-       CARREGAMENTO DE ASSUNTOS
-    ========================= */
-    document.addEventListener('DOMContentLoaded', function() {
-        const empresaSelect = document.getElementById('empresa_id');
-        const assuntoSelect = document.getElementById('assunto_id');
-        const formAtendimento = document.getElementById('formAtendimento');
-        const btnSubmit = document.getElementById('btnSubmit');
-
-        if (!empresaSelect || !assuntoSelect) return;
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('telefone')) {
+                let v = e.target.value.replace(/\D/g, '');
+                e.target.value = v.length <= 10 ?
+                    v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                    v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
+            }
+        });
 
         /* =========================
-           FUNÇÃO: CARREGAR ASSUNTOS
+           CARREGAMENTO DE ASSUNTOS
         ========================= */
-        async function carregarAssuntos(empresaId) {
-            if (!empresaId) {
-                assuntoSelect.innerHTML = '<option value="">Selecione a empresa primeiro</option>';
-                assuntoSelect.disabled = false;
-                return;
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            const empresaSelect = document.getElementById('empresa_id');
+            const assuntoSelect = document.getElementById('assunto_id');
+            const formAtendimento = document.getElementById('formAtendimento');
+            const btnSubmit = document.getElementById('btnSubmit');
 
-            assuntoSelect.disabled = true;
-            assuntoSelect.innerHTML = '<option value="">Carregando assuntos...</option>';
+            if (!empresaSelect || !assuntoSelect) return;
 
-            try {
-                const response = await fetch(`/empresas/${empresaId}/assuntos`);
-
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    assuntoSelect.innerHTML = '<option value="">Nenhum assunto disponível</option>';
+            /* =========================
+               FUNÇÃO: CARREGAR ASSUNTOS
+            ========================= */
+            async function carregarAssuntos(empresaId) {
+                if (!empresaId) {
+                    assuntoSelect.innerHTML = '<option value="">Selecione a empresa primeiro</option>';
                     assuntoSelect.disabled = false;
                     return;
                 }
 
-                assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
+                assuntoSelect.disabled = true;
+                assuntoSelect.innerHTML = '<option value="">Carregando assuntos...</option>';
 
-                // Limpa e adiciona opção inicial
-                assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
+                try {
+                    const response = await fetch(`/empresas/${empresaId}/assuntos`);
 
-                // Agrupar por categoria
-                const grupos = {};
-
-                data.forEach(assunto => {
-                    const categoria = assunto.categoria || 'Outros';
-
-                    if (!grupos[categoria]) {
-                        const optgroup = document.createElement('optgroup');
-                        optgroup.label = categoria;
-                        grupos[categoria] = optgroup;
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
                     }
 
-                    const option = document.createElement('option');
-                    option.value = assunto.id;
+                    const data = await response.json();
 
-                    if (assunto.subcategoria) {
-                        option.textContent = `${assunto.subcategoria} › ${assunto.nome}`;
-                    } else {
-                        option.textContent = assunto.nome;
+                    if (!Array.isArray(data) || data.length === 0) {
+                        assuntoSelect.innerHTML = '<option value="">Nenhum assunto disponível</option>';
+                        assuntoSelect.disabled = false;
+                        return;
                     }
 
-                    grupos[categoria].appendChild(option);
-                });
+                    assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
 
-                // Anexa os grupos ao select
-                Object.values(grupos).forEach(grupo => {
-                    assuntoSelect.appendChild(grupo);
-                });
+                    // Limpa e adiciona opção inicial
+                    assuntoSelect.innerHTML = '<option value="">Selecione o assunto</option>';
+
+                    // Agrupar por categoria
+                    const grupos = {};
+
+                    data.forEach(assunto => {
+                        const categoria = assunto.categoria || 'Outros';
+
+                        if (!grupos[categoria]) {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = categoria;
+                            grupos[categoria] = optgroup;
+                        }
+
+                        const option = document.createElement('option');
+                        option.value = assunto.id;
+
+                        if (assunto.subcategoria) {
+                            option.textContent = `${assunto.subcategoria} › ${assunto.nome}`;
+                        } else {
+                            option.textContent = assunto.nome;
+                        }
+
+                        grupos[categoria].appendChild(option);
+                    });
+
+                    // Anexa os grupos ao select
+                    Object.values(grupos).forEach(grupo => {
+                        assuntoSelect.appendChild(grupo);
+                    });
 
 
 
-                assuntoSelect.disabled = false;
+                    assuntoSelect.disabled = false;
 
-            } catch (error) {
-                console.error('Erro ao carregar assuntos:', error);
-                assuntoSelect.innerHTML = '<option value="">Erro ao carregar assuntos</option>';
-                assuntoSelect.disabled = false;
+                } catch (error) {
+                    console.error('Erro ao carregar assuntos:', error);
+                    assuntoSelect.innerHTML = '<option value="">Erro ao carregar assuntos</option>';
+                    assuntoSelect.disabled = false;
+                }
             }
-        }
 
-        /* =========================
-           EVENT LISTENER: MUDANÇA DE EMPRESA
-        ========================= */
-        empresaSelect.addEventListener('change', function() {
-            carregarAssuntos(this.value);
+            /* =========================
+               EVENT LISTENER: MUDANÇA DE EMPRESA
+            ========================= */
+            empresaSelect.addEventListener('change', function() {
+                carregarAssuntos(this.value);
+            });
+
+            /* =========================
+               EVENT LISTENER: SUBMIT DO FORMULÁRIO
+            ========================= */
+            formAtendimento.addEventListener('submit', function(e) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="loading-spinner"></span>Salvando...';
+            });
+
+            /* =========================
+               CARREGAR ASSUNTOS SE EMPRESA JÁ SELECIONADA
+            ========================= */
+            if (empresaSelect.value) {
+                carregarAssuntos(empresaSelect.value);
+            }
         });
-
-        /* =========================
-           EVENT LISTENER: SUBMIT DO FORMULÁRIO
-        ========================= */
-        formAtendimento.addEventListener('submit', function(e) {
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="loading-spinner"></span>Salvando...';
-        });
-
-        /* =========================
-           CARREGAR ASSUNTOS SE EMPRESA JÁ SELECIONADA
-        ========================= */
-        if (empresaSelect.value) {
-            carregarAssuntos(empresaSelect.value);
-        }
-    });
     </script>
 </x-app-layout>

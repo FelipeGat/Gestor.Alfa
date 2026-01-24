@@ -7,10 +7,9 @@
     @php
     $statusList = [
     'em_elaboracao' => 'Em Elaboração',
-    'enviado' => 'Enviado',
     'aguardando_aprovacao' => 'Aguardando Aprovação',
     'aprovado' => 'Aprovado',
-    'aguardando_pagamento' => 'Aguardando Pag. Entrada',
+    'aguardando_pagamento' => 'Aguardando Pagamento',
     'agendado' => 'Agendado',
     'recusado' => 'Recusado',
     'em_andamento' => 'Em Andamento',

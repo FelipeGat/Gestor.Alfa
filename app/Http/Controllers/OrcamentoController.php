@@ -587,7 +587,7 @@ class OrcamentoController extends Controller
         );
 
         $request->validate([
-            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,enviado,aprovado,recusado,concluido,garantia,cancelado,aguardando_pagamento,agendado,em_andamento,financeiro'
+            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,aprovado,recusado,concluido,garantia,cancelado,aguardando_pagamento,agendado,em_andamento,financeiro'
         ]);
 
         $orcamento->update([

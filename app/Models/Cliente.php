@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Cobranca;
 use App\Models\Boleto;
 use App\Models\User;
@@ -99,5 +100,18 @@ class Cliente extends Model
         }
 
         return $this->razao_social;
+    }
+
+    /**
+     * Usuários vinculados a este cliente (multi-unidade)
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'cliente_user',
+            'cliente_id',
+            'user_id'
+        );
     }
 }

@@ -50,9 +50,9 @@
             {{-- ================= CARDS DE RESUMO ================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Orçamentos</h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $totalOrcamentos }}</p>
+                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Aprovação</h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardando }}</p>
                 </div>
 
                 <div class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500">
@@ -65,9 +65,10 @@
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAprovado }}</p>
                 </div>
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Aprovação</h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardando }}</p>
+
+                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Pagamento</h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardandoPagamento }}</p>
                 </div>
 
             </div>

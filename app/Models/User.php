@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\ResetPasswordNotification;
@@ -82,6 +83,19 @@ class User extends Authenticatable
         return $this->belongsTo(Cliente::class);
     }
 
+    /**
+     * Clientes (unidades) vinculados ao usuário
+     */
+    public function clientes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Cliente::class,
+            'cliente_user',
+            'user_id',
+            'cliente_id'
+        );
+    }
+
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
@@ -97,7 +111,7 @@ class User extends Authenticatable
         return $this->perfis()->whereIn('slug', ['admin', 'administrativo'])->exists();
     }
 
-        public function empresas()
+    public function empresas()
     {
         return $this->belongsToMany(Empresa::class, 'user_empresa');
     }
