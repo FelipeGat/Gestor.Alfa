@@ -9,7 +9,7 @@ use App\Models\Cliente;
 class Cobranca extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = [
         'cliente_id',
         'boleto_id',
@@ -28,13 +28,13 @@ class Cobranca extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    // public function boleto()
-    // {
-    //     return $this->hasOne(Boleto::class, 'cliente_id', 'cliente_id');
-    // }
-
     public function boleto()
-{
-    return $this->belongsTo(Boleto::class, 'boleto_id');
-}
+    {
+        return $this->belongsTo(Boleto::class, 'boleto_id');
+    }
+
+    public function cobranca()
+    {
+        return $this->hasOne(\App\Models\Cobranca::class);
+    }
 }

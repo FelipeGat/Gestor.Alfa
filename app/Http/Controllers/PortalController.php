@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Boleto;
+use App\Models\Cobranca;
+use App\Models\NotaFiscal;
+use Carbon\Carbon;
 
 class PortalController extends Controller
 {
@@ -73,6 +76,59 @@ class PortalController extends Controller
         }
 
         return view('portal.index', compact('cliente', 'boletos'));
+    }
+
+    public function financeiro()
+    {
+        $user = Auth::user();
+
+        if (!$user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+
+        // Unidade ativa obrigatória
+        if (!session()->has('cliente_id_ativo')) {
+            return redirect()->route('portal.unidade');
+        }
+
+        $clienteId = session('cliente_id_ativo');
+
+        // Garante que o cliente pertence ao usuário
+        $cliente = $user->clientes()
+            ->where('clientes.id', $clienteId)
+            ->firstOrFail();
+
+        // ================= COBRANÇAS =================
+        $cobrancas = Cobranca::with(['boleto'])
+            ->where('cliente_id', $cliente->id)
+            ->orderByDesc('data_vencimento')
+            ->get();
+
+        // ================= RESUMO =================
+        $resumo = [
+            'total_pago'     => 0,
+            'total_pendente' => 0,
+            'total_vencido'  => 0,
+            'total_geral'    => 0,
+        ];
+
+        foreach ($cobrancas as $cobranca) {
+            $resumo['total_geral'] += $cobranca->valor;
+
+            if ($cobranca->status === 'pago') {
+                $resumo['total_pago'] += $cobranca->valor;
+            } elseif ($cobranca->data_vencimento->isPast()) {
+                $resumo['total_vencido'] += $cobranca->valor;
+            } else {
+                $resumo['total_pendente'] += $cobranca->valor;
+            }
+        }
+
+        return view('portal.financeiro.index', compact(
+            'cliente',
+            'cobrancas',
+            'resumo'
+        ));
     }
 
     /**

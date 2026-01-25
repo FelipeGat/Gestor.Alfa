@@ -120,4 +120,9 @@ class Orcamento extends Model
     {
         return $this->hasMany(OrcamentoPagamento::class);
     }
+
+    public function orcamento()
+    {
+        return $this->belongsTo(\App\Models\Orcamento::class);
+    }
 }

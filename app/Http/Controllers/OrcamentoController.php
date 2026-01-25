@@ -587,16 +587,47 @@ class OrcamentoController extends Controller
         );
 
         $request->validate([
-            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,aprovado,recusado,concluido,garantia,cancelado,aguardando_pagamento,agendado,em_andamento,financeiro'
+            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,aprovado,financeiro,aguardando_pagamento,em_andamento,concluido,recusado,cancelado,garantia'
         ]);
 
-        $orcamento->update([
-            'status' => $request->status,
-        ]);
+        DB::transaction(function () use ($orcamento, $request) {
 
-        return redirect()
-            ->back()
-            ->with('success', 'Status do orçamento atualizado com sucesso.');
+            $statusAnterior = $orcamento->status;
+            $novoStatus     = $request->status;
+
+            // Atualiza status do orçamento
+            $orcamento->update([
+                'status' => $novoStatus,
+            ]);
+
+            /*
+        |--------------------------------------------------------------------------
+        | QUANDO ENTRA NO FINANCEIRO → CRIA COBRANÇA
+        |--------------------------------------------------------------------------
+        */
+            if ($novoStatus === 'financeiro' && !$orcamento->cobranca) {
+
+                \App\Models\Cobranca::create([
+                    'orcamento_id'   => $orcamento->id,
+                    'cliente_id'     => $orcamento->cliente_id,
+                    'descricao'      => "Orçamento {$orcamento->numero_orcamento}",
+                    'valor'          => $orcamento->valor_total,
+                    'data_vencimento' => now()->addDays(7), // regra inicial
+                    'status'         => 'pendente',
+                ]);
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | SE CANCELAR / RECUSAR → REMOVE COBRANÇA
+        |--------------------------------------------------------------------------
+        */
+            if (in_array($novoStatus, ['cancelado', 'recusado']) && $orcamento->cobranca) {
+                $orcamento->cobranca->delete();
+            }
+        });
+
+        return back()->with('success', 'Status atualizado com sucesso.');
     }
 
     public function imprimir($id)

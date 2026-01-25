@@ -114,4 +114,35 @@ class Cliente extends Model
             'user_id'
         );
     }
+
+    /** Cliente possui contrato mensal ativo*/
+    public function isContratoMensal(): bool
+    {
+        return $this->ativo
+            && $this->tipo_cliente === 'CONTRATO'
+            && $this->valor_mensal > 0
+            && $this->dia_vencimento > 0;
+    }
+
+    /** Cliente é avulso (sem cobrança automática)*/
+    public function isAvulso(): bool
+    {
+        return $this->tipo_cliente === 'AVULSO';
+    }
+
+    /** bug de fevereiro*/
+    public function getDiaVencimentoSeguro(): int
+    {
+        return min($this->dia_vencimento ?? 1, 28);
+    }
+
+    /** data vencimento automatica*/
+    public function gerarDataVencimento(int $mes, int $ano)
+    {
+        return \Carbon\Carbon::create(
+            $ano,
+            $mes,
+            $this->getDiaVencimentoSeguro()
+        );
+    }
 }

@@ -56,60 +56,93 @@
 
             {{-- Navigation Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <!-- Card Financeiro -->
-                <a href="https://gestor.alfa.solucoesgrupo.com/portal/financeiro" target="_blank" rel="noopener noreferrer"
-                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent hover:border-blue-500 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <a href="{{ route('portal.financeiro') }}"
+                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
+              hover:border-blue-500 hover:shadow-2xl transition-all duration-300
+              transform hover:scale-105 cursor-pointer">
+
                     <div class="flex items-start justify-between mb-4">
                         <div class="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-xl">
                             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2
+                             3 .895 3 2-1.343 2-3 2m0-8
+                             c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
+                             c-1.11 0-2.08-.402-2.599-1M21 12
+                             a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600
+                        group-hover:translate-x-1 transition-all"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
+
                     <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                         Acessar Meu Financeiro
                     </h3>
+
                     <p class="text-gray-600 text-sm mb-4">
-                        Visualize boletos, notas fiscais, pagamentos e gerencie sua cobrança de forma completa.
+                        Visualize boletos, notas fiscais, pagamentos e acompanhe seu histórico financeiro.
                     </p>
+
                     <div class="flex items-center text-blue-600 font-semibold text-sm">
                         Ir para Financeiro
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
                 </a>
 
-                <!-- Card OS/Atendimentos -->
-                <a href="https://gestor.alfa.solucoesgrupo.com/portal/atendimentos" target="_blank" rel="noopener noreferrer"
-                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent hover:border-green-500 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <!-- Card Atendimentos -->
+                <a href="{{ route('portal.index') }}"
+                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
+              hover:border-green-500 hover:shadow-2xl transition-all duration-300
+              transform hover:scale-105 cursor-pointer">
+
                     <div class="flex items-start justify-between mb-4">
                         <div class="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl">
                             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <svg class="w-6 h-6 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-green-600
+                        group-hover:translate-x-1 transition-all"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
+
                     <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
                         Acessar Minhas OS
                     </h3>
+
                     <p class="text-gray-600 text-sm mb-4">
-                        Acompanhe suas ordens de serviço, atendimentos e solicitações em tempo real.
+                        Acompanhe suas ordens de serviço, atendimentos e solicitações.
                     </p>
+
                     <div class="flex items-center text-green-600 font-semibold text-sm">
                         Ir para Atendimentos
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
                 </a>
+
             </div>
+
 
             {{-- Dashboard Overview --}}
             <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">

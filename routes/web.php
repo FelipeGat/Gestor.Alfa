@@ -180,6 +180,9 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
 
+    Route::get('/portal/financeiro', [PortalController::class, 'financeiro'])
+        ->name('portal.financeiro');
+
     Route::get('/portal/unidade', [PortalController::class, 'selecionarUnidade'])
         ->name('portal.unidade');
 

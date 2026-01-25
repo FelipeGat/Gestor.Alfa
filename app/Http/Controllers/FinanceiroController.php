@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Orcamento;
 use App\Models\Empresa;
+use App\Models\Cobranca;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class FinanceiroController extends Controller
 {
-
     public function index(Request $request)
     {
         /** @var User $user */
@@ -19,67 +20,61 @@ class FinanceiroController extends Controller
 
         // Segurança (admin ou perfil financeiro)
         abort_if(
-            ! $user->isAdminPanel() &&
-                ! $user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel()
+                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
 
-        // ================= FILTROS =================
+        /*
+        |--------------------------------------------------------------------------
+        | FILTROS
+        |--------------------------------------------------------------------------
+        */
         $empresaId    = $request->get('empresa_id');
         $statusFiltro = $request->get('status');
 
-        // Status que interessam ao financeiro
+        /*
+        |--------------------------------------------------------------------------
+        | ================== BLOCO 1 — ORÇAMENTOS (PIPELINE FINANCEIRO)
+        |--------------------------------------------------------------------------
+        */
         $statusFinanceiros = [
-            'aprovado',
             'financeiro',
             'aguardando_pagamento',
         ];
 
-        // ================= QUERY BASE =================
-        $query = Orcamento::query()
+        $orcamentoQuery = Orcamento::query()
             ->whereIn('status', $statusFinanceiros);
 
-        // Filtro por empresa
         if ($empresaId) {
-            $query->where('empresa_id', $empresaId);
+            $orcamentoQuery->where('empresa_id', $empresaId);
         }
 
-        // Filtro por status
         if ($statusFiltro) {
-            $query->where('status', $statusFiltro);
+            $orcamentoQuery->where('status', $statusFiltro);
         }
 
-        // ================= KPIs =================
-        $qtdAprovado = (clone $query)
-            ->where('status', 'aprovado')
-            ->count();
+        // KPIs
+        $qtdAprovado = (clone $orcamentoQuery)->where('status', 'aprovado')->count();
+        $qtdFinanceiro = (clone $orcamentoQuery)->where('status', 'financeiro')->count();
+        $qtdAguardandoPagamento = (clone $orcamentoQuery)->where('status', 'aguardando_pagamento')->count();
 
-        $qtdFinanceiro = (clone $query)
-            ->where('status', 'financeiro')
-            ->count();
+        $valorTotalAberto = (clone $orcamentoQuery)->sum('valor_total');
 
-        $qtdAguardandoPagamento = (clone $query)
-            ->where('status', 'aguardando_pagamento')
-            ->count();
-
-        $valorTotalAberto = (clone $query)
-            ->sum('valor_total');
-
-        // ================= MÉTRICAS FILTRADAS =================
-        $metricasFiltradas = (clone $query)
+        $metricasFiltradas = (clone $orcamentoQuery)
             ->selectRaw('COUNT(*) as qtd, SUM(valor_total) as valor_total')
             ->first();
 
-        // ================= GRÁFICO: STATUS =================
-        $orcamentosPorStatus = (clone $query)
+        // Gráfico por status
+        $orcamentosPorStatus = (clone $orcamentoQuery)
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
 
-        // ================= GRÁFICO: EMPRESA =================
-        $orcamentosPorEmpresa = (clone $query)
+        // Gráfico por empresa
+        $orcamentosPorEmpresa = (clone $orcamentoQuery)
             ->select(
                 'empresa_id',
                 DB::raw('COUNT(*) as total_qtd'),
@@ -89,20 +84,87 @@ class FinanceiroController extends Controller
             ->with('empresa')
             ->get();
 
-        // ================= EMPRESAS (FILTRO) =================
+        // Lista para ação do financeiro
+        $orcamentosFinanceiro = (clone $orcamentoQuery)
+            ->with(['cliente', 'preCliente'])
+            ->orderBy('created_at')
+            ->limit(10)
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | ================== BLOCO 2 — COBRANÇAS (FINANCEIRO REAL)
+        |--------------------------------------------------------------------------
+        */
+        $hoje = Carbon::today();
+
+        $cobrancaQuery = Cobranca::with('cliente');
+
+        $totalReceber = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->sum('valor');
+
+        $totalPago = (clone $cobrancaQuery)
+            ->where('status', 'pago')
+            ->sum('valor');
+
+        $totalVencido = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->whereDate('data_vencimento', '<', $hoje)
+            ->sum('valor');
+
+        $venceHoje = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->whereDate('data_vencimento', $hoje)
+            ->sum('valor');
+
+        $qtdVencidos = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->whereDate('data_vencimento', '<', $hoje)
+            ->count();
+
+        $qtdVenceHoje = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->whereDate('data_vencimento', $hoje)
+            ->count();
+
+        $cobrancasPendentes = (clone $cobrancaQuery)
+            ->where('status', 'pendente')
+            ->orderBy('data_vencimento')
+            ->limit(10)
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUXILIARES
+        |--------------------------------------------------------------------------
+        */
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
         return view('financeiro.dashboard', compact(
+            // filtros
             'empresas',
             'empresaId',
             'statusFiltro',
+
+            // orçamentos
             'qtdAprovado',
             'qtdFinanceiro',
             'qtdAguardandoPagamento',
             'valorTotalAberto',
             'metricasFiltradas',
             'orcamentosPorStatus',
-            'orcamentosPorEmpresa'
+            'orcamentosPorEmpresa',
+            'orcamentosFinanceiro',
+
+            // cobranças
+            'totalReceber',
+            'totalPago',
+            'totalVencido',
+            'venceHoje',
+            'qtdVencidos',
+            'qtdVenceHoje',
+            'cobrancasPendentes'
         ));
     }
 }
