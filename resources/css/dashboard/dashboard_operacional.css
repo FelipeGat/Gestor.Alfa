@@ -1,0 +1,268 @@
+/* ==========================================================================
+   DASHBOARD OPERACIONAL
+   ========================================================================== */
+
+/* -------------------------
+   1. ESTRUTURA GERAL (LAYOUT)
+   ------------------------- */
+.dashboard-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.dashboard-section {
+    margin-bottom: 3rem;
+}
+
+.dashboard-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* -------------------------
+   2. FORMULÁRIO DE FILTRO
+   ------------------------- */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filter-form label {
+    font-weight: 600;
+    color: #374151;
+    margin-right: 0.5rem;
+}
+
+.filter-form input[type="date"] {
+    border: 1px solid #D1D5DB;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    color: #374151;
+}
+
+.filter-form button {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.filter-form button:hover {
+    background-color: #2563eb;
+}
+
+/* -------------------------
+   3. CARDS DE MÉTRICAS
+   ------------------------- */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card span {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-card strong {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Cores dos Cards (apenas as utilizadas) */
+.dashboard-card.blue {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+.dashboard-card.green {
+    background: linear-gradient(135deg, #22c55e, #15803d);
+}
+.dashboard-card.red {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+.dashboard-card.indigo {
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+}
+
+/* -------------------------
+   4. GRÁFICOS E TABELAS
+   ------------------------- */
+.dashboard-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+/* Estilo para o grid de uma única coluna */
+.dashboard-charts-grid.grid-cols-1 {
+    grid-template-columns: 1fr;
+}
+
+.dashboard-chart {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-chart h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+
+/* Container do canvas/tabela para preencher o espaço */
+.dashboard-chart > div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* -------------------------
+   5. COMPONENTES ESPECÍFICOS
+   ------------------------- */
+.top-clients-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.top-clients-table th,
+.top-clients-table td {
+    text-align: left;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.top-clients-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* -------------------------
+   6. ESTADOS VISUAIS
+   ------------------------- */
+.chart-loading, .chart-error, .chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    padding: 1rem;
+}
+
+.chart-loading {
+    background: #f9fafb;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.chart-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.chart-empty {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+/* -------------------------
+   7. RESPONSIVIDADE
+   ------------------------- */
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 1rem;
+    }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .filter-form div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-form input[type="date"] {
+        width: 100%;
+    }
+
+    .dashboard-cards {
+        gap: 1rem;
+    }
+
+    .dashboard-card {
+        padding: 1rem;
+    }
+
+    .dashboard-card strong {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-charts-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .dashboard-chart {
+        padding: 1rem;
+        min-height: 320px;
+    }
+}

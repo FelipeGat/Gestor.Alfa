@@ -1,6 +1,6 @@
 <x-app-layout>
     @push('styles')
-    @vite('resources/css/dashboard/dashboard.css')
+    @vite('resources/css/dashboard/dashboard_comercial.css')
     @endpush
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">

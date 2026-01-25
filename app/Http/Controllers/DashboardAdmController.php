@@ -2,188 +2,137 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cliente;
-use App\Models\Cobranca;
-use App\Models\Boleto;
-use App\Models\Assunto;
+use App\Models\Empresa;
 use App\Models\Atendimento;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Orcamento;
+use Carbon\Carbon;
 
 class DashboardAdmController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mes = now()->month;
-        $ano = now()->year;
+        // ================= FILTROS =================
+        $dataFim = $request->input('data_fim') ? Carbon::parse($request->input('data_fim')) : Carbon::today();
+        $dataInicio = $request->input('data_inicio') ? Carbon::parse($request->input('data_inicio')) : $dataFim->copy()->subDays(29);
 
-        /* ================= CLIENTES ================= */
-        $totalClientes     = Cliente::count();
-        $clientesAtivos    = Cliente::where('ativo', true)->count();
-        $clientesInativos  = Cliente::where('ativo', false)->count();
-        $clientesContrato  = Cliente::where('tipo_cliente', 'CONTRATO')->count();
-        $clientesAvulso    = Cliente::where('tipo_cliente', 'AVULSO')->count();
+        $empresaId = $request->input('empresa_id');
+        $statusFiltro = $request->input('status_atual');
 
-        /* ================= FINANCEIRO ================= */
-        $receitaPrevista = Cobranca::whereMonth('data_vencimento', $mes)
-            ->whereYear('data_vencimento', $ano)
-            ->where('status', '!=', 'pago')
-            ->sum('valor');
+        // Query base de atendimentos para o período
+        $atendimentosNoPeriodo = Atendimento::whereBetween('data_atendimento', [$dataInicio, $dataFim]);
 
-        $receitaRealizada = Cobranca::whereMonth('data_vencimento', $mes)
-            ->whereYear('data_vencimento', $ano)
-            ->where('status', 'pago')
-            ->sum('valor');
+        if ($empresaId) {
+            $atendimentosNoPeriodo->where('empresa_id', $empresaId);
+        }
+        if ($statusFiltro) {
+            $atendimentosNoPeriodo->where('status_atual', $statusFiltro);
+        }
 
-        /* ================= COBRANÇAS ================= */
-        $clientesComCobranca = Cobranca::distinct('cliente_id')->count('cliente_id');
+        // ================= DADOS PARA OS FILTROS DO CABEÇALHO =================
+        $empresas = Empresa::where('ativo', true)->orderBy('nome_fantasia')->get();
+        $todosStatus = ['aberto', 'em_atendimento', 'aguardando_cliente', 'concluido', 'cancelado'];
 
-        $clientesComBoletoNaoBaixado = Boleto::whereNull('baixado_em')
-            ->distinct('cliente_id')
-            ->count('cliente_id');
+        // ================= MÉTRICAS DE RESUMO =================
+        $metricasFiltradas = (clone $atendimentosNoPeriodo)->select(DB::raw('COUNT(*) as qtd'))->first();
 
-        /* ================= ASSUNTOS ================= */
+        // ================= CARDS DE STATUS GLOBAIS =================
+        $queryCards = Atendimento::whereBetween('data_atendimento', [$dataInicio, $dataFim]);
+        if ($empresaId) {
+            $queryCards->where('empresa_id', $empresaId);
+        }
+        $chamadosAbertos    = (clone $queryCards)->where('status_atual', 'aberto')->count();
+        $chamadosEmAtendimento = (clone $queryCards)->where('status_atual', 'em_atendimento')->count();
+        $chamadosConcluidos = (clone $queryCards)->where('status_atual', 'concluido')->count();
+        $chamadosAguardando = (clone $queryCards)->where('status_atual', 'aguardando_cliente')->count();
 
-        // Assuntos por Empresa
-        $assuntosPorEmpresa = Assunto::select('empresa_id', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('empresa_id')
-            ->groupBy('empresa_id')
-            ->with('empresa:id,nome_fantasia,razao_social')
-            ->get();
+        // ================= GRÁFICOS =================
 
-        $labelsEmpresa = $assuntosPorEmpresa->map(function ($item) {
-            return $item->empresa->nome_fantasia ?? $item->empresa->razao_social;
-        });
+        // Gráfico: Atendimentos por Dia
+        $atendimentosPorDia = (clone $atendimentosNoPeriodo)
+            ->select(DB::raw('DATE(data_atendimento) as data'), DB::raw('COUNT(*) as total'))
+            ->groupBy('data')->orderBy('data', 'asc')->get();
+        $labelsAtendimentosDia = $atendimentosPorDia->pluck('data')->map(fn($d) => Carbon::parse($d)->format('d/m'));
+        $valoresAtendimentosDia = $atendimentosPorDia->pluck('total');
 
-        $valoresEmpresa = $assuntosPorEmpresa->pluck('total');
+        // Gráfico: Atendimentos por Técnico (CORRIGIDO)
+        $atendimentosPorTecnico = (clone $atendimentosNoPeriodo)
+            ->whereNotNull('funcionario_id')
+            ->with('funcionario:id,nome')
+            ->select('funcionario_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('funcionario_id')->orderBy('total', 'desc')->get();
 
-        // Serviço x Venda x Administrativo x Comercial
-        $assuntosPorTipo = Assunto::select('tipo', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('tipo')
-            ->groupBy('tipo')
-            ->get();
+        $labelsAtendimentosTecnico = $atendimentosPorTecnico->map(fn($item) => $item->funcionario->nome ?? 'Funcionário não identificado');
+        $valoresAtendimentosTecnico = $atendimentosPorTecnico->pluck('total');
 
-        $labelsTipo  = $assuntosPorTipo->pluck('tipo');
-        $valoresTipo = $assuntosPorTipo->pluck('total');
+        // Gráfico: Atendimentos por Status
+        $atendimentosPorStatus = (clone $atendimentosNoPeriodo)
+            ->select('status_atual', DB::raw('COUNT(*) as total'))
+            ->groupBy('status_atual')->get();
+        $labelsAtendimentosStatus = $atendimentosPorStatus->map(fn($i) => ucfirst(str_replace('_', ' ', $i->status_atual)));
+        $valoresAtendimentosStatus = $atendimentosPorStatus->pluck('total');
 
-        // Top 5 Categorias
-        $topCategorias = Assunto::select('categoria', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('categoria')
-            ->groupBy('categoria')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+        // Tabela: Cliente que mais abre atendimento (Top 5)
+        $topClientes = (clone $atendimentosNoPeriodo)
+            ->whereNotNull('cliente_id')->with('cliente:id,nome_fantasia')
+            ->select('cliente_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('cliente_id')->orderBy('total', 'desc')->limit(5)->get();
 
-        $labelsCategoria  = $topCategorias->pluck('categoria');
-        $valoresCategoria = $topCategorias->pluck('total');
+        // Gráfico: Assunto que mais abre atendimento (Top 5)
+        $topAssuntos = (clone $atendimentosNoPeriodo)
+            ->whereNotNull('assunto_id')
+            ->with('assunto:id,nome')
+            ->select('assunto_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('assunto_id')->orderBy('total', 'desc')->limit(5)->get();
 
-        /* ================= ATENDIMENTOS ================= */
+        $labelsTopAssuntos = $topAssuntos->map(fn($item) => $item->assunto->nome ?? 'Assunto não identificado');
+        $valoresTopAssuntos = $topAssuntos->pluck('total');
 
-        // Total de Chamados
-        $totalChamados = Atendimento::count();
-
-        // Chamados em Aberto
-        $chamadosAbertos = Atendimento::where('status_atual', 'aberto')->count();
-
-        // Chamados em Atendimento
-        $chamadosEmAtendimento = Atendimento::where('status_atual', 'em_atendimento')->count();
-
-        // Chamados Concluído
-        $chamadosConcluidos = Atendimento::where('status_atual', 'concluido')->count();
-
-        // Chamados por Empresa (para gráfico)
-        $chamadosPorEmpresa = Atendimento::select('empresa_id', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('empresa_id')
-            ->groupBy('empresa_id')
-            ->with('empresa:id,nome_fantasia,razao_social')
-            ->get();
-
-        $labelsChamadosEmpresa = $chamadosPorEmpresa->map(function ($item) {
-            return $item->empresa->nome_fantasia ?? $item->empresa->razao_social ?? 'Sem Empresa';
-        });
-
-        $valoresChamadosEmpresa = $chamadosPorEmpresa->pluck('total');
-
-        // Chamados por Status (para gráfico)
-        $chamadosPorStatus = Atendimento::select('status_atual', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('status_atual')
-            ->groupBy('status_atual')
-            ->get();
-
-        $labelsChamadosStatus = $chamadosPorStatus->map(function ($item) {
-            return ucfirst(str_replace('_', ' ', $item->status_atual));
-        });
-
-        $valoresChamadosStatus = $chamadosPorStatus->pluck('total');
-
-        // Chamados por Prioridade (para gráfico)
-        $chamadosPorPrioridade = Atendimento::select('prioridade', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('prioridade')
-            ->groupBy('prioridade')
-            ->get();
-
-        $labelsChamadosPrioridade = $chamadosPorPrioridade->map(function ($item) {
-            return ucfirst($item->prioridade);
-        });
-
+        // Gráfico: Chamados por Prioridade
+        $chamadosPorPrioridade = (clone $atendimentosNoPeriodo)
+            ->select('prioridade', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('prioridade')->groupBy('prioridade')->get();
+        $labelsChamadosPrioridade = $chamadosPorPrioridade->map(fn($i) => ucfirst($i->prioridade));
         $valoresChamadosPrioridade = $chamadosPorPrioridade->pluck('total');
 
+        // Gráfico: Chamados por Empresa
+        $labelsChamadosEmpresa = [];
+        $valoresChamadosEmpresa = [];
+        if (!$empresaId) {
+            $chamadosPorEmpresaData = (clone $atendimentosNoPeriodo)
+                ->whereNotNull('empresa_id')->with('empresa:id,nome_fantasia')
+                ->select('empresa_id', DB::raw('COUNT(*) as total'))
+                ->groupBy('empresa_id')->orderBy('total', 'desc')->limit(10)->get();
+            $labelsChamadosEmpresa = $chamadosPorEmpresaData->map(fn($i) => $i->empresa->nome_fantasia ?? 'N/A');
+            $valoresChamadosEmpresa = $chamadosPorEmpresaData->pluck('total');
+        }
+
+        // Retorna a view com todas as variáveis
         return view('dashboard', compact(
-            'totalClientes',
-            'clientesAtivos',
-            'clientesInativos',
-            'clientesContrato',
-            'clientesAvulso',
-            'receitaPrevista',
-            'receitaRealizada',
-            'clientesComCobranca',
-            'clientesComBoletoNaoBaixado',
-            'labelsEmpresa',
-            'valoresEmpresa',
-            'labelsTipo',
-            'valoresTipo',
-            'labelsCategoria',
-            'valoresCategoria',
-            'totalChamados',
+            'dataInicio',
+            'dataFim',
+            'empresaId',
+            'statusFiltro',
+            'empresas',
+            'todosStatus',
+            'metricasFiltradas',
             'chamadosAbertos',
             'chamadosEmAtendimento',
             'chamadosConcluidos',
-            'labelsChamadosEmpresa',
-            'valoresChamadosEmpresa',
-            'labelsChamadosStatus',
-            'valoresChamadosStatus',
+            'chamadosAguardando',
+            'labelsAtendimentosDia',
+            'valoresAtendimentosDia',
+            'labelsAtendimentosTecnico',
+            'valoresAtendimentosTecnico',
+            'labelsAtendimentosStatus',
+            'valoresAtendimentosStatus',
+            'topClientes',
+            'labelsTopAssuntos',
+            'valoresTopAssuntos',
             'labelsChamadosPrioridade',
-            'valoresChamadosPrioridade'
-        ));
-    }
-
-    public function comercial()
-    {
-        // Orçamentos por Status
-        $orcamentosPorStatus = Orcamento::select('status', DB::raw('COUNT(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        // Orçamentos por Empresa (valor total)
-        $orcamentosPorEmpresa = Orcamento::select(
-            'empresa_id',
-            DB::raw('SUM(valor_total) as total_valor'),
-            DB::raw('COUNT(*) as total_qtd')
-        )
-            ->whereNotNull('valor_total')
-            ->groupBy('empresa_id')
-            ->with('empresa')
-            ->get();
-
-        // Conversão
-        $aprovados = Orcamento::where('status', 'aprovado')->count();
-        $recusados = Orcamento::where('status', 'recusado')->count();
-
-        return view('dashboard-comercial.index', compact(
-            'orcamentosPorStatus',
-            'orcamentosPorEmpresa',
-            'aprovados',
-            'recusados'
+            'valoresChamadosPrioridade',
+            'labelsChamadosEmpresa',
+            'valoresChamadosEmpresa'
         ));
     }
 }

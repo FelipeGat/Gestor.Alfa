@@ -19,7 +19,8 @@ export default defineConfig({
                 'resources/css/orcamentos/edit.css',
 
                 // DASHBOARD
-                'resources/css/dashboard/dashboard.css',
+                'resources/css/dashboard/dashboard_comercial.css',
+                'resources/css/dashboard/dashboard_operacional.css',
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',
