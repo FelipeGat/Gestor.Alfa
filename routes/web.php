@@ -28,6 +28,7 @@ use App\Http\Controllers\ItemComercialController;
 
 
 
+
 /*
 |--------------------------------------------------------------------------
 | Redirecionamento inicial
@@ -154,6 +155,20 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         [BoletoController::class, 'upload']
     )->name('boletos.upload');
 });
+
+/*
+|--------------------------------------------------------------------------
+| PORTAL DO FINANCEIRO
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
+    ->prefix('financeiro')
+    ->name('financeiro.')
+    ->group(function () {
+
+        Route::get('/', [\App\Http\Controllers\FinanceiroController::class, 'index'])
+            ->name('dashboard');
+    });
 
 /*
 |--------------------------------------------------------------------------

@@ -7,162 +7,173 @@
     $isComercial = $user->tipo === 'comercial';
     $isCliente = $user->tipo === 'cliente';
     $isFuncionario = $user->tipo === 'funcionario';
+    $isFinanceiro = $user->perfis()->where('slug', 'financeiro')->exists();
     @endphp
 
-    <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
 
-            <!-- Left side -->
-            <div class="flex">
-
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    @if($isComercial)
-                    <a href="{{ route('dashboard.comercial') }}">
-                        @elseif($isAdmin)
-                        <a href="{{ route('dashboard') }}">
-                            @elseif($isCliente)
-                            <a href="{{ route('portal.index') }}">
-                                @else
-                                <a href="{{ route('portal-funcionario.dashboard') }}">
-                                    @endif
-                                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                                </a>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden sm:flex sm:ms-10 space-x-8 py-6">
-
-                    {{-- ================= ADMIN / COMERCIAL ================= --}}
-                    @if($isAdmin || $isComercial)
-
-                    <!-- Gestão -->
-                    <div x-data="{ openMenu: false }" class="relative">
-                        <button @click="openMenu = !openMenu"
-                            class="text-gray-600 hover:text-gray-800 font-medium">
-                            Gestão
-                        </button>
-
-                        <div x-show="openMenu" @click.outside="openMenu = false"
-                            class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
-
-                            <x-nav-link :href="route('dashboard')" class="block px-4 py-2">
-                                Dashboard Administrativo
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
-                                Dashboard Comercial
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
-                                Atendimentos
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
-                                Cobranças
-                            </x-nav-link>
-                        </div>
-                    </div>
-
-                    <!-- Cadastros -->
-                    <div x-data="{ openMenu: false }" class="relative">
-                        <button @click="openMenu = !openMenu"
-                            class="text-gray-600 hover:text-gray-800 font-medium">
-                            Cadastros
-                        </button>
-
-                        <div x-show="openMenu" @click.outside="openMenu = false"
-                            class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col">
-                            <x-nav-link :href="route('empresas.index')" class="block px-4 py-2">
-                                Empresas
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('funcionarios.index')" class="block px-4 py-2">
-                                Funcionários
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
-                                Clientes
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
-                                Assuntos
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('usuarios.index')" class="block px-4 py-2">
-                                Usuários
-                            </x-nav-link>
-                        </div>
-                    </div>
-
-                    <!-- Comercial -->
-                    <div x-data="{ openMenu: false }" class="relative">
-                        <button @click="openMenu = !openMenu"
-                            class="text-gray-600 hover:text-gray-800 font-medium">
-                            Comercial
-                        </button>
-
-                        <div x-show="openMenu" @click.outside="openMenu = false"
-                            class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col">
-                            <x-nav-link :href="route('orcamentos.index')" class="block px-4 py-2">
-                                Orçamentos
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('itemcomercial.index')" class="block px-4 py-2">
-                                Produtos / Serviços
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
-                                Pré-Clientes
-                            </x-nav-link>
-                        </div>
-                    </div>
-
-                    <!-- Relatórios -->
-                    <span class="text-gray-400 cursor-not-allowed">
-                        Relatórios
-                    </span>
-
+            {{-- LOGO --}}
+            <div class="flex items-center">
+                <a href="
+                    @if($isAdmin) {{ route('dashboard') }}
+                    @elseif($isFinanceiro) {{ route('financeiro.dashboard') }}
+                    @elseif($isComercial) {{ route('dashboard.comercial') }}
+                    @elseif($isCliente) {{ route('portal.index') }}
+                    @else {{ route('portal-funcionario.dashboard') }}
                     @endif
-
-                    {{-- ================= CLIENTE ================= --}}
-                    @if($isCliente)
-                    <x-nav-link
-                        :href="route('portal.index')"
-                        :active="request()->routeIs('portal.*')">
-                        Financeiro
-                    </x-nav-link>
-                    @endif
-
-                    {{-- ================= FUNCIONÁRIO ================= --}}
-                    @if($isFuncionario)
-                    <x-nav-link
-                        :href="route('portal-funcionario.atendimentos.index')"
-                        :active="request()->routeIs('portal-funcionario.*')">
-                        Meus Atendimentos
-                    </x-nav-link>
-                    @endif
-
-                </div>
+                ">
+                    <x-application-logo class="h-9 w-auto text-gray-800" />
+                </a>
             </div>
 
-            <!-- User Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            {{-- ================= DESKTOP MENU ================= --}}
+            <div class="hidden sm:flex sm:space-x-8 sm:items-center">
+
+                {{-- ============ GESTÃO ============ --}}
+                @if($isAdmin || $isComercial || $isFinanceiro || $isFuncionario)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                        Gestão
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false"
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+
+                        @if($isAdmin)
+                        <x-nav-link :href="route('dashboard')" class="block px-4 py-2">
+                            Dashboard Operacional
+                        </x-nav-link>
+                        @endif
+
+                        @if($isAdmin || $isComercial)
+                        <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
+                            Dashboard Comercial
+                        </x-nav-link>
+                        @endif
+
+                        @if($isFuncionario)
+                        <x-nav-link :href="route('portal-funcionario.dashboard')" class="block px-4 py-2">
+                            Dashboard Técnico
+                        </x-nav-link>
+                        @endif
+
+                        @if($isAdmin || $isFinanceiro)
+                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
+                            Dashboard Financeiro
+                        </x-nav-link>
+                        @endif
+
+                        @if($isAdmin || $isFuncionario)
+                        <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
+                            Atendimentos
+                        </x-nav-link>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ FINANCEIRO ============ --}}
+                @if($isAdmin || $isFinanceiro)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                        Financeiro
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false"
+                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
+
+                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
+                            Dashboard Financeiro
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
+                            Cobranças
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ COMERCIAL ============ --}}
+                @if($isAdmin || $isComercial)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                        Comercial
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false"
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+
+                        <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
+                            Dashboard Comercial
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('orcamentos.index')" class="block px-4 py-2">
+                            Orçamentos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('itemcomercial.index')" class="block px-4 py-2">
+                            Produtos / Serviços
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
+                            Pré-Clientes
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ CADASTROS ============ --}}
+                @if($isAdmin || $isFinanceiro || $isComercial)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                        Cadastros
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false"
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+
+                        @if($isAdmin)
+                        <x-nav-link :href="route('empresas.index')" class="block px-4 py-2">
+                            Empresas
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('funcionarios.index')" class="block px-4 py-2">
+                            Funcionários
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('usuarios.index')" class="block px-4 py-2">
+                            Usuários
+                        </x-nav-link>
+                        @endif
+
+                        <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
+                            Clientes
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
+                            Assuntos
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ RELATÓRIOS ============ --}}
+                @if($isAdmin)
+                <span class="text-gray-400 cursor-not-allowed">
+                    Relatórios
+                </span>
+                @endif
+
+
+            </div>
+
+            {{-- USER --}}
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 text-sm font-medium
-                            text-gray-500 bg-white hover:text-gray-700 transition">
-                            <div>{{ $user->name }}</div>
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586
-                                        l3.293-3.293a1 1 0 111.414 1.414
-                                        l-4 4a1 1 0 01-1.414 0l-4-4
-                                        a1 1 0 010-1.414z" />
-                                </svg>
-                            </div>
+                        <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500">
+                            {{ $user->name }}
                         </button>
                     </x-slot>
 
@@ -182,73 +193,81 @@
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = !open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400
-                    hover:text-gray-500 hover:bg-gray-100 transition">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{ 'hidden': open, 'inline-flex': !open }"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': !open, 'inline-flex': open }"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+            {{-- HAMBURGER --}}
+            <div class="flex items-center sm:hidden">
+                <button @click="open = !open" class="p-2 text-gray-500">
+                    ☰
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- ================= MENU MOBILE ================= --}}
-    <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
+    {{-- ================= MOBILE MENU (ANINHADO IGUAL AO DESKTOP) ================= --}}
+    <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
 
-        <div class="pt-2 pb-3 space-y-1">
-
-            @if($isAdmin || $isComercial)
-            <x-responsive-nav-link :href="route('dashboard.comercial')">
-                Dashboard Comercial
-            </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('clientes.index')">
-                Clientes
-            </x-responsive-nav-link>
-            @endif
-
-            @if($isCliente)
-            <x-responsive-nav-link :href="route('portal.index')">
-                Financeiro
-            </x-responsive-nav-link>
-            @endif
-
-            @if($isFuncionario)
-            <x-responsive-nav-link :href="route('portal-funcionario.atendimentos.index')">
-                Meus Atendimentos
-            </x-responsive-nav-link>
-            @endif
-
-        </div>
-
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ $user->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ $user->email }}</div>
+        {{-- Gestão --}}
+        @if($isAdmin || $isComercial || $isFinanceiro || $isFuncionario)
+        <details>
+            <summary class="font-medium text-gray-700">Gestão</summary>
+            <div class="pl-4 space-y-1">
+                @if($isAdmin)
+                <x-responsive-nav-link :href="route('dashboard')">Dashboard Operacional</x-responsive-nav-link>
+                @endif
+                @if($isAdmin || $isComercial)
+                <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
+                @endif
+                @if($isFuncionario)
+                <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Dashboard Técnico</x-responsive-nav-link>
+                @endif
+                @if($isAdmin || $isFinanceiro)
+                <x-responsive-nav-link :href="route('financeiro.dashboard')">Dashboard Financeiro</x-responsive-nav-link>
+                @endif
+                @if($isAdmin || $isFuncionario)
+                <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
+                @endif
             </div>
+        </details>
+        @endif
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    Editar Usuário
-                </x-responsive-nav-link>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault(); this.closest('form').submit();">
-                        Sair
-                    </x-responsive-nav-link>
-                </form>
+        {{-- Financeiro --}}
+        @if($isAdmin || $isFinanceiro)
+        <details>
+            <summary class="font-medium text-gray-700">Financeiro</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('financeiro.dashboard')">Dashboard Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
             </div>
-        </div>
+        </details>
+        @endif
+
+        {{-- Comercial --}}
+        @if($isAdmin || $isComercial)
+        <details>
+            <summary class="font-medium text-gray-700">Comercial</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('orcamentos.index')">Orçamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('itemcomercial.index')">Produtos / Serviços</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pre-clientes.index')">Pré-Clientes</x-responsive-nav-link>
+            </div>
+        </details>
+        @endif
+
+        {{-- Cadastros --}}
+        @if($isAdmin || $isFinanceiro || $isComercial)
+        <details>
+            <summary class="font-medium text-gray-700">Cadastros</summary>
+            <div class="pl-4 space-y-1">
+                @if($isAdmin)
+                <x-responsive-nav-link :href="route('empresas.index')">Empresas</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('funcionarios.index')">Funcionários</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('usuarios.index')">Usuários</x-responsive-nav-link>
+                @endif
+                <x-responsive-nav-link :href="route('clientes.index')">Clientes</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
+            </div>
+        </details>
+        @endif
 
     </div>
 </nav>

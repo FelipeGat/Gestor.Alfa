@@ -103,7 +103,7 @@ class User extends Authenticatable
 
     public function perfis()
     {
-        return $this->belongsToMany(Perfil::class, 'perfil_user');
+        return $this->belongsToMany(Perfil::class, 'perfil_user', 'user_id', 'perfil_id');
     }
 
     public function isAdminPanel(): bool

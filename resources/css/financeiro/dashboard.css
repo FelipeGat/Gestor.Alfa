@@ -1,0 +1,83 @@
+/* ===============================
+   DASHBOARD FINANCEIRO
+   =============================== */
+
+/* Ajustes gerais */
+body {
+    background-color: #f9fafb;
+}
+
+/* Cards */
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-card h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #6b7280; /* gray-500 */
+    text-transform: uppercase;
+}
+
+.dashboard-card p.valor {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
+    color: #1f2937; /* gray-800 */
+}
+
+.dashboard-card span.subinfo {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Cores por tipo */
+.card-receber {
+    border-left: 4px solid #6366f1; /* indigo-500 */
+}
+
+.card-pago {
+    border-left: 4px solid #10b981; /* emerald-500 */
+}
+
+.card-vencido {
+    border-left: 4px solid #ef4444; /* red-500 */
+}
+
+.card-hoje {
+    border-left: 4px solid #f59e0b; /* amber-500 */
+}
+
+/* Gráficos */
+.dashboard-chart {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-chart h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151; /* gray-700 */
+    margin-bottom: 1rem;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+    .dashboard-card p.valor {
+        font-size: 1.5rem;
+    }
+}
