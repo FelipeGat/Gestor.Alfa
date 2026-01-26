@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Cliente;
 use Carbon\Carbon;
 
 class Cobranca extends Model
@@ -26,6 +25,17 @@ class Cobranca extends Model
         'data_vencimento' => 'date',
     ];
 
+    /**
+     * Campos virtuais expostos automaticamente
+     */
+    protected $appends = [
+        'status_financeiro',
+    ];
+
+    /* =========================================================
+     | RELAÇÕES
+     ========================================================= */
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
@@ -34,16 +44,6 @@ class Cobranca extends Model
     public function preCliente()
     {
         return $this->belongsTo(PreCliente::class, 'pre_cliente_id');
-    }
-
-    public function emails()
-    {
-        return $this->hasMany(Email::class);
-    }
-
-    public function telefones()
-    {
-        return $this->hasMany(Telefone::class);
     }
 
     public function boleto()
@@ -56,21 +56,25 @@ class Cobranca extends Model
         return $this->belongsTo(Orcamento::class);
     }
 
+    /* =========================================================
+     | STATUS FINANCEIRO
+     ========================================================= */
+
     public function getStatusFinanceiroAttribute(): string
     {
+        // Se já foi pago, não depende de data
         if ($this->status === 'pago') {
             return 'pago';
         }
 
         $hoje = Carbon::today();
-        $vencimento = Carbon::parse($this->data_vencimento);
 
-        if ($hoje->lt($vencimento)) {
-            return 'a_vencer';
+        if ($this->data_vencimento->isToday()) {
+            return 'vence_hoje';
         }
 
-        if ($hoje->equalTo($vencimento)) {
-            return 'vence_hoje';
+        if ($this->data_vencimento->isFuture()) {
+            return 'a_vencer';
         }
 
         return 'vencido';

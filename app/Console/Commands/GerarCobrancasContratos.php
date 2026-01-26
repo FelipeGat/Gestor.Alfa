@@ -55,6 +55,7 @@ class GerarCobrancasContratos extends Command
 
             Cobranca::create([
                 'cliente_id'      => $cliente->id,
+                'orcamento_id'    => null,
                 'descricao'       => 'Mensalidade contrato',
                 'valor'           => $cliente->valor_mensal,
                 'data_vencimento' => $vencimento,

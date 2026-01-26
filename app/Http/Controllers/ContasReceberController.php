@@ -25,8 +25,15 @@ class ContasReceberController extends Controller
 
         $hoje = Carbon::today();
 
+        /*
+        |--------------------------------------------------------------------------
+        | KPIs (STATUS FINANCEIRO REAL)
+        |--------------------------------------------------------------------------
+        */
         $kpis = [
-            'a_receber' => Cobranca::where('status', '!=', 'pago')->sum('valor'),
+            'a_receber' => Cobranca::where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', '>', $hoje)
+                ->sum('valor'),
 
             'recebido' => Cobranca::where('status', 'pago')->sum('valor'),
 
@@ -39,6 +46,11 @@ class ContasReceberController extends Controller
                 ->sum('valor'),
         ];
 
+        /*
+        |--------------------------------------------------------------------------
+        | QUERY BASE
+        |--------------------------------------------------------------------------
+        */
         $query = Cobranca::with([
             'cliente.telefones',
             'orcamento',
@@ -52,37 +64,47 @@ class ContasReceberController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $query->where('descricao', 'like', "%{$search}%")
-                ->orWhereHas(
-                    'cliente',
-                    fn($q) =>
-                    $q->where('nome', 'like', "%{$search}%")
-                );
+            $query->where(function ($q) use ($search) {
+                $q->where('descricao', 'like', "%{$search}%")
+                    ->orWhereHas('cliente', function ($qc) use ($search) {
+                        $qc->where('nome', 'like', "%{$search}%");
+                    });
+            });
         }
 
         /*
         |--------------------------------------------------------------------------
-        | STATUS
+        | STATUS FINANCEIRO (DERIVADO)
         |--------------------------------------------------------------------------
         */
         if ($request->filled('status')) {
-            $query->whereIn('status', (array) $request->status);
+            foreach ((array) $request->status as $status) {
+                match ($status) {
+                    'pago' =>
+                    $query->where('status', 'pago'),
+
+                    'vencido' =>
+                    $query->where('status', '!=', 'pago')
+                        ->whereDate('data_vencimento', '<', $hoje),
+
+                    'vence_hoje' =>
+                    $query->where('status', '!=', 'pago')
+                        ->whereDate('data_vencimento', $hoje),
+
+                    'pendente', 'a_vencer' =>
+                    $query->where('status', '!=', 'pago')
+                        ->whereDate('data_vencimento', '>', $hoje),
+
+                    default => null,
+                };
+            }
         }
 
         /*
         |--------------------------------------------------------------------------
-        | PERÍODO
+        | ORDENAÇÃO + PAGINAÇÃO
         |--------------------------------------------------------------------------
         */
-        if ($request->filled('periodo')) {
-            match ($request->periodo) {
-                'vencidos' => $query->whereDate('data_vencimento', '<', $hoje),
-                'hoje'     => $query->whereDate('data_vencimento', $hoje),
-                'futuros'  => $query->whereDate('data_vencimento', '>', $hoje),
-                default    => null,
-            };
-        }
-
         $cobrancas = $query
             ->orderBy('data_vencimento')
             ->paginate(10)
