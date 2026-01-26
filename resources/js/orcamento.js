@@ -210,30 +210,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ================= CONDIÇÕES DE PAGAMENTO ================= */
-    const fpChecks = document.querySelectorAll('.fp-check');
+const fpChecks = document.querySelectorAll('.fp-check');
 
-    fpChecks.forEach(check => {
-        check.addEventListener('change', function () {
+fpChecks.forEach(check => {
+    check.addEventListener('change', function () {
 
-            // sobe até o bloco do método de pagamento
-            const container = this.closest('.flex.items-center');
-
-            if (!container) return;
-
-            const parcelasInput = container.querySelector('.fp-parcelas');
-
-            if (!parcelasInput) return;
-
-            if (this.checked) {
-                parcelasInput.disabled = false;
-                parcelasInput.focus();
-                parcelasInput.select();
-            } else {
-                parcelasInput.disabled = true;
-                parcelasInput.value = 1;
-            }
+        // Desabilita todos os campos de prazo
+        document.querySelectorAll('.fp-parcelas').forEach(input => {
+            input.disabled = true;
+            input.value = 1;
         });
+
+        // Habilita apenas o do método selecionado
+        const wrapper = this.closest('label');
+        if (!wrapper) return;
+
+        const parcelasInput = wrapper.querySelector('.fp-parcelas');
+        if (!parcelasInput) return;
+
+        parcelasInput.disabled = false;
+        parcelasInput.focus();
+        parcelasInput.select();
     });
+});
+
 
     /* ================= RENDER TABELA ================= */
     window.renderTabela = function () {

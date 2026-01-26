@@ -1,5 +1,4 @@
 <x-app-layout>
-
     @push('styles')
     @vite('resources/css/financeiro/contasareceber.css')
     @endpush
@@ -10,143 +9,158 @@
         </h2>
     </x-slot>
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-
-            {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="bg-white shadow rounded-lg p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-
-                    <div class="flex flex-col lg:col-span-6">
-                        <label class="text-sm font-medium text-gray-700 mb-2">
-                            🔍 Pesquisar Cobranças
-                        </label>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Cliente ou descrição"
-                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+    <div class="page-container">
+        {{-- ================= FILTROS ================= --}}
+        <div class="filter-card">
+            <form method="GET" action="{{ route('financeiro.contasareceber') }}">
+                <div class="filter-grid">
+                    {{-- Busca --}}
+                    <div class="lg:col-span-4">
+                        <label for="search" class="filter-label">Buscar por Cliente ou Descrição</label>
+                        <input type="text" id="search" name="search" value="{{ request('search') }}" placeholder="Ex: Invest, Manutenção..." class="filter-input">
                     </div>
-
-                    <div class="flex flex-col lg:col-span-3">
-                        <label class="text-sm font-medium text-gray-700 mb-2">
-                            📌 Status
-                        </label>
-                        <select name="status[]" multiple
-                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm h-32">
-                            <option value="pendente">Pendente</option>
-                            <option value="pago">Pago</option>
-                            <option value="vencido">Vencido</option>
-                        </select>
+                    {{-- Vencimento Início --}}
+                    <div class="lg:col-span-3">
+                        <label for="vencimento_inicio" class="filter-label">Vencimento (Início)</label>
+                        <input type="date" id="vencimento_inicio" name="vencimento_inicio" value="{{ request('vencimento_inicio') }}" class="filter-input">
                     </div>
-
-                    <div class="flex gap-3 lg:col-span-3 justify-end">
-                        <button class="btn btn-primary">🔍 Filtrar</button>
-                        <a href="{{ route('financeiro.contasareceber') }}"
-                            class="btn btn-secondary">🧹 Limpar</a>
+                    {{-- Vencimento Fim --}}
+                    <div class="lg:col-span-3">
+                        <label for="vencimento_fim" class="filter-label">Vencimento (Fim)</label>
+                        <input type="date" id="vencimento_fim" name="vencimento_fim" value="{{ request('vencimento_fim') }}" class="filter-input">
+                    </div>
+                    {{-- Ações --}}
+                    <div class="lg:col-span-2 filter-actions">
+                        <button type="submit" class="btn btn-primary w-full">Filtrar</button>
+                        <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary w-full">Limpar</a>
                     </div>
                 </div>
             </form>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="card">💰 A Receber<br>R$ {{ number_format($kpis['a_receber'],2,',','.') }}</div>
-                <div class="card text-green">✅ Recebido<br>R$ {{ number_format($kpis['recebido'],2,',','.') }}</div>
-                <div class="card text-red">⚠️ Vencido<br>R$ {{ number_format($kpis['vencido'],2,',','.') }}</div>
-                <div class="card text-yellow">📅 Vence Hoje<br>R$ {{ number_format($kpis['vence_hoje'],2,',','.') }}</div>
+            {{-- Filtros Rápidos de Status --}}
+            <div class="quick-filters">
+                <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['pendente']])) }}"
+                    class="quick-filter-btn status-pendente {{ in_array('pendente', request('status', [])) ? 'active' : '' }}">
+                    <span>Pendente</span>
+                    <span class="count">{{ $contadoresStatus['pendente'] }}</span>
+                </a>
+                <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['vencido']])) }}"
+                    class="quick-filter-btn status-vencido {{ in_array('vencido', request('status', [])) ? 'active' : '' }}">
+                    <span>Vencido</span>
+                    <span class="count">{{ $contadoresStatus['vencido'] }}</span>
+                </a>
+                <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['pago']])) }}"
+                    class="quick-filter-btn status-pago {{ in_array('pago', request('status', [])) ? 'active' : '' }}">
+                    <span>Pago</span>
+                    <span class="count">{{ $contadoresStatus['pago'] }}</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- ================= KPIs ================= --}}
+        <div class="kpi-grid mb-6">
+            <div class="kpi-card border-blue">
+                <div class="label">A Receber (no período)</div>
+                <div class="value">R$ {{ number_format($kpis['a_receber'], 2, ',', '.') }}</div>
+            </div>
+            <div class="kpi-card border-green">
+                <div class="label">Recebido (no período)</div>
+                <div class="value">R$ {{ number_format($kpis['recebido'], 2, ',', '.') }}</div>
+            </div>
+            <div class="kpi-card border-red">
+                <div class="label">Vencido (no período)</div>
+                <div class="value">R$ {{ number_format($kpis['vencido'], 2, ',', '.') }}</div>
+            </div>
+            <div class="kpi-card border-yellow">
+                <div class="label">Vence Hoje</div>
+                <div class="value">R$ {{ number_format($kpis['vence_hoje'], 2, ',', '.') }}</div>
+            </div>
+        </div>
+
+        {{-- ================= TABELA ================= --}}
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Vencimento</th>
+                            <th>Cliente</th>
+                            <th>Descrição</th>
+                            <th class="text-right">Valor</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $totalPagina = 0; @endphp
+                        @forelse($cobrancas as $cobranca)
+                        @php
+                        $totalPagina += $cobranca->valor;
+                        $statusClass = $cobranca->status_financeiro;
+                        @endphp
+                        <tr>
+                            <td data-label="Vencimento">
+                                <span class="status-indicator {{ $statusClass }}"></span>
+                                {{ $cobranca->data_vencimento->format('d/m/Y') }}
+                            </td>
+                            <td data-label="Cliente">
+                                {{ $cobranca->cliente?->nome_fantasia ?? '_' }}
+                            </td>
+                            <td data-label="Descrição">
+                                {{ $cobranca->descricao }}
+                                <small class="block text-gray-400">{{ $cobranca->orcamento_id ? 'Origem: Orçamento' : 'Origem: Contrato' }}</small>
+                            </td>
+                            <td data-label="Valor" class="text-right font-semibold">
+                                R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
+                            </td>
+                            <td data-label="Ações">
+                                <div class="table-actions">
+                                    @if($cobranca->status !== 'pago')
+                                    <form method="POST" action="{{ route('financeiro.contasareceber.pagar', $cobranca) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn action-btn btn-success">Confirmar Baixa</button>
+                                    </form>
+                                    @endif
+                                    {{-- <a href="{{ route('cobrancas.edit', $cobranca) }}" class="btn action-btn btn-icon" title="Editar">...</a> --}}
+                                    <form method="POST" action="{{ route('financeiro.contasareceber.destroy', $cobranca) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta cobrança?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn action-btn btn-icon" title="Excluir">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-12 text-gray-500">
+                                Nenhuma cobrança encontrada para os filtros aplicados.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
 
-            {{-- ================= TABELA ================= --}}
-            <div class="table-card">
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Categoria</th>
-                                <th>Cliente</th>
-                                <th>Telefone</th>
-                                <th>Valor</th>
-                                <th>Descrição</th>
-                                <th>Conta</th>
-                                <th>Forma Pgto</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($cobrancas as $cobranca)
-                            <tr>
-                                <td>{{ $cobranca->data_vencimento->format('d/m/Y') }}</td>
-
-                                <td>
-                                    @if($cobranca->orcamento)
-                                    Orçamento {{ $cobranca->orcamento->numero_orcamento }}
-                                    @else
-                                    Contrato
-                                    @endif
-                                </td>
-
-                                <td>{{ $cobranca->cliente->nome ?? '—'}}</td>
-
-                                <td>@if($cobranca->cliente)
-                                    {{ optional($cobranca->cliente->telefones->first())->valor ?? '-' }}
-                                    @else
-                                    {{ $pessoa->telefone ?? '-' }}
-                                    @endif
-                                </td>
-
-                                <td class="text-right">
-                                    R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
-                                </td>
-
-                                <td>
-                                    {{ $cobranca->orcamento->descricao ?? $cobranca->descricao }}
-                                </td>
-
-                                <td class="text-center">
-                                    @php
-                                    $status = $cobranca->status_financeiro;
-                                    @endphp
-
-                                    @if($status === 'pago')
-                                    <span class="badge badge-success">Pago</span>
-                                    @elseif($status === 'a_vencer')
-                                    <span class="badge badge-info">A vencer</span>
-                                    @elseif($status === 'vence_hoje')
-                                    <span class="badge badge-warning">Vence hoje</span>
-                                    @else
-                                    <span class="badge badge-danger">Vencido</span>
-                                    @endif
-                                </td>
-
-                                <td class="text-center">
-                                    {{ $cobranca->orcamento->forma_pagamento ?? '—' }}
-                                </td>
-
-                                <td>
-                                    <div class="table-actions">
-                                        <form method="POST"
-                                            action="{{ route('financeiro.contasareceber.destroy', $cobranca) }}"
-                                            onsubmit="return confirm('Deseja excluir esta cobrança?')"
-                                            style="display: flex; align-items: center; gap: 5px;">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            {{-- BOTÃO IMPRIMIR --}}
-                                            <a href="#" target="_blank" style="text-decoration: none;">
-                                                <button type="button" class="btn btn-sm btn-edit">🖨️ Imprimir</button>
-                                            </a>
-
-                                            {{-- BOTÃO EXCLUIR --}}
-                                            {{-- Este mantém o type="submit" (padrão) para enviar o form --}}
-                                            <button type="submit" class="btn btn-delete btn-sm">Excluir</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            {{-- Rodapé com Totais --}}
+            <div class="table-footer">
+                <div class="footer-total">
+                    <span class="label">Total na Página:</span>
+                    <span class="value">R$ {{ number_format($totalPagina, 2, ',', '.' ) }}</span>
+                </div>
+                <div class="footer-total">
+                    <span class="label">Total Geral (Filtrado):</span>
+                    <span class="value">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
                 </div>
             </div>
+        </div>
 
+        {{-- Paginação --}}
+        <div class="mt-6 px-4">
+            {{ $cobrancas->links() }}
         </div>
     </div>
 </x-app-layout>

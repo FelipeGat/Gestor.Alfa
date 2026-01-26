@@ -288,6 +288,31 @@
         @endif
 
         {{-- TOTAIS --}}
+        @php
+        $totalServicos = $servicos->sum('subtotal');
+        $totalProdutos = $produtos->sum('subtotal');
+
+        $desconto = $orcamento->desconto ?? 0;
+        $taxas = $orcamento->taxas ?? 0;
+
+        // Decodifica o JSON da descrição das taxas
+        $descricaoTaxasJson = $orcamento->descricao_taxas ?? null;
+        $descricaoTaxas = null;
+
+        if ($descricaoTaxasJson) {
+        $decoded = json_decode($descricaoTaxasJson, true);
+
+        // Se for array no formato [{"nome":"NF","valor":15}]
+        if (is_array($decoded) && isset($decoded[0]['nome'])) {
+        $descricaoTaxas = $decoded[0]['nome'];
+        }
+        }
+
+        $totalParcial = $totalServicos + $totalProdutos;
+        $totalFinal = $totalParcial - $desconto + $taxas;
+        @endphp
+
+        {{-- TOTAIS --}}
         <table class="totals-table">
             @if($totalServicos > 0)
             <tr>
@@ -304,12 +329,12 @@
             @if($orcamento->desconto > 0)
             <tr class="color-desconto">
                 <td class="label-cell">(-) Descontos:</td>
-                <td class="value-cell">R$ {{ number_format($orcamento->desconto, 2, ',', '.') }}</td>
+                <td class="value-cell">R$ {{ number_format($desconto, 2, ',', '.') }}</td>
             </tr>
             @endif
             @if($orcamento->taxas > 0)
             <tr class="color-taxa">
-                <td class="label-cell">(+) Taxas:</td>
+                <td class="label-cell">(+){{ $descricaoTaxas }}</td>
                 <td class="value-cell">R$ {{ number_format($orcamento->taxas, 2, ',', '.') }}</td>
             </tr>
             @endif
@@ -324,33 +349,36 @@
         <div class="payment-box">
             @php
             $fp = $orcamento->forma_pagamento;
-            $parcelasCredito = $orcamento->parcelas_credito ?? 1;
-            $parcelasBoleto = $orcamento->parcelas_boleto ?? 1;
+            $prazo = $orcamento->prazo_pagamento;
             @endphp
 
             @if($fp == 'pix')
             <strong>Pix:</strong> {{ $empresa->cnpj ?? 'Consultar CNPJ' }}<br>
             50% de Entrada e Restante na Entrega
+
             @elseif($fp == 'boleto')
-            <strong>Boleto Bancário:</strong> {{ $parcelasBoleto }} vezes
-            (Entrada
-            @for($i = 1; $i < $parcelasBoleto; $i++)
-                + {{ $i * 30 - 1 }} dias
-                @endfor)
-                @elseif($fp=='debito' )
-                <strong>Cartão de Débito:</strong> À vista
-                @elseif($fp == 'credito')
-                <strong>Cartão de Crédito:</strong> {{ $parcelasCredito }} vezes
-                @elseif($fp == 'faturado')
-                <strong>Boleto Bancário:</strong> Faturado para {{ $orcamento->prazo_faturamento ?? 'X' }} dias
-                @else
-                {{ $fp ?? 'A combinar com o vendedor' }}
-                @endif
+            <strong>Boleto Bancário:</strong>
+            {{ $prazo ?? 1 }} vez(es)
+
+            @elseif($fp == 'debito')
+            <strong>Cartão de Débito:</strong> À vista
+
+            @elseif($fp == 'credito')
+            <strong>Cartão de Crédito:</strong>
+            {{ $prazo ?? 1 }} vez(es)
+
+            @elseif($fp == 'faturado')
+            <strong>Boleto Bancário:</strong>
+            Faturado para {{ $prazo ?? 'X' }} dias
+
+            @else
+            {{ $fp ?? 'A combinar com o vendedor' }}
+            @endif
         </div>
 
         {{-- OBSERVAÇÕES --}}
         <div class="section-title">Observações e Termos</div>
-        <div style="padding: 0 10px;">
+        <div style="padding: 0px;">
             @if($orcamento->observacoes)
             <p><strong>OBSERVAÇÃO:</strong><br>{!! nl2br(e($orcamento->observacoes)) !!}</p>
             @endif
@@ -369,9 +397,9 @@
 
         {{-- FOOTER --}}
         <div class="footer-info" style="margin-top: 30px; text-align: center;">
-            <p>{{ $empresa->razao_social }} - CNPJ: {{ $empresa->cnpj }}<br>
-                {{ $empresa->endereco }} - {{ $empresa->cidade }}/{{ $empresa->estado }}<br>
-                Fone: ({{ $empresa->ddd }}) {{ $empresa->telefone }} | WhatsApp: ({{ $empresa->ddd }}) {{ $empresa->whatsapp }}
+            <p>{{ $empresa->razao_social }} <br> CNPJ: {{ $empresa->cnpj }}<br>
+                {{ $empresa->endereco }} - 79 {{ $empresa->cidade ?? 'Vila Velha' }} / {{ $empresa->estado ?? 'E.S'}}<br>
+                Fone: {{ $empresa->ddd ?? '(27) 4042 - 4157' }} | WhatsApp: {{ $empresa->ddd ?? '(27) 3109 - 3265'  }} {{ $empresa->whatsapp }}
             </p>
         </div>
     </div>

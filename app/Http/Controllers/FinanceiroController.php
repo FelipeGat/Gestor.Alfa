@@ -13,66 +13,78 @@ use Carbon\Carbon;
 
 class FinanceiroController extends Controller
 {
+    /**
+     * Exibe o painel principal do financeiro com orçamentos pendentes.
+     */
     public function index(Request $request)
     {
         /** @var User $user */
         $user = Auth::user();
 
+        // Sua lógica de segurança original foi mantida.
         abort_if(
-            ! $user->isAdminPanel()
-                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | ORÇAMENTOS NO PIPELINE FINANCEIRO
-        |--------------------------------------------------------------------------
-        */
-        $orcamentosFinanceiro = Orcamento::with(['cliente', 'preCliente', 'empresa'])
-            ->whereIn('status', ['financeiro', 'aguardando_pagamento'])
-            ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString();
-
-        /*
-        |--------------------------------------------------------------------------
-        | KPIs (BASEADOS NAS COBRANÇAS)
-        |--------------------------------------------------------------------------
-        */
+        // ================= KPIs GERAIS (Visão Global do Financeiro) =================
         $hoje = Carbon::today();
+        $kpisGerais = [
+            'total_receber' => Cobranca::where('status', '!=', 'pago')->sum('valor'),
+            'total_pago'    => Cobranca::where('status', 'pago')->sum('valor'),
+            'total_vencido' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', $hoje)->sum('valor'),
+            'vence_hoje'    => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
+        ];
 
-        $totalReceber = Cobranca::where('status', 'pendente')->sum('valor');
-        $totalPago    = Cobranca::where('status', 'pago')->sum('valor');
+        // ================= QUERY BASE PARA ORÇAMENTOS =================
+        $query = Orcamento::with(['cliente', 'preCliente', 'empresa'])
+            ->whereIn('status', ['financeiro', 'aguardando_pagamento']);
 
-        $totalVencido = Cobranca::where('status', 'pendente')
-            ->whereDate('data_vencimento', '<', $hoje)
-            ->sum('valor');
+        // ================= APLICAÇÃO DOS FILTROS =================
 
-        $venceHoje = Cobranca::where('status', 'pendente')
-            ->whereDate('data_vencimento', $hoje)
-            ->sum('valor');
+        // Filtro de Busca (Número do Orçamento, Cliente ou Pré-Cliente)
+        if ($request->filled('search')) {
+            $search = '%' . $request->input('search') . '%';
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_orcamento', 'like', $search)
+                    ->orWhereHas('cliente', fn($sq) => $sq->where('nome_fantasia', 'like', $search))
+                    ->orWhereHas('preCliente', fn($sq) => $sq->where('nome_fantasia', 'like', $search));
+            });
+        }
 
-        $qtdVencidos = Cobranca::where('status', 'pendente')
-            ->whereDate('data_vencimento', '<', $hoje)
-            ->count();
+        // Filtro de Empresa
+        if ($request->filled('empresa_id') && is_array($request->input('empresa_id'))) {
+            $query->whereIn('empresa_id', $request->input('empresa_id'));
+        }
 
-        $qtdVenceHoje = Cobranca::where('status', 'pendente')
-            ->whereDate('data_vencimento', $hoje)
-            ->count();
+        // Clonar query para contadores antes do filtro de status
+        $queryParaContadores = clone $query;
 
-        $empresas = Empresa::orderBy('nome_fantasia')->get();
+        // Filtro de Status
+        if ($request->filled('status') && is_array($request->input('status'))) {
+            $query->whereIn('status', $request->input('status'));
+        }
 
+        // ================= CÁLCULO DE TOTAIS E CONTADORES =================
+        $totalGeralFiltrado = (clone $query)->sum('valor_total');
+
+        $contadoresStatus = [
+            'financeiro' => (clone $queryParaContadores)->where('status', 'financeiro')->count(),
+            'aguardando_pagamento' => (clone $queryParaContadores)->where('status', 'aguardando_pagamento')->count(),
+        ];
+
+        // ================= PAGINAÇÃO =================
+        $orcamentos = $query->orderBy('updated_at', 'desc')->paginate(10)->withQueryString();
+        $empresas = Empresa::where('ativo', true)->orderBy('nome_fantasia')->get();
+
+        // Enviando todas as variáveis necessárias para a nova view
         return view('financeiro.index', compact(
-            'orcamentosFinanceiro',
-            'totalReceber',
-            'totalPago',
-            'totalVencido',
-            'venceHoje',
-            'qtdVencidos',
-            'qtdVenceHoje',
-            'empresas'
+            'kpisGerais',
+            'orcamentos',
+            'empresas',
+            'contadoresStatus',
+            'totalGeralFiltrado'
         ));
     }
 
@@ -83,12 +95,12 @@ class FinanceiroController extends Controller
     */
     public function gerarCobranca(Request $request, Orcamento $orcamento)
     {
+
         /** @var User $user */
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel()
-                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -106,19 +118,25 @@ class FinanceiroController extends Controller
             'Este orçamento já possui cobrança.'
         );
 
+        if (!$orcamento->cliente_id && $orcamento->pre_cliente_id) {
+            return redirect()
+                ->back()
+                ->with('error', 'Não é possível gerar cobrança para Pré-Clientes. Favor cadastrar como cliente.');
+        }
+
         $dados = $request->validate([
             'valor'           => ['required', 'numeric', 'min:0.01'],
             'data_vencimento' => ['required', 'date'],
             'descricao'       => ['nullable', 'string', 'max:255'],
         ]);
 
+
         DB::transaction(function () use ($orcamento, $dados) {
 
             Cobranca::create([
                 'orcamento_id'    => $orcamento->id,
-                'cliente_id'      => $orcamento->cliente_id, // pode ser null se for pré-cliente
-                'descricao'       => $dados['descricao']
-                    ?? 'Cobrança do orçamento ' . $orcamento->numero_orcamento,
+                'cliente_id'      => $orcamento->cliente_id,
+                'descricao'       => $dados['descricao'] ?? 'Cobrança do orçamento ' . $orcamento->numero_orcamento,
                 'valor'           => $dados['valor'],
                 'data_vencimento' => $dados['data_vencimento'],
                 'status'          => 'pendente',

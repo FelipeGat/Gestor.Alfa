@@ -222,24 +222,24 @@
                     <span class="company-name">{{ $empresa->nome_fantasia ?? $empresa->nome }}</span>
                     {{ $empresa->razao_social ?? '' }}<br>
                     CNPJ: {{ $empresa->cnpj ?? '-' }}<br>
-                    {{ $empresa->endereco ?? '' }}<br>
-                    {{ $empresa->bairro ?? '' }}, {{ $empresa->cidade ?? '' }}-{{ $empresa->estado ?? '' }}<br>
-                    CEP {{ $empresa->cep ?? '' }}
+                    {{ $empresa->endereco ?? '' }}, 79<br>
+                    {{ $empresa->bairro ?? 'CENTRO' }}, {{ $empresa->cidade ?? 'VILA VELHA' }}-{{ $empresa->estado ?? 'ES' }}<br>
+                    CEP {{ $empresa->cep ?? '29.100.190' }}
                 </td>
                 <td class="header-contacts" width="30%">
                     <div class="date-box">
                         {{ $orcamento->created_at->format('d/m/Y') }}
                     </div>
-                    {{ $empresa->email ?? 'contato@empresa.com.br' }}<br>
-                    +55 ({{ $empresa->ddd ?? '27' }}) {{ $empresa->telefone ?? '' }}<br>
-                    +55 ({{ $empresa->ddd ?? '27' }}) {{ $empresa->whatsapp ?? '' }}
+                    {{ $empresa->email ?? 'comercial.gw2024@gmail.com.br' }}<br>
+                    +55 ({{ $empresa->ddd ?? '27' }}) {{ $empresa->telefone ?? '4042 - 4157' }}<br>
+                    +55 ({{ $empresa->ddd ?? '27' }}) {{ $empresa->whatsapp ?? '3109 - 3265' }}
                 </td>
             </tr>
         </table>
 
         {{-- SOCIAL BAR --}}
         <div class="social-bar">
-            {{ $empresa->instagram ?? 'gwsolucoes' }}
+            {{ $empresa->instagram ?? '@gwsolucoes' }}
         </div>
 
         {{-- TITLE BAR --}}
@@ -299,7 +299,7 @@
             <tr>
                 <td width="50%">
                     <span class="label">Validade do orçamento</span><br>
-                    {{ $orcamento->validade_dias ?? '10' }} dias
+                    {{ $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') : '5 dias' }}
                 </td>
                 <td width="50%">
                     <span class="label">Prazo de execução</span><br>
@@ -378,31 +378,116 @@
         @php
         $totalServicos = $servicos->sum('subtotal');
         $totalProdutos = $produtos->sum('subtotal');
+
+        $desconto = $orcamento->desconto ?? 0;
+        $taxas = $orcamento->taxas ?? 0;
+
+        // Decodifica o JSON da descrição das taxas
+        $descricaoTaxasJson = $orcamento->descricao_taxas ?? null;
+        $descricaoTaxas = null;
+
+        if ($descricaoTaxasJson) {
+        $decoded = json_decode($descricaoTaxasJson, true);
+
+        // Se for array no formato [{"nome":"NF","valor":15}]
+        if (is_array($decoded) && isset($decoded[0]['nome'])) {
+        $descricaoTaxas = $decoded[0]['nome'];
+        }
+        }
+
+        $totalParcial = $totalServicos + $totalProdutos;
+        $totalFinal = $totalParcial - $desconto + $taxas;
         @endphp
+
+        <div class="section-title">Totais</div>
+
         <table class="totals-table">
             <tr>
                 <td class="label-cell">Serviços</td>
-                <td class="value-cell">R$ {{ number_format($totalServicos,2,',','.') }}</td>
+                <td class="value-cell">R$ {{ number_format($totalServicos, 2, ',', '.') }}</td>
             </tr>
+
             <tr>
                 <td class="label-cell">Materiais</td>
-                <td class="value-cell">R$ {{ number_format($totalProdutos,2,',','.') }}</td>
+                <td class="value-cell">R$ {{ number_format($totalProdutos, 2, ',', '.') }}</td>
             </tr>
+
+            @if($desconto > 0)
+            <tr>
+                <td class="label-cell">Descontos</td>
+                <td class="value-cell">- R$ {{ number_format($desconto, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+
+            @if($taxas > 0 && $descricaoTaxas)
+            <tr>
+                <td class="label-cell">{{ $descricaoTaxas }}</td>
+                <td class="value-cell">R$ {{ number_format($taxas, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+
             <tr class="total-row">
                 <td class="label-cell">Total</td>
-                <td class="value-cell">R$ {{ number_format($orcamento->valor_total,2,',','.') }}</td>
+                <td class="value-cell">
+                    R$ {{ number_format($totalFinal, 2, ',', '.') }}
+                </td>
             </tr>
         </table>
 
-        {{-- INFORMAÇÕES ADICIONAIS --}}
-        <div class="section-title">Informações adicionais</div>
-        <div style="font-size: 9px; margin-bottom: 20px;">
-            {{ $orcamento->observacoes ?? 'Execução de serviços por profissionais qualificados e treinados para cada área contratada.' }}
+        {{-- PAGAMENTO --}}
+        <div class="section-title">Condições de Pagamento</div>
+        <div class="payment-box">
+            @php
+            $fp = $orcamento->forma_pagamento;
+            $prazo = $orcamento->prazo_pagamento;
+            @endphp
+
+            @if($fp == 'pix')
+            <strong>Pix:</strong> {{ $empresa->cnpj ?? 'Consultar CNPJ' }}<br>
+            50% de Entrada e Restante na Entrega
+
+            @elseif($fp == 'boleto')
+            <strong>Boleto Bancário:</strong>
+            {{ $prazo ?? 1 }} vez(es)
+
+            @elseif($fp == 'debito')
+            <strong>Cartão de Débito:</strong> À vista
+
+            @elseif($fp == 'credito')
+            <strong>Cartão de Crédito:</strong>
+            {{ $prazo ?? 1 }} vez(es)
+
+            @elseif($fp == 'faturado')
+            <strong>Boleto Bancário:</strong>
+            Faturado para {{ $prazo ?? 'X' }} dias
+
+            @else
+            {{ $fp ?? 'A combinar com o vendedor' }}
+            @endif
+        </div>
+
+        {{-- OBSERVAÇÕES --}}
+        <div class="section-title">Observações e Termos</div>
+        <div style="padding: 0 10px;">
+            @if($orcamento->observacoes)
+            <p><strong>OBSERVAÇÕES:</strong><br>{!! nl2br(e($orcamento->observacoes)) !!}</p>
+            @endif
+
+            <div class="fixed-terms">
+
+                Orçamento Válido até <strong>{{ $orcamento->validade ? \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') : '5 dias' }}</strong>;<br>
+                Serviço conforme Conversado/Visita Técnica;<br>
+                Garantia Não Contempla Deslocamento;<br>
+                Serviços ou Materiais que não foram adicionadas no orçamento, <br>e forem necessários para andamento do serviço, será repassado como um orçamento adicional a este;<br>
+                Prazo para execução padrão é de 3 dias após o pagamento da entrada;<br>
+                Valores com desconto caso cliente opte para <strong>Recibo</strong>.<br>
+
+            </div>
         </div>
 
         {{-- DATA E LOCAL --}}
         <div class="center" style="margin-top: 20px; font-weight: bold;">
-            {{ $empresa->cidade ?? 'Viana' }}, {{ $orcamento->created_at->format('d/m/Y') }}
+            {{ $empresa->cidade ?? 'Vila Velha' }}, {{ $orcamento->created_at->format('d/m/Y') }}
         </div>
 
         {{-- ASSINATURAS --}}
@@ -425,10 +510,6 @@
                 </td>
             </tr>
         </table>
-
-        <div class="page-footer">
-            Página 1/1
-        </div>
     </div>
 
 </body>

@@ -16,104 +16,87 @@ class ContasReceberController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Sua lógica de segurança original foi mantida.
         abort_if(
-            ! $user->isAdminPanel()
-                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
 
-        $hoje = Carbon::today();
+        // ================= PREPARAÇÃO DA QUERY BASE =================
+        $query = Cobranca::with('cliente:id,nome_fantasia')
+            ->select('cobrancas.*')
+            ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id');
 
-        /*
-        |--------------------------------------------------------------------------
-        | KPIs (STATUS FINANCEIRO REAL)
-        |--------------------------------------------------------------------------
-        */
-        $kpis = [
-            'a_receber' => Cobranca::where('status', '!=', 'pago')
-                ->whereDate('data_vencimento', '>', $hoje)
-                ->sum('valor'),
+        // ================= APLICAÇÃO DOS FILTROS =================
 
-            'recebido' => Cobranca::where('status', 'pago')->sum('valor'),
-
-            'vencido' => Cobranca::where('status', '!=', 'pago')
-                ->whereDate('data_vencimento', '<', $hoje)
-                ->sum('valor'),
-
-            'vence_hoje' => Cobranca::where('status', '!=', 'pago')
-                ->whereDate('data_vencimento', $hoje)
-                ->sum('valor'),
-        ];
-
-        /*
-        |--------------------------------------------------------------------------
-        | QUERY BASE
-        |--------------------------------------------------------------------------
-        */
-        $query = Cobranca::with([
-            'cliente.telefones',
-            'orcamento',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | BUSCA
-        |--------------------------------------------------------------------------
-        */
+        // Filtro de Busca (Cliente ou Descrição)
         if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
-                $q->where('descricao', 'like', "%{$search}%")
-                    ->orWhereHas('cliente', function ($qc) use ($search) {
-                        $qc->where('nome', 'like', "%{$search}%");
-                    });
+            $searchTerm = '%' . $request->input('search') . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('clientes.nome_fantasia', 'like', $searchTerm)
+                    ->orWhere('cobrancas.descricao', 'like', $searchTerm);
             });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS FINANCEIRO (DERIVADO)
-        |--------------------------------------------------------------------------
-        */
-        if ($request->filled('status')) {
-            foreach ((array) $request->status as $status) {
-                match ($status) {
-                    'pago' =>
-                    $query->where('status', 'pago'),
-
-                    'vencido' =>
-                    $query->where('status', '!=', 'pago')
-                        ->whereDate('data_vencimento', '<', $hoje),
-
-                    'vence_hoje' =>
-                    $query->where('status', '!=', 'pago')
-                        ->whereDate('data_vencimento', $hoje),
-
-                    'pendente', 'a_vencer' =>
-                    $query->where('status', '!=', 'pago')
-                        ->whereDate('data_vencimento', '>', $hoje),
-
-                    default => null,
-                };
-            }
+        // Filtro de Período por Vencimento
+        if ($request->filled('vencimento_inicio')) {
+            $query->where('data_vencimento', '>=', $request->input('vencimento_inicio'));
+        }
+        if ($request->filled('vencimento_fim')) {
+            $query->where('data_vencimento', '<=', $request->input('vencimento_fim'));
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ORDENAÇÃO + PAGINAÇÃO
-        |--------------------------------------------------------------------------
-        */
-        $cobrancas = $query
-            ->orderBy('data_vencimento')
-            ->paginate(10)
-            ->withQueryString();
+        // Clonando a query *antes* do filtro de status para os contadores
+        $queryParaContadores = clone $query;
 
+        // Filtro de Status (pode ser um ou mais)
+        if ($request->filled('status') && is_array($request->input('status')) && !empty($request->input('status')[0])) {
+            $query->where(function ($q) use ($request) {
+                foreach ($request->input('status') as $status) {
+                    if ($status === 'pendente') {
+                        $q->orWhere(function ($sub) {
+                            $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today());
+                        });
+                    } elseif ($status === 'vencido') {
+                        $q->orWhere(function ($sub) {
+                            $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today());
+                        });
+                    } elseif ($status === 'pago') {
+                        $q->orWhere('status', 'pago');
+                    }
+                }
+            });
+        }
+
+        // ================= CÁLCULO DOS KPIs E TOTAIS (baseado na query com filtros) =================
+        $kpisQuery = (clone $query)->toBase();
+
+        $kpis = [
+            'a_receber' => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
+            'recebido'  => (clone $kpisQuery)->where('status', 'pago')->sum('valor'),
+            'vencido'   => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
+            'vence_hoje' => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', today())->sum('valor'),
+        ];
+
+        $totalGeralFiltrado = (clone $kpisQuery)->sum('valor');
+
+        // ================= DADOS PARA FILTROS RÁPIDOS (baseado na query *sem* filtro de status) =================
+        $contadoresStatus = [
+            'pendente' => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->count(),
+            'vencido'  => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
+            'pago'     => (clone $queryParaContadores)->where('status', 'pago')->count(),
+        ];
+
+        // ================= PAGINAÇÃO =================
+        $cobrancas = $query->orderBy('data_vencimento', 'desc')->paginate(15)->withQueryString();
+
+        // Enviando TODAS as variáveis necessárias para a view
         return view('financeiro.contasareceber', compact(
             'cobrancas',
-            'hoje',
-            'kpis'
+            'kpis',
+            'totalGeralFiltrado',
+            'contadoresStatus'
         ));
     }
 
@@ -142,22 +125,12 @@ class ContasReceberController extends Controller
     public function destroy(Cobranca $cobranca)
     {
         DB::transaction(function () use ($cobranca) {
-
-            if (
-                $cobranca->orcamento &&
-                $cobranca->orcamento->status === 'aguardando_pagamento'
-            ) {
-                $cobranca->orcamento->update([
-                    'status' => 'financeiro',
-                ]);
+            if ($cobranca->orcamento && $cobranca->orcamento->status === 'aguardando_pagamento') {
+                $cobranca->orcamento->update(['status' => 'financeiro']);
             }
-
             $cobranca->delete();
         });
 
-        return back()->with(
-            'success',
-            'Cobrança excluída e devolvida ao financeiro.'
-        );
+        return back()->with('success', 'Cobrança excluída e devolvida ao financeiro.');
     }
 }

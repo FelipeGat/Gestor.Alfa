@@ -33,6 +33,7 @@ class Orcamento extends Model
         'taxas',
         'descricao_taxas',
         'forma_pagamento',
+        'prazo_pagamento',
         'validade',
         'observacoes',
         'created_by',

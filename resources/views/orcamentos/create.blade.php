@@ -265,57 +265,107 @@
                             <div class="card-header">
                                 <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
                                     <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
                                     </svg>
                                     Condições de Pagamento
                                 </h3>
                             </div>
+
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                {{-- COLUNA 1 --}}
                                 <div class="space-y-3">
-                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
-                                        <input type="radio" name="forma_pagamento" value="pix" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">À Vista (Pix / Dinheiro)</span>
+
+                                    {{-- PIX / DINHEIRO --}}
+                                    <label
+                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="pix"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            À Vista (Pix / Dinheiro)
+                                        </span>
                                     </label>
 
-                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
-                                        <input type="radio" name="forma_pagamento" value="debito" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">Cartão de Débito</span>
+                                    {{-- DÉBITO --}}
+                                    <label
+                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="debito"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            Cartão de Débito
+                                        </span>
                                     </label>
+
                                 </div>
 
+                                {{-- COLUNA 2 --}}
                                 <div class="space-y-3">
-                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
-                                        <input type="radio" name="forma_pagamento" value="credito" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+
+                                    {{-- CRÉDITO --}}
+                                    <label
+                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="credito"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Cartão de Crédito</span>
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                                Cartão de Crédito
+                                            </span>
+
                                             <div class="flex items-center gap-1">
-                                                <input type="number" name="parcelas_credito" min="1" value="1" class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500" disabled onclick="event.stopPropagation()">
+                                                <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
+                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    disabled onclick="event.stopPropagation()">
+
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
                                             </div>
                                         </div>
                                     </label>
 
-                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
-                                        <input type="radio" name="forma_pagamento" value="boleto" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                    {{-- BOLETO --}}
+                                    <label
+                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="boleto"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Boleto</span>
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                                Boleto
+                                            </span>
+
                                             <div class="flex items-center gap-1">
-                                                <input type="number" name="parcelas_boleto" min="1" value="1" class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500" disabled onclick="event.stopPropagation()">
+                                                <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
+                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    disabled onclick="event.stopPropagation()">
+
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
                                             </div>
                                         </div>
                                     </label>
 
-                                    <label class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
-                                        <input type="radio" name="forma_pagamento" value="Faturado" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                    {{-- FATURADO --}}
+                                    <label
+                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        <input type="radio" name="forma_pagamento" value="faturado"
+                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">Faturado</span>
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                                Faturado
+                                            </span>
+
                                             <div class="flex items-center gap-1">
-                                                <input type="number" name="faturado" min="1" max="28" value="1" class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500" disabled onclick="event.stopPropagation()">
+                                                <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
+                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    disabled onclick="event.stopPropagation()">
+
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase">Dias</span>
                                             </div>
                                         </div>
                                     </label>
+
                                 </div>
                             </div>
                         </div>

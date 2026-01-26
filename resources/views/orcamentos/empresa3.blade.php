@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="utf-8">
     <style>
         @page {
             margin: 1cm;
         }
+
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             font-size: 11px;
@@ -14,42 +16,52 @@
             margin: 0;
             padding: 0;
         }
+
         .header-table {
             width: 100%;
             border-bottom: 2px solid #333;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
+
         .header-table td {
             vertical-align: top;
         }
+
         .logo-container {
             width: 150px;
         }
+
         .logo-container img {
             width: 120px;
         }
+
         .company-info {
             font-size: 10px;
             line-height: 1.2;
         }
+
         .company-name {
             font-weight: bold;
             font-size: 13px;
             display: block;
             margin-bottom: 2px;
         }
+
         .budget-info {
             text-align: right;
         }
+
         .budget-title {
             font-size: 18px;
             margin: 0;
         }
+
         .budget-date {
             font-size: 14px;
             margin: 5px 0;
         }
+
         .vendedor-info {
             font-size: 11px;
             margin-top: 10px;
@@ -70,6 +82,7 @@
             border-collapse: collapse;
             margin-bottom: 15px;
         }
+
         .items-table th {
             background-color: #f2f2f2;
             padding: 6px 5px;
@@ -78,35 +91,58 @@
             border: 1px solid #ddd;
             font-size: 10px;
         }
+
         .items-table td {
             padding: 5px;
             border: 1px solid #eee;
         }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         .totals-container {
             width: 100%;
             margin-top: 10px;
             border-collapse: collapse;
         }
+
         .total-row td {
             padding: 4px 8px;
         }
+
         .total-label {
             text-align: right;
             font-weight: bold;
             width: 85%;
         }
+
         .total-value {
             text-align: right;
             font-weight: bold;
             width: 15%;
             white-space: nowrap;
         }
-        .color-desconto { color: #0056b3; } /* Azul */
-        .color-taxa { color: #e67e22; } /* Laranja */
-        .color-total { font-size: 14px; border-top: 2px solid #333; padding-top: 8px !important; }
+
+        .color-desconto {
+            color: #0056b3;
+        }
+
+        /* Azul */
+        .color-taxa {
+            color: #e67e22;
+        }
+
+        /* Laranja */
+        .color-total {
+            font-size: 14px;
+            border-top: 2px solid #333;
+            padding-top: 8px !important;
+        }
 
         .payment-info {
             margin-top: 10px;
@@ -120,14 +156,17 @@
             margin-top: 15px;
             line-height: 1.5;
         }
+
         .obs-item {
             margin-bottom: 5px;
         }
+
         .fixed-terms {
             margin-top: 15px;
             font-size: 10px;
             color: #444;
         }
+
         .fixed-terms ul {
             padding-left: 15px;
             margin: 5px 0;
@@ -144,6 +183,7 @@
         }
     </style>
 </head>
+
 <body>
 
     {{-- CABEÇALHO --}}
@@ -151,16 +191,16 @@
         <tr>
             <td class="logo-container">
                 @if($empresa->logo)
-                    <img src="{{ public_path('images/logo/'.$empresa->logo) }}">
+                <img src="{{ public_path('images/logo/'.$empresa->logo) }}">
                 @endif
             </td>
             <td class="company-info">
                 <span class="company-name">{{ $empresa->razao_social ?? $empresa->nome }}</span>
                 {{ $empresa->nome_fantasia ?? '' }}<br>
                 CNPJ {{ $empresa->cnpj ?? '' }} - I.E. {{ $empresa->ie ?? '' }}<br>
-                {{ $empresa->endereco ?? '' }}<br>
-                {{ $empresa->bairro ?? '' }}, {{ $empresa->cidade ?? '' }} - {{ $empresa->estado ?? '' }} - CEP {{ $empresa->cep ?? '' }}<br>
-                ({{ $empresa->ddd ?? '27' }}) {{ $empresa->telefone ?? '' }} . WHATSAPP: ({{ $empresa->ddd ?? '27' }}) {{ $empresa->whatsapp ?? '' }}
+                {{ $empresa->endereco ?? '' }} , 79<br>
+                {{ $empresa->bairro ?? 'CENTRO' }}, {{ $empresa->cidade ?? 'VILA VELHA' }} - {{ $empresa->estado ?? 'ES' }} - CEP {{ $empresa->cep ?? '29.100.190' }}<br>
+                ({{ $empresa->ddd ?? '27' }}) {{ $empresa->telefone ?? '4042-4157' }} . WHATSAPP: ({{ $empresa->ddd ?? '27' }}) {{ $empresa->whatsapp ?? '3109-3265' }}
             </td>
             <td class="budget-info">
                 <h1 class="budget-title">Orçamento nº {{ $orcamento->numero_orcamento }}</h1>
@@ -177,79 +217,103 @@
     @php $pessoa = $orcamento->cliente ?? $orcamento->preCliente; @endphp
     <div style="margin-bottom: 15px;">
         <strong>CLIENTE:</strong> {{ strtoupper($pessoa->nome_fantasia ?? $pessoa->nome ?? $pessoa->razao_social ?? 'Não informado') }}<br>
-        <strong>CPF/CNPJ:</strong> {{ $pessoa->cpf_cnpj ?? '-' }} | <strong>FONE:</strong> 
+        <strong>CPF/CNPJ:</strong> {{ $pessoa->cpf_cnpj ?? '-' }} | <strong>FONE:</strong>
         @if($orcamento->cliente)
-            {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
+        {{ optional($orcamento->cliente->telefones->first())->valor ?? '-' }}
         @else
-            {{ $pessoa->telefone ?? '-' }}
+        {{ $pessoa->telefone ?? '-' }}
         @endif
         <br>
         <strong>ENDEREÇO:</strong> {{ $pessoa->logradouro ?? $pessoa->endereco ?? '-' }}, {{ $pessoa->numero ?? '-' }} - {{ $pessoa->bairro ?? '-' }} - {{ $pessoa->cidade ?? '-' }}/{{ $pessoa->estado ?? '-' }}
     </div>
 
-        <div class="obs-item">
-            <strong>DESCRIÇÃO:</strong> 
-            <br>{{ $orcamento->descricao }}
-        </div>
+    <div class="obs-item">
+        <strong>DESCRIÇÃO:</strong>
+        <br>{{ $orcamento->descricao }}
+    </div>
 
     @php
-        $servicos = $orcamento->itens->where('tipo', 'servico');
-        $produtos = $orcamento->itens->where('tipo', 'produto');
-        $totalServicos = $servicos->sum('subtotal');
-        $totalProdutos = $produtos->sum('subtotal');
+    $servicos = $orcamento->itens->where('tipo', 'servico');
+    $produtos = $orcamento->itens->where('tipo', 'produto');
+    $totalServicos = $servicos->sum('subtotal');
+    $totalProdutos = $produtos->sum('subtotal');
     @endphp
 
     {{-- BLOCO SERVIÇOS --}}
     @if($servicos->count() > 0)
-        <div class="section-header">Serviços</div>
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th width="60%">Serviço</th>
-                    <th width="10%" class="text-center">Qtd.</th>
-                    <th width="15%" class="text-right">Valor Un.</th>
-                    <th width="15%" class="text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($servicos as $item)
-                <tr>
-                    <td>{{ strtoupper($item->nome) }}</td>
-                    <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
-                    <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
-                    <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="section-header">Serviços</div>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="60%">Serviço</th>
+                <th width="10%" class="text-center">Qtd.</th>
+                <th width="15%" class="text-right">Valor Un.</th>
+                <th width="15%" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($servicos as $item)
+            <tr>
+                <td>{{ strtoupper($item->nome) }}</td>
+                <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
     @endif
 
     {{-- BLOCO PRODUTOS --}}
     @if($produtos->count() > 0)
-        <div class="section-header">Produtos / Materiais</div>
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th width="60%">Produto</th>
-                    <th width="10%" class="text-center">Qtd.</th>
-                    <th width="15%" class="text-right">Valor Un.</th>
-                    <th width="15%" class="text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($produtos as $item)
-                <tr>
-                    <td>{{ strtoupper($item->nome) }}</td>
-                    <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
-                    <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
-                    <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="section-header">Produtos / Materiais</div>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="60%">Produto</th>
+                <th width="10%" class="text-center">Qtd.</th>
+                <th width="15%" class="text-right">Valor Un.</th>
+                <th width="15%" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($produtos as $item)
+            <tr>
+                <td>{{ strtoupper($item->nome) }}</td>
+                <td class="text-center">{{ number_format($item->quantidade, 0, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($item->subtotal, 2, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
     @endif
 
     {{-- TOTAIS --}}
+    @php
+    $totalServicos = $servicos->sum('subtotal');
+    $totalProdutos = $produtos->sum('subtotal');
+
+    $desconto = $orcamento->desconto ?? 0;
+    $taxas = $orcamento->taxas ?? 0;
+
+    // Decodifica o JSON da descrição das taxas
+    $descricaoTaxasJson = $orcamento->descricao_taxas ?? null;
+    $descricaoTaxas = null;
+
+    if ($descricaoTaxasJson) {
+    $decoded = json_decode($descricaoTaxasJson, true);
+
+    // Se for array no formato [{"nome":"NF","valor":15}]
+    if (is_array($decoded) && isset($decoded[0]['nome'])) {
+    $descricaoTaxas = $decoded[0]['nome'];
+    }
+    }
+
+    $totalParcial = $totalServicos + $totalProdutos;
+    $totalFinal = $totalParcial - $desconto + $taxas;
+    @endphp
+
     <table class="totals-container">
         @if($totalServicos > 0)
         <tr class="total-row">
@@ -271,7 +335,7 @@
         @endif
         @if($orcamento->taxas > 0)
         <tr class="total-row color-taxa">
-            <td class="total-label">(+) Taxas:</td>
+            <td class="total-label">(+) {{ $descricaoTaxas }}</td>
             <td class="total-value">R$ {{ number_format($orcamento->taxas, 2, ',', '.') }}</td>
         </tr>
         @endif
@@ -281,32 +345,35 @@
         </tr>
     </table>
 
-    {{-- FORMA DE PAGAMENTO --}}
-    <div class="section-header">Forma de Pagamento</div>
-    <div class="payment-info">
+    {{-- PAGAMENTO --}}
+    <div class="section-title">Condições de Pagamento</div>
+    <div class="payment-box">
         @php
-            $fp = $orcamento->forma_pagamento;
-            $parcelasCredito = $orcamento->parcelas_credito ?? 1;
-            $parcelasBoleto = $orcamento->parcelas_boleto ?? 1;
+        $fp = $orcamento->forma_pagamento;
+        $prazo = $orcamento->prazo_pagamento;
         @endphp
 
         @if($fp == 'pix')
-            <strong>Pix:</strong> {{ $empresa->cnpj ?? 'Buscar CNPJ no cadastro' }}<br>
-            50% de Entrada e Restante na Entrega
+        <strong>Pix:</strong> {{ $empresa->cnpj ?? 'Consultar CNPJ' }}<br>
+        50% de Entrada e Restante na Entrega
+
         @elseif($fp == 'boleto')
-            <strong>Boleto Bancário:</strong> {{ $parcelasBoleto }} vezes 
-            (Entrada 
-            @for($i = 1; $i < $parcelasBoleto; $i++)
-                + {{ $i * 30 - 1 }} dias
-            @endfor)
+        <strong>Boleto Bancário:</strong>
+        {{ $prazo ?? 1 }} vez(es)
+
         @elseif($fp == 'debito')
-            <strong>Cartão de Débito:</strong> À vista
+        <strong>Cartão de Débito:</strong> À vista
+
         @elseif($fp == 'credito')
-            <strong>Cartão de Crédito:</strong> {{ $parcelasCredito }} vezes
+        <strong>Cartão de Crédito:</strong>
+        {{ $prazo ?? 1 }} vez(es)
+
         @elseif($fp == 'faturado')
-            <strong>Boleto Bancário:</strong> Faturado para {{ $orcamento->prazo_faturamento ?? 'X' }} dias
+        <strong>Boleto Bancário:</strong>
+        Faturado para {{ $prazo ?? 'X' }} dias
+
         @else
-            {{ $fp ?? 'A combinar' }}
+        {{ $fp ?? 'A combinar com o vendedor' }}
         @endif
     </div>
 
@@ -338,4 +405,5 @@
     </div>
 
 </body>
+
 </html>

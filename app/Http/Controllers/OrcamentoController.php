@@ -269,6 +269,7 @@ class OrcamentoController extends Controller
                 'taxas'           => $totalTaxasCalculado,
                 'descricao_taxas' => json_encode($taxasLista),
                 'forma_pagamento' => $request->forma_pagamento,
+                'prazo_pagamento' => $request->prazo_pagamento,
                 'observacoes'     => $request->observacoes,
                 'created_by'      => $user->id,
             ]);
@@ -464,6 +465,7 @@ class OrcamentoController extends Controller
                 'taxas'                  => $totalTaxasCalculado,
                 'descricao_taxas'        => json_encode($taxasLista),
                 'forma_pagamento'        => $request->forma_pagamento,
+                'prazo_pagamento'        => $request->prazo_pagamento,
                 'observacoes'            => $request->observacoes,
             ]);
 
