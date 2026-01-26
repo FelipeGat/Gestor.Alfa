@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,11 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard.comercial' => \App\Http\Middleware\DashboardComercialMiddleware::class,
             'dashboard.admin' => \App\Http\Middleware\DashboardAdminMiddleware::class,
             'financeiro' => \App\Http\Middleware\FinanceiroMiddleware::class,
-
-
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        // Geração automática de cobranças de contratos
+        $schedule->command('cobrancas:contratos')->daily();
     })
     ->create();

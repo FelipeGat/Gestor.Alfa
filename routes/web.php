@@ -24,9 +24,8 @@ use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\BuscaClienteController;
 use App\Http\Controllers\ItemComercialController;
-
-
-
+use App\Http\Controllers\ContasReceberController;
+use App\Http\Controllers\FinanceiroController;
 
 
 /*
@@ -171,28 +170,35 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     ->name('financeiro.')
     ->group(function () {
 
-        Route::get('/', [\App\Http\Controllers\FinanceiroController::class, 'index'])
+        // Dashboard financeiro
+        Route::get('/', [FinanceiroController::class, 'index'])
             ->name('index');
 
-        Route::get('/contas-a-receber', [\App\Http\Controllers\FinanceiroController::class, 'contasAReceber'])
+        // Contas a receber
+        Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])
             ->name('contasareceber');
 
-        Route::post(
-            '/orcamentos/{orcamento}/gerar-cobranca',
-            [\App\Http\Controllers\FinanceiroController::class, 'gerarCobranca']
-        )->name('orcamentos.gerar-cobranca');
+        Route::patch(
+            '/contas-a-receber/{cobranca}/pagar',
+            [ContasReceberController::class, 'pagar']
+        )->name('contasareceber.pagar');
 
         Route::delete(
-            '/cobrancas/{cobranca}',
-            [\App\Http\Controllers\FinanceiroController::class, 'destroyCobranca']
-        )->name('cobrancas.destroy');
-    });
+            '/contas-a-receber/{cobranca}',
+            [ContasReceberController::class, 'destroy']
+        )->name('contasareceber.destroy');
 
+        // Pipeline do orçamento
+        Route::post(
+            '/orcamentos/{orcamento}/gerar-cobranca',
+            [FinanceiroController::class, 'gerarCobranca']
+        )->name('orcamentos.gerar-cobranca');
+    });
 /*
-|--------------------------------------------------------------------------
-| PORTAL DO CLIENTE
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | PORTAL DO CLIENTE
+    |--------------------------------------------------------------------------
+    */
 Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
 
     Route::get('/portal', [PortalController::class, 'index'])

@@ -46,6 +46,13 @@
                 </div>
             </form>
 
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="card">💰 A Receber<br>R$ {{ number_format($kpis['a_receber'],2,',','.') }}</div>
+                <div class="card text-green">✅ Recebido<br>R$ {{ number_format($kpis['recebido'],2,',','.') }}</div>
+                <div class="card text-red">⚠️ Vencido<br>R$ {{ number_format($kpis['vencido'],2,',','.') }}</div>
+                <div class="card text-yellow">📅 Vence Hoje<br>R$ {{ number_format($kpis['vence_hoje'],2,',','.') }}</div>
+            </div>
+
             {{-- ================= TABELA ================= --}}
             <div class="table-card">
                 <div class="table-wrapper">
@@ -94,7 +101,19 @@
                                 </td>
 
                                 <td class="text-center">
-                                    <span class="badge badge-warning">Pendente</span>
+                                    @php
+                                    $status = $cobranca->status_financeiro;
+                                    @endphp
+
+                                    @if($status === 'pago')
+                                    <span class="badge badge-success">Pago</span>
+                                    @elseif($status === 'a_vencer')
+                                    <span class="badge badge-info">A vencer</span>
+                                    @elseif($status === 'vence_hoje')
+                                    <span class="badge badge-warning">Vence hoje</span>
+                                    @else
+                                    <span class="badge badge-danger">Vencido</span>
+                                    @endif
                                 </td>
 
                                 <td class="text-center">
@@ -104,7 +123,7 @@
                                 <td>
                                     <div class="table-actions">
                                         <form method="POST"
-                                            action="{{ route('financeiro.cobrancas.destroy', $cobranca) }}"
+                                            action="{{ route('financeiro.contasareceber.destroy', $cobranca) }}"
                                             onsubmit="return confirm('Deseja excluir esta cobrança?')"
                                             style="display: flex; align-items: center; gap: 5px;">
                                             @csrf

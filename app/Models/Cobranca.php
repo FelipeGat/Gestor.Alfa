@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Cliente;
+use Carbon\Carbon;
 
 class Cobranca extends Model
 {
@@ -53,5 +54,25 @@ class Cobranca extends Model
     public function orcamento()
     {
         return $this->belongsTo(Orcamento::class);
+    }
+
+    public function getStatusFinanceiroAttribute(): string
+    {
+        if ($this->status === 'pago') {
+            return 'pago';
+        }
+
+        $hoje = Carbon::today();
+        $vencimento = Carbon::parse($this->data_vencimento);
+
+        if ($hoje->lt($vencimento)) {
+            return 'a_vencer';
+        }
+
+        if ($hoje->equalTo($vencimento)) {
+            return 'vence_hoje';
+        }
+
+        return 'vencido';
     }
 }
