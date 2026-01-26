@@ -123,7 +123,19 @@
                         ✔️ Atualizar Pré-Cliente
                     </button>
                 </div>
+            </form>
+            {{-- CONVERTER PARA CLIENTE --}}
+            <form method="POST"
+                action="{{ route('pre-clientes.converter', $preCliente) }}"
+                onsubmit="return confirm('Deseja converter este pré-cliente em cliente?')"
+                class="mt-6">
 
+                @csrf
+
+                <button type="submit"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow">
+                    🔄 Converter para Cliente
+                </button>
             </form>
         </div>
     </div>

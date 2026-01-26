@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\PreCliente;
+use App\Models\Cliente;
+use App\Models\Orcamento;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PreClienteController extends Controller
 {
@@ -15,7 +18,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -27,8 +30,8 @@ class PreClienteController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('cpf_cnpj', 'like', "%{$search}%")
-                  ->orWhere('razao_social', 'like', "%{$search}%")
-                  ->orWhere('nome_fantasia', 'like', "%{$search}%");
+                    ->orWhere('razao_social', 'like', "%{$search}%")
+                    ->orWhere('nome_fantasia', 'like', "%{$search}%");
             });
         }
 
@@ -45,7 +48,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -56,15 +59,13 @@ class PreClienteController extends Controller
         ]);
     }
 
-
     public function store(Request $request)
     {
-
         /** @var User $user */
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -76,7 +77,6 @@ class PreClienteController extends Controller
             'nome_fantasia' => 'nullable|string|max:255',
             'email'         => 'nullable|email|max:255',
             'telefone'      => 'nullable|string|max:50',
-
             'cep'           => 'nullable|string|max:20',
             'logradouro'    => 'nullable|string|max:255',
             'numero'        => 'nullable|string|max:20',
@@ -93,7 +93,6 @@ class PreClienteController extends Controller
             'nome_fantasia' => $request->nome_fantasia,
             'email'         => $request->email,
             'telefone'      => $request->telefone,
-
             'cep'           => $request->cep,
             'logradouro'    => $request->logradouro,
             'numero'        => $request->numero,
@@ -101,7 +100,6 @@ class PreClienteController extends Controller
             'bairro'        => $request->bairro,
             'cidade'        => $request->cidade,
             'estado'        => $request->estado,
-
             'origem'        => 'manual',
             'created_by'    => $user->id,
         ]);
@@ -117,7 +115,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -131,7 +129,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -165,7 +163,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial']),
             403,
             'Acesso não autorizado'
         );
@@ -175,5 +173,62 @@ class PreClienteController extends Controller
         return redirect()
             ->route('pre-clientes.index')
             ->with('success', 'Pré-cliente excluído com sucesso.');
+    }
+
+    /**
+     * CONVERTE PRÉ-CLIENTE EM CLIENTE
+     */
+    public function converterParaCliente(PreCliente $preCliente)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! in_array($user->tipo, ['admin', 'comercial']),
+            403,
+            'Acesso não autorizado'
+        );
+
+        // Evita duplicar cliente
+        if (Cliente::where('cpf_cnpj', $preCliente->cpf_cnpj)->exists()) {
+            return back()->withErrors([
+                'cpf_cnpj' => 'Já existe um cliente com este CPF/CNPJ.',
+            ]);
+        }
+
+        DB::transaction(function () use ($preCliente, &$cliente) {
+
+            //  Cria o cliente
+            $cliente = Cliente::create([
+                'tipo_pessoa'   => $preCliente->tipo_pessoa,
+                'cpf_cnpj'      => $preCliente->cpf_cnpj,
+                'razao_social'  => $preCliente->razao_social,
+                'nome_fantasia' => $preCliente->nome_fantasia,
+                'nome'          => $preCliente->nome_fantasia
+                    ?: $preCliente->razao_social,
+                'email'         => $preCliente->email,
+                'telefone'      => $preCliente->telefone,
+                'cep'           => $preCliente->cep,
+                'logradouro'    => $preCliente->logradouro,
+                'numero'        => $preCliente->numero,
+                'bairro'        => $preCliente->bairro,
+                'cidade'        => $preCliente->cidade,
+                'estado'        => $preCliente->estado,
+            ]);
+
+            //  Atualiza orçamentos vinculados
+            Orcamento::where('pre_cliente_id', $preCliente->id)
+                ->update([
+                    'cliente_id'     => $cliente->id,
+                    'pre_cliente_id' => null,
+                ]);
+
+            //  Remove o pré-cliente
+            $preCliente->delete();
+        });
+
+        return redirect()
+            ->route('clientes.edit', $cliente)
+            ->with('success', 'Pré-cliente convertido em cliente com sucesso.');
     }
 }

@@ -13,6 +13,7 @@ class Cobranca extends Model
     protected $fillable = [
         'orcamento_id',
         'cliente_id',
+        'pre_cliente_id',
         'boleto_id',
         'descricao',
         'valor',
@@ -27,6 +28,11 @@ class Cobranca extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function preCliente()
+    {
+        return $this->belongsTo(PreCliente::class, 'pre_cliente_id');
     }
 
     public function emails()

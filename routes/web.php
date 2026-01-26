@@ -101,6 +101,11 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::resource('pre-clientes', PreClienteController::class)
         ->middleware(['dashboard.comercial']);
 
+    Route::post(
+        '/pre-clientes/{preCliente}/converter',
+        [\App\Http\Controllers\PreClienteController::class, 'converterParaCliente']
+    )->name('pre-clientes.converter');
+
     // Empresas
     Route::resource('empresas', EmpresaController::class);
 

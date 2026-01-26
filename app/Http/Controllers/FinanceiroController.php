@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Illuminate\Validation\ValidationException;
 
 class FinanceiroController extends Controller
 {
@@ -19,7 +18,6 @@ class FinanceiroController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Segurança (admin ou perfil financeiro)
         abort_if(
             ! $user->isAdminPanel()
                 && ! $user->perfis()->where('slug', 'financeiro')->exists(),
@@ -29,144 +27,98 @@ class FinanceiroController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | FILTROS
+        | ORÇAMENTOS NO PIPELINE FINANCEIRO
         |--------------------------------------------------------------------------
         */
-        $empresaId    = $request->get('empresa_id');
-        $statusFiltro = $request->get('status');
-
-        /*
-        |--------------------------------------------------------------------------
-        | ================== BLOCO 1 — ORÇAMENTOS (PIPELINE FINANCEIRO)
-        |--------------------------------------------------------------------------
-        */
-        $statusFinanceiros = [
-            'financeiro',
-            'aguardando_pagamento',
-        ];
-
         $orcamentoQuery = Orcamento::query()
-            ->whereIn('status', $statusFinanceiros);
+            ->where('status', 'financeiro')
+            ->with(['cliente', 'preCliente', 'empresa']);
 
-        if ($empresaId) {
-            $orcamentoQuery->where('empresa_id', $empresaId);
+        // 🔍 Busca
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $orcamentoQuery->where(function ($q) use ($search) {
+                $q->where('numero_orcamento', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'cliente',
+                        fn($c) =>
+                        $c->where('nome', 'like', "%{$search}%")
+                    )
+                    ->orWhereHas(
+                        'preCliente',
+                        fn($p) =>
+                        $p->where('nome_fantasia', 'like', "%{$search}%")
+                    );
+            });
         }
 
-        if ($statusFiltro) {
-            $orcamentoQuery->where('status', $statusFiltro);
+        // 🏢 Empresa (múltiplo)
+        if ($request->filled('empresa_id')) {
+            $orcamentoQuery->whereIn('empresa_id', (array) $request->empresa_id);
         }
 
-        // KPIs
-        $qtdFinanceiro = (clone $orcamentoQuery)->where('status', 'financeiro')->count();
-        $qtdAguardandoPagamento = (clone $orcamentoQuery)->where('status', 'aguardando_pagamento')->count();
-
-        $valorTotalAberto = (clone $orcamentoQuery)->sum('valor_total');
-
-        $metricasFiltradas = (clone $orcamentoQuery)
-            ->selectRaw('COUNT(*) as qtd, SUM(valor_total) as valor_total')
-            ->first();
-
-        // Gráfico por status
-        $orcamentosPorStatus = (clone $orcamentoQuery)
-            ->select('status', DB::raw('COUNT(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
-
-        // Gráfico por empresa
-        $orcamentosPorEmpresa = (clone $orcamentoQuery)
-            ->select(
-                'empresa_id',
-                DB::raw('COUNT(*) as total_qtd'),
-                DB::raw('SUM(valor_total) as total_valor')
-            )
-            ->groupBy('empresa_id')
-            ->with('empresa')
-            ->get();
-
-        // Lista para ação do financeiro
-        $orcamentosFinanceiro = (clone $orcamentoQuery)
-            ->with(['cliente', 'preCliente'])
-            ->orderBy('created_at')
-            ->limit(10)
-            ->get();
+        $orcamentosFinanceiro = $orcamentoQuery
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         /*
         |--------------------------------------------------------------------------
-        | ================== BLOCO 2 — COBRANÇAS (FINANCEIRO REAL)
+        | KPIs FINANCEIROS (COBRANÇAS)
         |--------------------------------------------------------------------------
         */
         $hoje = Carbon::today();
 
-        $cobrancaQuery = Cobranca::with('cliente');
+        $cobrancaBase = Cobranca::query();
 
-        $totalReceber = (clone $cobrancaQuery)
+        $totalReceber = (clone $cobrancaBase)
             ->where('status', 'pendente')
             ->sum('valor');
 
-        $totalPago = (clone $cobrancaQuery)
+        $totalPago = (clone $cobrancaBase)
             ->where('status', 'pago')
             ->sum('valor');
 
-        $totalVencido = (clone $cobrancaQuery)
+        $totalVencido = (clone $cobrancaBase)
             ->where('status', 'pendente')
             ->whereDate('data_vencimento', '<', $hoje)
             ->sum('valor');
 
-        $venceHoje = (clone $cobrancaQuery)
+        $venceHoje = (clone $cobrancaBase)
             ->where('status', 'pendente')
             ->whereDate('data_vencimento', $hoje)
             ->sum('valor');
 
-        $qtdVencidos = (clone $cobrancaQuery)
+        $qtdVencidos = (clone $cobrancaBase)
             ->where('status', 'pendente')
             ->whereDate('data_vencimento', '<', $hoje)
             ->count();
 
-        $qtdVenceHoje = (clone $cobrancaQuery)
+        $qtdVenceHoje = (clone $cobrancaBase)
             ->where('status', 'pendente')
             ->whereDate('data_vencimento', $hoje)
             ->count();
 
-        $cobrancasPendentes = (clone $cobrancaQuery)
-            ->where('status', 'pendente')
-            ->orderBy('data_vencimento')
-            ->limit(10)
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | AUXILIARES
-        |--------------------------------------------------------------------------
-        */
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
         return view('financeiro.index', compact(
-            // filtros
-            'empresas',
-            'empresaId',
-            'statusFiltro',
-
-            // orçamentos
-            'qtdFinanceiro',
-            'qtdAguardandoPagamento',
-            'valorTotalAberto',
-            'metricasFiltradas',
-            'orcamentosPorStatus',
-            'orcamentosPorEmpresa',
             'orcamentosFinanceiro',
-
-            // cobranças
+            'empresas',
             'totalReceber',
             'totalPago',
             'totalVencido',
             'venceHoje',
             'qtdVencidos',
-            'qtdVenceHoje',
-            'cobrancasPendentes'
+            'qtdVenceHoje'
         ));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | GERAR COBRANÇA
+    |--------------------------------------------------------------------------
+    */
     public function gerarCobranca(Request $request, Orcamento $orcamento)
     {
         /** @var User $user */
@@ -179,7 +131,6 @@ class FinanceiroController extends Controller
             'Acesso não autorizado'
         );
 
-        // Garante estado atualizado
         $orcamento->refresh();
 
         // Só pode gerar cobrança se estiver no financeiro
@@ -189,9 +140,16 @@ class FinanceiroController extends Controller
             'Este orçamento não está mais disponível para cobrança.'
         );
 
-        // Não permitir cobrança duplicada
+        // BLOQUEIA PRÉ-CLIENTE
         abort_if(
-            $orcamento->cobranca,
+            is_null($orcamento->cliente_id),
+            422,
+            'Este orçamento é de um pré-cliente. Converta-o em cliente antes de gerar a cobrança.'
+        );
+
+        // Evita cobrança duplicada
+        abort_if(
+            $orcamento->cobranca()->exists(),
             422,
             'Este orçamento já possui cobrança.'
         );
@@ -214,7 +172,6 @@ class FinanceiroController extends Controller
                 'status'          => 'pendente',
             ]);
 
-            // Avança o fluxo
             $orcamento->update([
                 'status' => 'aguardando_pagamento',
             ]);
@@ -225,39 +182,11 @@ class FinanceiroController extends Controller
             ->with('success', 'Cobrança gerada com sucesso.');
     }
 
-
-    public function destroyCobranca(Cobranca $cobranca)
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        abort_if(
-            ! $user->isAdminPanel()
-                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403,
-            'Acesso não autorizado'
-        );
-
-        DB::transaction(function () use ($cobranca) {
-
-            // Se a cobrança veio de um orçamento,
-            // devolve o orçamento para o financeiro
-            if ($cobranca->orcamento && $cobranca->orcamento->status === 'aguardando_pagamento') {
-                $cobranca->orcamento->update([
-                    'status' => 'financeiro',
-                ]);
-            }
-
-            // Exclui a cobrança
-            $cobranca->delete();
-        });
-
-        return redirect()
-            ->route('financeiro.contasareceber')
-            ->with('success', 'Cobrança excluída e orçamento devolvido ao financeiro.');
-    }
-
-
+    /*
+    |--------------------------------------------------------------------------
+    | CONTAS A RECEBER
+    |--------------------------------------------------------------------------
+    */
     public function contasAReceber(Request $request)
     {
         /** @var User $user */
@@ -272,11 +201,6 @@ class FinanceiroController extends Controller
 
         $hoje = Carbon::today();
 
-        /*
-    |--------------------------------------------------------------------------
-    | QUERY BASE
-    |--------------------------------------------------------------------------
-    */
         $query = Cobranca::query()
             ->with([
                 'cliente.telefones',
@@ -284,61 +208,41 @@ class FinanceiroController extends Controller
                 'orcamento',
             ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | FILTRO DE BUSCA
-    |--------------------------------------------------------------------------
-    */
+        // 🔍 Busca
         if ($request->filled('search')) {
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
                 $q->where('descricao', 'like', "%{$search}%")
-                    ->orWhereHas('cliente', function ($qc) use ($search) {
-                        $qc->where('nome', 'like', "%{$search}%");
-                    });
+                    ->orWhereHas(
+                        'cliente',
+                        fn($c) =>
+                        $c->where('nome', 'like', "%{$search}%")
+                    )
+                    ->orWhereHas(
+                        'orcamento',
+                        fn($o) =>
+                        $o->where('numero_orcamento', 'like', "%{$search}%")
+                    );
             });
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | FILTRO POR STATUS
-    |--------------------------------------------------------------------------
-    */
+        // 📌 Status
         if ($request->filled('status')) {
             $query->whereIn('status', (array) $request->status);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | FILTRO POR PERÍODO (VENCIMENTO)
-    |--------------------------------------------------------------------------
-    */
+        // 📅 Período
         if ($request->filled('periodo')) {
-            switch ($request->periodo) {
-                case 'dia':
-                    $query->whereDate('data_vencimento', $hoje);
-                    break;
-
-                case 'semana':
-                    $query->whereBetween('data_vencimento', [
-                        $hoje->startOfWeek(),
-                        $hoje->endOfWeek(),
-                    ]);
-                    break;
-
-                case 'mes':
-                    $query->whereMonth('data_vencimento', $hoje->month)
-                        ->whereYear('data_vencimento', $hoje->year);
-                    break;
-            }
+            match ($request->periodo) {
+                'dia'    => $query->whereDate('data_vencimento', $hoje),
+                'semana' => $query->whereBetween('data_vencimento', [$hoje->startOfWeek(), $hoje->endOfWeek()]),
+                'mes'    => $query->whereMonth('data_vencimento', $hoje->month)
+                    ->whereYear('data_vencimento', $hoje->year),
+                default  => null
+            };
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | PAGINAÇÃO
-    |--------------------------------------------------------------------------
-    */
         $cobrancas = $query
             ->orderBy('data_vencimento')
             ->paginate(10)
@@ -348,5 +252,37 @@ class FinanceiroController extends Controller
             'cobrancas',
             'hoje'
         ));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EXCLUIR COBRANÇA
+    |--------------------------------------------------------------------------
+    */
+    public function destroyCobranca(Cobranca $cobranca)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel()
+                && ! $user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        DB::transaction(function () use ($cobranca) {
+            if ($cobranca->orcamento && $cobranca->orcamento->status === 'aguardando_pagamento') {
+                $cobranca->orcamento->update([
+                    'status' => 'financeiro',
+                ]);
+            }
+
+            $cobranca->delete();
+        });
+
+        return redirect()
+            ->route('financeiro.contasareceber')
+            ->with('success', 'Cobrança excluída e orçamento devolvido ao financeiro.');
     }
 }

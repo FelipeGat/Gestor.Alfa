@@ -72,6 +72,60 @@
                     </h3>
                 </div>
 
+                <form method="GET" class="bg-white shadow rounded-lg p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+
+                        {{-- 🔍 PESQUISA --}}
+                        <div class="flex flex-col lg:col-span-6">
+                            <label class="text-sm font-medium text-gray-700 mb-2">
+                                🔍 Pesquisar Orçamentos
+                            </label>
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Número ou Cliente"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        </div>
+
+                        {{-- 📌 STATUS --}}
+                        <div class="flex flex-col lg:col-span-3">
+                            <label class="text-sm font-medium text-gray-700 mb-2">
+                                📌 Status
+                            </label>
+                            <select name="status[]" multiple
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm h-32">
+                                <option value="financeiro" @selected(collect(request('status'))->contains('financeiro'))>
+                                    Financeiro
+                                </option>
+                                <option value="aguardando_pagamento" @selected(collect(request('status'))->contains('aguardando_pagamento'))>
+                                    Aguardando Pagamento
+                                </option>
+                            </select>
+                        </div>
+
+                        {{-- 🏢 EMPRESA --}}
+                        <div class="flex flex-col lg:col-span-3">
+                            <label class="text-sm font-medium text-gray-700 mb-2">
+                                🏢 Empresa
+                            </label>
+                            <select name="empresa_id[]" multiple
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm h-32">
+                                @foreach($empresas as $empresa)
+                                <option value="{{ $empresa->id }}"
+                                    @selected(collect(request('empresa_id'))->contains($empresa->id))>
+                                    {{ $empresa->nome_fantasia }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- 🔘 BOTÕES --}}
+                        <div class="flex gap-3 lg:col-span-12 justify-end">
+                            <button class="btn btn-primary">🔍 Filtrar</button>
+                            <a href="{{ route('financeiro.index') }}" class="btn btn-secondary">🧹 Limpar</a>
+                        </div>
+                    </div>
+                </form>
+
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
@@ -130,6 +184,39 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="pagination-wrapper">
+                <div class="pagination-info">
+                    Mostrando <strong>{{ $orcamentosFinanceiro->count() }}</strong> de
+                    <strong>{{ $orcamentosFinanceiro->total() }}</strong> Orçamentos
+                </div>
+
+                <div class="pagination-links">
+                    @if($orcamentosFinanceiro->onFirstPage())
+                    <span class="pagination-link disabled">← Anterior</span>
+                    @else
+                    <a href="{{ $orcamentosFinanceiro->previousPageUrl() }}" class="pagination-link">
+                        ← Anterior
+                    </a>
+                    @endif
+
+                    @foreach($orcamentosFinanceiro->getUrlRange(1, $orcamentosFinanceiro->lastPage()) as $page => $url)
+                    @if($page == $orcamentosFinanceiro->currentPage())
+                    <span class="pagination-link active">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="pagination-link">{{ $page }}</a>
+                    @endif
+                    @endforeach
+
+                    @if($orcamentosFinanceiro->hasMorePages())
+                    <a href="{{ $orcamentosFinanceiro->nextPageUrl() }}" class="pagination-link">
+                        Próximo →
+                    </a>
+                    @else
+                    <span class="pagination-link disabled">Próximo →</span>
+                    @endif
                 </div>
             </div>
         </div>

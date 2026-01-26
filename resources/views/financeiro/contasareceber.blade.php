@@ -56,7 +56,6 @@
                                 <th>Categoria</th>
                                 <th>Cliente</th>
                                 <th>Telefone</th>
-                                <th>Email</th>
                                 <th>Valor</th>
                                 <th>Descrição</th>
                                 <th>Conta</th>
@@ -83,13 +82,6 @@
                                     {{ optional($cobranca->cliente->telefones->first())->valor ?? '-' }}
                                     @else
                                     {{ $pessoa->telefone ?? '-' }}
-                                    @endif
-                                </td>
-
-                                <td>@if($cobranca->cliente)
-                                    {{ optional($cobranca->cliente->emails->first())->valor ?? '-' }}
-                                    @else
-                                    {{ $pessoa->email ?? '-' }}
                                     @endif
                                 </td>
 
