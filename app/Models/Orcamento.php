@@ -121,8 +121,8 @@ class Orcamento extends Model
         return $this->hasMany(OrcamentoPagamento::class);
     }
 
-    public function orcamento()
+    public function cobranca()
     {
-        return $this->belongsTo(\App\Models\Orcamento::class);
+        return $this->hasOne(\App\Models\Cobranca::class);
     }
 }

@@ -11,6 +11,7 @@ class Cobranca extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'orcamento_id',
         'cliente_id',
         'boleto_id',
         'descricao',
@@ -28,13 +29,23 @@ class Cobranca extends Model
         return $this->belongsTo(Cliente::class);
     }
 
+    public function emails()
+    {
+        return $this->hasMany(Email::class);
+    }
+
+    public function telefones()
+    {
+        return $this->hasMany(Telefone::class);
+    }
+
     public function boleto()
     {
         return $this->belongsTo(Boleto::class, 'boleto_id');
     }
 
-    public function cobranca()
+    public function orcamento()
     {
-        return $this->hasOne(\App\Models\Cobranca::class);
+        return $this->belongsTo(Orcamento::class);
     }
 }

@@ -553,6 +553,13 @@ class OrcamentoController extends Controller
             'Acesso não autorizado'
         );
 
+        // TRAVA FINANCEIRA
+        if (\App\Models\Cobranca::where('descricao', 'like', "%{$orcamento->numero_orcamento}%")->exists()) {
+            return back()->withErrors([
+                'delete' => 'Este orçamento possui cobrança vinculada. Solicite ao financeiro a exclusão da cobrança antes de remover o orçamento.'
+            ]);
+        }
+
         $orcamento->delete();
 
         return redirect()
@@ -599,32 +606,6 @@ class OrcamentoController extends Controller
             $orcamento->update([
                 'status' => $novoStatus,
             ]);
-
-            /*
-        |--------------------------------------------------------------------------
-        | QUANDO ENTRA NO FINANCEIRO → CRIA COBRANÇA
-        |--------------------------------------------------------------------------
-        */
-            if ($novoStatus === 'financeiro' && !$orcamento->cobranca) {
-
-                \App\Models\Cobranca::create([
-                    'orcamento_id'   => $orcamento->id,
-                    'cliente_id'     => $orcamento->cliente_id,
-                    'descricao'      => "Orçamento {$orcamento->numero_orcamento}",
-                    'valor'          => $orcamento->valor_total,
-                    'data_vencimento' => now()->addDays(7), // regra inicial
-                    'status'         => 'pendente',
-                ]);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | SE CANCELAR / RECUSAR → REMOVE COBRANÇA
-        |--------------------------------------------------------------------------
-        */
-            if (in_array($novoStatus, ['cancelado', 'recusado']) && $orcamento->cobranca) {
-                $orcamento->cobranca->delete();
-            }
         });
 
         return back()->with('success', 'Status atualizado com sucesso.');

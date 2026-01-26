@@ -59,8 +59,8 @@
                         @endif
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
-                            Dashboard Financeiro
+                        <x-nav-link :href="route('financeiro.index')" class="block px-4 py-2">
+                            Listar Financeiro
                         </x-nav-link>
                         @endif
 
@@ -83,8 +83,8 @@
                     <div x-show="openMenu" @click.outside="openMenu = false"
                         class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
 
-                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
-                            Dashboard Financeiro
+                        <x-nav-link :href="route('financeiro.index')" class="block px-4 py-2">
+                            Listar Financeiro
                         </x-nav-link>
 
                         <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
@@ -220,7 +220,7 @@
                 <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Dashboard Técnico</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('financeiro.dashboard')">Dashboard Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.index')">Listar Financeiro</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFuncionario)
                 <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
@@ -234,7 +234,7 @@
         <details>
             <summary class="font-medium text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('financeiro.dashboard')">Dashboard Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.index')">Listar Financeiro</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
             </div>
         </details>

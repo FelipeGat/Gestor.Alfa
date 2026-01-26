@@ -21,7 +21,8 @@ export default defineConfig({
                 // DASHBOARD
                 'resources/css/dashboard/dashboard_comercial.css',
                 'resources/css/dashboard/dashboard_operacional.css',
-                'resources/css/financeiro/dashboard.css',
+                'resources/css/financeiro/index.css',
+                'resources/css/financeiro/contasareceber.css',
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',

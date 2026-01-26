@@ -144,6 +144,11 @@
                 </div>
                 <div class="table-wrapper">
                     <table class="table">
+                        @if($errors->has('delete'))
+                        <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+                            🚫 {{ $errors->first('delete') }}
+                        </div>
+                        @endif
                         <thead>
                             <tr>
                                 <th>Nº Atendimento</th>
@@ -222,7 +227,7 @@
                                         @csrf
                                         @method('PATCH')
 
-                                        <select name="status" onchange="this.form.submit()" class="status-select status-{{ $orcamento->status }}">
+                                        <select name="status" onchange="this.form.submit()" class="status-select status-{{ $orcamento->status }}" @disabled($orcamento->status === 'aguardando_pagamento')>
                                             @foreach($statusList as $key => $label)
                                             <option value="{{ $key }}" @selected($orcamento->status === $key)>
                                                 {{ $label }}

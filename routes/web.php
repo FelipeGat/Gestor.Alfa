@@ -167,7 +167,20 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     ->group(function () {
 
         Route::get('/', [\App\Http\Controllers\FinanceiroController::class, 'index'])
-            ->name('dashboard');
+            ->name('index');
+
+        Route::get('/contas-a-receber', [\App\Http\Controllers\FinanceiroController::class, 'contasAReceber'])
+            ->name('contasareceber');
+
+        Route::post(
+            '/orcamentos/{orcamento}/gerar-cobranca',
+            [\App\Http\Controllers\FinanceiroController::class, 'gerarCobranca']
+        )->name('orcamentos.gerar-cobranca');
+
+        Route::delete(
+            '/cobrancas/{cobranca}',
+            [\App\Http\Controllers\FinanceiroController::class, 'destroyCobranca']
+        )->name('cobrancas.destroy');
     });
 
 /*
