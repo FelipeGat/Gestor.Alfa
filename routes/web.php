@@ -25,6 +25,7 @@ use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\BuscaClienteController;
 use App\Http\Controllers\ItemComercialController;
 use App\Http\Controllers\ContasReceberController;
+use App\Http\Controllers\ContasFinanceirasController;
 use App\Http\Controllers\FinanceiroController;
 
 
@@ -177,6 +178,30 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         // Contas a receber
         Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])
             ->name('contasareceber');
+
+        /*
+        |----------------------------------------------------------------------
+        | CONTAS FINANCEIRAS (BANCOS / CAIXA / PIX)
+        |----------------------------------------------------------------------
+        */
+        Route::get('/contas-financeiras', [ContasFinanceirasController::class, 'index'])
+            ->name('contas-financeiras.index');
+
+        Route::get('/contas-financeiras/criar', [ContasFinanceirasController::class, 'create'])
+            ->name('contas-financeiras.create');
+
+        Route::post('/contas-financeiras', [ContasFinanceirasController::class, 'store'])
+            ->name('contas-financeiras.store');
+
+        Route::get('/contas-financeiras/{contaFinanceira}/editar', [ContasFinanceirasController::class, 'edit'])
+            ->name('contas-financeiras.edit');
+
+        Route::put('/contas-financeiras/{contaFinanceira}', [ContasFinanceirasController::class, 'update'])
+            ->name('contas-financeiras.update');
+
+        Route::delete('/contas-financeiras/{contaFinanceira}', [ContasFinanceirasController::class, 'destroy'])
+            ->name('contas-financeiras.destroy');
+
 
         Route::patch(
             '/contas-a-receber/{cobranca}/pagar',

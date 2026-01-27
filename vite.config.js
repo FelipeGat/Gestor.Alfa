@@ -25,6 +25,8 @@ export default defineConfig({
                 // FINANCEIRO
                 'resources/css/financeiro/index.css',
                 'resources/css/financeiro/contasareceber.css',
+                'resources/css/contas-bancarias/contas-bancarias.css',
+                
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',

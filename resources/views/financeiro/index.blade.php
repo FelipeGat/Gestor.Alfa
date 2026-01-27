@@ -14,6 +14,13 @@
 
             {{-- ================= NAVEGAÇÃO ================= --}}
             <div class="section-card financeiro-nav">
+                <a href="{{ route('financeiro.contas-financeiras.index') }}"
+                    class="inline-flex items-center px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition duration-150 ease-in-out">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Bancos
+                </a>
                 <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-success">🧾 Contas a Receber</a>
                 <a href="#" class="btn btn-secondary opacity-60 cursor-not-allowed" title="Em breve">💸 Contas a Pagar</a>
             </div>
