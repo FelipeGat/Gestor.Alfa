@@ -153,18 +153,21 @@
                                 {{-- AÇÃO --}}
                                 <td class="text-center">
                                     @if($orcamento->status === 'financeiro')
+                                    @php
+                                    $__orcData = [
+                                    'id' => $orcamento->id,
+                                    'numero_orcamento' => $orcamento->numero_orcamento,
+                                    'valor_total' => $orcamento->valor_total,
+                                    'cliente' => ['nome_fantasia' => $orcamento->cliente?->nome_fantasia ?? $orcamento->preCliente?->nome_fantasia ?? 'N/A'],
+                                    'forma_pagamento' => $orcamento->forma_pagamento,
+                                    ];
+                                    @endphp
+
                                     <button
                                         type="button"
                                         class="btn btn-primary"
-                                        @click='$store.modalCobranca.abrir({
-                                            id: {{ $orcamento->id }},
-                                            numero_orcamento: "{{ $orcamento->numero_orcamento }}",
-                                            valor_total: {{ $orcamento->valor_total }},
-                                            cliente: {
-                                                nome_fantasia: "{{ $orcamento->cliente?->nome_fantasia ?? $orcamento->preCliente?->nome_fantasia ?? 'N/A' }}"
-                                            },
-                                            forma_pagamento: "{{ $orcamento->forma_pagamento }}"
-                                        })'>
+                                        data-role="gerar-cobranca"
+                                        data-orc='@json($__orcData)'>
                                         💰 Gerar Cobrança
                                     </button>
                                     @else
@@ -199,5 +202,7 @@
         </div>
     </div>
     @include('financeiro.partials.modal-gerar-cobranca')
+
+
 
 </x-app-layout>

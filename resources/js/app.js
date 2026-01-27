@@ -63,5 +63,40 @@ Alpine.data('gerarCobranca', () => ({
 }));
 
 // 3. Garante que o Alpine esteja no escopo do window e inicia
-window.Alpine = Alpine;
-Alpine.start();
+if (!window.__alpine_started) {
+    window.Alpine = Alpine;
+    Alpine.start();
+    window.__alpine_started = true;
+}
+
+// Delegated listener para botões de gerar cobrança
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-role="gerar-cobranca"]');
+    if (!btn) return;
+    try {
+        var orc = btn.getAttribute('data-orc');
+        var obj = orc ? JSON.parse(orc) : null;
+
+        function callStore() {
+            try {
+                if (window.Alpine && typeof window.Alpine.store === 'function') {
+                    window.Alpine.store('modalCobranca').abrir(obj);
+                    console.log('financeiro: called Alpine.store modalCobranca.abrir', obj);
+                    return true;
+                }
+            } catch (err) {
+                console.error('financeiro: error calling Alpine.store', err);
+            }
+            return false;
+        }
+
+        if (!callStore()) {
+            // se Alpine ainda não inicializou, aguardar evento
+            document.addEventListener('alpine:initialized', function () {
+                callStore();
+            }, { once: true });
+        }
+    } catch (err) {
+        console.error('financeiro: error parsing data-orc', err);
+    }
+});

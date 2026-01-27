@@ -3,11 +3,11 @@
 @endpush
 
 <div
-    x-data="gerarCobranca"
+    x-data="gerarCobranca()"
     x-show="$store.modalCobranca.open"
+    style="display: none;"
     x-cloak
     class="modal-cobranca-overlay"
-    style="display: none;"
     @keydown.escape.window="$store.modalCobranca.fechar()">
     <div
         class="modal-cobranca"
