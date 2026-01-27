@@ -42,7 +42,7 @@ class FinanceiroController extends Controller
 
         // ================= QUERY BASE PARA ORÇAMENTOS =================
         $query = Orcamento::with(['cliente', 'preCliente', 'empresa'])
-            ->whereIn('status', ['financeiro', 'aguardando_pagamento']);
+            ->whereIn('status', ['financeiro',]);
 
         // ================= APLICAÇÃO DOS FILTROS =================
 
@@ -74,7 +74,6 @@ class FinanceiroController extends Controller
 
         $contadoresStatus = [
             'financeiro' => (clone $queryParaContadores)->where('status', 'financeiro')->count(),
-            'aguardando_pagamento' => (clone $queryParaContadores)->where('status', 'aguardando_pagamento')->count(),
         ];
 
         // ================= PAGINAÇÃO =================

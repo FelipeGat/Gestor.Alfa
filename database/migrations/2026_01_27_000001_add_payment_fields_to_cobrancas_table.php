@@ -13,9 +13,6 @@ return new class extends Migration
     {
         Schema::table('cobrancas', function (Blueprint $table) {
             // Permitir referência a pré-cliente quando aplicável
-            if (!Schema::hasColumn('cobrancas', 'pre_cliente_id')) {
-                $table->unsignedBigInteger('pre_cliente_id')->nullable()->after('cliente_id');
-            }
 
             // Forma de pagamento (pix, debito, credito, boleto, faturado)
             if (!Schema::hasColumn('cobrancas', 'forma_pagamento')) {
@@ -49,10 +46,6 @@ return new class extends Migration
 
             if (Schema::hasColumn('cobrancas', 'forma_pagamento')) {
                 $table->dropColumn('forma_pagamento');
-            }
-
-            if (Schema::hasColumn('cobrancas', 'pre_cliente_id')) {
-                $table->dropColumn('pre_cliente_id');
             }
         });
     }

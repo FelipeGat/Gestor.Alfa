@@ -60,8 +60,8 @@
 
                         @if($isAdmin || $isFinanceiro)
                         <x-nav-link :href="route('financeiro.index')" class="block px-4 py-2">
-                            Listar Financeiro
-                        </x-nav-link>
+                            Financeiro
+                        </x-nav-link><br>
                         @endif
 
                         @if($isAdmin || $isFuncionario)
@@ -76,21 +76,9 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isAdmin || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                    <a href="{{ route('financeiro.index') }}" class="font-medium text-gray-700 hover:text-gray-900">
                         Financeiro
-                    </button>
-
-                    <div x-show="openMenu" @click.outside="openMenu = false"
-                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50">
-
-                        <x-nav-link :href="route('financeiro.index')" class="block px-4 py-2">
-                            Listar Financeiro
-                        </x-nav-link>
-
-                        <x-nav-link :href="route('cobrancas.index')" class="block px-4 py-2">
-                            Cobranças
-                        </x-nav-link>
-                    </div>
+                    </a>
                 </div>
                 @endif
 
@@ -136,20 +124,20 @@
                         @if($isAdmin)
                         <x-nav-link :href="route('empresas.index')" class="block px-4 py-2">
                             Empresas
-                        </x-nav-link>
+                        </x-nav-link><br>
 
                         <x-nav-link :href="route('funcionarios.index')" class="block px-4 py-2">
                             Funcionários
-                        </x-nav-link>
+                        </x-nav-link><br>
 
                         <x-nav-link :href="route('usuarios.index')" class="block px-4 py-2">
                             Usuários
-                        </x-nav-link>
+                        </x-nav-link><br>
                         @endif
 
                         <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
                             Clientes
-                        </x-nav-link>
+                        </x-nav-link><br>
 
                         <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
                             Assuntos
@@ -220,7 +208,7 @@
                 <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Dashboard Técnico</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('financeiro.index')">Listar Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.index')">Financeiro</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFuncionario)
                 <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
@@ -234,7 +222,7 @@
         <details>
             <summary class="font-medium text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('financeiro.index')">Listar Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.index')">Financeiro</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
             </div>
         </details>
