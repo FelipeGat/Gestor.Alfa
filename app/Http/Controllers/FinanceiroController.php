@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\Financeiro\GeradorCobrancaOrcamento;
+use Illuminate\Validation\ValidationException;
+
 
 class FinanceiroController extends Controller
 {
@@ -90,65 +93,72 @@ class FinanceiroController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | GERAR COBRANÇA (ORÇAMENTO → FINANCEIRO REAL)
+    | GERAR COBRANÇA (ORÇAMENTO → COM MODAL PARA CONTAS A RECEBER)
     |--------------------------------------------------------------------------
     */
     public function gerarCobranca(Request $request, Orcamento $orcamento)
     {
-
         /** @var User $user */
         $user = Auth::user();
 
         abort_if(
             !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
-            403
+            403,
+            'Acesso não autorizado'
         );
 
-        $orcamento->refresh();
+        try {
 
-        abort_if(
-            $orcamento->status !== 'financeiro',
-            422,
-            'Este orçamento não está disponível para cobrança.'
-        );
+            // Garante dados atualizados
+            $orcamento->refresh();
 
-        abort_if(
-            $orcamento->cobranca,
-            422,
-            'Este orçamento já possui cobrança.'
-        );
+            // Dados vindos do modal
+            $dados = $request->validate([
+                'forma_pagamento' => 'required|string',
+                'parcelas'        => 'nullable|integer|min:1',
+                'vencimentos'     => 'nullable|array',
+                'vencimentos.*'   => 'date',
+            ]);
 
-        if (!$orcamento->cliente_id && $orcamento->pre_cliente_id) {
+            // CHAMADA DO SERVICE (NÚCLEO DO FINANCEIRO)
+            $gerador = new GeradorCobrancaOrcamento($orcamento, $dados);
+
+            $parcelasGeradas = $gerador->gerar(); // ← AQUI NASCE TUDO
+
+            DB::transaction(function () use ($parcelasGeradas, $orcamento) {
+
+                foreach ($parcelasGeradas as $parcela) {
+                    Cobranca::create([
+                        'orcamento_id'    => $parcela['orcamento_id'],
+                        'cliente_id'      => $parcela['cliente_id'],
+                        'descricao'       => $parcela['descricao'],
+                        'valor'           => $parcela['valor'],
+                        'data_vencimento' => $parcela['data_vencimento'],
+                        'status'          => 'pendente',
+                        'origem'          => 'orcamento',
+                    ]);
+                }
+
+                // Orçamento sai do financeiro
+                $orcamento->update([
+                    'status' => 'aguardando_pagamento',
+                ]);
+            });
+
+            return redirect()
+                ->route('financeiro.contasareceber')
+                ->with('success', 'Cobrança(s) gerada(s) com sucesso.');
+        } catch (ValidationException $e) {
+
             return redirect()
                 ->back()
-                ->with('error', 'Não é possível gerar cobrança para Pré-Clientes. Favor cadastrar como cliente.');
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->back()
+                ->with('error', 'Erro ao gerar cobrança: ' . $e->getMessage());
         }
-
-        $dados = $request->validate([
-            'valor'           => ['required', 'numeric', 'min:0.01'],
-            'data_vencimento' => ['required', 'date'],
-            'descricao'       => ['nullable', 'string', 'max:255'],
-        ]);
-
-
-        DB::transaction(function () use ($orcamento, $dados) {
-
-            Cobranca::create([
-                'orcamento_id'    => $orcamento->id,
-                'cliente_id'      => $orcamento->cliente_id,
-                'descricao'       => $dados['descricao'] ?? 'Cobrança do orçamento ' . $orcamento->numero_orcamento,
-                'valor'           => $dados['valor'],
-                'data_vencimento' => $dados['data_vencimento'],
-                'status'          => 'pendente',
-            ]);
-
-            $orcamento->update([
-                'status' => 'aguardando_pagamento',
-            ]);
-        });
-
-        return redirect()
-            ->route('financeiro.index')
-            ->with('success', 'Cobrança gerada com sucesso.');
     }
 }
