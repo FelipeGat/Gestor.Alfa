@@ -110,36 +110,51 @@ class FinanceiroController extends Controller
         try {
 
             // Garante dados atualizados
-            $orcamento->refresh();
+            $orcamento = Orcamento::lockForUpdate()->findOrFail($orcamento->id);
+
+            if ($orcamento->status !== 'financeiro') {
+                throw ValidationException::withMessages([
+                    'orcamento' => 'Este orçamento já foi processado pelo financeiro.'
+                ]);
+            }
 
             // Dados vindos do modal
+            // Não exigir parcelas/vencimentos para formas de pagamento à vista (pix, debito)
             $dados = $request->validate([
-                'forma_pagamento' => 'required|string',
-                'parcelas'        => 'nullable|integer|min:1',
-                'vencimentos'     => 'nullable|array',
-                'vencimentos.*'   => 'date',
+                'forma_pagamento' => 'required|in:pix,debito,credito,boleto,faturado',
+                'parcelas'        => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1',
+                'vencimentos'     => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1',
+                'vencimentos.*'   => 'required_if:forma_pagamento,credito,boleto,faturado|date',
             ]);
 
-            // CHAMADA DO SERVICE (NÚCLEO DO FINANCEIRO)
+            // CHAMADA DO SERVICE QUE GERA AS PARCELAS)
             $gerador = new GeradorCobrancaOrcamento($orcamento, $dados);
 
-            $parcelasGeradas = $gerador->gerar(); // ← AQUI NASCE TUDO
+            $parcelasGeradas = $gerador->gerar();
 
-            DB::transaction(function () use ($parcelasGeradas, $orcamento) {
+            if (empty($parcelasGeradas)) {
+                throw new \Exception('Nenhuma parcela foi gerada.');
+            }
 
-                foreach ($parcelasGeradas as $parcela) {
+            DB::transaction(function () use ($parcelasGeradas, $orcamento, $dados) {
+
+                $totalParcelas = count($parcelasGeradas);
+
+                foreach ($parcelasGeradas as $index => $parcela) {
                     Cobranca::create([
-                        'orcamento_id'    => $parcela['orcamento_id'],
-                        'cliente_id'      => $parcela['cliente_id'],
+                        'orcamento_id'    => $orcamento->id,
+                        'cliente_id'      => $parcela['cliente_id'] ?? $orcamento->cliente_id,
                         'descricao'       => $parcela['descricao'],
                         'valor'           => $parcela['valor'],
                         'data_vencimento' => $parcela['data_vencimento'],
                         'status'          => 'pendente',
-                        'origem'          => 'orcamento',
+                        'origem'          => $parcela['origem'] ?? 'orcamento',
+                        'forma_pagamento' => $dados['forma_pagamento'] ?? null,
+                        'parcela_num'     => $index + 1,
+                        'parcelas_total'  => $totalParcelas,
                     ]);
                 }
 
-                // Orçamento sai do financeiro
                 $orcamento->update([
                     'status' => 'aguardando_pagamento',
                 ]);

@@ -7,7 +7,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             🧾 Contas a Receber
         </h2>
-    </x-slot>
+    </x-slot><br>
 
     <div class="page-container">
         {{-- ================= FILTROS ================= --}}
@@ -49,13 +49,20 @@
                     <span>Vencido</span>
                     <span class="count">{{ $contadoresStatus['vencido'] }}</span>
                 </a>
-                <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['pago']])) }}"
-                    class="quick-filter-btn status-pago {{ in_array('pago', request('status', [])) ? 'active' : '' }}">
-                    <span>Pago</span>
-                    <span class="count">{{ $contadoresStatus['pago'] }}</span>
-                </a>
             </div>
         </div>
+
+        @if(request('vencimento_inicio') || request('vencimento_fim'))
+        <div class="mb-4 px-4 py-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+            Conciliação ativa no período:
+            <strong>
+                {{ request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio'))->format('d/m/Y') : 'início' }}
+                —
+                {{ request('vencimento_fim') ? \Carbon\Carbon::parse(request('vencimento_fim'))->format('d/m/Y') : 'hoje' }}
+            </strong>
+        </div>
+        @endif
+
 
         {{-- ================= KPIs ================= --}}
         <div class="kpi-grid mb-6">
@@ -97,7 +104,14 @@
                         $totalPagina += $cobranca->valor;
                         $statusClass = $cobranca->status_financeiro;
                         @endphp
-                        <tr>
+                        @php
+                        $venceHoje = $cobranca->status !== 'pago'
+                        && $cobranca->data_vencimento->isToday();
+                        @endphp
+                        @if($venceHoje)
+                        @php $statusClass = 'vence-hoje'; @endphp
+                        @endif
+                        <tr class="{{ $venceHoje ? 'bg-yellow-50 border-l-4 border-yellow-400' : '' }}">
                             <td data-label="Vencimento">
                                 <span class="status-indicator {{ $statusClass }}"></span>
                                 {{ $cobranca->data_vencimento->format('d/m/Y') }}
@@ -118,7 +132,19 @@
                                     <form method="POST" action="{{ route('financeiro.contasareceber.pagar', $cobranca) }}">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="btn action-btn btn-success">Confirmar Baixa</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('financeiro.contasareceber.pagar', $cobranca) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button
+                                            type="button"
+                                            x-data
+                                            class="btn action-btn btn-success"
+                                            x-on:click="$dispatch('confirmar-baixa', {
+        action: '{{ route('financeiro.contasareceber.pagar', $cobranca) }}'
+    })">
+                                            Confirmar Baixa
+                                        </button>
                                     </form>
                                     @endif
                                     {{-- <a href="{{ route('cobrancas.edit', $cobranca) }}" class="btn action-btn btn-icon" title="Editar">...</a> --}}
@@ -163,4 +189,6 @@
             {{ $cobrancas->links() }}
         </div>
     </div>
+    @include('financeiro.partials.modal-confirmar-baixa')
+
 </x-app-layout>

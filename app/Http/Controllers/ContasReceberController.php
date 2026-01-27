@@ -24,9 +24,11 @@ class ContasReceberController extends Controller
         );
 
         // ================= PREPARAÇÃO DA QUERY BASE =================
-        $query = Cobranca::with('cliente:id,nome_fantasia')
+        $query = Cobranca::with('cliente:id,nome,nome_fantasia')
             ->select('cobrancas.*')
-            ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id');
+            ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id')
+            ->where('cobrancas.status', '!=', 'pago');
+
 
         // ================= APLICAÇÃO DOS FILTROS =================
 
@@ -62,8 +64,6 @@ class ContasReceberController extends Controller
                         $q->orWhere(function ($sub) {
                             $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today());
                         });
-                    } elseif ($status === 'pago') {
-                        $q->orWhere('status', 'pago');
                     }
                 }
             });
@@ -85,11 +85,15 @@ class ContasReceberController extends Controller
         $contadoresStatus = [
             'pendente' => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->count(),
             'vencido'  => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
-            'pago'     => (clone $queryParaContadores)->where('status', 'pago')->count(),
+
         ];
 
         // ================= PAGINAÇÃO =================
-        $cobrancas = $query->orderBy('data_vencimento', 'desc')->paginate(15)->withQueryString();
+        $cobrancas = $query
+            ->orderBy('data_vencimento', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         // Enviando TODAS as variáveis necessárias para a view
         return view('financeiro.contasareceber', compact(
@@ -107,6 +111,10 @@ class ContasReceberController extends Controller
     */
     public function pagar(Cobranca $cobranca)
     {
+        if ($cobranca->status === 'pago') {
+            return back()->with('error', 'Esta cobrança já está paga.');
+        }
+
         DB::transaction(function () use ($cobranca) {
             $cobranca->update([
                 'status'  => 'pago',
@@ -125,12 +133,38 @@ class ContasReceberController extends Controller
     public function destroy(Cobranca $cobranca)
     {
         DB::transaction(function () use ($cobranca) {
-            if ($cobranca->orcamento && $cobranca->orcamento->status === 'aguardando_pagamento') {
-                $cobranca->orcamento->update(['status' => 'financeiro']);
-            }
+
+            $orcamento = $cobranca->orcamento;
+
             $cobranca->delete();
+
+            if ($orcamento) {
+                $restantes = $orcamento->cobrancas()
+                    ->where('status', '!=', 'pago')
+                    ->count();
+
+                if ($restantes === 0) {
+                    $orcamento->update(['status' => 'financeiro']);
+                }
+            }
         });
 
         return back()->with('success', 'Cobrança excluída e devolvida ao financeiro.');
+    }
+
+    public function reabrir(Cobranca $cobranca)
+    {
+        if ($cobranca->status !== 'pago') {
+            return back()->with('error', 'Apenas cobranças pagas podem ser reabertas.');
+        }
+
+        DB::transaction(function () use ($cobranca) {
+            $cobranca->update([
+                'status'  => 'pendente',
+                'pago_em' => null,
+            ]);
+        });
+
+        return back()->with('success', 'Cobrança reaberta com sucesso.');
     }
 }

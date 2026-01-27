@@ -179,6 +179,12 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])
             ->name('contasareceber');
 
+        // Contas a receber reabrir cobrançã
+        Route::patch(
+            '/financeiro/contas-a-receber/{cobranca}/reabrir',
+            [ContasReceberController::class, 'reabrir']
+        )->name('financeiro.contasareceber.reabrir');
+
         /*
         |----------------------------------------------------------------------
         | CONTAS FINANCEIRAS (BANCOS / CAIXA / PIX)

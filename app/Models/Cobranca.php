@@ -13,12 +13,14 @@ class Cobranca extends Model
     protected $fillable = [
         'orcamento_id',
         'cliente_id',
-        'pre_cliente_id',
         'boleto_id',
         'descricao',
         'valor',
         'data_vencimento',
         'status',
+        'forma_pagamento',
+        'parcela_num',
+        'parcelas_total',
     ];
 
     protected $casts = [
@@ -43,7 +45,7 @@ class Cobranca extends Model
 
     public function preCliente()
     {
-        return $this->belongsTo(PreCliente::class, 'pre_cliente_id');
+        return null;
     }
 
     public function boleto()

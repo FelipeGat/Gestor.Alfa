@@ -94,6 +94,7 @@
                         <label class="modal-label">Quantidade de Parcelas</label>
                         <input
                             type="number"
+                            name="parcelas"
                             min="1"
                             max="12"
                             x-model.number="parcelas"
@@ -136,7 +137,7 @@
                 </button>
 
                 <button type="submit" class="modal-btn modal-btn-success">
-                    Gerar Cobrança
+                    Salvar Cobrança
                 </button>
             </div>
 
