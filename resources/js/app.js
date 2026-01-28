@@ -24,6 +24,7 @@ Alpine.data('gerarCobranca', () => ({
     parcelas: 1,
     vencimentos: [],
     valoresParcelas: [],
+    valoresOriginais: [],
     mostrarParcelas: false,
 
     init() {
@@ -63,7 +64,8 @@ Alpine.data('gerarCobranca', () => ({
         let dataBase = new Date();
         for (let i = 0; i < this.parcelas; i++) {
             let data = new Date(dataBase);
-            data.setDate(data.getDate() + (30 * (i + 1)));
+            // Primeira parcela pode ser hoje (i * 30), demais são +30 dias
+            data.setDate(data.getDate() + (30 * i));
             this.vencimentos.push(data.toISOString().split('T')[0]);
             
             // Ajuste na última parcela para garantir que a soma seja exata
@@ -76,45 +78,47 @@ Alpine.data('gerarCobranca', () => ({
         }
     },
 
+    salvarValorOriginal(index) {
+        // Salvar o valor antes de começar a editar
+        this.valoresOriginais[index] = this.valoresParcelas[index];
+    },
+
     ajustarValores(indexAlterado) {
-        const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
-        let valorAlterado = parseFloat(this.valoresParcelas[indexAlterado] || 0);
+        // Verificar se o valor realmente mudou
+        const valorAtual = this.valoresParcelas[indexAlterado];
+        const valorOriginal = this.valoresOriginais[indexAlterado];
         
-        // Calcular soma das outras parcelas (não alteradas)
-        let somaOutros = 0;
-        for (let i = 0; i < this.parcelas; i++) {
-            if (i !== indexAlterado) {
-                somaOutros += parseFloat(this.valoresParcelas[i] || 0);
-            }
-        }
-        
-        // Validar se o valor alterado + soma dos outros não ultrapassa o total
-        if (valorAlterado + somaOutros > valorTotal) {
-            // Ajustar para o valor máximo permitido
-            valorAlterado = valorTotal - somaOutros;
-            if (valorAlterado < 0) valorAlterado = 0;
-            this.valoresParcelas[indexAlterado] = valorAlterado.toFixed(2);
-            
-            // Mostrar alerta ao usuário
-            alert(`O valor não pode ultrapassar o total da cobrança.\nValor máximo para esta parcela: R$ ${valorAlterado.toFixed(2)}`);
+        if (valorAtual === valorOriginal) {
+            // Valor não mudou, não fazer nada
             return;
         }
         
-        const totalSemAlterado = valorTotal - valorAlterado;
-        const countOutros = this.parcelas - 1;
+        const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
+        let valorAlterado = parseFloat(this.valoresParcelas[indexAlterado] || 0);
         
-        if (countOutros > 0 && totalSemAlterado >= 0) {
-            const novoValorPorParcela = (totalSemAlterado / countOutros).toFixed(2);
-            let somaRecalculada = valorAlterado;
+        // Validar se o valor não é negativo
+        if (valorAlterado < 0) {
+            valorAlterado = 0;
+            this.valoresParcelas[indexAlterado] = '0.00';
+        }
+        
+        // Calcular o valor restante a ser distribuído
+        const valorRestante = valorTotal - valorAlterado;
+        const outrasParcelasCount = this.parcelas - 1;
+        
+        if (outrasParcelasCount > 0 && valorRestante >= 0) {
+            // Distribuir o valor restante igualmente entre as outras parcelas
+            const valorPorParcela = (valorRestante / outrasParcelasCount).toFixed(2);
+            let somaDistribuida = valorAlterado;
             
             for (let i = 0; i < this.parcelas; i++) {
                 if (i !== indexAlterado) {
-                    if (i === this.parcelas - 1) {
-                        // Última parcela ajusta a diferença
-                        this.valoresParcelas[i] = (valorTotal - somaRecalculada).toFixed(2);
+                    if (i === this.parcelas - 1 || (i === this.parcelas - 2 && indexAlterado === this.parcelas - 1)) {
+                        // Última parcela (ou penúltima se a última for a alterada) ajusta a diferença para garantir soma exata
+                        this.valoresParcelas[i] = (valorTotal - somaDistribuida).toFixed(2);
                     } else {
-                        this.valoresParcelas[i] = novoValorPorParcela;
-                        somaRecalculada += parseFloat(novoValorPorParcela);
+                        this.valoresParcelas[i] = valorPorParcela;
+                        somaDistribuida += parseFloat(valorPorParcela);
                     }
                 }
             }

@@ -138,6 +138,7 @@
                                             min="0"
                                             :name="`valores_parcelas[${index}]`"
                                             x-model="valoresParcelas[index]"
+                                            @focus="salvarValorOriginal(index)"
                                             @blur="ajustarValores(index)"
                                             class="modal-input"
                                             required

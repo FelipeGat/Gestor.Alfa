@@ -172,14 +172,27 @@ class ContasReceberController extends Controller
     | EXCLUIR COBRANÇA
     |--------------------------------------------------------------------------
     */
-    public function destroy(Cobranca $cobranca)
+    public function destroy(Request $request, Cobranca $cobranca)
     {
-        DB::transaction(function () use ($cobranca) {
+        $tipoExclusao = $request->input('tipo_exclusao', 'unica');
 
+        DB::transaction(function () use ($cobranca, $tipoExclusao) {
             $orcamento = $cobranca->orcamento;
 
-            $cobranca->delete();
+            if ($tipoExclusao === 'todas' && $cobranca->orcamento_id) {
+                // Excluir todas as cobranças pendentes do mesmo orçamento
+                $totalExcluidas = Cobranca::where('orcamento_id', $cobranca->orcamento_id)
+                    ->where('status', '!=', 'pago')
+                    ->delete();
 
+                session()->flash('success', "{$totalExcluidas} cobrança(s) excluída(s) com sucesso.");
+            } else {
+                // Excluir apenas a cobrança específica
+                $cobranca->delete();
+                session()->flash('success', 'Cobrança excluída com sucesso.');
+            }
+
+            // Verificar se ainda existem cobranças pendentes para o orçamento
             if ($orcamento) {
                 $restantes = $orcamento->cobrancas()
                     ->where('status', '!=', 'pago')
@@ -191,7 +204,7 @@ class ContasReceberController extends Controller
             }
         });
 
-        return back()->with('success', 'Cobrança excluída e devolvida ao financeiro.');
+        return back();
     }
 
     /*
