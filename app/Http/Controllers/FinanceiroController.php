@@ -175,4 +175,152 @@ class FinanceiroController extends Controller
                 ->with('error', 'Erro ao gerar cobrança: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Exibe o dashboard financeiro
+     */
+    public function dashboard(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        // Redireciona para a view do dashboard
+        $empresaId = $request->get('empresa_id');
+        $ano = $request->get('ano', date('Y')); // Ano atual por padrão
+        $empresas = Empresa::where('ativo', true)->orderBy('nome_fantasia')->get();
+
+        // Filtrar cobranças por empresa se selecionado
+        $queryCobrancas = Cobranca::query();
+        if ($empresaId) {
+            $queryCobrancas->whereHas('orcamento', function ($q) use ($empresaId) {
+                $q->where('empresa_id', $empresaId);
+            });
+        }
+
+        // Calcular totais do ano selecionado
+        $totalPrevisto = (clone $queryCobrancas)
+            ->where('status', '!=', 'pago')
+            ->whereYear('data_vencimento', $ano)
+            ->sum('valor');
+
+        $totalRecebido = (clone $queryCobrancas)
+            ->where('status', 'pago')
+            ->whereYear('data_vencimento', $ano)
+            ->sum('valor');
+
+        // Dados mensais para o gráfico (Jan a Dez do ano selecionado)
+        $mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        $financeiroMensal = collect();
+
+        for ($mes = 1; $mes <= 12; $mes++) {
+            $dataInicio = Carbon::create($ano, $mes, 1)->startOfMonth();
+            $dataFim = Carbon::create($ano, $mes, 1)->endOfMonth();
+
+            $queryMes = Cobranca::whereBetween('data_vencimento', [$dataInicio, $dataFim]);
+
+            if ($empresaId) {
+                $queryMes->whereHas('orcamento', function ($q) use ($empresaId) {
+                    $q->where('empresa_id', $empresaId);
+                });
+            }
+
+            $previsto = (clone $queryMes)->where('status', '!=', 'pago')->sum('valor');
+            $recebido = (clone $queryMes)->where('status', 'pago')->sum('valor');
+
+            $financeiroMensal->push([
+                'mes' => $mesesNomes[$mes - 1],
+                'previsto' => (float) $previsto,
+                'recebido' => (float) $recebido,
+            ]);
+        }
+
+        // Saldos das contas bancárias
+        $contasFinanceiras = \App\Models\ContaFinanceira::query()
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where('empresa_id', $empresaId);
+            })
+            ->orderBy('nome')
+            ->get();
+
+        $saldoTotalBancos = $contasFinanceiras->sum('saldo');
+
+        // Período para resumo financeiro
+        $inicio = $request->get('inicio')
+            ? Carbon::parse($request->inicio)->startOfDay()
+            : Carbon::now()->startOfMonth();
+
+        $fim = $request->get('fim')
+            ? Carbon::parse($request->fim)->endOfDay()
+            : Carbon::now()->endOfMonth();
+
+        // Receita/Despesa Realizada
+        $receitaRealizada = Cobranca::where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($oq) use ($empresaId) {
+                    $oq->where('empresa_id', $empresaId);
+                });
+            })
+            ->sum('valor');
+
+        $despesaRealizada = 0; // futuro contas a pagar
+        $saldoRealizado = $receitaRealizada - $despesaRealizada;
+
+        // Previsto
+        $aReceber = Cobranca::where('status', '!=', 'pago')
+            ->whereBetween('data_vencimento', [$inicio, $fim])
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($oq) use ($empresaId) {
+                    $oq->where('empresa_id', $empresaId);
+                });
+            })
+            ->sum('valor');
+
+        $aPagar = 0; // futuro contas a pagar
+        $saldoPrevisto = $aReceber - $aPagar;
+
+        // Atrasados/Pagos
+        $atrasado = Cobranca::where('status', '!=', 'pago')
+            ->whereDate('data_vencimento', '<', Carbon::now())
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($oq) use ($empresaId) {
+                    $oq->where('empresa_id', $empresaId);
+                });
+            })
+            ->sum('valor');
+
+        $pago = Cobranca::where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->sum('valor');
+
+        $saldoSituacao = $atrasado - $pago;
+
+        return view('dashboard-financeiro.index', compact(
+            'empresas',
+            'empresaId',
+            'totalPrevisto',
+            'totalRecebido',
+            'financeiroMensal',
+            'ano',
+            'contasFinanceiras',
+            'saldoTotalBancos',
+            'inicio',
+            'fim',
+            'receitaRealizada',
+            'despesaRealizada',
+            'saldoRealizado',
+            'aReceber',
+            'aPagar',
+            'saldoPrevisto',
+            'atrasado',
+            'pago',
+            'saldoSituacao'
+        ));
+    }
 }

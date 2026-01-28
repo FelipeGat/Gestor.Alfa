@@ -13,6 +13,7 @@ use App\Http\Controllers\PortalController;
 use App\Http\Controllers\BoletoController;
 use App\Http\Controllers\DashboardAdmController;
 use App\Http\Controllers\DashboardComercialController;
+use App\Http\Controllers\DashboardFinanceiroController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\AssuntoController;
@@ -55,6 +56,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::get('/dashboard-comercial', [DashboardComercialController::class, 'index'])
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
+
+    // Dashboard FINANCEIRO
+    Route::get('/financeiro/dashboard', [DashboardFinanceiroController::class, 'index'])
+        ->name('financeiro.dashboard');
 
     // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class)
@@ -172,8 +177,12 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     ->group(function () {
 
         // Dashboard financeiro
-        Route::get('/', [FinanceiroController::class, 'index'])
+        Route::get('/', [FinanceiroController::class, 'dashboard'])
             ->name('index');
+
+        // Dashboard financeiro (rota alternativa)
+        Route::get('/dashboard', [FinanceiroController::class, 'dashboard'])
+            ->name('dashboard');
 
         // Contas a receber
         Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])

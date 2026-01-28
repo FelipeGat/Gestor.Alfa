@@ -59,7 +59,7 @@
                         @endif
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('financeiro.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
                             Financeiro
                         </x-nav-link><br>
                         @endif
@@ -76,7 +76,7 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isAdmin || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <a href="{{ route('financeiro.index') }}" class="font-medium text-gray-700 hover:text-gray-900">
+                    <a href="{{ route('financeiro.dashboard') }}" class="font-medium text-gray-700 hover:text-gray-900">
                         Financeiro
                     </a>
                 </div>
@@ -208,7 +208,7 @@
                 <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Dashboard Técnico</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('financeiro.index')">Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFuncionario)
                 <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
@@ -222,7 +222,7 @@
         <details>
             <summary class="font-medium text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('financeiro.index')">Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
             </div>
         </details>

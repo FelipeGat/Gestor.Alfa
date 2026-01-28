@@ -24,7 +24,7 @@
             </div>
 
             {{-- BOTÃO VOLTAR --}}
-            <a href="{{ route('financeiro.index') }}"
+            <a href="{{ route('financeiro.dashboard') }}"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold
                       text-gray-600 bg-white border border-gray-200 rounded-lg
                       hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group">
