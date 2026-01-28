@@ -180,9 +180,13 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::get('/', [FinanceiroController::class, 'dashboard'])
             ->name('index');
 
-        // Dashboard financeiro (rota alternativa)
+        // Dashboard financeiro
         Route::get('/dashboard', [FinanceiroController::class, 'dashboard'])
             ->name('dashboard');
+
+        // Cobrar
+        Route::get('/cobrar', [FinanceiroController::class, 'cobrar'])
+            ->name('cobrar');
 
         // Contas a receber
         Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])

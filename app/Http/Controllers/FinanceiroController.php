@@ -177,6 +177,80 @@ class FinanceiroController extends Controller
     }
 
     /**
+     * Exibe a tela de cobrança
+     */
+    public function cobrar(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Sua lógica de segurança original foi mantida.
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        // ================= KPIs GERAIS (Visão Global do Financeiro) =================
+        $hoje = Carbon::today();
+        $kpisGerais = [
+            'total_receber' => Cobranca::where('status', '!=', 'pago')->sum('valor'),
+            'total_pago'    => Cobranca::where('status', 'pago')->sum('valor'),
+            'total_vencido' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', $hoje)->sum('valor'),
+            'vence_hoje'    => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
+        ];
+
+        // ================= QUERY BASE PARA ORÇAMENTOS =================
+        $query = Orcamento::with(['cliente', 'preCliente', 'empresa'])
+            ->whereIn('status', ['financeiro',]);
+
+        // ================= APLICAÇÃO DOS FILTROS =================
+
+        // Filtro de Busca (Número do Orçamento, Cliente ou Pré-Cliente)
+        if ($request->filled('search')) {
+            $search = '%' . $request->input('search') . '%';
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_orcamento', 'like', $search)
+                    ->orWhereHas('cliente', fn($sq) => $sq->where('nome_fantasia', 'like', $search))
+                    ->orWhereHas('preCliente', fn($sq) => $sq->where('nome_fantasia', 'like', $search));
+            });
+        }
+
+        // Filtro de Empresa
+        if ($request->filled('empresa_id') && is_array($request->input('empresa_id'))) {
+            $query->whereIn('empresa_id', $request->input('empresa_id'));
+        }
+
+        // Clonar query para contadores antes do filtro de status
+        $queryParaContadores = clone $query;
+
+        // Filtro de Status
+        if ($request->filled('status') && is_array($request->input('status'))) {
+            $query->whereIn('status', $request->input('status'));
+        }
+
+        // ================= CÁLCULO DE TOTAIS E CONTADORES =================
+        $totalGeralFiltrado = (clone $query)->sum('valor_total');
+
+        $contadoresStatus = [
+            'financeiro' => (clone $queryParaContadores)->where('status', 'financeiro')->count(),
+        ];
+
+        // ================= PAGINAÇÃO =================
+        $orcamentos = $query->orderBy('updated_at', 'desc')->paginate(10)->withQueryString();
+        $empresas = Empresa::where('ativo', true)->orderBy('nome_fantasia')->get();
+
+        // Enviando todas as variáveis necessárias para a nova view
+        return view('financeiro.cobrar', compact(
+            'kpisGerais',
+            'orcamentos',
+            'empresas',
+            'contadoresStatus',
+            'totalGeralFiltrado'
+        ));
+    }
+
+    /**
      * Exibe o dashboard financeiro
      */
     public function dashboard(Request $request)
