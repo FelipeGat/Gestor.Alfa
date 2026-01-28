@@ -42,6 +42,17 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
+| API Routes (para modais)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('api')->group(function () {
+    Route::get('/empresas', [EmpresaController::class, 'apiList']);
+    Route::get('/clientes', [ClienteController::class, 'apiList']);
+    Route::get('/contas-financeiras/{empresa_id}', [ContasFinanceirasController::class, 'apiListByEmpresa']);
+});
+
+/*
+|--------------------------------------------------------------------------
 | ÁREA ADMIN
 |--------------------------------------------------------------------------
 */
@@ -249,6 +260,22 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             '/contas-a-receber/{cobranca}',
             [ContasReceberController::class, 'destroy']
         )->name('contasareceber.destroy');
+
+        // Contas Fixas
+        Route::post(
+            '/contas-fixas',
+            [ContasReceberController::class, 'storeContaFixa']
+        )->name('contas-fixas.store');
+
+        Route::get(
+            '/contas-fixas/{contaFixa}',
+            [ContasReceberController::class, 'getContaFixa']
+        )->name('contas-fixas.get');
+
+        Route::put(
+            '/contas-fixas/{contaFixa}',
+            [ContasReceberController::class, 'updateContaFixa']
+        )->name('contas-fixas.update');
 
         // Pipeline do orçamento
         Route::post(
