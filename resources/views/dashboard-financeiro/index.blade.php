@@ -55,7 +55,7 @@
                 <a href="{{ route('financeiro.cobrar' ) }}"
                     class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-md border border-indigo-700/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Cobrança
@@ -149,10 +149,10 @@
                         </button>
                     </div>
 
-                    {{-- TOTAL --}}
-                    <div class="mb-4">
-                        <span class="text-xs text-gray-500 uppercase">Saldo Total</span>
-                        <p class="text-2xl font-bold text-gray-800 valor-banco oculto">
+                    {{-- TOTAL (Apenas Contas Correntes) --}}
+                    <div class="mb-4 pb-4 border-b">
+                        <span class="text-xs text-gray-500 uppercase">Saldo Total (Contas Correntes)</span>
+                        <p class="text-2xl font-bold text-gray-800 valor-banco hidden">
                             R$ {{ number_format($saldoTotalBancos, 2, ',', '.') }}
                         </p>
                         <p class="text-2xl font-bold text-gray-800 valor-banco-masked">
@@ -160,35 +160,51 @@
                         </p>
                     </div>
 
-                    {{-- LISTA DE CONTAS --}}
-                    <div class="space-y-3">
-                        @foreach($contasFinanceiras as $conta)
-                        <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
-
-                            <div class="flex items-center gap-3">
-                                {{-- LOGO (opcional) --}}
-                                @if($conta->logo)
-                                <img src="{{ asset('images/bancos/'.$conta->logo) }}"
-                                    class="h-6 w-6 object-contain">
-                                @endif
-
-                                <span class="text-sm font-medium text-gray-700">
-                                    {{ $conta->nome }}
+                    {{-- LISTA DE CONTAS AGRUPADAS POR TIPO --}}
+                    <div class="space-y-4">
+                        @foreach($contasAgrupadasPorTipo as $tipo => $contas)
+                        <div>
+                            {{-- CABEÇALHO DO TIPO --}}
+                            <div class="flex items-center gap-2 mb-2 px-2">
+                                <div class="h-3 w-3 rounded-full {{ $tipo === 'corrente' ? 'bg-blue-500' : ($tipo === 'poupanca' ? 'bg-green-500' : 'bg-purple-500') }}"></div>
+                                <span class="text-xs font-semibold text-gray-600 uppercase">
+                                    {{ $tipo === 'corrente' ? 'Conta Corrente' : ($tipo === 'poupanca' ? 'Poupança' : ucfirst($tipo)) }}
                                 </span>
                             </div>
 
-                            {{-- VALOR --}}
-                            <div class="text-right">
-                                <span class="font-semibold valor-banco oculto
-                        {{ $conta->saldo < 0 ? 'text-red-600' : 'text-emerald-600' }}">
-                                    R$ {{ number_format($conta->saldo, 2, ',', '.') }}
-                                </span>
+                            {{-- CONTAS DESTE TIPO --}}
+                            <div class="space-y-2">
+                                @foreach($contas as $conta)
+                                <div class="flex items-center justify-between rounded-lg px-4 py-3 
+                                    {{ $tipo === 'corrente' ? 'bg-blue-50' : ($tipo === 'poupanca' ? 'bg-green-50' : 'bg-purple-50') }}">
 
-                                <span class="font-semibold text-gray-400 valor-banco-masked">
-                                    R$ •••••
-                                </span>
+                                    <div class="flex items-center gap-3">
+                                        {{-- LOGO (opcional) --}}
+                                        @if($conta->logo)
+                                        <img src="{{ asset('images/bancos/'.$conta->logo) }}"
+                                            class="h-6 w-6 object-contain">
+                                        @endif
+
+                                        <span class="text-sm font-medium text-gray-700">
+                                            {{ $conta->nome }}
+                                        </span>
+                                    </div>
+
+                                    {{-- VALOR --}}
+                                    <div class="text-right">
+                                        <span class="font-semibold valor-banco hidden
+                                            {{ $conta->saldo < 0 ? 'text-red-600' : 'text-emerald-600' }}">
+                                            R$ {{ number_format($conta->saldo, 2, ',', '.') }}
+                                        </span>
+
+                                        <span class="font-semibold text-gray-400 valor-banco-masked">
+                                            R$ •••••
+                                        </span>
+                                    </div>
+
+                                </div>
+                                @endforeach
                             </div>
-
                         </div>
                         @endforeach
                     </div>
@@ -417,7 +433,18 @@
     </script>
 
     <script>
+        // Iniciar sempre com valores ocultos
         let valoresVisiveis = false;
+
+        // Garantir que inicia oculto ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.valor-banco').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.querySelectorAll('.valor-banco-masked').forEach(el => {
+                el.classList.remove('hidden');
+            });
+        });
 
         function toggleValoresBancos() {
             valoresVisiveis = !valoresVisiveis;

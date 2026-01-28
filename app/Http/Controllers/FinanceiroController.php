@@ -321,10 +321,17 @@ class FinanceiroController extends Controller
             ->when($empresaId, function ($q) use ($empresaId) {
                 $q->where('empresa_id', $empresaId);
             })
+            ->orderBy('tipo')
             ->orderBy('nome')
             ->get();
 
-        $saldoTotalBancos = $contasFinanceiras->sum('saldo');
+        // Agrupar por tipo
+        $contasAgrupadasPorTipo = $contasFinanceiras->groupBy('tipo');
+
+        // Saldo total apenas de contas correntes
+        $saldoTotalBancos = $contasFinanceiras
+            ->where('tipo', 'corrente')
+            ->sum('saldo');
 
         // Período para resumo financeiro
         $inicio = $request->get('inicio')
@@ -385,6 +392,7 @@ class FinanceiroController extends Controller
             'financeiroMensal',
             'ano',
             'contasFinanceiras',
+            'contasAgrupadasPorTipo',
             'saldoTotalBancos',
             'inicio',
             'fim',

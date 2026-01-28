@@ -72,10 +72,22 @@ class DashboardFinanceiroController extends Controller
             ->when($empresaId, function ($q) use ($empresaId) {
                 $q->where('empresa_id', $empresaId);
             })
+            ->orderBy('tipo')
             ->orderBy('nome')
             ->get();
 
-        $saldoTotalBancos = $contasFinanceiras->sum('saldo');
+        // Agrupar por tipo
+        $contasAgrupadasPorTipo = $contasFinanceiras->groupBy('tipo');
+
+        // Debug temporário
+        if (!isset($contasAgrupadasPorTipo)) {
+            dd('Variável contasAgrupadasPorTipo não foi criada!');
+        }
+
+        // Saldo total apenas de contas correntes
+        $saldoTotalBancos = $contasFinanceiras
+            ->where('tipo', 'corrente')
+            ->sum('saldo');
 
         $inicio = $request->get('inicio')
             ? Carbon::parse($request->inicio)->startOfDay()
@@ -147,28 +159,29 @@ class DashboardFinanceiroController extends Controller
 
         $saldoSituacao = $atrasado - $pago;
 
-        return view('dashboard-financeiro.index', compact(
-            'labels',
-            'recebido',
-            'previsto',
-            'totalRecebido',
-            'totalPrevisto',
-            'empresas',
-            'empresaId',
-            'ano',
-            'contasFinanceiras',
-            'saldoTotalBancos',
-            'inicio',
-            'fim',
-            'receitaRealizada',
-            'despesaRealizada',
-            'saldoRealizado',
-            'aReceber',
-            'aPagar',
-            'saldoPrevisto',
-            'atrasado',
-            'pago',
-            'saldoSituacao'
-        ));
+        return view('dashboard-financeiro.index', [
+            'labels' => $labels,
+            'recebido' => $recebido,
+            'previsto' => $previsto,
+            'totalRecebido' => $totalRecebido,
+            'totalPrevisto' => $totalPrevisto,
+            'empresas' => $empresas,
+            'empresaId' => $empresaId,
+            'ano' => $ano,
+            'contasFinanceiras' => $contasFinanceiras,
+            'contasAgrupadasPorTipo' => $contasAgrupadasPorTipo,
+            'saldoTotalBancos' => $saldoTotalBancos,
+            'inicio' => $inicio,
+            'fim' => $fim,
+            'receitaRealizada' => $receitaRealizada,
+            'despesaRealizada' => $despesaRealizada,
+            'saldoRealizado' => $saldoRealizado,
+            'aReceber' => $aReceber,
+            'aPagar' => $aPagar,
+            'saldoPrevisto' => $saldoPrevisto,
+            'atrasado' => $atrasado,
+            'pago' => $pago,
+            'saldoSituacao' => $saldoSituacao,
+        ]);
     }
 }
