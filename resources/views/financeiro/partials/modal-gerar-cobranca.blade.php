@@ -31,7 +31,8 @@
         {{-- ================= FORM ================= --}}
         <form
             method="POST"
-            :action="`{{ url('/financeiro/orcamentos') }}/${$store.modalCobranca.orcamento?.id}/gerar-cobranca`">
+            :action="`{{ url('/financeiro/orcamentos') }}/${$store.modalCobranca.orcamento?.id}/gerar-cobranca`"
+            @submit.prevent="validarEEnviar($event)">
             @csrf
 
             {{-- CAMPOS FIXOS --}}
@@ -123,6 +124,7 @@
                                             type="date"
                                             :name="`vencimentos[${index}]`"
                                             x-model="vencimentos[index]"
+                                            @change="recalcularDatas(index)"
                                             class="modal-input"
                                             required>
                                     </div>
@@ -136,7 +138,7 @@
                                             min="0"
                                             :name="`valores_parcelas[${index}]`"
                                             x-model="valoresParcelas[index]"
-                                            @input="ajustarValores(index)"
+                                            @blur="ajustarValores(index)"
                                             class="modal-input"
                                             required
                                             style="font-weight: 600; color: #059669;">

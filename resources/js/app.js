@@ -78,20 +78,30 @@ Alpine.data('gerarCobranca', () => ({
 
     ajustarValores(indexAlterado) {
         const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
-        const valorAlterado = parseFloat(this.valoresParcelas[indexAlterado] || 0);
+        let valorAlterado = parseFloat(this.valoresParcelas[indexAlterado] || 0);
         
-        // Calcular quanto sobrou para distribuir nas outras parcelas
+        // Calcular soma das outras parcelas (não alteradas)
         let somaOutros = 0;
-        let countOutros = 0;
-        
         for (let i = 0; i < this.parcelas; i++) {
             if (i !== indexAlterado) {
                 somaOutros += parseFloat(this.valoresParcelas[i] || 0);
-                countOutros++;
             }
         }
         
+        // Validar se o valor alterado + soma dos outros não ultrapassa o total
+        if (valorAlterado + somaOutros > valorTotal) {
+            // Ajustar para o valor máximo permitido
+            valorAlterado = valorTotal - somaOutros;
+            if (valorAlterado < 0) valorAlterado = 0;
+            this.valoresParcelas[indexAlterado] = valorAlterado.toFixed(2);
+            
+            // Mostrar alerta ao usuário
+            alert(`O valor não pode ultrapassar o total da cobrança.\nValor máximo para esta parcela: R$ ${valorAlterado.toFixed(2)}`);
+            return;
+        }
+        
         const totalSemAlterado = valorTotal - valorAlterado;
+        const countOutros = this.parcelas - 1;
         
         if (countOutros > 0 && totalSemAlterado >= 0) {
             const novoValorPorParcela = (totalSemAlterado / countOutros).toFixed(2);
@@ -109,6 +119,35 @@ Alpine.data('gerarCobranca', () => ({
                 }
             }
         }
+    },
+
+    recalcularDatas(indexAlterado) {
+        if (!this.vencimentos[indexAlterado]) return;
+        
+        // Pegar a data alterada
+        const dataBase = new Date(this.vencimentos[indexAlterado]);
+        
+        // Recalcular as datas seguintes a partir da data alterada
+        for (let i = indexAlterado + 1; i < this.parcelas; i++) {
+            let novaData = new Date(dataBase);
+            // Adicionar (i - indexAlterado) meses
+            novaData.setMonth(dataBase.getMonth() + (i - indexAlterado));
+            this.vencimentos[i] = novaData.toISOString().split('T')[0];
+        }
+    },
+
+    validarEEnviar(event) {
+        const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
+        const somaDistribuida = this.valoresParcelas.reduce((acc, val) => acc + parseFloat(val || 0), 0);
+        
+        // Validar se a soma total não ultrapassa o valor original
+        if (somaDistribuida > valorTotal) {
+            alert(`Erro: A soma das parcelas (R$ ${somaDistribuida.toFixed(2)}) ultrapassa o valor total da cobrança (R$ ${valorTotal.toFixed(2)}).\n\nPor favor, ajuste os valores antes de salvar.`);
+            return false;
+        }
+        
+        // Se passou na validação, submeter o formulário
+        event.target.submit();
     },
 
     getValorTotal() {
