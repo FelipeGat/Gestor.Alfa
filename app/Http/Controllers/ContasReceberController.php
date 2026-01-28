@@ -41,12 +41,20 @@ class ContasReceberController extends Controller
             });
         }
 
-        // Filtro de Período por Vencimento
-        if ($request->filled('vencimento_inicio')) {
-            $query->where('data_vencimento', '>=', $request->input('vencimento_inicio'));
+        // Filtro de Período por Vencimento (pré-carregar mês atual se não tiver filtro)
+        $vencimentoInicio = $request->input('vencimento_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $vencimentoFim = $request->input('vencimento_fim', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        if ($vencimentoInicio) {
+            $query->where('data_vencimento', '>=', $vencimentoInicio);
         }
-        if ($request->filled('vencimento_fim')) {
-            $query->where('data_vencimento', '<=', $request->input('vencimento_fim'));
+        if ($vencimentoFim) {
+            $query->where('data_vencimento', '<=', $vencimentoFim);
+        }
+
+        // Filtro por Tipo
+        if ($request->filled('tipo')) {
+            $query->where('cobrancas.tipo', $request->input('tipo'));
         }
 
         // Clonando a query *antes* do filtro de status para os contadores
@@ -85,7 +93,12 @@ class ContasReceberController extends Controller
         $contadoresStatus = [
             'pendente' => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->count(),
             'vencido'  => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
+        ];
 
+        // Contadores por tipo
+        $contadoresTipo = [
+            'orcamento' => (clone $queryParaContadores)->where('tipo', 'orcamento')->count(),
+            'contrato'  => (clone $queryParaContadores)->where('tipo', 'contrato')->count(),
         ];
 
         // ================= PAGINAÇÃO =================
@@ -100,7 +113,10 @@ class ContasReceberController extends Controller
             'cobrancas',
             'kpis',
             'totalGeralFiltrado',
-            'contadoresStatus'
+            'contadoresStatus',
+            'contadoresTipo',
+            'vencimentoInicio',
+            'vencimentoFim'
         ));
     }
 
@@ -175,11 +191,20 @@ class ContasReceberController extends Controller
     public function destroy(Request $request, Cobranca $cobranca)
     {
         $tipoExclusao = $request->input('tipo_exclusao', 'unica');
+        $dataVencimento = $request->input('data_vencimento');
 
-        DB::transaction(function () use ($cobranca, $tipoExclusao) {
+        DB::transaction(function () use ($cobranca, $tipoExclusao, $dataVencimento) {
             $orcamento = $cobranca->orcamento;
 
-            if ($tipoExclusao === 'todas' && $cobranca->orcamento_id) {
+            if ($tipoExclusao === 'todas_contrato' && $cobranca->conta_fixa_id) {
+                // Excluir esta e todas as cobranças futuras do mesmo contrato
+                $totalExcluidas = Cobranca::where('conta_fixa_id', $cobranca->conta_fixa_id)
+                    ->where('status', '!=', 'pago')
+                    ->where('data_vencimento', '>=', $dataVencimento)
+                    ->delete();
+
+                session()->flash('success', "{$totalExcluidas} cobrança(s) do contrato excluída(s) com sucesso.");
+            } elseif ($tipoExclusao === 'todas' && $cobranca->orcamento_id) {
                 // Excluir todas as cobranças pendentes do mesmo orçamento
                 $totalExcluidas = Cobranca::where('orcamento_id', $cobranca->orcamento_id)
                     ->where('status', '!=', 'pago')
@@ -317,5 +342,169 @@ class ContasReceberController extends Controller
         });
 
         return back()->with('success', 'Cobrança estornada e devolvida para Contas a Receber.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONTAS FIXAS - CADASTRAR E GERAR COBRANÇAS RECORRENTES
+    |--------------------------------------------------------------------------
+    */
+    public function storeContaFixa(Request $request)
+    {
+        $validated = $request->validate([
+            'empresa_id' => 'required|exists:empresas,id',
+            'cliente_id' => 'required|exists:clientes,id',
+            'categoria' => 'required|string',
+            'valor' => 'required|numeric|min:0',
+            'conta_financeira_id' => 'required|exists:contas_financeiras,id',
+            'forma_pagamento' => 'required|in:pix,boleto,cartao_credito,cartao_debito,faturado',
+            'periodicidade' => 'required|in:diaria,semanal,quinzenal,mensal,semestral,anual',
+            'data_inicial' => 'required|date',
+            'data_fim' => 'nullable|date|after_or_equal:data_inicial',
+            'percentual_renovacao' => 'nullable|numeric|min:0|max:100',
+            'data_atualizacao_percentual' => 'nullable|date',
+            'observacao' => 'nullable|string',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            // Criar a conta fixa
+            $contaFixa = \App\Models\ContaFixa::create($validated);
+
+            // Gerar as cobranças recorrentes
+            $this->gerarCobrancasRecorrentes($contaFixa);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Conta fixa cadastrada com sucesso!']);
+    }
+
+    /**
+     * Gera as cobranças recorrentes baseadas na conta fixa
+     */
+    private function gerarCobrancasRecorrentes($contaFixa)
+    {
+        $dataAtual = Carbon::parse($contaFixa->data_inicial);
+        $dataFim = $contaFixa->data_fim ? Carbon::parse($contaFixa->data_fim) : null;
+        $valorAtual = $contaFixa->valor;
+        $dataProximaAtualizacao = $contaFixa->data_atualizacao_percentual
+            ? Carbon::parse($contaFixa->data_atualizacao_percentual)
+            : null;
+
+        // Limite de segurança: gerar até 120 cobranças (10 anos para mensal)
+        $limite = 120;
+        $contador = 0;
+
+        while ($contador < $limite) {
+            // Se há data fim e já passou, parar
+            if ($dataFim && $dataAtual->gt($dataFim)) {
+                break;
+            }
+
+            // Verificar se precisa atualizar o valor pelo percentual de renovação
+            if ($dataProximaAtualizacao && $contaFixa->percentual_renovacao && $dataAtual->gte($dataProximaAtualizacao)) {
+                $valorAtual = $valorAtual * (1 + ($contaFixa->percentual_renovacao / 100));
+                // Atualizar para a próxima data de atualização (adicionar 1 ano)
+                $dataProximaAtualizacao = $dataProximaAtualizacao->copy()->addYear();
+            }
+
+            // Criar a cobrança
+            $descricao = $contaFixa->categoria;
+            if ($contaFixa->observacao) {
+                $descricao .= " - {$contaFixa->observacao}";
+            }
+
+            Cobranca::create([
+                'cliente_id' => $contaFixa->cliente_id,
+                'descricao' => $descricao,
+                'valor' => round($valorAtual, 2),
+                'data_vencimento' => $dataAtual->format('Y-m-d'),
+                'status' => 'pendente',
+                'tipo' => 'contrato',
+                'conta_fixa_id' => $contaFixa->id,
+                'conta_financeira_id' => $contaFixa->conta_financeira_id,
+                'forma_pagamento' => $contaFixa->forma_pagamento,
+            ]);
+
+            // Avançar para a próxima data baseado na periodicidade
+            switch ($contaFixa->periodicidade) {
+                case 'diaria':
+                    $dataAtual->addDay();
+                    break;
+                case 'semanal':
+                    $dataAtual->addWeek();
+                    break;
+                case 'quinzenal':
+                    $dataAtual->addWeeks(2);
+                    break;
+                case 'mensal':
+                    $dataAtual->addMonth();
+                    break;
+                case 'semestral':
+                    $dataAtual->addMonths(6);
+                    break;
+                case 'anual':
+                    $dataAtual->addYear();
+                    break;
+            }
+
+            $contador++;
+        }
+    }
+
+    /**
+     * Retorna os dados de uma conta fixa para edição
+     */
+    public function getContaFixa(\App\Models\ContaFixa $contaFixa)
+    {
+        $contaFixa->load(['empresa', 'cliente', 'contaFinanceira']);
+        return response()->json($contaFixa);
+    }
+
+    /**
+     * Atualiza uma conta fixa existente
+     */
+    public function updateContaFixa(Request $request, \App\Models\ContaFixa $contaFixa)
+    {
+        $validated = $request->validate([
+            'empresa_id' => 'required|exists:empresas,id',
+            'cliente_id' => 'required|exists:clientes,id',
+            'categoria' => 'required|string',
+            'valor' => 'required|numeric|min:0',
+            'conta_financeira_id' => 'required|exists:contas_financeiras,id',
+            'forma_pagamento' => 'required|in:pix,boleto,cartao_credito,cartao_debito,faturado',
+            'periodicidade' => 'required|in:diaria,semanal,quinzenal,mensal,semestral,anual',
+            'data_inicial' => 'required|date',
+            'data_fim' => 'nullable|date|after_or_equal:data_inicial',
+            'percentual_renovacao' => 'nullable|numeric|min:0|max:100',
+            'data_atualizacao_percentual' => 'nullable|date',
+            'observacao' => 'nullable|string',
+            'ativo' => 'nullable|boolean',
+        ]);
+
+        DB::transaction(function () use ($contaFixa, $validated) {
+            // Atualizar a conta fixa
+            $contaFixa->update($validated);
+
+            // Atualizar todas as cobranças pendentes vinculadas a esta conta fixa
+            $descricao = $validated['categoria'];
+            if (!empty($validated['observacao'])) {
+                $descricao .= " - {$validated['observacao']}";
+            }
+
+            Cobranca::where('conta_fixa_id', $contaFixa->id)
+                ->where('status', '!=', 'pago')
+                ->update([
+                    'cliente_id' => $validated['cliente_id'],
+                    'descricao' => $descricao,
+                    'valor' => $validated['valor'],
+                    'conta_financeira_id' => $validated['conta_financeira_id'],
+                    'forma_pagamento' => $validated['forma_pagamento'],
+                ]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conta fixa e cobranças pendentes atualizadas com sucesso!',
+            'reload' => true
+        ]);
     }
 }
