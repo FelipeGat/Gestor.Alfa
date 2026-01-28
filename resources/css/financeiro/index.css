@@ -5,8 +5,20 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
-    background-color: #f9fafb;
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
 }
+
+.section-menu {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
 
 .section-card {
     background-color: white;
