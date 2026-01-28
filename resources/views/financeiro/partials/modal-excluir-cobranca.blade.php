@@ -4,12 +4,18 @@
         cobrancaId: null,
         orcamentoId: null,
         totalParcelas: 0,
+        contaFixaId: null,
+        totalCobrancasContrato: 0,
+        dataVencimento: null,
         
-        abrirModal(cobrancaId, orcamentoId, totalParcelas) {
+        abrirModal(cobrancaId, orcamentoId, totalParcelas, contaFixaId, totalCobrancasContrato, dataVencimento) {
             this.open = true;
             this.cobrancaId = cobrancaId;
             this.orcamentoId = orcamentoId;
             this.totalParcelas = totalParcelas;
+            this.contaFixaId = contaFixaId;
+            this.totalCobrancasContrato = totalCobrancasContrato;
+            this.dataVencimento = dataVencimento;
         },
         
         excluirParcela(tipo) {
@@ -32,15 +38,31 @@
             tipoInput.name = 'tipo_exclusao';
             tipoInput.value = tipo;
             
+            if (this.dataVencimento) {
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'data_vencimento';
+                dataInput.value = this.dataVencimento;
+                form.appendChild(dataInput);
+            }
+            
             form.appendChild(csrfInput);
             form.appendChild(methodInput);
             form.appendChild(tipoInput);
             
             document.body.appendChild(form);
             form.submit();
+        },
+        
+        get isContrato() {
+            return this.contaFixaId !== null && this.contaFixaId !== 'null';
+        },
+        
+        get isOrcamento() {
+            return this.orcamentoId !== null && this.orcamentoId !== 'null';
         }
     }"
-    x-on:excluir-cobranca.window="abrirModal($event.detail.cobrancaId, $event.detail.orcamentoId, $event.detail.totalParcelas)"
+    x-on:excluir-cobranca.window="abrirModal($event.detail.cobrancaId, $event.detail.orcamentoId, $event.detail.totalParcelas, $event.detail.contaFixaId, $event.detail.totalCobrancasContrato, $event.detail.dataVencimento)"
     x-show="open"
     x-cloak
     @keydown.escape.window="open = false"
@@ -59,10 +81,13 @@
                     Excluir Cobrança
                 </h3>
                 <p class="mt-2 text-sm text-gray-600">
-                    <template x-if="totalParcelas > 1">
+                    <template x-if="isContrato && totalCobrancasContrato > 1">
+                        <span>Esta cobrança faz parte de um <strong class="text-blue-600">contrato recorrente</strong> com <strong class="text-red-600"><span x-text="totalCobrancasContrato"></span> cobrança(s) futura(s)</strong> (incluindo esta). Como deseja proceder?</span>
+                    </template>
+                    <template x-if="isOrcamento && totalParcelas > 1 && !isContrato">
                         <span>Esta cobrança possui <strong class="text-red-600"><span x-text="totalParcelas"></span> parcela(s)</strong> relacionada(s). Como deseja proceder?</span>
                     </template>
-                    <template x-if="totalParcelas <= 1">
+                    <template x-if="!isContrato && (!isOrcamento || totalParcelas <= 1)">
                         <span>Tem certeza que deseja excluir esta cobrança? Esta ação não pode ser desfeita.</span>
                     </template>
                 </p>
@@ -70,7 +95,27 @@
         </div>
 
         <div class="mt-6 flex flex-col gap-3">
-            <template x-if="totalParcelas > 1">
+            {{-- Opções para CONTRATOS --}}
+            <template x-if="isContrato && totalCobrancasContrato > 1">
+                <div class="space-y-2">
+                    <button
+                        type="button"
+                        class="w-full px-4 py-3 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-sm"
+                        @click="excluirParcela('todas_contrato')">
+                        🗑️ Excluir Esta e Todas as Futuras (<span x-text="totalCobrancasContrato"></span> cobranças)
+                    </button>
+
+                    <button
+                        type="button"
+                        class="w-full px-4 py-3 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition"
+                        @click="excluirParcela('unica')">
+                        Excluir Apenas Esta Cobrança
+                    </button>
+                </div>
+            </template>
+
+            {{-- Opções para ORÇAMENTOS --}}
+            <template x-if="isOrcamento && totalParcelas > 1 && !isContrato">
                 <div class="space-y-2">
                     <button
                         type="button"
@@ -88,7 +133,8 @@
                 </div>
             </template>
 
-            <template x-if="totalParcelas <= 1">
+            {{-- Opções para COBRANÇAS SIMPLES --}}
+            <template x-if="!isContrato && (!isOrcamento || totalParcelas <= 1)">
                 <div class="flex gap-3">
                     <button
                         type="button"
