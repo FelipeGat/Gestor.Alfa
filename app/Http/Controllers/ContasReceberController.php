@@ -158,6 +158,12 @@ class ContasReceberController extends Controller
                 'forma_pagamento' => $request->forma_pagamento,
             ]);
 
+            // Atualizar o saldo da conta financeira (RECEITA = AUMENTA O SALDO)
+            $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+            if ($contaFinanceira) {
+                $contaFinanceira->increment('saldo', $valorPago);
+            }
+
             // Se houver valor restante, criar nova cobrança
             if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
                 $valorRestante = floatval($request->valor_restante);
@@ -245,6 +251,14 @@ class ContasReceberController extends Controller
         }
 
         DB::transaction(function () use ($cobranca) {
+            // Atualizar o saldo da conta financeira (ESTORNAR RECEITA = DIMINUI O SALDO)
+            if ($cobranca->conta_financeira_id) {
+                $contaFinanceira = \App\Models\ContaFinanceira::find($cobranca->conta_financeira_id);
+                if ($contaFinanceira) {
+                    $contaFinanceira->decrement('saldo', $cobranca->valor);
+                }
+            }
+
             $cobranca->update([
                 'status'  => 'pendente',
                 'pago_em' => null,
@@ -333,6 +347,14 @@ class ContasReceberController extends Controller
         }
 
         DB::transaction(function () use ($cobranca) {
+            // Atualizar o saldo da conta financeira (ESTORNAR RECEITA = DIMINUI O SALDO)
+            if ($cobranca->conta_financeira_id) {
+                $contaFinanceira = \App\Models\ContaFinanceira::find($cobranca->conta_financeira_id);
+                if ($contaFinanceira) {
+                    $contaFinanceira->decrement('saldo', $cobranca->valor);
+                }
+            }
+
             $cobranca->update([
                 'status' => 'pendente',
                 'pago_em' => null,
