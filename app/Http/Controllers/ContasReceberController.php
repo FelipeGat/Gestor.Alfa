@@ -145,7 +145,7 @@ class ContasReceberController extends Controller
             // Se houver valor restante, criar nova cobrança
             if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
                 $valorRestante = floatval($request->valor_restante);
-                
+
                 // Criar nova cobrança com o valor restante
                 Cobranca::create([
                     'cliente_id' => $cobranca->cliente_id,
