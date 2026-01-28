@@ -375,4 +375,17 @@ class ClienteController extends Controller
             'razao_social'   => $razaoSocial,
         ];
     }
+
+    /**
+     * API - Retorna lista de clientes para select
+     */
+    public function apiList()
+    {
+        $clientes = \App\Models\Cliente::where('ativo', true)
+            ->select('id', 'nome', 'nome_fantasia', 'razao_social')
+            ->orderBy('nome')
+            ->get();
+
+        return response()->json($clientes);
+    }
 }

@@ -27,7 +27,7 @@ class EmpresaController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('razao_social', 'like', "%{$search}%")
-                  ->orWhere('nome_fantasia', 'like', "%{$search}%");
+                    ->orWhere('nome_fantasia', 'like', "%{$search}%");
             });
         }
 
@@ -76,7 +76,7 @@ class EmpresaController extends Controller
             'cnpj'                => $request->cnpj,
             'endereco'            => $request->endereco,
             'email_comercial'     => $request->email_comercial,
-            'email_administrativo'=> $request->email_administrativo,
+            'email_administrativo' => $request->email_administrativo,
             'telefone_comercial'  => $request->telefone_comercial,
             'ativo'               => $request->ativo ?? true,
         ]);
@@ -112,7 +112,7 @@ class EmpresaController extends Controller
             'cnpj'                => $request->cnpj,
             'endereco'            => $request->endereco,
             'email_comercial'     => $request->email_comercial,
-            'email_administrativo'=> $request->email_administrativo,
+            'email_administrativo' => $request->email_administrativo,
             'telefone_comercial'  => $request->telefone_comercial,
             'ativo'               => $request->boolean('ativo'),
         ]);
@@ -153,5 +153,16 @@ class EmpresaController extends Controller
                 'subcategoria'
             ]);
     }
+    /**
+     * API - Retorna lista de empresas para select
+     */
+    public function apiList()
+    {
+        $empresas = Empresa::where('ativo', true)
+            ->select('id', 'razao_social', 'nome_fantasia')
+            ->orderBy('nome_fantasia')
+            ->get();
 
+        return response()->json($empresas);
+    }
 }

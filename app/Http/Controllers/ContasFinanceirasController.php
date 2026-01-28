@@ -236,4 +236,18 @@ class ContasFinanceirasController extends Controller
             ->route('financeiro.contas-financeiras.index')
             ->with('success', 'Conta financeira removida com sucesso.');
     }
+
+    /**
+     * API - Retorna lista de contas financeiras por empresa
+     */
+    public function apiListByEmpresa($empresa_id)
+    {
+        $contas = \App\Models\ContaFinanceira::where('empresa_id', $empresa_id)
+            ->where('ativo', true)
+            ->select('id', 'nome', 'tipo')
+            ->orderBy('nome')
+            ->get();
+
+        return response()->json($contas);
+    }
 }
