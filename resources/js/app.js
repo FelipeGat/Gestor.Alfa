@@ -23,6 +23,7 @@ Alpine.data('gerarCobranca', () => ({
     forma: '',
     parcelas: 1,
     vencimentos: [],
+    valoresParcelas: [],
     mostrarParcelas: false,
 
     init() {
@@ -40,6 +41,7 @@ Alpine.data('gerarCobranca', () => ({
         this.forma = '';
         this.parcelas = 1;
         this.vencimentos = [];
+        this.valoresParcelas = [];
         this.mostrarParcelas = false;
     },
 
@@ -52,13 +54,72 @@ Alpine.data('gerarCobranca', () => ({
 
     gerarVencimentos() {
         this.vencimentos = [];
+        this.valoresParcelas = [];
         if (!this.mostrarParcelas) return;
+        
+        const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
+        const valorPorParcela = (valorTotal / this.parcelas).toFixed(2);
+        
         let dataBase = new Date();
         for (let i = 0; i < this.parcelas; i++) {
             let data = new Date(dataBase);
             data.setDate(data.getDate() + (30 * (i + 1)));
             this.vencimentos.push(data.toISOString().split('T')[0]);
+            
+            // Ajuste na última parcela para garantir que a soma seja exata
+            if (i === this.parcelas - 1) {
+                const somaAnteriores = this.valoresParcelas.reduce((acc, val) => acc + parseFloat(val), 0);
+                this.valoresParcelas.push((valorTotal - somaAnteriores).toFixed(2));
+            } else {
+                this.valoresParcelas.push(valorPorParcela);
+            }
         }
+    },
+
+    ajustarValores(indexAlterado) {
+        const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
+        const valorAlterado = parseFloat(this.valoresParcelas[indexAlterado] || 0);
+        
+        // Calcular quanto sobrou para distribuir nas outras parcelas
+        let somaOutros = 0;
+        let countOutros = 0;
+        
+        for (let i = 0; i < this.parcelas; i++) {
+            if (i !== indexAlterado) {
+                somaOutros += parseFloat(this.valoresParcelas[i] || 0);
+                countOutros++;
+            }
+        }
+        
+        const totalSemAlterado = valorTotal - valorAlterado;
+        
+        if (countOutros > 0 && totalSemAlterado >= 0) {
+            const novoValorPorParcela = (totalSemAlterado / countOutros).toFixed(2);
+            let somaRecalculada = valorAlterado;
+            
+            for (let i = 0; i < this.parcelas; i++) {
+                if (i !== indexAlterado) {
+                    if (i === this.parcelas - 1) {
+                        // Última parcela ajusta a diferença
+                        this.valoresParcelas[i] = (valorTotal - somaRecalculada).toFixed(2);
+                    } else {
+                        this.valoresParcelas[i] = novoValorPorParcela;
+                        somaRecalculada += parseFloat(novoValorPorParcela);
+                    }
+                }
+            }
+        }
+    },
+
+    getValorTotal() {
+        return this.valoresParcelas.reduce((acc, val) => acc + parseFloat(val || 0), 0).toFixed(2);
+    },
+
+    formatarMoeda(valor) {
+        return parseFloat(valor || 0).toLocaleString('pt-BR', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+        });
     }
 }));
 

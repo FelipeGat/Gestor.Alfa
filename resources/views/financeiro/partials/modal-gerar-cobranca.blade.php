@@ -104,21 +104,43 @@
                     </div>
                 </template>
 
-                {{-- VENCIMENTOS --}}
+                {{-- VENCIMENTOS E VALORES --}}
                 <template x-if="vencimentos.length > 0">
                     <div class="modal-vencimentos" style="margin-top:16px">
-                        <div class="modal-vencimentos-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                            <strong>Valor Total: R$ <span x-text="formatarMoeda($store.modalCobranca.orcamento?.valor_total)"></span></strong>
+                            <span style="margin-left: 16px; color: #666;">Distribuído: R$ <span x-text="formatarMoeda(getValorTotal())"></span></span>
+                        </div>
+
+                        <div class="modal-vencimentos-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
                             <template x-for="(v, index) in vencimentos" :key="index">
-                                <div class="modal-field">
-                                    <label class="modal-label">
-                                        Parcela <span x-text="index + 1"></span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        :name="`vencimentos[${index}]`"
-                                        x-model="vencimentos[index]"
-                                        class="modal-input"
-                                        required>
+                                <div style="display: grid; grid-template-columns: 2fr 2fr; gap: 10px; padding: 12px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                    <div class="modal-field" style="margin: 0;">
+                                        <label class="modal-label">
+                                            📅 Parcela <span x-text="index + 1"></span> - Vencimento
+                                        </label>
+                                        <input
+                                            type="date"
+                                            :name="`vencimentos[${index}]`"
+                                            x-model="vencimentos[index]"
+                                            class="modal-input"
+                                            required>
+                                    </div>
+                                    <div class="modal-field" style="margin: 0;">
+                                        <label class="modal-label">
+                                            💵 Valor (R$)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            :name="`valores_parcelas[${index}]`"
+                                            x-model="valoresParcelas[index]"
+                                            @input="ajustarValores(index)"
+                                            class="modal-input"
+                                            required
+                                            style="font-weight: 600; color: #059669;">
+                                    </div>
                                 </div>
                             </template>
                         </div>
