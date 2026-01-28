@@ -19,6 +19,8 @@ class Cobranca extends Model
         'valor',
         'data_vencimento',
         'status',
+        'tipo',
+        'conta_fixa_id',
         'pago_em',
         'forma_pagamento',
         'parcela_num',
@@ -88,5 +90,13 @@ class Cobranca extends Model
         }
 
         return 'vencido';
+    }
+
+    /**
+     * Relacionamento com Conta Fixa
+     */
+    public function contaFixa()
+    {
+        return $this->belongsTo(ContaFixa::class);
     }
 }
