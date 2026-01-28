@@ -118,18 +118,53 @@ class ContasReceberController extends Controller
         $request->validate([
             'conta_financeira_id' => 'required|exists:contas_financeiras,id',
             'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
+            'valor_pago' => 'required|numeric|min:0',
+            'criar_nova_cobranca' => 'nullable|boolean',
+            'valor_restante' => 'nullable|numeric|min:0',
+            'data_vencimento_original' => 'nullable|date',
         ]);
 
-        DB::transaction(function () use ($cobranca, $request) {
+        $valorPago = floatval($request->valor_pago);
+        $valorTotal = floatval($cobranca->valor);
+
+        // Validar que o valor pago não seja maior que o total
+        if ($valorPago > $valorTotal) {
+            return back()->with('error', 'O valor pago não pode ser maior que o valor total da cobrança.');
+        }
+
+        DB::transaction(function () use ($cobranca, $request, $valorPago, $valorTotal) {
+            // Atualizar a cobrança atual com o valor pago
             $cobranca->update([
                 'status' => 'pago',
                 'pago_em' => now(),
+                'valor' => $valorPago, // Atualiza o valor para o que foi efetivamente pago
                 'conta_financeira_id' => $request->conta_financeira_id,
                 'forma_pagamento' => $request->forma_pagamento,
             ]);
+
+            // Se houver valor restante, criar nova cobrança
+            if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
+                $valorRestante = floatval($request->valor_restante);
+                
+                // Criar nova cobrança com o valor restante
+                Cobranca::create([
+                    'cliente_id' => $cobranca->cliente_id,
+                    'orcamento_id' => $cobranca->orcamento_id,
+                    'valor' => $valorRestante,
+                    'descricao' => $cobranca->descricao . ' (Restante)',
+                    'data_vencimento' => $request->data_vencimento_original ?? $cobranca->data_vencimento,
+                    'status' => 'pendente',
+                    'forma_pagamento' => $request->forma_pagamento,
+                ]);
+            }
         });
 
-        return back()->with('success', 'Cobrança marcada como paga e registrada na movimentação.');
+        $mensagem = 'Cobrança marcada como paga e registrada na movimentação.';
+        if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
+            $mensagem .= ' Uma nova cobrança foi criada com o valor restante de R$ ' . number_format($request->valor_restante, 2, ',', '.');
+        }
+
+        return back()->with('success', $mensagem);
     }
 
     /*
