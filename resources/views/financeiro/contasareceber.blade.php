@@ -102,12 +102,12 @@
 
                     <div class="filter-group">
                         <label>Vencimento (Início)</label>
-                        <input type="date" name="vencimento_inicio" value="{{ request('vencimento_inicio') }}">
+                        <input type="date" name="vencimento_inicio" value="{{ $vencimentoInicio }}">
                     </div>
 
                     <div class="filter-group">
                         <label>Vencimento (Fim)</label>
-                        <input type="date" name="vencimento_fim" value="{{ request('vencimento_fim') }}">
+                        <input type="date" name="vencimento_fim" value="{{ $vencimentoFim }}">
                     </div>
                 </div>
 
@@ -125,6 +125,16 @@
                             <span>Vencido</span>
                             <span class="count">{{ $contadoresStatus['vencido'] }}</span>
                         </a>
+                        <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('tipo'), ['tipo' => 'orcamento'])) }}"
+                            class="quick-filter-btn {{ request('tipo') == 'orcamento' ? 'active' : '' }}">
+                            <span>Orçamento</span>
+                            <span class="count">{{ $contadoresTipo['orcamento'] }}</span>
+                        </a>
+                        <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('tipo'), ['tipo' => 'contrato'])) }}"
+                            class="quick-filter-btn {{ request('tipo') == 'contrato' ? 'active' : '' }}">
+                            <span>Contrato</span>
+                            <span class="count">{{ $contadoresTipo['contrato'] }}</span>
+                        </a>
                     </div>
 
                     {{-- Grupo de Botões (Direita) --}}
@@ -132,7 +142,16 @@
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                         <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary">Limpar</a>
                     </div>
-
+                    <button
+                        type="button"
+                        x-data
+                        @click="$dispatch('abrir-modal-conta-fixa')"
+                        class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition shadow-md border border-purple-700/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Receitas Fixas
+                    </button>
                 </div>
             </form>
 
@@ -178,6 +197,7 @@
                                 <th>Vencimento</th>
                                 <th>Cliente</th>
                                 <th>Descrição</th>
+                                <th>Tipo</th>
                                 <th class="text-right">Valor</th>
                                 <th class="text-center">Ações</th>
                             </tr>
@@ -188,15 +208,19 @@
                             @php
                             $totalPagina += $cobranca->valor;
                             $statusClass = $cobranca->status_financeiro;
+                            $venceHoje = $cobranca->status !== 'pago' && $cobranca->data_vencimento->isToday();
+                            $vencido = $cobranca->status !== 'pago' && $cobranca->data_vencimento->isPast() && !$venceHoje;
+
+                            // Definir classe da linha
+                            $linhaClass = '';
+                            if ($venceHoje) {
+                            $linhaClass = 'bg-green-50 border-l-4 border-green-400';
+                            $statusClass = 'vence-hoje';
+                            } elseif ($vencido) {
+                            $linhaClass = 'bg-red-50 border-l-4 border-red-400';
+                            }
                             @endphp
-                            @php
-                            $venceHoje = $cobranca->status !== 'pago'
-                            && $cobranca->data_vencimento->isToday();
-                            @endphp
-                            @if($venceHoje)
-                            @php $statusClass = 'vence-hoje'; @endphp
-                            @endif
-                            <tr class="{{ $venceHoje ? 'bg-yellow-50 border-l-4 border-yellow-400' : '' }}">
+                            <tr class="{{ $linhaClass }}">
                                 <td data-label="Vencimento">
                                     <span class="status-indicator {{ $statusClass }}"></span>
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
@@ -206,53 +230,80 @@
                                 </td>
                                 <td data-label="Descrição">
                                     {{ $cobranca->descricao }}
-                                    <small class="block text-gray-400">{{ $cobranca->orcamento_id ? 'Origem: Orçamento' : 'Origem: Contrato' }}</small>
+                                </td>
+                                <td data-label="Tipo">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $cobranca->tipo === 'contrato' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ ucfirst($cobranca->tipo) }}
+                                    </span>
                                 </td>
                                 <td data-label="Valor" class="text-right font-semibold">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
                                 <td data-label="Ações">
                                     <div class="table-actions">
-                                        @if($cobranca->status !== 'pago')
-                                        <form method="POST" action="{{ route('financeiro.contasareceber.pagar', $cobranca) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                        </form>
-                                        <form method="POST" action="{{ route('financeiro.contasareceber.pagar', $cobranca) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button
-                                                type="button"
-                                                x-data
-                                                class="btn action-btn btn-success"
-                                                x-on:click="$dispatch('confirmar-baixa', {
-        action: '{{ route('financeiro.contasareceber.pagar', $cobranca) }}',
-        empresaId: {{ $cobranca->orcamento?->empresa_id ?? 'null' }},
-        cobrancaId: {{ $cobranca->id }},
-        valorTotal: {{ $cobranca->valor }},
-        dataVencimento: '{{ $cobranca->data_vencimento->format('Y-m-d') }}'
-    })">
-                                                Confirmar Baixa
-                                            </button>
-                                        </form>
+
+                                        {{-- Botão Editar (apenas para contas fixas) --}}
+                                        @if($cobranca->conta_fixa_id)
+                                        <button
+                                            type="button"
+                                            x-data
+                                            class="btn action-btn btn-icon bg-blue-600 hover:bg-blue-700 text-white transition-transform duration-200 hover:scale-150"
+                                            title="Editar Conta Fixa"
+                                            @click="$dispatch('editar-conta-fixa', { contaFixaId: {{ $cobranca->conta_fixa_id }} })">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                        </button>
                                         @endif
-                                        {{-- <a href="{{ route('cobrancas.edit', $cobranca) }}" class="btn action-btn btn-icon" title="Editar">...</a> --}}
+
+                                        @if($cobranca->status !== 'pago')
+                                        {{-- Botão de Baixar (ícone de check com cifrão) --}}
+                                        <button
+                                            type="button"
+                                            x-data
+                                            class="btn action-btn btn-icon bg-green-600 hover:bg-green-700 text-white transition-transform duration-200 hover:scale-150"
+                                            title="Confirmar Baixa"
+                                            x-on:click="$dispatch('confirmar-baixa', {
+    action: '{{ route('financeiro.contasareceber.pagar', $cobranca) }}',
+    empresaId: {{ $cobranca->orcamento?->empresa_id ?? 'null' }},
+    cobrancaId: {{ $cobranca->id }},
+    valorTotal: {{ $cobranca->valor }},
+    dataVencimento: '{{ $cobranca->data_vencimento->format('Y-m-d') }}'
+})">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        @endif
+
+                                        {{-- Botão Excluir --}}
                                         @php
                                         $totalParcelasOrcamento = $cobranca->orcamento_id
                                         ? \App\Models\Cobranca::where('orcamento_id', $cobranca->orcamento_id)
                                         ->where('status', '!=', 'pago')
                                         ->count()
                                         : 1;
+
+                                        $totalCobrancasContrato = $cobranca->conta_fixa_id
+                                        ? \App\Models\Cobranca::where('conta_fixa_id', $cobranca->conta_fixa_id)
+                                        ->where('status', '!=', 'pago')
+                                        ->where('data_vencimento', '>=', $cobranca->data_vencimento)
+                                        ->count()
+                                        : 0;
                                         @endphp
                                         <button
                                             type="button"
                                             x-data
-                                            class="btn action-btn btn-icon"
+                                            class="btn action-btn btn-icon transition-transform duration-200 hover:scale-150"
                                             title="Excluir"
                                             @click="$dispatch('excluir-cobranca', {
                                                 cobrancaId: {{ $cobranca->id }},
                                                 orcamentoId: {{ $cobranca->orcamento_id ?? 'null' }},
-                                                totalParcelas: {{ $totalParcelasOrcamento }}
+                                                totalParcelas: {{ $totalParcelasOrcamento }},
+                                                contaFixaId: {{ $cobranca->conta_fixa_id ?? 'null' }},
+                                                totalCobrancasContrato: {{ $totalCobrancasContrato }},
+                                                dataVencimento: '{{ $cobranca->data_vencimento }}'
                                             })">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -263,7 +314,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-12 text-gray-500">
+                                <td colspan="6" class="text-center py-12 text-gray-500">
                                     Nenhuma cobrança encontrada para os filtros aplicados.
                                 </td>
                             </tr>
@@ -296,5 +347,6 @@
     </div>
     @include('financeiro.partials.modal-confirmar-baixa')
     @include('financeiro.partials.modal-excluir-cobranca')
+    @include('financeiro.partials.modal-conta-fixa')
 
 </x-app-layout>
