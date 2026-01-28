@@ -179,15 +179,33 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::get('/contas-a-receber', [ContasReceberController::class, 'index'])
             ->name('contasareceber');
 
+        // Movimentação financeira
+        Route::get(
+            '/movimentacao',
+            [ContasReceberController::class, 'movimentacao']
+        )->name('movimentacao');
+
         // Contas a receber reabrir cobrançã
         Route::patch(
-            '/financeiro/contas-a-receber/{cobranca}/reabrir',
+            '/contas-a-receber/{cobranca}/reabrir',
             [ContasReceberController::class, 'reabrir']
-        )->name('financeiro.contasareceber.reabrir');
+        )->name('contasareceber.reabrir');
+
+        // Recibo de cobrança
+        Route::get(
+            '/cobrancas/{cobranca}/recibo',
+            [ContasReceberController::class, 'recibo']
+        )->name('cobrancas.recibo');
+
+        // Estornar pagamento
+        Route::patch(
+            '/movimentacao/{cobranca}/estornar',
+            [ContasReceberController::class, 'estornar']
+        )->name('movimentacao.estornar');
 
         /*
         |----------------------------------------------------------------------
-        | CONTAS FINANCEIRAS (BANCOS / CAIXA / PIX)
+        | CONTAS FINANCEIRAS)
         |----------------------------------------------------------------------
         */
         Route::get('/contas-financeiras', [ContasFinanceirasController::class, 'index'])

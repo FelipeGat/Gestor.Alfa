@@ -68,6 +68,16 @@
                     </svg>
                     Contas a Pagar
                 </a>
+
+                {{-- MOVIMENTAÇÃO --}}
+                <a href="{{ route('financeiro.movimentacao' ) }}"
+                    class="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-md border border-blue-700/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    Movimentação
+                </a>
             </div>
 
             {{-- FILTROS --}}

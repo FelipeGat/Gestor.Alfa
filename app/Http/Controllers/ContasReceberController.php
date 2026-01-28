@@ -109,20 +109,27 @@ class ContasReceberController extends Controller
     | MARCAR COMO PAGO
     |--------------------------------------------------------------------------
     */
-    public function pagar(Cobranca $cobranca)
+    public function pagar(Request $request, Cobranca $cobranca)
     {
         if ($cobranca->status === 'pago') {
             return back()->with('error', 'Esta cobrança já está paga.');
         }
 
-        DB::transaction(function () use ($cobranca) {
+        $request->validate([
+            'conta_financeira_id' => 'required|exists:contas_financeiras,id',
+            'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
+        ]);
+
+        DB::transaction(function () use ($cobranca, $request) {
             $cobranca->update([
-                'status'  => 'pago',
+                'status' => 'pago',
                 'pago_em' => now(),
+                'conta_financeira_id' => $request->conta_financeira_id,
+                'forma_pagamento' => $request->forma_pagamento,
             ]);
         });
 
-        return back()->with('success', 'Cobrança marcada como paga.');
+        return back()->with('success', 'Cobrança marcada como paga e registrada na movimentação.');
     }
 
     /*
@@ -152,6 +159,12 @@ class ContasReceberController extends Controller
         return back()->with('success', 'Cobrança excluída e devolvida ao financeiro.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | REABRIR COBRANÇA
+    |--------------------------------------------------------------------------
+    */
+
     public function reabrir(Cobranca $cobranca)
     {
         if ($cobranca->status !== 'pago') {
@@ -166,5 +179,95 @@ class ContasReceberController extends Controller
         });
 
         return back()->with('success', 'Cobrança reaberta com sucesso.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MOVIMENTAÇÃO
+    |--------------------------------------------------------------------------
+    */
+
+    public function movimentacao(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        // ================= QUERY BASE (APENAS PAGOS) =================
+        $query = Cobranca::with([
+            'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
+            'orcamento:id,forma_pagamento',
+            'contaFinanceira:id,nome,tipo'
+        ])
+            ->where('status', 'pago')
+            ->whereNotNull('pago_em');
+
+        // ================= FILTROS =================
+        if ($request->filled('search')) {
+            $search = '%' . $request->input('search') . '%';
+            $query->where(function ($q) use ($search) {
+                $q->whereHas(
+                    'cliente',
+                    fn($sq) =>
+                    $sq->where('nome', 'like', $search)
+                        ->orWhere('nome_fantasia', 'like', $search)
+                        ->orWhere('razao_social', 'like', $search)
+                )
+                    ->orWhere('descricao', 'like', $search);
+            });
+        }
+
+        if ($request->filled('data_inicio')) {
+            $query->whereDate('pago_em', '>=', $request->data_inicio);
+        }
+
+        if ($request->filled('data_fim')) {
+            $query->whereDate('pago_em', '<=', $request->data_fim);
+        }
+
+        // ================= KPIs =================
+        $totalEntradas = (clone $query)->sum('valor');
+
+        // ================= PAGINAÇÃO =================
+        $movimentacoes = $query
+            ->orderBy('pago_em', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('financeiro.movimentacao', compact(
+            'movimentacoes',
+            'totalEntradas'
+        ));
+    }
+
+    // ================= RECIBO =================
+    public function recibo(Cobranca $cobranca)
+    {
+        return view('financeiro.recibos.recibo-pagamento', compact('cobranca'));
+    }
+
+
+    // ================= ESTORNAR PAGAMENTO =================
+    public function estornar(Cobranca $cobranca)
+    {
+        if ($cobranca->status !== 'pago') {
+            return back()->with('error', 'Apenas cobranças pagas podem ser estornadas.');
+        }
+
+        DB::transaction(function () use ($cobranca) {
+            $cobranca->update([
+                'status' => 'pendente',
+                'pago_em' => null,
+                'conta_financeira_id' => null,
+                // Mantém a forma_pagamento para histórico
+            ]);
+        });
+
+        return back()->with('success', 'Cobrança estornada e devolvida para Contas a Receber.');
     }
 }

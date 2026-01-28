@@ -13,11 +13,13 @@ class Cobranca extends Model
     protected $fillable = [
         'orcamento_id',
         'cliente_id',
+        'conta_financeira_id',
         'boleto_id',
         'descricao',
         'valor',
         'data_vencimento',
         'status',
+        'pago_em',
         'forma_pagamento',
         'parcela_num',
         'parcelas_total',
@@ -25,6 +27,7 @@ class Cobranca extends Model
 
     protected $casts = [
         'data_vencimento' => 'date',
+        'pago_em' => 'datetime',
     ];
 
     /**
@@ -56,6 +59,11 @@ class Cobranca extends Model
     public function orcamento()
     {
         return $this->belongsTo(Orcamento::class);
+    }
+
+    public function contaFinanceira()
+    {
+        return $this->belongsTo(ContaFinanceira::class, 'conta_financeira_id');
     }
 
     /* =========================================================

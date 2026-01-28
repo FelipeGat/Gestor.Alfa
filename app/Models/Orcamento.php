@@ -126,4 +126,9 @@ class Orcamento extends Model
     {
         return $this->hasOne(\App\Models\Cobranca::class);
     }
+
+    public function cobrancas()
+    {
+        return $this->hasMany(\App\Models\Cobranca::class);
+    }
 }
