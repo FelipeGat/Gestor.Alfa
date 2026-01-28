@@ -124,6 +124,8 @@ class FinanceiroController extends Controller
                 'parcelas'        => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1',
                 'vencimentos'     => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1',
                 'vencimentos.*'   => 'required_if:forma_pagamento,credito,boleto,faturado|date',
+                'valores_parcelas' => 'nullable|array',
+                'valores_parcelas.*' => 'nullable|numeric|min:0',
             ]);
 
             // CHAMADA DO SERVICE QUE GERA AS PARCELAS)

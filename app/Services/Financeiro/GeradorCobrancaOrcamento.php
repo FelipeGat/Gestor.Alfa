@@ -107,7 +107,8 @@ class GeradorCobrancaOrcamento
         foreach ($this->dados['vencimentos'] as $data) {
             $dataCarbon = Carbon::parse($data);
 
-            if ($dataCarbon->isPast()) {
+            // Permitir data de hoje, bloquear apenas datas anteriores a hoje
+            if ($dataCarbon->isBefore(Carbon::today())) {
                 throw ValidationException::withMessages([
                     'vencimentos' => 'Não é permitido vencimento no passado.',
                 ]);
@@ -148,6 +149,32 @@ class GeradorCobrancaOrcamento
 
         // Parcelado
         $parcelas = (int) $this->dados['parcelas'];
+        $valoresCustomizados = $this->dados['valores_parcelas'] ?? [];
+
+        // Verificar se há valores customizados
+        $usarValoresCustomizados = !empty($valoresCustomizados) && count($valoresCustomizados) === $parcelas;
+
+        if ($usarValoresCustomizados) {
+            // Usar valores customizados do modal
+            $resultado = [];
+
+            foreach ($this->dados['vencimentos'] as $index => $data) {
+                $valor = isset($valoresCustomizados[$index]) ? (float) $valoresCustomizados[$index] : 0;
+
+                $resultado[] = [
+                    'cliente_id'      => $this->orcamento->cliente_id,
+                    'orcamento_id'    => $this->orcamento->id,
+                    'valor'           => $valor,
+                    'data_vencimento' => Carbon::parse($data)->toDateString(),
+                    'descricao'       => "Orçamento {$this->orcamento->numero_orcamento} - Parcela " . ($index + 1) . "/{$parcelas}",
+                    'origem'          => 'orcamento',
+                ];
+            }
+
+            return $resultado;
+        }
+
+        // Valor dividido igualmente (comportamento padrão)
         $valorParcela = round($valorTotal / $parcelas, 2);
         $resto = round($valorTotal - ($valorParcela * $parcelas), 2);
 
