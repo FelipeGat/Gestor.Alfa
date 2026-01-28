@@ -1,10 +1,13 @@
 <x-app-layout>
     @push('styles')
+    @vite('resources/css/contas-bancarias/contas-bancarias.css')
+    @vite('resources/css/financeiro/contasareceber.css')
     @vite('resources/css/financeiro/index.css')
     @endpush
 
     <x-slot name="header">
         <div class="flex items-center justify-between w-full">
+
             {{-- TÍTULO --}}
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
@@ -33,33 +36,78 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= 1. NAVEGAÇÃO ================= --}}
-            <div class="section-card financeiro-nav mb-6">
+            <div class="section-card financeiro-nav">
+                {{-- BANCOS --}}
                 <a href="{{ route('financeiro.contas-financeiras.index') }}"
                     class="inline-flex items-center px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-lg transition shadow-sm border border-yellow-500/20">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
                     Bancos
                 </a>
 
+                {{-- CONTAS A RECEBER --}}
                 <a href="{{ route('financeiro.contasareceber' ) }}"
                     class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md border border-emerald-700/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-2-2m2 2l2-2" />
                     </svg>
                     Contas a Receber
                 </a>
 
+                {{-- CONTAS A PAGAR --}}
                 <a href="#"
                     class="inline-flex items-center px-4 py-2.5 bg-gray-50 text-gray-400 font-bold rounded-lg cursor-not-allowed border border-gray-200 opacity-60">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12V6m0 0l-2 2m2-2l2 2" />
                     </svg>
                     Contas a Pagar
                 </a>
             </div>
+
+            {{-- ================= FILTROS ================= --}}
+            <form method="GET" action="{{ route('financeiro.contasareceber') }}" class="filters-card">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Buscar por Cliente ou Descrição</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ex: Invest, Manutenção...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Vencimento (Início)</label>
+                        <input type="date" name="vencimento_inicio" value="{{ request('vencimento_inicio') }}">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Vencimento (Fim)</label>
+                        <input type="date" name="vencimento_fim" value="{{ request('vencimento_fim') }}">
+                    </div>
+                </div>
+
+                <div class="actions-container">
+
+                    {{-- Grupo de Filtros Rápidos (Esquerda) --}}
+                    <div class="quick-filters">
+                        <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['financeiro']])) }}"
+                            class="quick-filter-btn status-financeiro {{ in_array('financeiro', request('status', [])) ? 'active' : '' }}">
+                            <span>Financeiro</span>
+                            <span class="count">{{ $contadoresStatus['financeiro'] }}</span>
+                        </a>
+                    </div>
+
+                    {{-- Grupo de Botões (Direita) --}}
+                    <div class="filters-actions">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary">Limpar</a>
+                    </div>
+
+                </div>
+            </form>
 
             {{-- ================= 2. TÍTULO DA SEÇÃO ================= --}}
             <div class="section-card mb-6">
