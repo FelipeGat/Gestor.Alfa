@@ -8,12 +8,25 @@
     contas: [],
     categoriaId: '',
     subcategoriaId: '',
+    fornecedorId: '',
+    centroCustoId: '',
+    contaId: '',
+    descricao: '',
+    valor: '',
+    dataInicial: '',
+    dataFim: '',
+    diaVencimento: '',
+    periodicidade: 'MENSAL',
+    formaPagamento: '',
+    contaFinanceiraId: '',
     
     async carregarContaFixa(id) {
         try {
             const response = await fetch(`/financeiro/contas-fixas-pagar/${id}`);
             if (!response.ok) throw new Error('Erro ao carregar conta fixa');
             const data = await response.json();
+            
+            console.log('Dados conta fixa recebidos:', data);
             
             // Carregar selects em cascata primeiro
             if (data.conta?.subcategoria?.categoria_id) {
@@ -28,38 +41,22 @@
             
             // Aguardar renderização completa
             await this.$nextTick();
+            await this.$nextTick();
             
-            // Preencher TODOS os campos após selects carregarem
-            if (data.fornecedor_id) {
-                document.querySelector('[name=fornecedor_id]').value = data.fornecedor_id;
-            }
-            if (data.centro_custo_id) {
-                document.querySelector('[name=centro_custo_id]').value = data.centro_custo_id;
-            }
-            if (data.conta_id) {
-                document.querySelector('[name=conta_id]').value = data.conta_id;
-            }
-            if (data.descricao) {
-                document.querySelector('[name=descricao]').value = data.descricao;
-            }
-            if (data.valor) {
-                document.querySelector('[name=valor]').value = data.valor;
-            }
-            if (data.data_inicial) {
-                document.querySelector('[name=data_inicial]').value = data.data_inicial.split('T')[0];
-            }
-            if (data.data_fim) {
-                document.querySelector('[name=data_fim]').value = data.data_fim.split('T')[0];
-            }
-            if (data.periodicidade) {
-                document.querySelector('[name=periodicidade]').value = data.periodicidade;
-            }
-            if (data.forma_pagamento) {
-                document.querySelector('[name=forma_pagamento]').value = data.forma_pagamento;
-            }
-            if (data.conta_financeira_id) {
-                document.querySelector('[name=conta_financeira_id]').value = data.conta_financeira_id;
-            }
+            // Preencher variáveis do Alpine
+            this.fornecedorId = data.fornecedor_id || '';
+            this.centroCustoId = data.centro_custo_id || '';
+            this.contaId = data.conta_id || '';
+            this.descricao = data.descricao || '';
+            this.valor = data.valor || '';
+            this.dataInicial = data.data_inicial?.split('T')[0] || '';
+            this.dataFim = data.data_fim?.split('T')[0] || '';
+            this.diaVencimento = data.dia_vencimento || '';
+            this.periodicidade = data.periodicidade || 'MENSAL';
+            this.formaPagamento = data.forma_pagamento || '';
+            this.contaFinanceiraId = data.conta_financeira_id || '';
+            
+            console.log('Campos Alpine atualizados');
             
             this.editando = true;
             this.contaFixaId = id;
@@ -68,6 +65,24 @@
             console.error('Erro ao carregar conta fixa:', error);
             alert('Erro ao carregar dados da conta fixa');
         }
+    },
+    
+    resetForm() {
+        this.categoriaId = '';
+        this.subcategoriaId = '';
+        this.subcategorias = [];
+        this.contas = [];
+        this.fornecedorId = '';
+        this.centroCustoId = '';
+        this.contaId = '';
+        this.descricao = '';
+        this.valor = '';
+        this.dataInicial = '';
+        this.dataFim = '';
+        this.diaVencimento = '';
+        this.periodicidade = 'MENSAL';
+        this.formaPagamento = '';
+        this.contaFinanceiraId = '';
     },
     
     async loadSubcategorias() {
@@ -108,7 +123,7 @@
         }
     }
 }"
-    @abrir-modal-conta-fixa-pagar.window="editando = false; contaFixaId = null; open = true"
+    @abrir-modal-conta-fixa-pagar.window="resetForm(); editando = false; contaFixaId = null; open = true"
     @editar-conta-fixa-pagar.window="carregarContaFixa($event.detail.contaFixaId)"
     x-show="open"
     style="display: none;"
@@ -149,7 +164,7 @@
                         {{-- Fornecedor --}}
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Fornecedor</label>
-                            <select name="fornecedor_id"
+                            <select name="fornecedor_id" x-model="fornecedorId"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Selecione (opcional)...</option>
                                 @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
@@ -160,7 +175,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Custo <span class="text-red-500">*</span></label>
-                            <select name="centro_custo_id" required
+                            <select name="centro_custo_id" x-model="centroCustoId" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Selecione...</option>
                                 @foreach(\App\Models\CentroCusto::where('ativo', true)->orderBy('nome')->get() as $centro)
@@ -193,7 +208,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Conta <span class="text-red-500">*</span></label>
-                            <select name="conta_id" :disabled="!subcategoriaId" required
+                            <select name="conta_id" x-model="contaId" :disabled="!subcategoriaId" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Selecione...</option>
                                 <template x-for="conta in contas" :key="conta.id">
@@ -204,20 +219,20 @@
 
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Descrição <span class="text-red-500">*</span></label>
-                            <input type="text" name="descricao" required maxlength="255"
+                            <input type="text" name="descricao" x-model="descricao" required maxlength="255"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Valor <span class="text-red-500">*</span></label>
-                            <input type="number" name="valor" step="0.01" min="0.01" max="999999.99" required
+                            <input type="number" name="valor" x-model="valor" step="0.01" min="0.01" max="999999.99" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
 
                         {{-- Data Inicial --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial/Vencimento <span class="text-red-500">*</span></label>
-                            <input type="date" name="data_inicial" required
+                            <input type="date" name="data_inicial" x-model="dataInicial" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <p class="text-xs text-gray-500 mt-1">Data do primeiro vencimento</p>
                         </div>
@@ -225,7 +240,7 @@
                         {{-- Periodicidade --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Periodicidade <span class="text-red-500">*</span></label>
-                            <select name="periodicidade" required
+                            <select name="periodicidade" x-model="periodicidade" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="MENSAL">Mensal</option>
                                 <option value="SEMANAL">Semanal</option>
@@ -239,7 +254,7 @@
                         {{-- Data Final (Opcional) --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
-                            <input type="date" name="data_fim"
+                            <input type="date" name="data_fim" x-model="dataFim"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <p class="text-xs text-gray-500 mt-1">Deixe em branco para despesa permanente</p>
                         </div>
@@ -247,7 +262,7 @@
                         {{-- Forma de Pagamento --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
-                            <select name="forma_pagamento"
+                            <select name="forma_pagamento" x-model="formaPagamento"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Não definida</option>
                                 <option value="PIX">PIX</option>
@@ -264,7 +279,7 @@
                         {{-- Conta Bancária --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Conta Bancária (para pagamento)</label>
-                            <select name="conta_financeira_id"
+                            <select name="conta_financeira_id" x-model="contaFinanceiraId"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Selecione (opcional)...</option>
                                 @foreach(\App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get() as $contaBancaria)

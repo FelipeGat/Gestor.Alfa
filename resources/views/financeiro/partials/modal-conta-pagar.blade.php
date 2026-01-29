@@ -15,6 +15,8 @@
             if (!response.ok) throw new Error('Erro ao carregar conta');
             const data = await response.json();
             
+            console.log('Dados recebidos:', data);
+            
             // Carregar selects em cascata primeiro
             if (data.conta?.subcategoria?.categoria_id) {
                 this.categoriaId = data.conta.subcategoria.categoria_id;
@@ -28,34 +30,29 @@
             
             // Aguardar renderização completa
             await this.$nextTick();
+            await this.$nextTick(); // Duplo nextTick para garantir
             
             // Preencher TODOS os campos após selects carregarem
-            if (data.fornecedor_id) {
-                document.querySelector('[name=fornecedor_id]').value = data.fornecedor_id;
-            }
-            if (data.centro_custo_id) {
-                document.querySelector('[name=centro_custo_id]').value = data.centro_custo_id;
-            }
-            if (data.conta_id) {
-                document.querySelector('[name=conta_id]').value = data.conta_id;
-            }
-            if (data.descricao) {
-                document.querySelector('[name=descricao]').value = data.descricao;
-            }
-            if (data.valor) {
-                document.querySelector('[name=valor]').value = data.valor;
-            }
-            if (data.data_vencimento) {
-                document.querySelector('[name=data_vencimento]').value = data.data_vencimento.split('T')[0];
-            }
-            if (data.observacoes) {
-                document.querySelector('[name=observacoes]').value = data.observacoes;
-            }
-            if (data.forma_pagamento) {
-                document.querySelector('[name=forma_pagamento]').value = data.forma_pagamento;
-            }
-            if (data.conta_financeira_id) {
-                document.querySelector('[name=conta_financeira_id]').value = data.conta_financeira_id;
+            const campos = {
+                fornecedor_id: data.fornecedor_id,
+                centro_custo_id: data.centro_custo_id,
+                conta_id: data.conta_id,
+                descricao: data.descricao,
+                valor: data.valor,
+                data_vencimento: data.data_vencimento?.split('T')[0],
+                observacoes: data.observacoes,
+                forma_pagamento: data.forma_pagamento,
+                conta_financeira_id: data.conta_financeira_id
+            };
+            
+            console.log('Preenchendo campos:', campos);
+            
+            for (const [name, value] of Object.entries(campos)) {
+                const field = document.querySelector(`[name=${name}]`);
+                if (field && value !== null && value !== undefined) {
+                    field.value = value;
+                    console.log(`Campo ${name} preenchido com:`, value);
+                }
             }
             
             this.editando = true;
@@ -65,6 +62,15 @@
             console.error('Erro ao carregar conta:', error);
             alert('Erro ao carregar dados da conta');
         }
+    },
+    
+    resetForm() {
+        this.categoriaId = '';
+        this.subcategoriaId = '';
+        this.subcategorias = [];
+        this.contas = [];
+        const form = document.querySelector('[name=fornecedor_id]')?.closest('form');
+        if (form) form.reset();
     },
     
     async loadSubcategorias() {
@@ -105,7 +111,7 @@
         }
     }
 }"
-    @abrir-modal-conta-pagar.window="editando = false; contaId = null; open = true"
+    @abrir-modal-conta-pagar.window="resetForm(); editando = false; contaId = null; open = true"
     @editar-conta-pagar.window="carregarConta($event.detail.contaId)"
     x-show="open"
     style="display: none;"
