@@ -8,7 +8,7 @@
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                💰 Dashboard Financeiro
+                Dashboard Financeiro
                 {{ $empresaId ? '- ' . ($empresas->find($empresaId)->nome_fantasia ?? 'Empresa') : '(Global)' }}
             </h2>
 
@@ -58,7 +58,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    Cobrança
+                    Cobrar
                 </a>
 
                 {{-- CONTAS A RECEBER --}}
@@ -69,7 +69,7 @@
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-2-2m2 2l2-2" />
                     </svg>
-                    Contas a Receber
+                    Receber
                 </a>
 
                 {{-- CONTAS A PAGAR --}}
@@ -80,7 +80,7 @@
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12V6m0 0l-2 2m2-2l2 2" />
                     </svg>
-                    Contas a Pagar
+                    Pagar
                 </a>
 
                 {{-- MOVIMENTAÇÃO --}}
@@ -90,7 +90,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
-                    Movimentação
+                    Extrato
                 </a>
             </div>
 
@@ -137,15 +137,26 @@
                     {{-- HEADER --}}
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            💳 Saldo em Bancos
+                            {{-- ÍCONE DE BANCO (PRÉDIO) --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Saldo em Bancos
                         </h3>
 
-                        {{-- OLHO --}}
+                        {{-- BOTAO MOSTRAR / OCULTAR --}}
                         <button type="button"
                             onclick="toggleValoresBancos()"
-                            class="text-gray-500 hover:text-gray-800 transition"
-                            title="Mostrar / Ocultar valores">
-                            👁
+                            class="text-gray-400 hover:text-indigo-600 transition p-1 rounded-full hover:bg-gray-100"
+                            title="Mostrar / Ocultar valores"
+                            id="btnToggleBancos">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                         </button>
                     </div>
 
@@ -221,12 +232,17 @@
                             📊 Resumo Financeiro
                         </h3>
 
-                        {{-- OLHO --}}
                         <button type="button"
                             onclick="toggleValoresBancos()"
-                            class="text-gray-500 hover:text-gray-800 transition"
-                            title="Mostrar / Ocultar valores">
-                            👁
+                            class="text-gray-400 hover:text-indigo-600 transition p-1 rounded-full hover:bg-gray-100"
+                            title="Mostrar / Ocultar valores"
+                            id="btnToggleBancos">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                         </button>
                     </div>
 
