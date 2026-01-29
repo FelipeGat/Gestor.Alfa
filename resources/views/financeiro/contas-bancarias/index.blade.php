@@ -2,6 +2,7 @@
 
     @push('styles')
     @vite('resources/css/contas-bancarias/contas-bancarias.css')
+    @vite('resources/css/financeiro/contasareceber.css')
     @vite('resources/css/financeiro/index.css')
     @endpush
 
@@ -90,7 +91,7 @@
                 </a>
             </div>
 
-            {{-- FILTROS --}}
+            {{-- ================= FILTROS ================= --}}
             <form method="GET" class="filters-card">
                 <div class="filters-grid">
 
@@ -132,13 +133,18 @@
                     </div>
                 </div>
 
-                <div class="filters-actions">
-                    <button class="btn btn-primary">Filtrar</button>
+                <div class="actions-container">
+                    {{-- Espaço vazio (Esquerda) --}}
+                    <div></div>
 
-                    <a href="{{ route('financeiro.contas-financeiras.create') }}"
-                        class="btn btn-success">
-                        + Nova Conta
-                    </a>
+                    {{-- Grupo de Botões (Direita) --}}
+                    <div class="filters-actions">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <a href="{{ route('financeiro.contas-financeiras.index') }}" class="btn btn-secondary">Limpar</a>
+                        <a href="{{ route('financeiro.contas-financeiras.create') }}" class="btn btn-success">
+                            + Nova Conta
+                        </a>
+                    </div>
                 </div>
             </form>
 
