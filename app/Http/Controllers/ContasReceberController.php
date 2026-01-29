@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cobranca;
+use App\Models\CobrancaAnexo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class ContasReceberController extends Controller
@@ -24,7 +26,7 @@ class ContasReceberController extends Controller
         );
 
         // ================= PREPARAÇÃO DA QUERY BASE =================
-        $query = Cobranca::with('cliente:id,nome,nome_fantasia')
+        $query = Cobranca::with(['cliente:id,nome,nome_fantasia', 'anexos', 'orcamento.empresa:id,nome_fantasia'])
             ->select('cobrancas.*')
             ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id')
             ->where('cobrancas.status', '!=', 'pago');
@@ -57,6 +59,13 @@ class ContasReceberController extends Controller
             $query->where('cobrancas.tipo', $request->input('tipo'));
         }
 
+        // Filtro por Empresa
+        if ($request->filled('empresa_id')) {
+            $query->whereHas('orcamento', function ($q) use ($request) {
+                $q->where('empresa_id', $request->input('empresa_id'));
+            });
+        }
+
         // Clonando a query *antes* do filtro de status para os contadores
         $queryParaContadores = clone $query;
 
@@ -78,16 +87,25 @@ class ContasReceberController extends Controller
         }
 
         // ================= CÁLCULO DOS KPIs E TOTAIS (baseado na query com filtros) =================
-        $kpisQuery = (clone $query)->toBase();
+        // KPIs devem considerar o período filtrado
+        $kpisQueryBase = Cobranca::query();
+
+        // Aplicar mesmo filtro de período dos KPIs
+        if ($vencimentoInicio) {
+            $kpisQueryBase->where('data_vencimento', '>=', $vencimentoInicio);
+        }
+        if ($vencimentoFim) {
+            $kpisQueryBase->where('data_vencimento', '<=', $vencimentoFim);
+        }
 
         $kpis = [
-            'a_receber' => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
-            'recebido'  => (clone $kpisQuery)->where('status', 'pago')->sum('valor'),
-            'vencido'   => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
-            'vence_hoje' => (clone $kpisQuery)->where('status', '!=', 'pago')->whereDate('data_vencimento', today())->sum('valor'),
+            'a_receber' => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
+            'recebido'  => (clone $kpisQueryBase)->where('status', 'pago')->sum('valor'),
+            'vencido'   => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
+            'vence_hoje' => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', today())->sum('valor'),
         ];
 
-        $totalGeralFiltrado = (clone $kpisQuery)->sum('valor');
+        $totalGeralFiltrado = (clone $kpisQueryBase)->sum('valor');
 
         // ================= DADOS PARA FILTROS RÁPIDOS (baseado na query *sem* filtro de status) =================
         $contadoresStatus = [
@@ -108,6 +126,11 @@ class ContasReceberController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // Buscar empresas para o filtro
+        $empresas = \App\Models\Empresa::select('id', 'nome_fantasia')
+            ->orderBy('nome_fantasia')
+            ->get();
+
         // Enviando TODAS as variáveis necessárias para a view
         return view('financeiro.contasareceber', compact(
             'cobrancas',
@@ -116,7 +139,8 @@ class ContasReceberController extends Controller
             'contadoresStatus',
             'contadoresTipo',
             'vencimentoInicio',
-            'vencimentoFim'
+            'vencimentoFim',
+            'empresas'
         ));
     }
 
@@ -134,7 +158,7 @@ class ContasReceberController extends Controller
         $request->validate([
             'conta_financeira_id' => 'required|exists:contas_financeiras,id',
             'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
-            'valor_pago' => 'required|numeric|min:0',
+            'valor_pago' => 'required|numeric|min:0.01',
             'criar_nova_cobranca' => 'nullable|boolean',
             'valor_restante' => 'nullable|numeric|min:0',
             'data_vencimento_original' => 'nullable|date',
@@ -143,7 +167,11 @@ class ContasReceberController extends Controller
         $valorPago = floatval($request->valor_pago);
         $valorTotal = floatval($cobranca->valor);
 
-        // Validar que o valor pago não seja maior que o total
+        // Validações de valor
+        if ($valorPago <= 0) {
+            return back()->with('error', 'O valor pago deve ser maior que zero.');
+        }
+
         if ($valorPago > $valorTotal) {
             return back()->with('error', 'O valor pago não pode ser maior que o valor total da cobrança.');
         }
@@ -528,5 +556,176 @@ class ContasReceberController extends Controller
             'message' => 'Conta fixa e cobranças pendentes atualizadas com sucesso!',
             'reload' => true
         ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GERENCIAMENTO DE ANEXOS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Upload de anexos (NF ou Boleto)
+     */
+    public function uploadAnexo(Request $request, Cobranca $cobranca)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $request->validate([
+            'arquivos' => 'required|array|min:1|max:5', // máximo 5 arquivos por vez
+            'arquivos.*' => 'required|file|mimes:pdf|max:10240', // max 10MB por arquivo
+            'tipo' => 'required|in:nf,boleto',
+        ]);
+
+        $anexosSalvos = [];
+        $tamanhoTotalMB = 0;
+
+        try {
+            foreach ($request->file('arquivos') as $arquivo) {
+                $nomeOriginal = $arquivo->getClientOriginalName();
+                $tamanho = $arquivo->getSize();
+
+                // Limitar tamanho total de upload (50MB no total)
+                $tamanhoTotalMB += $tamanho / 1048576;
+                if ($tamanhoTotalMB > 50) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tamanho total dos arquivos excede 50MB.',
+                    ], 400);
+                }
+
+                // Sanitizar nome do arquivo (remover caracteres especiais)
+                $nomeOriginalSanitizado = preg_replace('/[^a-zA-Z0-9._-]/', '_', $nomeOriginal);
+
+                // Gerar nome único para o arquivo
+                $nomeArquivo = time() . '_' . uniqid() . '_' . $nomeOriginalSanitizado;
+
+                // Salvar arquivo em storage/app/public/cobrancas/anexos
+                $caminho = $arquivo->storeAs('cobrancas/anexos', $nomeArquivo, 'public');
+
+                // Criar registro no banco
+                $anexo = CobrancaAnexo::create([
+                    'cobranca_id' => $cobranca->id,
+                    'tipo' => $request->tipo,
+                    'nome_original' => $nomeOriginal,
+                    'nome_arquivo' => $nomeArquivo,
+                    'caminho' => $caminho,
+                    'tamanho' => $tamanho,
+                ]);
+
+                $anexosSalvos[] = $anexo;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($anexosSalvos) . ' arquivo(s) anexado(s) com sucesso!',
+                'anexos' => $anexosSalvos,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao fazer upload: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Listar anexos de uma cobrança
+     */
+    public function listarAnexos(Cobranca $cobranca)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $anexos = $cobranca->anexos()->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'anexos' => $anexos,
+        ]);
+    }
+
+    /**
+     * Download de anexo
+     */
+    public function downloadAnexo(CobrancaAnexo $anexo)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Carregar relacionamento de cobrança para validação
+        $anexo->load('cobranca');
+
+        // Verificar permissão (financeiro ou cliente da cobrança)
+        $isFinanceiro = $user->isAdminPanel() || $user->perfis()->where('slug', 'financeiro')->exists();
+        
+        // Para clientes: verificar se a cobrança pertence a alguma unidade dele
+        $isClienteProprietario = false;
+        if ($user->tipo === 'cliente') {
+            $clienteIds = $user->clientes()->pluck('clientes.id');
+            $isClienteProprietario = $clienteIds->contains($anexo->cobranca->cliente_id);
+        }
+
+        abort_if(!$isFinanceiro && !$isClienteProprietario, 403, 'Acesso não autorizado');
+
+        $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
+
+        if (!file_exists($caminhoCompleto)) {
+            abort(404, 'Arquivo não encontrado');
+        }
+
+        return response()->download($caminhoCompleto, $anexo->nome_original);
+    }
+
+    /**
+     * Excluir anexo
+     */
+    public function excluirAnexo(CobrancaAnexo $anexo)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403,
+            'Acesso não autorizado'
+        );
+
+        try {
+            // Remover arquivo físico de forma segura
+            $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
+            if (file_exists($caminhoCompleto)) {
+                if (!@unlink($caminhoCompleto)) {
+                    Log::warning('Não foi possível excluir o arquivo físico: ' . $caminhoCompleto);
+                }
+            }
+
+            // Remover registro do banco
+            $anexo->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Anexo excluído com sucesso!',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao excluir anexo: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao excluir anexo: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

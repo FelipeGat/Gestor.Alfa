@@ -94,27 +94,109 @@
 
             {{-- ================= FILTROS ================= --}}
             <form method="GET" action="{{ route('financeiro.contasareceber') }}" class="filters-card">
-                <div class="filters-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    
+                    {{-- Busca --}}
                     <div class="filter-group">
-                        <label>Buscar por Cliente ou Descrição</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ex: Invest, Manutenção...">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                            placeholder="Cliente ou descrição..." 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     </div>
 
+                    {{-- Empresa --}}
                     <div class="filter-group">
-                        <label>Vencimento (Início)</label>
-                        <input type="date" name="vencimento_inicio" value="{{ $vencimentoInicio }}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                        <select name="empresa_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="">Todas as Empresas</option>
+                            @foreach($empresas as $empresa)
+                                <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
+                                    {{ $empresa->nome_fantasia }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label>Vencimento (Fim)</label>
-                        <input type="date" name="vencimento_fim" value="{{ $vencimentoFim }}">
+                    {{-- Navegação de Meses --}}
+                    <div class="filter-group lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
+                        <div class="flex items-center gap-2">
+                            @php
+                                $dataAtual = request('vencimento_inicio') 
+                                    ? \Carbon\Carbon::parse(request('vencimento_inicio'))
+                                    : \Carbon\Carbon::now();
+                                
+                                $mesAnterior = $dataAtual->copy()->subMonth();
+                                $proximoMes = $dataAtual->copy()->addMonth();
+                                
+                                // Meses em português
+                                $meses = [
+                                    1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+                                    5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+                                    9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
+                                ];
+                                $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                            @endphp
+                            
+                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
+                                'vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'),
+                                'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')
+                            ])) }}" 
+                            class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                            title="Mês Anterior">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                            
+                            <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
+                                {{ $mesAtualNome }}
+                            </div>
+                            
+                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
+                                'vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'),
+                                'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')
+                            ])) }}" 
+                            class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                            title="Próximo Mês">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="actions-container">
+                {{-- Período Personalizado (colapsável) --}}
+                <div x-data="{ mostrarPeriodo: false }" class="mb-4">
+                    <button 
+                        type="button" 
+                        @click="mostrarPeriodo = !mostrarPeriodo"
+                        class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="mostrarPeriodo ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span x-text="mostrarPeriodo ? 'Ocultar período personalizado' : 'Escolher período personalizado'"></span>
+                    </button>
+                    <div x-show="mostrarPeriodo" x-transition class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
+                            <input type="date" name="vencimento_inicio" value="{{ $vencimentoInicio }}" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
+                            <input type="date" name="vencimento_fim" value="{{ $vencimentoFim }}" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                     {{-- Grupo de Filtros Rápidos (Esquerda) --}}
-                    <div class="quick-filters">
+                    <div class="flex flex-wrap gap-2 flex-1">
                         <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['pendente']])) }}"
                             class="quick-filter-btn status-pendente {{ in_array('pendente', request('status', [])) ? 'active' : '' }}">
                             <span>Pendente</span>
@@ -138,20 +220,20 @@
                     </div>
 
                     {{-- Grupo de Botões (Direita) --}}
-                    <div class="filters-actions">
+                    <div class="flex flex-wrap gap-2 lg:justify-end">
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                         <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary">Limpar</a>
+                        <button
+                            type="button"
+                            x-data
+                            @click="$dispatch('abrir-modal-conta-fixa')"
+                            class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition shadow-md border border-purple-700/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Receitas Fixas
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        x-data
-                        @click="$dispatch('abrir-modal-conta-fixa')"
-                        class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition shadow-md border border-purple-700/30">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Receitas Fixas
-                    </button>
                 </div>
             </form>
 
@@ -195,6 +277,7 @@
                         <thead>
                             <tr>
                                 <th>Vencimento</th>
+                                <th>Empresa</th>
                                 <th>Cliente</th>
                                 <th>Descrição</th>
                                 <th>Tipo</th>
@@ -224,6 +307,9 @@
                                 <td data-label="Vencimento">
                                     <span class="status-indicator {{ $statusClass }}"></span>
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
+                                </td>
+                                <td data-label="Empresa">
+                                    {{ $cobranca->orcamento?->empresa?->nome_fantasia ?? '—' }}
                                 </td>
                                 <td data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
@@ -276,6 +362,23 @@
                                             </svg>
                                         </button>
                                         @endif
+
+                                        {{-- Botão Anexos --}}
+                                        <button
+                                            type="button"
+                                            x-data
+                                            class="btn action-btn btn-icon bg-purple-600 hover:bg-purple-700 text-white transition-transform duration-200 hover:scale-150 relative"
+                                            title="Gerenciar Anexos (NF/Boleto)"
+                                            @click="$dispatch('abrir-modal-anexos', { cobrancaId: {{ $cobranca->id }} })">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                                            </svg>
+                                            @if($cobranca->anexos()->count() > 0)
+                                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                                {{ $cobranca->anexos()->count() }}
+                                            </span>
+                                            @endif
+                                        </button>
 
                                         {{-- Botão Excluir --}}
                                         @php
@@ -348,5 +451,6 @@
     @include('financeiro.partials.modal-confirmar-baixa')
     @include('financeiro.partials.modal-excluir-cobranca')
     @include('financeiro.partials.modal-conta-fixa')
+    @include('financeiro.partials.modal-anexos')
 
 </x-app-layout>
