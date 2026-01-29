@@ -350,7 +350,7 @@
                             Cancelar
                         </button>
                         <button type="submit"
-                            class="px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-md">
+                            class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-md">
                             <span x-text="editando ? 'Atualizar Conta Fixa' : 'Salvar Conta Fixa'"></span>
                         </button>
                     </div>
