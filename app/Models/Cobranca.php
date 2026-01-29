@@ -99,4 +99,12 @@ class Cobranca extends Model
     {
         return $this->belongsTo(ContaFixa::class);
     }
+
+    /**
+     * Relacionamento com Anexos
+     */
+    public function anexos()
+    {
+        return $this->hasMany(CobrancaAnexo::class);
+    }
 }

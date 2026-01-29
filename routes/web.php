@@ -282,6 +282,27 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             '/orcamentos/{orcamento}/gerar-cobranca',
             [FinanceiroController::class, 'gerarCobranca']
         )->name('orcamentos.gerar-cobranca');
+
+        // Anexos de Cobrança
+        Route::post(
+            '/cobrancas/{cobranca}/anexos',
+            [ContasReceberController::class, 'uploadAnexo']
+        )->name('cobrancas.anexos.upload');
+
+        Route::get(
+            '/cobrancas/{cobranca}/anexos',
+            [ContasReceberController::class, 'listarAnexos']
+        )->name('cobrancas.anexos.listar');
+
+        Route::get(
+            '/cobrancas/anexos/{anexo}/download',
+            [ContasReceberController::class, 'downloadAnexo']
+        )->name('cobrancas.anexos.download');
+
+        Route::delete(
+            '/cobrancas/anexos/{anexo}',
+            [ContasReceberController::class, 'excluirAnexo']
+        )->name('cobrancas.anexos.excluir');
     });
 /*
     |--------------------------------------------------------------------------
@@ -314,6 +335,18 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
         '/portal/notas/{nota}/download',
         [PortalController::class, 'downloadNotaFiscal']
     )->name('portal.notas.download');
+
+    // Download de anexos de cobrança (acessível para clientes)
+    Route::get(
+        '/portal/cobrancas/anexos/{anexo}/download',
+        [ContasReceberController::class, 'downloadAnexo']
+    )->name('portal.cobrancas.anexos.download');
+
+    // Impressão de orçamento (acessível para clientes)
+    Route::get(
+        '/portal/orcamentos/{id}/imprimir',
+        [PortalController::class, 'imprimirOrcamento']
+    )->name('portal.orcamentos.imprimir');
 });
 
 /*
