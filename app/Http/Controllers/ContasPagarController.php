@@ -385,6 +385,18 @@ class ContasPagarController extends Controller
             return back()->withErrors(['error' => 'Não é possível excluir uma conta já paga.']);
         }
 
+        // VALIDAÇÃO: Se for conta fixa (recorrente), verificar se há parcela anterior não paga
+        if ($conta->conta_fixa_pagar_id) {
+            $parcelaAnteriorNaoPaga = ContaPagar::where('conta_fixa_pagar_id', $conta->conta_fixa_pagar_id)
+                ->where('status', '!=', 'pago')
+                ->where('data_vencimento', '<', $conta->data_vencimento)
+                ->exists();
+
+            if ($parcelaAnteriorNaoPaga) {
+                return back()->withErrors(['error' => 'Não é possível excluir esta parcela. Existe uma parcela anterior que ainda não foi paga. Para manter a consistência das despesas fixas, você deve excluir ou pagar as parcelas anteriores primeiro.']);
+            }
+        }
+
         // Se for conta fixa e tem parâmetro delete_future
         if ($conta->tipo === 'fixa' && $request->has('delete_future')) {
             if ($request->delete_future === 'all') {
