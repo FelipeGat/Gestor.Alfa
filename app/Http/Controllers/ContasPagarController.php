@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContaPagar;
+use App\Models\ContaPagarAnexo;
 use App\Models\ContaFixaPagar;
 use App\Models\CentroCusto;
 use App\Models\Categoria;
@@ -12,6 +13,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class ContasPagarController extends Controller
@@ -685,4 +687,140 @@ class ContasPagarController extends Controller
 
         return response()->json($contas);
     }
-}
+
+    // ================= ANEXOS =================
+
+    /**
+     * Listar anexos de uma conta a pagar
+     */
+    public function getAnexos(ContaPagar $conta)
+    {
+        $anexos = $conta->anexos()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'anexos' => $anexos
+        ]);
+    }
+
+    /**
+     * Fazer upload de anexos (NF ou Boleto)
+     */
+    public function storeAnexo(Request $request, ContaPagar $conta)
+    {
+        $request->validate([
+            'tipo' => 'required|in:nf,boleto',
+            'arquivos' => 'required|array',
+            'arquivos.*' => 'required|file|mimes:pdf|max:10240', // Máx 10MB por arquivo
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $uploadedCount = 0;
+            $errors = [];
+
+            foreach ($request->file('arquivos') as $arquivo) {
+                try {
+                    // Gerar nome único para o arquivo
+                    $nomeOriginal = $arquivo->getClientOriginalName();
+                    $extensao = $arquivo->getClientOriginalExtension();
+                    $nomeArquivo = uniqid() . '_' . time() . '.' . $extensao;
+                    
+                    // Salvar arquivo no storage
+                    $caminho = $arquivo->storeAs('anexos/contas_pagar', $nomeArquivo, 'public');
+
+                    // Criar registro no banco
+                    ContaPagarAnexo::create([
+                        'conta_pagar_id' => $conta->id,
+                        'tipo' => $request->tipo,
+                        'nome_original' => $nomeOriginal,
+                        'nome_arquivo' => $nomeArquivo,
+                        'caminho' => $caminho,
+                        'tamanho' => $arquivo->getSize(),
+                    ]);
+
+                    $uploadedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Erro ao fazer upload de {$arquivo->getClientOriginalName()}: {$e->getMessage()}";
+                }
+            }
+
+            DB::commit();
+
+            if ($uploadedCount > 0) {
+                $tipoFormatado = $request->tipo === 'nf' ? 'Nota Fiscal' : 'Boleto';
+                $mensagem = $uploadedCount === 1 
+                    ? "Anexo ({$tipoFormatado}) enviado com sucesso!"
+                    : "{$uploadedCount} anexos ({$tipoFormatado}) enviados com sucesso!";
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $mensagem,
+                    'uploaded' => $uploadedCount,
+                    'errors' => $errors
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nenhum arquivo foi enviado',
+                    'errors' => $errors
+                ], 422);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao enviar anexos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Excluir um anexo
+     */
+    public function destroyAnexo(ContaPagarAnexo $anexo)
+    {
+        try {
+            // Excluir arquivo do storage
+            if (Storage::disk('public')->exists($anexo->caminho)) {
+                Storage::disk('public')->delete($anexo->caminho);
+            }
+
+            // Excluir registro do banco
+            $anexo->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Anexo excluído com sucesso!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao excluir anexo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download de um anexo
+     */
+    public function downloadAnexo(ContaPagarAnexo $anexo)
+    {
+        try {
+            $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
+
+            if (!file_exists($caminhoCompleto)) {
+                abort(404, 'Arquivo não encontrado');
+            }
+
+            return response()->download($caminhoCompleto, $anexo->nome_original);
+
+        } catch (\Exception $e) {
+            abort(500, 'Erro ao fazer download do anexo: ' . $e->getMessage());
+        }
+    }}

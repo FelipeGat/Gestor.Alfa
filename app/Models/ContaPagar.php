@@ -70,6 +70,11 @@ class ContaPagar extends Model
         return $this->belongsTo(ContaFixaPagar::class);
     }
 
+    public function anexos()
+    {
+        return $this->hasMany(ContaPagarAnexo::class);
+    }
+
     /* ================= ACCESSORS ================= */
 
     public function getStatusFinanceiroAttribute(): string

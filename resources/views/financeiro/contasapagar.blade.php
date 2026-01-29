@@ -284,6 +284,20 @@
                                         </button>
                                         @endif
 
+                                        {{-- Botão Anexos --}}
+                                        <button type="button" x-data class="btn action-btn btn-icon bg-gray-600 hover:bg-gray-700 text-white transition-transform duration-200 hover:scale-150 relative"
+                                            title="Gerenciar Anexos (NF/Boleto)"
+                                            @click="$dispatch('abrir-modal-anexos-pagar', { contaId: {{ $conta->id }} })">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                                            </svg>
+                                            @if($conta->anexos()->count() > 0)
+                                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                                {{ $conta->anexos()->count() }}
+                                            </span>
+                                            @endif
+                                        </button>
+
                                         @if($conta->status !== 'pago')
                                         {{-- Botão Editar --}}
                                         <button type="button" x-data class="btn action-btn btn-icon bg-blue-600 hover:bg-blue-700 text-white transition-transform duration-200 hover:scale-150"
@@ -337,5 +351,6 @@
     @include('financeiro.partials.modal-conta-fixa-pagar')
     @include('financeiro.partials.modal-confirmar-pagamento')
     @include('financeiro.partials.modal-excluir-conta-pagar')
+    @include('financeiro.partials.modal-anexos-pagar')
 
 </x-app-layout>
