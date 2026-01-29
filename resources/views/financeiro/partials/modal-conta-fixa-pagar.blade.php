@@ -57,10 +57,6 @@
             this.contaFinanceiraId = data.conta_financeira_id || '';
             
             console.log('Campos Alpine atualizados');
-            
-            this.editando = true;
-            this.contaFixaId = id;
-            this.open = true;
         } catch (error) {
             console.error('Erro ao carregar conta fixa:', error);
             alert('Erro ao carregar dados da conta fixa');
@@ -124,7 +120,7 @@
     }
 }"
     @abrir-modal-conta-fixa-pagar.window="resetForm(); editando = false; contaFixaId = null; open = true"
-    @editar-conta-fixa-pagar.window="carregarContaFixa($event.detail.contaFixaId)"
+    @editar-conta-fixa-pagar.window="editando = true; contaFixaId = $event.detail.contaFixaId; carregarContaFixa($event.detail.contaFixaId); open = true"
     x-show="open"
     style="display: none;"
     class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -145,7 +141,7 @@
 
             <form method="POST" :action="editando ? `/financeiro/contas-fixas-pagar/${contaFixaId}` : '{{ route('financeiro.contasapagar.storeContaFixa') }}'">
                 @csrf
-                <input type="hidden" name="_method" x-bind:value="editando ? 'PUT' : 'POST'">
+                <input type="hidden" name="_method" :value="editando ? 'PUT' : 'POST'">
 
                 <div class="bg-gradient-to-br from-red-50 to-pink-50 border-b border-red-200 px-6 py-4">
                     <div class="flex items-center">
@@ -296,8 +292,8 @@
                         Cancelar
                     </button>
                     <button type="submit"
-                        class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition shadow-md">
-                        Criar Despesa Fixa
+                        class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition shadow-md"
+                        x-text="editando ? 'Atualizar Despesa Fixa' : 'Criar Despesa Fixa'">
                     </button>
                 </div>
             </form>
