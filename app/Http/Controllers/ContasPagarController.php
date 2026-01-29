@@ -728,7 +728,7 @@ class ContasPagarController extends Controller
                     $nomeOriginal = $arquivo->getClientOriginalName();
                     $extensao = $arquivo->getClientOriginalExtension();
                     $nomeArquivo = uniqid() . '_' . time() . '.' . $extensao;
-                    
+
                     // Salvar arquivo no storage
                     $caminho = $arquivo->storeAs('anexos/contas_pagar', $nomeArquivo, 'public');
 
@@ -752,7 +752,7 @@ class ContasPagarController extends Controller
 
             if ($uploadedCount > 0) {
                 $tipoFormatado = $request->tipo === 'nf' ? 'Nota Fiscal' : 'Boleto';
-                $mensagem = $uploadedCount === 1 
+                $mensagem = $uploadedCount === 1
                     ? "Anexo ({$tipoFormatado}) enviado com sucesso!"
                     : "{$uploadedCount} anexos ({$tipoFormatado}) enviados com sucesso!";
 
@@ -769,7 +769,6 @@ class ContasPagarController extends Controller
                     'errors' => $errors
                 ], 422);
             }
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -797,7 +796,6 @@ class ContasPagarController extends Controller
                 'success' => true,
                 'message' => 'Anexo excluído com sucesso!'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -819,8 +817,8 @@ class ContasPagarController extends Controller
             }
 
             return response()->download($caminhoCompleto, $anexo->nome_original);
-
         } catch (\Exception $e) {
             abort(500, 'Erro ao fazer download do anexo: ' . $e->getMessage());
         }
-    }}
+    }
+}

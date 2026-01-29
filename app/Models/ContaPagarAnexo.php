@@ -34,21 +34,21 @@ class ContaPagarAnexo extends Model
     public function getTamanhoFormatadoAttribute(): string
     {
         $bytes = $this->tamanho;
-        
+
         if ($bytes < 1024) {
             return $bytes . ' B';
         }
-        
+
         if ($bytes < 1048576) {
             return number_format($bytes / 1024, 2) . ' KB';
         }
-        
+
         return number_format($bytes / 1048576, 2) . ' MB';
     }
 
     public function getTipoFormatadoAttribute(): string
     {
-        return match($this->tipo) {
+        return match ($this->tipo) {
             'nf' => 'Nota Fiscal',
             'boleto' => 'Boleto',
             default => $this->tipo
