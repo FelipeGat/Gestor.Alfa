@@ -317,8 +317,17 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::post('/contas-a-pagar', [ContasPagarController::class, 'store'])
             ->name('contasapagar.store');
 
+        Route::get('/contas-a-pagar/{conta}', [ContasPagarController::class, 'show'])
+            ->name('contasapagar.show');
+
+        Route::put('/contas-a-pagar/{conta}', [ContasPagarController::class, 'update'])
+            ->name('contasapagar.update');
+
         Route::patch('/contas-a-pagar/{conta}/pagar', [ContasPagarController::class, 'marcarComoPago'])
             ->name('contasapagar.pagar');
+
+        Route::patch('/contas-a-pagar/{conta}/estornar', [ContasPagarController::class, 'estornar'])
+            ->name('contasapagar.estornar');
 
         Route::delete('/contas-a-pagar/{conta}', [ContasPagarController::class, 'destroy'])
             ->name('contasapagar.destroy');
@@ -329,6 +338,12 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         Route::get('/contas-fixas-pagar', [ContasPagarController::class, 'contasFixas'])
             ->name('contasapagar.contasFixas');
+
+        Route::get('/contas-fixas-pagar/{contaFixa}', [ContasPagarController::class, 'showContaFixa'])
+            ->name('contasapagar.showContaFixa');
+
+        Route::put('/contas-fixas-pagar/{contaFixa}', [ContasPagarController::class, 'updateContaFixa'])
+            ->name('contasapagar.updateContaFixa');
 
         Route::patch('/contas-fixas-pagar/{contaFixa}/desativar', [ContasPagarController::class, 'desativarContaFixa'])
             ->name('contasapagar.desativarContaFixa');

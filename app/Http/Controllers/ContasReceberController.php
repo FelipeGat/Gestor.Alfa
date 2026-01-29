@@ -313,10 +313,20 @@ class ContasReceberController extends Controller
             'Acesso não autorizado'
         );
 
-        // ================= QUERY BASE (APENAS PAGOS) =================
-        $query = Cobranca::with([
+        // ================= BUSCAR COBRANÇAS (ENTRADAS) =================
+        $cobrancasQuery = Cobranca::with([
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
             'orcamento:id,forma_pagamento',
+            'contaFinanceira:id,nome,tipo'
+        ])
+            ->where('status', 'pago')
+            ->whereNotNull('pago_em');
+
+        // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
+        $contasPagarQuery = \App\Models\ContaPagar::with([
+            'centroCusto:id,nome',
+            'conta:id,nome',
+            'fornecedor:id,razao_social,nome_fantasia',
             'contaFinanceira:id,nome,tipo'
         ])
             ->where('status', 'pago')
@@ -325,7 +335,8 @@ class ContasReceberController extends Controller
         // ================= FILTROS =================
         if ($request->filled('search')) {
             $search = '%' . $request->input('search') . '%';
-            $query->where(function ($q) use ($search) {
+
+            $cobrancasQuery->where(function ($q) use ($search) {
                 $q->whereHas(
                     'cliente',
                     fn($sq) =>
@@ -335,28 +346,59 @@ class ContasReceberController extends Controller
                 )
                     ->orWhere('descricao', 'like', $search);
             });
+
+            $contasPagarQuery->where(function ($q) use ($search) {
+                $q->where('descricao', 'like', $search)
+                    ->orWhereHas('fornecedor', fn($sq) => $sq->where('nome', 'like', $search))
+                    ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $search));
+            });
         }
 
         if ($request->filled('data_inicio')) {
-            $query->whereDate('pago_em', '>=', $request->data_inicio);
+            $cobrancasQuery->whereDate('pago_em', '>=', $request->data_inicio);
+            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
         }
 
         if ($request->filled('data_fim')) {
-            $query->whereDate('pago_em', '<=', $request->data_fim);
+            $cobrancasQuery->whereDate('pago_em', '<=', $request->data_fim);
+            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
         }
 
-        // ================= KPIs =================
-        $totalEntradas = (clone $query)->sum('valor');
+        // ================= COMBINAR E ORDENAR =================
+        $cobrancas = $cobrancasQuery->get()->map(function ($item) {
+            $item->tipo_movimentacao = 'entrada';
+            return $item;
+        });
 
-        // ================= PAGINAÇÃO =================
-        $movimentacoes = $query
-            ->orderBy('pago_em', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+        $contasPagar = $contasPagarQuery->get()->map(function ($item) {
+            $item->tipo_movimentacao = 'saida';
+            return $item;
+        });
+
+        $movimentacoes = $cobrancas->concat($contasPagar)
+            ->sortByDesc('pago_em')
+            ->values();
+
+        // Paginar manualmente
+        $page = $request->get('page', 1);
+        $perPage = 15;
+        $total = $movimentacoes->count();
+        $movimentacoes = new \Illuminate\Pagination\LengthAwarePaginator(
+            $movimentacoes->forPage($page, $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // ================= KPIs =================
+        $totalEntradas = $cobrancas->sum('valor');
+        $totalSaidas = $contasPagar->sum('valor');
 
         return view('financeiro.movimentacao', compact(
             'movimentacoes',
-            'totalEntradas'
+            'totalEntradas',
+            'totalSaidas'
         ));
     }
 

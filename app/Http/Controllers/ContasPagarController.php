@@ -31,7 +31,9 @@ class ContasPagarController extends Controller
         $query = ContaPagar::with([
             'centroCusto:id,nome,tipo',
             'conta.subcategoria.categoria:id,nome,tipo'
-        ])->select('contas_pagar.*');
+        ])
+            ->select('contas_pagar.*')
+            ->where('status', '!=', 'pago'); // Excluir contas pagas (vão para Movimentação)
 
         // ================= FILTROS =================
 
@@ -153,29 +155,118 @@ class ContasPagarController extends Controller
             403
         );
 
-        $request->validate([
-            'forma_pagamento'     => 'required|string|max:50',
-            'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
-        ]);
+        // VALIDAÇÃO: Se for conta fixa (recorrente), verificar se há parcela anterior não paga
+        if ($conta->conta_fixa_pagar_id) {
+            $parcelaAnteriorNaoPaga = ContaPagar::where('conta_fixa_pagar_id', $conta->conta_fixa_pagar_id)
+                ->where('status', '!=', 'pago')
+                ->where('data_vencimento', '<', $conta->data_vencimento)
+                ->exists();
 
-        // Atualizar a conta
-        $conta->update([
-            'status'              => 'pago',
-            'pago_em'             => now(),
-            'forma_pagamento'     => $request->forma_pagamento,
-            'conta_financeira_id' => $request->conta_financeira_id,
-        ]);
-
-        // Atualizar saldo da conta bancária se informada
-        if ($request->conta_financeira_id) {
-            $contaBancaria = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
-            if ($contaBancaria) {
-                $contaBancaria->saldo -= $conta->valor;
-                $contaBancaria->save();
+            if ($parcelaAnteriorNaoPaga) {
+                return back()->withErrors(['error' => 'Não é possível pagar esta parcela. Existe uma parcela anterior que ainda não foi paga.']);
             }
         }
 
-        return back()->with('success', 'Conta marcada como paga e saldo bancário atualizado!');
+        $request->validate([
+            'forma_pagamento'     => 'required|string|max:50',
+            'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
+            'valor_pago'          => 'required|numeric|min:0.01',
+            'criar_nova_conta'    => 'nullable|boolean',
+            'valor_restante'      => 'nullable|numeric|min:0',
+            'data_vencimento_original' => 'nullable|date',
+        ]);
+
+        $valorPago = floatval($request->valor_pago);
+        $valorTotal = floatval($conta->valor);
+
+        // Validações de valor
+        if ($valorPago <= 0) {
+            return back()->with('error', 'O valor pago deve ser maior que zero.');
+        }
+
+        if ($valorPago > $valorTotal) {
+            return back()->with('error', 'O valor pago não pode ser maior que o valor total da conta.');
+        }
+
+        DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal) {
+            // Atualizar a conta atual com o valor pago
+            $conta->update([
+                'status'              => 'pago',
+                'pago_em'             => now(),
+                'valor'               => $valorPago, // Atualiza para o valor efetivamente pago
+                'forma_pagamento'     => $request->forma_pagamento,
+                'conta_financeira_id' => $request->conta_financeira_id,
+            ]);
+
+            // Atualizar saldo da conta bancária se informada (DESPESA = DIMINUI O SALDO)
+            if ($request->conta_financeira_id) {
+                $contaBancaria = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+                if ($contaBancaria) {
+                    $contaBancaria->decrement('saldo', $valorPago);
+                }
+            }
+
+            // Se houver valor restante, criar nova conta
+            if ($request->criar_nova_conta && $request->valor_restante > 0) {
+                $valorRestante = floatval($request->valor_restante);
+
+                // Criar nova conta com o valor restante
+                ContaPagar::create([
+                    'centro_custo_id'     => $conta->centro_custo_id,
+                    'conta_id'            => $conta->conta_id,
+                    'fornecedor_id'       => $conta->fornecedor_id,
+                    'conta_fixa_pagar_id' => $conta->conta_fixa_pagar_id,
+                    'descricao'           => $conta->descricao . ' (Restante)',
+                    'valor'               => $valorRestante,
+                    'data_vencimento'     => $request->data_vencimento_original ?? $conta->data_vencimento,
+                    'status'              => 'em_aberto',
+                    'tipo'                => $conta->tipo,
+                ]);
+            }
+        });
+
+        $mensagem = 'Conta marcada como paga e registrada na movimentação.';
+        if ($request->criar_nova_conta && $request->valor_restante > 0) {
+            $mensagem .= ' Uma nova conta foi criada com o valor restante de R$ ' . number_format($request->valor_restante, 2, ',', '.');
+        }
+
+        return back()->with('success', $mensagem);
+    }
+
+    /**
+     * ESTORNAR PAGAMENTO
+     */
+    public function estornar(ContaPagar $conta)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403
+        );
+
+        if ($conta->status !== 'pago') {
+            return back()->with('error', 'Apenas contas pagas podem ser estornadas.');
+        }
+
+        DB::transaction(function () use ($conta) {
+            // Estornar saldo da conta bancária (devolver o dinheiro)
+            if ($conta->conta_financeira_id) {
+                $contaFinanceira = \App\Models\ContaFinanceira::find($conta->conta_financeira_id);
+                if ($contaFinanceira) {
+                    $contaFinanceira->increment('saldo', $conta->valor);
+                }
+            }
+
+            $conta->update([
+                'status' => 'em_aberto',
+                'pago_em' => null,
+                'conta_financeira_id' => null,
+            ]);
+        });
+
+        return redirect()->route('financeiro.contasapagar')->with('success', 'Pagamento estornado e devolvido para Contas a Pagar.');
     }
 
     /**
@@ -218,6 +309,62 @@ class ContasPagarController extends Controller
         ]);
 
         return back()->with('success', 'Conta a pagar criada com sucesso!');
+    }
+
+    /**
+     * MOSTRAR CONTA (para edição via AJAX)
+     */
+    public function show(ContaPagar $conta)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403
+        );
+
+        $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor']);
+
+        return response()->json($conta);
+    }
+
+    /**
+     * ATUALIZAR CONTA AVULSA
+     */
+    public function update(Request $request, ContaPagar $conta)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403
+        );
+
+        $request->validate([
+            'centro_custo_id'     => 'required|exists:centros_custo,id',
+            'conta_id'            => 'required|exists:contas,id',
+            'descricao'           => 'required|string|max:255',
+            'valor'               => 'required|numeric|min:0.01|max:999999.99',
+            'data_vencimento'     => 'required|date',
+            'observacoes'         => 'nullable|string|max:1000',
+            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
+            'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
+        ]);
+
+        $conta->update([
+            'centro_custo_id'     => $request->centro_custo_id,
+            'conta_id'            => $request->conta_id,
+            'descricao'           => $request->descricao,
+            'valor'               => $request->valor,
+            'data_vencimento'     => $request->data_vencimento,
+            'observacoes'         => $request->observacoes,
+            'forma_pagamento'     => $request->forma_pagamento,
+            'conta_financeira_id' => $request->conta_financeira_id,
+        ]);
+
+        return back()->with('success', 'Conta atualizada com sucesso!');
     }
 
     /**
@@ -323,14 +470,20 @@ class ContasPagarController extends Controller
                     break;
                 }
 
+                // AJUSTE: Para datas 29/30/31, usar o último dia do mês se necessário
+                $diaDesejado = $contaFixa->dia_vencimento;
+                $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                $diaVencimento = min($diaDesejado, $ultimoDiaDoMes);
+                $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+
                 ContaPagar::create([
                     'centro_custo_id'      => $contaFixa->centro_custo_id,
                     'conta_id'             => $contaFixa->conta_id,
                     'conta_fixa_pagar_id'  => $contaFixa->id,
                     'fornecedor_id'        => $contaFixa->fornecedor_id,
-                    'descricao'            => $contaFixa->descricao . ' - ' . $dataVencimento->format('m/Y'),
+                    'descricao'            => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('m/Y'),
                     'valor'                => $contaFixa->valor,
-                    'data_vencimento'      => $dataVencimento->format('Y-m-d'),
+                    'data_vencimento'      => $dataVencimentoAjustada->format('Y-m-d'),
                     'forma_pagamento'      => $contaFixa->forma_pagamento,
                     'conta_financeira_id'  => $contaFixa->conta_financeira_id,
                     'status'               => 'em_aberto',
@@ -389,6 +542,67 @@ class ContasPagarController extends Controller
         ])->orderBy('dia_vencimento')->get();
 
         return view('financeiro.contas-fixas-pagar', compact('contasFixas'));
+    }
+
+    /**
+     * MOSTRAR CONTA FIXA (para edição via AJAX)
+     */
+    public function showContaFixa(ContaFixaPagar $contaFixa)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403
+        );
+
+        $contaFixa->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor']);
+
+        return response()->json($contaFixa);
+    }
+
+    /**
+     * ATUALIZAR CONTA FIXA
+     */
+    public function updateContaFixa(Request $request, ContaFixaPagar $contaFixa)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            403
+        );
+
+        $request->validate([
+            'centro_custo_id'     => 'required|exists:centros_custo,id',
+            'conta_id'            => 'required|exists:contas,id',
+            'descricao'           => 'required|string|max:255',
+            'valor'               => 'required|numeric|min:0.01|max:999999.99',
+            'fornecedor_id'       => 'nullable|exists:fornecedores,id',
+            'periodicidade'       => 'required|in:SEMANAL,QUINZENAL,MENSAL,TRIMESTRAL,SEMESTRAL,ANUAL',
+            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,DEBITO_AUTOMATICO',
+            'data_inicial'        => 'required|date',
+            'data_fim'            => 'nullable|date|after:data_inicial',
+            'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
+        ]);
+
+        $contaFixa->update([
+            'centro_custo_id'     => $request->centro_custo_id,
+            'conta_id'            => $request->conta_id,
+            'descricao'           => $request->descricao,
+            'valor'               => $request->valor,
+            'dia_vencimento'      => Carbon::parse($request->data_inicial)->day,
+            'fornecedor_id'       => $request->fornecedor_id,
+            'periodicidade'       => $request->periodicidade,
+            'forma_pagamento'     => $request->forma_pagamento,
+            'data_inicial'        => $request->data_inicial,
+            'data_fim'            => $request->data_fim,
+            'conta_financeira_id' => $request->conta_financeira_id,
+        ]);
+
+        return back()->with('success', 'Despesa fixa atualizada com sucesso!');
     }
 
     /**

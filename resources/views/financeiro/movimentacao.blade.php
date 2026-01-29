@@ -124,10 +124,20 @@
             </form>
 
             {{-- ================= KPI ================= --}}
-            <div class="section-card mb-6">
-                <div class="kpi-card border-blue">
+            <div class="kpi-grid mb-6">
+                <div class="kpi-card border-green">
                     <div class="label">Total de Entradas no Período</div>
-                    <div class="value">R$ {{ number_format($totalEntradas, 2, ',', '.') }}</div>
+                    <div class="value text-green-600">R$ {{ number_format($totalEntradas, 2, ',', '.') }}</div>
+                </div>
+                <div class="kpi-card border-red">
+                    <div class="label">Total de Saídas no Período</div>
+                    <div class="value text-red-600">R$ {{ number_format($totalSaidas, 2, ',', '.') }}</div>
+                </div>
+                <div class="kpi-card border-blue">
+                    <div class="label">Saldo Líquido do Período</div>
+                    <div class="value {{ ($totalEntradas - $totalSaidas) >= 0 ? 'text-blue-600' : 'text-red-600' }}">
+                        R$ {{ number_format($totalEntradas - $totalSaidas, 2, ',', '.') }}
+                    </div>
                 </div>
             </div>
 
@@ -138,10 +148,10 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>TIPO</th>
                                     <th>DATA</th>
                                     <th>DESCRIÇÃO</th>
-                                    <th>CLIENTE</th>
-                                    <th>Nº PARCELA</th>
+                                    <th>CLIENTE/FORNECEDOR</th>
                                     <th>VALOR</th>
                                     <th>BANCO</th>
                                     <th>FORMA PAGTO</th>
@@ -152,8 +162,24 @@
                                 @php $totalPagina = 0; @endphp
 
                                 @forelse($movimentacoes as $mov)
-                                @php $totalPagina += $mov->valor; @endphp
-                                <tr>
+                                @php
+                                $isEntrada = $mov->tipo_movimentacao === 'entrada';
+                                $totalPagina += $isEntrada ? $mov->valor : -$mov->valor;
+                                @endphp
+                                <tr class="{{ $isEntrada ? 'bg-green-50' : 'bg-red-50' }}">
+
+                                    {{-- TIPO --}}
+                                    <td>
+                                        @if($isEntrada)
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">
+                                            ENTRADA
+                                        </span>
+                                        @else
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-600 text-white">
+                                            SAÍDA
+                                        </span>
+                                        @endif
+                                    </td>
 
                                     {{-- DATA --}}
                                     <td>
@@ -163,28 +189,29 @@
                                     {{-- DESCRIÇÃO --}}
                                     <td>
                                         {{ $mov->descricao }}
+                                        @if($isEntrada && $mov->orcamento_id)
                                         <div class="text-xs text-gray-500">
                                             Origem: Orçamento #{{ $mov->orcamento_id }}
                                         </div>
+                                        @elseif(!$isEntrada)
+                                        <div class="text-xs text-gray-500">
+                                            {{ $mov->conta->nome ?? 'Conta não informada' }}
+                                        </div>
+                                        @endif
                                     </td>
 
-                                    {{-- CLIENTE --}}
+                                    {{-- CLIENTE/FORNECEDOR --}}
                                     <td>
+                                        @if($isEntrada)
                                         {{ $mov->cliente?->nome ?? $mov->cliente?->nome_fantasia ?? $mov->cliente?->razao_social ?? '—' }}
-                                    </td>
-
-                                    {{-- Nº PARCELA --}}
-                                    <td class="text-center">
-                                        @if($mov->parcela_num && $mov->parcelas_total)
-                                        {{ $mov->parcela_num }}/{{ $mov->parcelas_total }}
                                         @else
-                                        Única
+                                        {{ $mov->fornecedor?->nome_fantasia ?? $mov->fornecedor?->razao_social ?? '—' }}
                                         @endif
                                     </td>
 
                                     {{-- VALOR --}}
-                                    <td class="text-right font-bold text-blue-600">
-                                        R$ {{ number_format($mov->valor, 2, ',', '.') }}
+                                    <td class="text-right font-bold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}">
+                                        {{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}
                                     </td>
 
                                     {{-- BANCO --}}
@@ -207,6 +234,7 @@
                                     <td>
                                         <div class="flex items-center gap-2">
 
+                                            @if($isEntrada)
                                             {{-- IMPRIMIR COMPROVANTE --}}
                                             <a href="{{ route('financeiro.cobrancas.recibo', $mov) }}"
                                                 target="_blank"
@@ -227,6 +255,20 @@
                                                     ↩️
                                                 </button>
                                             </form>
+                                            @else
+                                            {{-- Estornar Conta a Pagar --}}
+                                            <form method="POST"
+                                                action="{{ route('financeiro.contasapagar.estornar', $mov) }}"
+                                                onsubmit="return confirm('Deseja estornar este pagamento e devolvê-lo para Contas a Pagar?')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                    class="btn btn-danger btn-sm"
+                                                    title="Estornar Pagamento">
+                                                    ↩️
+                                                </button>
+                                            </form>
+                                            @endif
 
                                         </div>
                                     </td>

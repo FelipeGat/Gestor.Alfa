@@ -3,13 +3,43 @@
     open: false,
     action: '',
     contaId: null,
-    valorTotal: 0
+    valorTotal: 0,
+    valorPago: 0,
+    dataVencimento: '',
+    contaFinanceiraId: '',
+    formaPagamento: '',
+    
+    getValorRestante() {
+        const restante = this.valorTotal - this.valorPago;
+        return restante > 0 ? restante.toFixed(2) : '0.00';
+    },
+    
+    formatarMoeda(valor) {
+        return parseFloat(valor || 0).toLocaleString('pt-BR', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+        });
+    },
+    
+    validarValorPago() {
+        if (this.valorPago > this.valorTotal) {
+            alert('O valor pago não pode ser maior que o valor total da conta.');
+            this.valorPago = this.valorTotal;
+        }
+        if (this.valorPago < 0) {
+            this.valorPago = 0;
+        }
+    }
 }" @confirmar-pagamento.window="
     open = true;
     action = $event.detail.action;
     contaId = $event.detail.contaId;
-    valorTotal = $event.detail.valorTotal;
-" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    valorTotal = parseFloat($event.detail.valorTotal || 0);
+    valorPago = valorTotal;
+    dataVencimento = $event.detail.dataVencimento || '';
+    contaFinanceiraId = '';
+    formaPagamento = '';
+" x-show="open" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
@@ -36,7 +66,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento <span class="text-red-500">*</span></label>
-                        <select name="forma_pagamento" required
+                        <select name="forma_pagamento" x-model="formaPagamento" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
                             <option value="">Selecione...</option>
                             <option value="pix">PIX</option>
@@ -50,7 +80,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Conta Bancária</label>
-                        <select name="conta_financeira_id"
+                        <select name="conta_financeira_id" x-model="contaFinanceiraId"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
                             <option value="">Sem conta bancária</option>
                             @foreach(\App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get() as $conta)
@@ -59,12 +89,52 @@
                         </select>
                     </div>
 
-                    <div class="bg-gray-50 px-4 py-3 rounded-lg">
-                        <div class="flex justify-between items-center">
-                            <span class="font-medium text-gray-700">Valor:</span>
-                            <span class="text-lg font-bold text-gray-900" x-text="'R$ ' + valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})"></span>
+                    {{-- VALORES --}}
+                    <div class="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                💰 Valor Total da Conta
+                            </label>
+                            <input type="text"
+                                :value="'R$ ' + formatarMoeda(valorTotal)"
+                                disabled
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-semibold">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                💵 Valor Pago <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number"
+                                name="valor_pago"
+                                step="0.01"
+                                min="0"
+                                x-model.number="valorPago"
+                                @blur="validarValorPago()"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 font-semibold text-green-700">
+                            <p class="text-xs text-gray-500 mt-1">
+                                Digite o valor efetivamente pago
+                            </p>
+                        </div>
+
+                        <div x-show="parseFloat(getValorRestante()) > 0" class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p class="text-sm font-medium text-yellow-800 mb-1">
+                                ⚠️ Pagamento Parcial
+                            </p>
+                            <p class="text-sm text-yellow-700">
+                                Valor restante: <strong>R$ <span x-text="formatarMoeda(getValorRestante())"></span></strong>
+                            </p>
+                            <p class="text-xs text-yellow-600 mt-1">
+                                Uma nova conta será criada automaticamente com o valor restante na mesma data de vencimento.
+                            </p>
                         </div>
                     </div>
+
+                    {{-- CAMPOS OCULTOS PARA PAGAMENTO PARCIAL --}}
+                    <input type="hidden" name="criar_nova_conta" :value="parseFloat(getValorRestante()) > 0 ? '1' : '0'">
+                    <input type="hidden" name="valor_restante" :value="getValorRestante()">
+                    <input type="hidden" name="data_vencimento_original" :value="dataVencimento">
                 </div>
 
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
