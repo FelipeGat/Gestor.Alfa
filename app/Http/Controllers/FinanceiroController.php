@@ -121,12 +121,25 @@ class FinanceiroController extends Controller
             // Não exigir parcelas/vencimentos para formas de pagamento à vista (pix, debito)
             $dados = $request->validate([
                 'forma_pagamento' => 'required|in:pix,debito,credito,boleto,faturado',
-                'parcelas'        => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1',
-                'vencimentos'     => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1',
-                'vencimentos.*'   => 'required_if:forma_pagamento,credito,boleto,faturado|date',
+                'parcelas'        => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1|max:12',
+                'vencimentos'     => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1|max:12',
+                'vencimentos.*'   => 'required_if:forma_pagamento,credito,boleto,faturado|date|after_or_equal:today',
                 'valores_parcelas' => 'nullable|array',
-                'valores_parcelas.*' => 'nullable|numeric|min:0',
+                'valores_parcelas.*' => 'nullable|numeric|min:0.01',
             ]);
+
+            // Validação adicional: soma dos valores das parcelas deve ser igual ao valor total
+            if (isset($dados['valores_parcelas']) && is_array($dados['valores_parcelas'])) {
+                $somaValores = array_sum($dados['valores_parcelas']);
+                $valorTotal = floatval($orcamento->valor_total);
+
+                // Permitir diferença de 0.01 por causa de arredondamentos
+                if (abs($somaValores - $valorTotal) > 0.02) {
+                    throw ValidationException::withMessages([
+                        'valores_parcelas' => 'A soma dos valores das parcelas deve ser igual ao valor total do orçamento.'
+                    ]);
+                }
+            }
 
             // CHAMADA DO SERVICE QUE GERA AS PARCELAS)
             $gerador = new GeradorCobrancaOrcamento($orcamento, $dados);
@@ -162,8 +175,8 @@ class FinanceiroController extends Controller
             });
 
             return redirect()
-                ->route('financeiro.contasareceber')
-                ->with('success', 'Cobrança(s) gerada(s) com sucesso.');
+                ->route('financeiro.cobrar')
+                ->with('success', 'Cobrança gerada com sucesso!');
         } catch (ValidationException $e) {
 
             return redirect()
