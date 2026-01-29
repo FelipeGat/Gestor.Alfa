@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Boleto;
 use App\Models\Cobranca;
 use App\Models\NotaFiscal;
+use App\Models\Orcamento;
 use Carbon\Carbon;
 
 class PortalController extends Controller
@@ -78,7 +79,7 @@ class PortalController extends Controller
         return view('portal.index', compact('cliente', 'boletos'));
     }
 
-    public function financeiro()
+    public function financeiro(Request $request)
     {
         $user = Auth::user();
 
@@ -98,36 +99,66 @@ class PortalController extends Controller
             ->where('clientes.id', $clienteId)
             ->firstOrFail();
 
-        // ================= COBRANÇAS =================
-        $cobrancas = Cobranca::with(['boleto'])
-            ->where('cliente_id', $cliente->id)
-            ->orderByDesc('data_vencimento')
-            ->get();
+        // ================= FILTROS =================
+        $dataInicio = $request->input('data_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $dataFim = $request->input('data_fim', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        // ================= RESUMO =================
-        $resumo = [
-            'total_pago'     => 0,
-            'total_pendente' => 0,
-            'total_vencido'  => 0,
-            'total_geral'    => 0,
-        ];
+        // Validação de datas
+        try {
+            $dataInicioCarbon = Carbon::parse($dataInicio);
+            $dataFimCarbon = Carbon::parse($dataFim);
 
-        foreach ($cobrancas as $cobranca) {
-            $resumo['total_geral'] += $cobranca->valor;
-
-            if ($cobranca->status === 'pago') {
-                $resumo['total_pago'] += $cobranca->valor;
-            } elseif ($cobranca->data_vencimento->isPast()) {
-                $resumo['total_vencido'] += $cobranca->valor;
-            } else {
-                $resumo['total_pendente'] += $cobranca->valor;
+            if ($dataInicioCarbon->gt($dataFimCarbon)) {
+                return back()->with('error', 'A data de início não pode ser maior que a data fim.');
             }
+
+            // Limitar período máximo de consulta (1 ano)
+            if ($dataInicioCarbon->diffInDays($dataFimCarbon) > 365) {
+                return back()->with('error', 'Período máximo de consulta é de 1 ano.');
+            }
+        } catch (\Exception $e) {
+            $dataInicio = Carbon::now()->startOfMonth()->format('Y-m-d');
+            $dataFim = Carbon::now()->endOfMonth()->format('Y-m-d');
         }
+
+        // ================= COBRANÇAS COM ANEXOS =================
+        $query = Cobranca::with(['boleto', 'anexos'])
+            ->where('cliente_id', $cliente->id);
+
+        // Aplicar filtro de período
+        if ($dataInicio) {
+            $query->where('data_vencimento', '>=', $dataInicio);
+        }
+
+        if ($dataFim) {
+            $query->where('data_vencimento', '<=', $dataFim);
+        }
+
+        $cobrancas = $query->orderByDesc('data_vencimento')->get();
+
+        // ================= RESUMO/KPIs (otimizado) =================
+        $queryBase = Cobranca::where('cliente_id', $cliente->id);
+
+        if ($dataInicio) {
+            $queryBase->where('data_vencimento', '>=', $dataInicio);
+        }
+        if ($dataFim) {
+            $queryBase->where('data_vencimento', '<=', $dataFim);
+        }
+
+        $resumo = [
+            'total_pago'     => (clone $queryBase)->where('status', 'pago')->sum('valor'),
+            'total_pendente' => (clone $queryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
+            'total_vencido'  => (clone $queryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
+            'total_geral'    => (clone $queryBase)->sum('valor'),
+        ];
 
         return view('portal.financeiro.index', compact(
             'cliente',
             'cobrancas',
-            'resumo'
+            'resumo',
+            'dataInicio',
+            'dataFim'
         ));
     }
 
@@ -256,5 +287,71 @@ class PortalController extends Controller
         session()->forget('cliente_id_ativo');
 
         return redirect()->route('portal.unidade');
+    }
+
+    /**
+     * Imprimir orçamento (restrito à unidade ativa)
+     */
+    public function imprimirOrcamento($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+
+        $clienteId = session('cliente_id_ativo');
+
+        if (!$clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+
+        // Buscar orçamento e verificar se pertence ao cliente ativo
+        $orcamento = Orcamento::with([
+            'empresa',
+            'cliente',
+            'cliente.emails',
+            'cliente.telefones',
+            'itens.item',
+            'pagamentos',
+            'taxasItens'
+        ])->findOrFail($id);
+
+        // Verificar se o orçamento pertence ao cliente ativo
+        // Verifica tanto o cliente_id do orçamento quanto através das cobranças
+        $pertenceAoCliente = $orcamento->cliente_id === $clienteId;
+
+        if (!$pertenceAoCliente) {
+            // Verificar se existe cobrança vinculada ao cliente ativo
+            $cobrancaDoCliente = \App\Models\Cobranca::where('orcamento_id', $orcamento->id)
+                ->where('cliente_id', $clienteId)
+                ->exists();
+
+            if (!$cobrancaDoCliente) {
+                abort(403, 'Acesso não autorizado');
+            }
+        }
+
+        // Gerar PDF usando o layout da empresa
+        $view = 'orcamentos.' . $orcamento->empresa->layout_pdf;
+
+        if (!view()->exists($view)) {
+            abort(500, 'Layout de impressão não encontrado.');
+        }
+
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView($view, [
+            'orcamento' => $orcamento,
+            'empresa'   => $orcamento->empresa
+        ]);
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'orcamento_' . str_replace(
+            ['/', '\\'],
+            '-',
+            $orcamento->numero_orcamento
+        ) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 }
