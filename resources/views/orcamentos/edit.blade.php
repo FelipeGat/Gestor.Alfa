@@ -108,7 +108,7 @@
 
                         <div class="md:col-span-8 relative">
                             <label class="label-text">Cliente</label>
-                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? $orcamento->preCliente?->nome ?? '') }}" placeholder="Buscar cliente..." class="input-field w-full">
+                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $orcamento->cliente?->nome ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? '') }}" placeholder="Buscar cliente..." class="input-field w-full">
                             <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $orcamento->cliente_id) }}">
                             <input type="hidden" name="pre_cliente_id" id="pre_cliente_id" value="{{ old('pre_cliente_id', $orcamento->pre_cliente_id) }}">
                             <input type="hidden" name="cliente_tipo" id="cliente_tipo" value="{{ old('cliente_tipo', $orcamento->cliente_id ? 'cliente' : ($orcamento->pre_cliente_id ? 'pre_cliente' : '')) }}">

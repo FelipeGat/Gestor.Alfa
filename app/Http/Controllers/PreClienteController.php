@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PreCliente;
 use App\Models\Cliente;
+use App\Models\Email;
+use App\Models\Telefone;
 use App\Models\Orcamento;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -217,15 +219,34 @@ class PreClienteController extends Controller
                 'nome_fantasia' => $preCliente->nome_fantasia,
                 'nome'          => $preCliente->nome_fantasia
                     ?: $preCliente->razao_social,
-                'email'         => $preCliente->email,
-                'telefone'      => $preCliente->telefone,
                 'cep'           => $preCliente->cep,
                 'logradouro'    => $preCliente->logradouro,
                 'numero'        => $preCliente->numero,
+                'complemento'   => $preCliente->complemento,
                 'bairro'        => $preCliente->bairro,
                 'cidade'        => $preCliente->cidade,
                 'estado'        => $preCliente->estado,
+                'ativo'         => true,
+                'data_cadastro' => now(),
             ]);
+
+            //  Cria o email do cliente (se existir)
+            if (!empty($preCliente->email)) {
+                Email::create([
+                    'cliente_id' => $cliente->id,
+                    'valor'      => $preCliente->email,
+                    'principal'  => true,
+                ]);
+            }
+
+            //  Cria o telefone do cliente (se existir)
+            if (!empty($preCliente->telefone)) {
+                Telefone::create([
+                    'cliente_id' => $cliente->id,
+                    'valor'      => $preCliente->telefone,
+                    'principal'  => true,
+                ]);
+            }
 
             //  Atualiza orçamentos vinculados
             Orcamento::where('pre_cliente_id', $preCliente->id)

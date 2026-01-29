@@ -45,7 +45,7 @@ class OrcamentoController extends Controller
         }
 
         // ================= QUERY BASE =================
-        $query = Orcamento::with(['empresa:id,nome_fantasia', 'cliente:id,nome,nome_fantasia', 'preCliente:id,nome_fantasia,razao_social']);
+        $query = Orcamento::with(['empresa:id,nome_fantasia', 'cliente:id,nome,nome_fantasia,razao_social', 'preCliente:id,nome_fantasia,razao_social']);
 
         // ================= COMERCIAL: LIMITA EMPRESAS =================
         if ($user->tipo === 'comercial') {
@@ -394,6 +394,8 @@ class OrcamentoController extends Controller
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
         $orcamento->load([
+            'cliente',
+            'preCliente',
             'itens' => function ($q) {
                 $q->orderBy('id');
             }

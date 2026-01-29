@@ -51,7 +51,7 @@
                 <a href="{{ route('financeiro.cobrar' ) }}"
                     class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-md border border-indigo-700/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Cobrança
@@ -203,7 +203,7 @@
                                         <div class="text-xs text-gray-500">{{ $orcamento->empresa->nome_fantasia ?? '—' }}</div>
                                     </td>
                                     <td class="text-left">
-                                        {{ $orcamento->cliente?->nome_fantasia ?? $orcamento->preCliente?->nome_fantasia ?? '—' }}
+                                        {{ $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? '—' }}
                                     </td>
                                     <td class="text-center">
                                         <span class="status-badge {{ $orcamento->status }}">
@@ -221,7 +221,7 @@
                                             'id' => $orcamento->id,
                                             'numero_orcamento' => $orcamento->numero_orcamento,
                                             'valor_total' => $orcamento->valor_total,
-                                            'cliente' => ['nome_fantasia' => $orcamento->cliente?->nome_fantasia ?? $orcamento->preCliente?->nome_fantasia ?? 'N/A'],
+                                            'cliente' => ['nome_fantasia' => $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? 'N/A'],
                                             'forma_pagamento' => $orcamento->forma_pagamento,
                                             ];
                                             @endphp
