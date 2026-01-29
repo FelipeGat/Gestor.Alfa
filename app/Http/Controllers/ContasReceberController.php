@@ -671,7 +671,7 @@ class ContasReceberController extends Controller
 
         // Verificar permissão (financeiro ou cliente da cobrança)
         $isFinanceiro = $user->isAdminPanel() || $user->perfis()->where('slug', 'financeiro')->exists();
-        
+
         // Para clientes: verificar se a cobrança pertence a alguma unidade dele
         $isClienteProprietario = false;
         if ($user->tipo === 'cliente') {

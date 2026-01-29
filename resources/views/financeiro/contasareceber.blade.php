@@ -95,12 +95,12 @@
             {{-- ================= FILTROS ================= --}}
             <form method="GET" action="{{ route('financeiro.contasareceber') }}" class="filters-card">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    
+
                     {{-- Busca --}}
                     <div class="filter-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                        <input type="text" name="search" value="{{ request('search') }}" 
-                            placeholder="Cliente ou descrição..." 
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Cliente ou descrição..."
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     </div>
 
@@ -111,9 +111,9 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                             <option value="">Todas as Empresas</option>
                             @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
-                                    {{ $empresa->nome_fantasia }}
-                                </option>
+                            <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
+                                {{ $empresa->nome_fantasia }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -123,43 +123,43 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
                         <div class="flex items-center gap-2">
                             @php
-                                $dataAtual = request('vencimento_inicio') 
-                                    ? \Carbon\Carbon::parse(request('vencimento_inicio'))
-                                    : \Carbon\Carbon::now();
-                                
-                                $mesAnterior = $dataAtual->copy()->subMonth();
-                                $proximoMes = $dataAtual->copy()->addMonth();
-                                
-                                // Meses em português
-                                $meses = [
-                                    1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
-                                    5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
-                                    9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
-                                ];
-                                $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                            $dataAtual = request('vencimento_inicio')
+                            ? \Carbon\Carbon::parse(request('vencimento_inicio'))
+                            : \Carbon\Carbon::now();
+
+                            $mesAnterior = $dataAtual->copy()->subMonth();
+                            $proximoMes = $dataAtual->copy()->addMonth();
+
+                            // Meses em português
+                            $meses = [
+                            1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+                            5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+                            9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
+                            ];
+                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
                             @endphp
-                            
+
                             <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
                                 'vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'),
                                 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')
-                            ])) }}" 
-                            class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
-                            title="Mês Anterior">
+                            ])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                                title="Mês Anterior">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-                            
+
                             <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
                                 {{ $mesAtualNome }}
                             </div>
-                            
+
                             <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
                                 'vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'),
                                 'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')
-                            ])) }}" 
-                            class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
-                            title="Próximo Mês">
+                            ])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                                title="Próximo Mês">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                 </svg>
@@ -170,8 +170,8 @@
 
                 {{-- Período Personalizado (colapsável) --}}
                 <div x-data="{ mostrarPeriodo: false }" class="mb-4">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         @click="mostrarPeriodo = !mostrarPeriodo"
                         class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="mostrarPeriodo ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -182,12 +182,12 @@
                     <div x-show="mostrarPeriodo" x-transition class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
-                            <input type="date" name="vencimento_inicio" value="{{ $vencimentoInicio }}" 
+                            <input type="date" name="vencimento_inicio" value="{{ $vencimentoInicio }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
-                            <input type="date" name="vencimento_fim" value="{{ $vencimentoFim }}" 
+                            <input type="date" name="vencimento_fim" value="{{ $vencimentoFim }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                     </div>
@@ -367,7 +367,7 @@
                                         <button
                                             type="button"
                                             x-data
-                                            class="btn action-btn btn-icon bg-purple-600 hover:bg-purple-700 text-white transition-transform duration-200 hover:scale-150 relative"
+                                            class="btn action-btn btn-icon bg-gray-600 hover:bg-gray-700 text-white transition-transform duration-200 hover:scale-150 relative"
                                             title="Gerenciar Anexos (NF/Boleto)"
                                             @click="$dispatch('abrir-modal-anexos', { cobrancaId: {{ $cobranca->id }} })">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -398,7 +398,7 @@
                                         <button
                                             type="button"
                                             x-data
-                                            class="btn action-btn btn-icon transition-transform duration-200 hover:scale-150"
+                                            class="btn action-btn btn-icon bg-red-400 hover:bg-red-500 text-white transition-transform duration-200 hover:scale-150"
                                             title="Excluir"
                                             @click="$dispatch('excluir-cobranca', {
                                                 cobrancaId: {{ $cobranca->id }},
