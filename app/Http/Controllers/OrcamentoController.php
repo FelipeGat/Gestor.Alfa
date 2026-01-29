@@ -45,7 +45,7 @@ class OrcamentoController extends Controller
         }
 
         // ================= QUERY BASE =================
-        $query = Orcamento::with(['empresa', 'cliente']);
+        $query = Orcamento::with(['empresa:id,nome_fantasia', 'cliente:id,nome,nome_fantasia', 'preCliente:id,nome_fantasia,razao_social']);
 
         // ================= COMERCIAL: LIMITA EMPRESAS =================
         if ($user->tipo === 'comercial') {
@@ -207,11 +207,16 @@ class OrcamentoController extends Controller
         $request->validate([
             'empresa_id'      => 'required|exists:empresas,id',
             'descricao'       => 'required|string|max:255',
-            'validade'        => 'nullable|date',
+            'validade'        => 'nullable|date|after_or_equal:today',
             'cliente_tipo'    => 'required|in:cliente,pre_cliente',
             'cliente_id'      => 'nullable|exists:clientes,id',
             'pre_cliente_id'  => 'nullable|exists:pre_clientes,id',
-            'itens'           => 'required|array|min:1',
+            'itens'           => 'required|array|min:1|max:50',
+            'desconto_servico_valor' => 'nullable|numeric|min:0|max:99999999',
+            'desconto_produto_valor' => 'nullable|numeric|min:0|max:99999999',
+            'forma_pagamento' => 'nullable|string|max:255',
+            'prazo_pagamento' => 'nullable|string|max:255',
+            'observacoes'     => 'nullable|string|max:5000',
         ]);
 
         if (
@@ -292,8 +297,13 @@ class OrcamentoController extends Controller
                 $valorUnitario = (float) $valor;
                 $quantidade    = (int) $qtd;
 
-                if ($quantidade < 1 || $valorUnitario < 0) {
-                    throw new \Exception('Quantidade ou valor inválido.');
+                // Validações mais rigorosas
+                if ($quantidade < 1 || $quantidade > 9999) {
+                    throw new \Exception('Quantidade deve estar entre 1 e 9999.');
+                }
+
+                if ($valorUnitario < 0 || $valorUnitario > 99999999) {
+                    throw new \Exception('Valor unitário inválido.');
                 }
 
                 $subtotal = $quantidade * $valorUnitario;

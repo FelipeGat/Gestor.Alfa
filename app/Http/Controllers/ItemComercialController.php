@@ -78,26 +78,36 @@ class ItemComercialController extends Controller
 
         $request->validate([
             'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255',
-            'preco_venda'    => 'required|numeric|min:0',
-            'preco_custo'    => 'nullable|numeric|min:0',
-            'unidade_medida' => 'required|string',
-            'estoque_atual'  => 'nullable|integer|min:0',
+            'nome'           => 'required|string|max:255|unique:item_comercials,nome',
+            'preco_venda'    => 'required|numeric|min:0|max:99999999',
+            'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
+            'unidade_medida' => 'required|string|max:50',
+            'estoque_atual'  => 'nullable|integer|min:0|max:999999',
+            'estoque_minimo' => 'nullable|integer|min:0|max:999999',
             'gerencia_estoque' => 'nullable|boolean',
+            'sku_ou_referencia' => 'nullable|string|max:100',
+            'codigo_barras_ean' => 'nullable|string|max:50',
         ]);
+
+        // Validar que preço de venda seja maior que preço de custo
+        if ($request->filled('preco_custo') && $request->preco_custo > $request->preco_venda) {
+            return back()
+                ->withErrors(['preco_custo' => 'Preço de custo não pode ser maior que preço de venda.'])
+                ->withInput();
+        }
 
         ItemComercial::create([
             'tipo'            => $request->tipo,
             'nome'            => $request->nome,
-            'sku_ou_referencia'=> $request->sku_ou_referencia,
-            'codigo_barras_ean'=> $request->codigo_barras_ean,
+            'sku_ou_referencia' => $request->sku_ou_referencia,
+            'codigo_barras_ean' => $request->codigo_barras_ean,
             'categoria_id'    => $request->categoria_id,
             'preco_venda'     => $request->preco_venda,
             'preco_custo'     => $request->preco_custo,
             'unidade_medida'  => $request->unidade_medida,
             'estoque_atual'   => $request->estoque_atual,
             'estoque_minimo'  => $request->estoque_minimo,
-            'gerencia_estoque'=> $request->boolean('gerencia_estoque'),
+            'gerencia_estoque' => $request->boolean('gerencia_estoque'),
             'ativo'           => true,
         ]);
 
@@ -118,8 +128,8 @@ class ItemComercialController extends Controller
         );
 
         return view('itemcomercial.edit', [
-        'itemComercial' => $item_comercial
-    ]);
+            'itemComercial' => $item_comercial
+        ]);
     }
 
     public function update(Request $request, ItemComercial $itemComercial)
@@ -135,24 +145,36 @@ class ItemComercialController extends Controller
 
         $request->validate([
             'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255',
-            'preco_venda'    => 'required|numeric|min:0',
-            'preco_custo'    => 'nullable|numeric|min:0',
-            'unidade_medida' => 'required|string',
+            'nome'           => 'required|string|max:255|unique:item_comercials,nome,' . $itemComercial->id,
+            'preco_venda'    => 'required|numeric|min:0|max:99999999',
+            'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
+            'unidade_medida' => 'required|string|max:50',
+            'estoque_atual'  => 'nullable|integer|min:0|max:999999',
+            'estoque_minimo' => 'nullable|integer|min:0|max:999999',
+            'gerencia_estoque' => 'nullable|boolean',
+            'sku_ou_referencia' => 'nullable|string|max:100',
+            'codigo_barras_ean' => 'nullable|string|max:50',
         ]);
+
+        // Validar que preço de venda seja maior que preço de custo
+        if ($request->filled('preco_custo') && $request->preco_custo > $request->preco_venda) {
+            return back()
+                ->withErrors(['preco_custo' => 'Preço de custo não pode ser maior que preço de venda.'])
+                ->withInput();
+        }
 
         $itemComercial->update([
             'tipo'            => $request->tipo,
             'nome'            => $request->nome,
-            'sku_ou_referencia'=> $request->sku_ou_referencia,
-            'codigo_barras_ean'=> $request->codigo_barras_ean,
+            'sku_ou_referencia' => $request->sku_ou_referencia,
+            'codigo_barras_ean' => $request->codigo_barras_ean,
             'categoria_id'    => $request->categoria_id,
             'preco_venda'     => $request->preco_venda,
             'preco_custo'     => $request->preco_custo,
             'unidade_medida'  => $request->unidade_medida,
             'estoque_atual'   => $request->estoque_atual,
             'estoque_minimo'  => $request->estoque_minimo,
-            'gerencia_estoque'=> $request->boolean('gerencia_estoque'),
+            'gerencia_estoque' => $request->boolean('gerencia_estoque'),
             'ativo'           => $request->boolean('ativo'),
         ]);
 
@@ -180,49 +202,48 @@ class ItemComercialController extends Controller
     }
 
     public function buscar(Request $request)
-{
-    /** @var User $user */
-    $user = Auth::user();
+    {
+        /** @var User $user */
+        $user = Auth::user();
 
-    abort_if(
-        !$user->isAdminPanel() && $user->tipo !== 'comercial',
-        403,
-        'Acesso não autorizado'
-    );
+        abort_if(
+            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            403,
+            'Acesso não autorizado'
+        );
 
-    $q = trim((string) $request->query('q'));
+        $q = trim((string) $request->query('q'));
 
-    if ($q === '') {
-        return response()->json([]);
+        if ($q === '') {
+            return response()->json([]);
+        }
+
+        $itens = ItemComercial::query()
+            ->where('ativo', true)
+            ->where(function ($query) use ($q) {
+                $query->where('nome', 'like', "%{$q}%")
+                    ->orWhere('sku_ou_referencia', 'like', "%{$q}%")
+                    ->orWhere('codigo_barras_ean', 'like', "%{$q}%");
+            })
+            ->orderBy('tipo')
+            ->orderBy('nome')
+            ->limit(15)
+            ->get([
+                'id',
+                'nome',
+                'tipo',
+                'preco_venda',
+                'unidade_medida',
+            ]);
+
+        return response()->json(
+            $itens->map(fn($item) => [
+                'id'            => $item->id,
+                'nome'          => $item->nome,
+                'tipo'          => $item->tipo,
+                'preco_venda'   => (float) $item->preco_venda,
+                'unidade_medida' => $item->unidade_medida,
+            ])
+        );
     }
-
-    $itens = ItemComercial::query()
-        ->where('ativo', true)
-        ->where(function ($query) use ($q) {
-            $query->where('nome', 'like', "%{$q}%")
-                  ->orWhere('sku_ou_referencia', 'like', "%{$q}%")
-                  ->orWhere('codigo_barras_ean', 'like', "%{$q}%");
-        })
-        ->orderBy('tipo')
-        ->orderBy('nome')
-        ->limit(15)
-        ->get([
-            'id',
-            'nome',
-            'tipo',
-            'preco_venda',
-            'unidade_medida',
-        ]);
-
-    return response()->json(
-        $itens->map(fn ($item) => [
-            'id'            => $item->id,
-            'nome'          => $item->nome,
-            'tipo'          => $item->tipo,
-            'preco_venda'   => (float) $item->preco_venda,
-            'unidade_medida'=> $item->unidade_medida,
-        ])
-    );
-}
-
 }

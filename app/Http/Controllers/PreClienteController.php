@@ -37,7 +37,8 @@ class PreClienteController extends Controller
 
         $preClientes = $query
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         return view('pre-clientes.index', compact('preClientes'));
     }
@@ -72,8 +73,8 @@ class PreClienteController extends Controller
 
         $request->validate([
             'tipo_pessoa'   => 'required|in:PF,PJ',
-            'cpf_cnpj'      => 'required|string|max:20',
-            'razao_social'  => 'nullable|string|max:255',
+            'cpf_cnpj'      => 'required|string|max:20|unique:pre_clientes,cpf_cnpj',
+            'razao_social'  => 'required_if:tipo_pessoa,PJ|string|max:255',
             'nome_fantasia' => 'nullable|string|max:255',
             'email'         => 'nullable|email|max:255',
             'telefone'      => 'nullable|string|max:50',
@@ -83,8 +84,18 @@ class PreClienteController extends Controller
             'complemento'   => 'nullable|string|max:255',
             'bairro'        => 'nullable|string|max:255',
             'cidade'        => 'nullable|string|max:255',
-            'estado'        => 'nullable|string|max:2',
+            'estado'        => 'nullable|string|size:2',
         ]);
+
+        // Validar CPF/CNPJ já existente em clientes
+        $cpfCnpjLimpo = preg_replace('/\D/', '', $request->cpf_cnpj);
+
+        $existeEmCliente = Cliente::where('cpf_cnpj', $cpfCnpjLimpo)->exists();
+        if ($existeEmCliente) {
+            return back()
+                ->withErrors(['cpf_cnpj' => 'Este CPF/CNPJ já está cadastrado como cliente.'])
+                ->withInput();
+        }
 
         PreCliente::create([
             'tipo_pessoa'   => $request->tipo_pessoa,

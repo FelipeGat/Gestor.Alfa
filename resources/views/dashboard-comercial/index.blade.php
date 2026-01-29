@@ -39,7 +39,7 @@
 
     {{-- DADOS PARA O JS (Evita erro de sintaxe no editor) --}}
     <div id="dashboard-json-data"
-        data-status='@json($orcamentosPorStatus)'
+        data-status='@json($statusCount)'
         data-empresas='@json($orcamentosPorEmpresa)'
         style="display: none;">
     </div>
