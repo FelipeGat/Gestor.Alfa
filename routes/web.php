@@ -26,8 +26,10 @@ use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\BuscaClienteController;
 use App\Http\Controllers\ItemComercialController;
 use App\Http\Controllers\ContasReceberController;
+use App\Http\Controllers\ContasPagarController;
 use App\Http\Controllers\ContasFinanceirasController;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\FornecedorController;
 
 
 /*
@@ -303,6 +305,56 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             '/cobrancas/anexos/{anexo}',
             [ContasReceberController::class, 'excluirAnexo']
         )->name('cobrancas.anexos.excluir');
+
+        /*
+        |----------------------------------------------------------------------
+        | CONTAS A PAGAR
+        |----------------------------------------------------------------------
+        */
+        Route::get('/contas-a-pagar', [ContasPagarController::class, 'index'])
+            ->name('contasapagar');
+
+        Route::post('/contas-a-pagar', [ContasPagarController::class, 'store'])
+            ->name('contasapagar.store');
+
+        Route::patch('/contas-a-pagar/{conta}/pagar', [ContasPagarController::class, 'marcarComoPago'])
+            ->name('contasapagar.pagar');
+
+        Route::delete('/contas-a-pagar/{conta}', [ContasPagarController::class, 'destroy'])
+            ->name('contasapagar.destroy');
+
+        // Contas Fixas a Pagar
+        Route::post('/contas-fixas-pagar', [ContasPagarController::class, 'storeContaFixa'])
+            ->name('contasapagar.storeContaFixa');
+
+        Route::get('/contas-fixas-pagar', [ContasPagarController::class, 'contasFixas'])
+            ->name('contasapagar.contasFixas');
+
+        Route::patch('/contas-fixas-pagar/{contaFixa}/desativar', [ContasPagarController::class, 'desativarContaFixa'])
+            ->name('contasapagar.desativarContaFixa');
+
+        Route::patch('/contas-fixas-pagar/{contaFixa}/ativar', [ContasPagarController::class, 'ativarContaFixa'])
+            ->name('contasapagar.ativarContaFixa');
+
+        // API para buscar subcategorias e contas
+        Route::get('/api/subcategorias/{categoriaId}', [ContasPagarController::class, 'getSubcategorias'])
+            ->name('api.subcategorias');
+
+        Route::get('/api/contas/{subcategoriaId}', [ContasPagarController::class, 'getContas'])
+            ->name('api.contas');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORNECEDORES
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('fornecedores', FornecedorController::class)->parameters([
+            'fornecedores' => 'fornecedor'
+        ]);
+        Route::get('/fornecedores/api/buscar-cnpj', [FornecedorController::class, 'buscarPorCnpj'])
+            ->name('fornecedores.buscarCnpj');
     });
 /*
     |--------------------------------------------------------------------------

@@ -44,17 +44,36 @@ class DashboardFinanceiroController extends Controller
             ->pluck('total', 'mes')
             ->toArray();
 
+        // DESPESAS POR MÊS
+        $despesaPagaPorMes = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+            ->where('status', 'pago')
+            ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
+            ->groupBy('mes')
+            ->pluck('total', 'mes')
+            ->toArray();
+
+        $despesaPrevistaPorMes = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+            ->where('status', 'em_aberto')
+            ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
+            ->groupBy('mes')
+            ->pluck('total', 'mes')
+            ->toArray();
+
         /**
          * MONTA JANEIRO → DEZEMBRO FIXO
          */
         $labels = [];
         $recebido = [];
         $previsto = [];
+        $despesaPaga = [];
+        $despesaPrevista = [];
 
         for ($mes = 1; $mes <= 12; $mes++) {
             $labels[]   = Carbon::create()->month($mes)->translatedFormat('M');
             $recebido[] = $recebidoPorMes[$mes] ?? 0;
             $previsto[] = $previstoPorMes[$mes] ?? 0;
+            $despesaPaga[] = $despesaPagaPorMes[$mes] ?? 0;
+            $despesaPrevista[] = $despesaPrevistaPorMes[$mes] ?? 0;
         }
 
         /**
@@ -91,11 +110,11 @@ class DashboardFinanceiroController extends Controller
 
         $inicio = $request->get('inicio')
             ? Carbon::parse($request->inicio)->startOfDay()
-            : now()->startOfMonth();
+            : now()->startOfMonth()->startOfDay();
 
         $fim = $request->get('fim')
             ? Carbon::parse($request->fim)->endOfDay()
-            : now()->endOfMonth();
+            : now()->endOfMonth()->endOfDay();
 
         /**
          * RECEITA / DESPESA REALIZADA
@@ -113,7 +132,9 @@ class DashboardFinanceiroController extends Controller
             )
             ->sum('valor');
 
-        $despesaRealizada = 0; // futuro contas a pagar
+        $despesaRealizada = \App\Models\ContaPagar::where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->sum('valor');
 
         $saldoRealizado = $receitaRealizada - $despesaRealizada;
 
@@ -133,7 +154,9 @@ class DashboardFinanceiroController extends Controller
             )
             ->sum('valor');
 
-        $aPagar = 0; // futuro contas a pagar
+        $aPagar = \App\Models\ContaPagar::where('status', 'em_aberto')
+            ->whereBetween('data_vencimento', [$inicio, $fim])
+            ->sum('valor');
 
         $saldoPrevisto = $aReceber - $aPagar;
 
@@ -163,6 +186,8 @@ class DashboardFinanceiroController extends Controller
             'labels' => $labels,
             'recebido' => $recebido,
             'previsto' => $previsto,
+            'despesaPaga' => $despesaPaga,
+            'despesaPrevista' => $despesaPrevista,
             'totalRecebido' => $totalRecebido,
             'totalPrevisto' => $totalPrevisto,
             'empresas' => $empresas,

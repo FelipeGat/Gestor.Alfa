@@ -78,7 +78,7 @@ class ItemComercialController extends Controller
 
         $request->validate([
             'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255|unique:item_comercials,nome',
+            'nome'           => 'required|string|max:255|unique:itens_comerciais,nome',
             'preco_venda'    => 'required|numeric|min:0|max:99999999',
             'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
             'unidade_medida' => 'required|string|max:50',
@@ -145,7 +145,7 @@ class ItemComercialController extends Controller
 
         $request->validate([
             'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255|unique:item_comercials,nome,' . $itemComercial->id,
+            'nome'           => 'required|string|max:255|unique:itens_comerciais,nome,' . $itemComercial->id,
             'preco_venda'    => 'required|numeric|min:0|max:99999999',
             'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
             'unidade_medida' => 'required|string|max:50',

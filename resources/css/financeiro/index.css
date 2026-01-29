@@ -148,3 +148,10 @@
 .alert-success { background-color: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
 
 .pagination-container { padding: 1rem 1.5rem; border-top: 1px solid #f3f4f6; }
+
+/* Required field indicator */
+label.required::after {
+    content: " *";
+    color: #dc2626;
+    font-weight: bold;
+}

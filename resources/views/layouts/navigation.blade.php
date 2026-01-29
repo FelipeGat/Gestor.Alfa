@@ -139,6 +139,12 @@
                             Clientes
                         </x-nav-link><br>
 
+                        @if($isAdmin || $isFinanceiro)
+                        <x-nav-link :href="route('fornecedores.index')" class="block px-4 py-2">
+                            Fornecedores
+                        </x-nav-link><br>
+                        @endif
+
                         <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
                             Assuntos
                         </x-nav-link>
@@ -252,6 +258,9 @@
                 <x-responsive-nav-link :href="route('usuarios.index')">Usuários</x-responsive-nav-link>
                 @endif
                 <x-responsive-nav-link :href="route('clientes.index')">Clientes</x-responsive-nav-link>
+                @if($isAdmin || $isFinanceiro)
+                <x-responsive-nav-link :href="route('fornecedores.index')">Fornecedores</x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
             </div>
         </details>

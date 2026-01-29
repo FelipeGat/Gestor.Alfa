@@ -322,10 +322,23 @@ class FinanceiroController extends Controller
             $previsto = (clone $queryMes)->where('status', '!=', 'pago')->sum('valor');
             $recebido = (clone $queryMes)->where('status', 'pago')->sum('valor');
 
+            // Despesas do mês
+            $despesaPrevista = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->where('status', 'em_aberto')
+                ->sum('valor');
+
+            $despesaPaga = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->where('status', 'pago')
+                ->sum('valor');
+
             $financeiroMensal->push([
                 'mes' => $mesesNomes[$mes - 1],
                 'previsto' => (float) $previsto,
                 'recebido' => (float) $recebido,
+                'despesaPrevista' => (float) $despesaPrevista,
+                'despesaPaga' => (float) $despesaPaga,
             ]);
         }
 
@@ -365,7 +378,10 @@ class FinanceiroController extends Controller
             })
             ->sum('valor');
 
-        $despesaRealizada = 0; // futuro contas a pagar
+        $despesaRealizada = \App\Models\ContaPagar::where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->sum('valor');
+        
         $saldoRealizado = $receitaRealizada - $despesaRealizada;
 
         // Previsto
@@ -378,7 +394,9 @@ class FinanceiroController extends Controller
             })
             ->sum('valor');
 
-        $aPagar = 0; // futuro contas a pagar
+        $aPagar = \App\Models\ContaPagar::where('status', 'em_aberto')
+            ->whereBetween('data_vencimento', [$inicio, $fim])
+            ->sum('valor');
         $saldoPrevisto = $aReceber - $aPagar;
 
         // Atrasados/Pagos
