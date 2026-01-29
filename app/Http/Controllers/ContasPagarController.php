@@ -163,7 +163,7 @@ class ContasPagarController extends Controller
                 ->exists();
 
             if ($parcelaAnteriorNaoPaga) {
-                return back()->withErrors(['error' => 'Não é possível pagar esta parcela. Existe uma parcela anterior que ainda não foi paga.']);
+                return back()->withErrors(['error' => 'Não é possível pagar esta parcela. Existe uma parcela anterior que ainda não foi paga. Para manter a consistência das despesas fixas, você deve pagar as parcelas na ordem cronológica.']);
             }
         }
 
