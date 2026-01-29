@@ -381,7 +381,7 @@ class FinanceiroController extends Controller
         $despesaRealizada = \App\Models\ContaPagar::where('status', 'pago')
             ->whereBetween('pago_em', [$inicio, $fim])
             ->sum('valor');
-        
+
         $saldoRealizado = $receitaRealizada - $despesaRealizada;
 
         // Previsto

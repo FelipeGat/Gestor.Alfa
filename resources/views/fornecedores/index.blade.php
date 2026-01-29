@@ -25,7 +25,7 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
+
             @if(session('success'))
             <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                 {{ session('success') }}
@@ -35,7 +35,7 @@
             @if($errors->any())
             <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 @foreach($errors->all() as $error)
-                    <p>{{ $error }}</p>
+                <p>{{ $error }}</p>
                 @endforeach
             </div>
             @endif
@@ -89,18 +89,18 @@
                                 </td>
                                 <td data-label="Ações">
                                     <div class="table-actions">
-                                        <a href="{{ route('fornecedores.edit', $fornecedor) }}" 
+                                        <a href="{{ route('fornecedores.edit', $fornecedor) }}"
                                             class="btn action-btn btn-icon bg-blue-600 hover:bg-blue-700 text-white"
                                             title="Editar">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </a>
-                                        <form method="POST" action="{{ route('fornecedores.destroy', $fornecedor) }}" 
+                                        <form method="POST" action="{{ route('fornecedores.destroy', $fornecedor) }}"
                                             onsubmit="return confirm('Tem certeza que deseja excluir este fornecedor?')" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" 
+                                            <button type="submit"
                                                 class="btn action-btn btn-icon bg-red-400 hover:bg-red-500 text-white"
                                                 title="Excluir">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

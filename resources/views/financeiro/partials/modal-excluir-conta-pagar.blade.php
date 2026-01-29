@@ -42,12 +42,12 @@
                     <p class="text-sm text-gray-600" x-show="tipo === 'avulsa'">
                         Tem certeza que deseja excluir esta conta a pagar?
                     </p>
-                    
+
                     <div x-show="tipo === 'fixa'" class="space-y-3">
                         <p class="text-sm text-gray-600 font-semibold">
                             Esta é uma despesa fixa recorrente. O que deseja excluir?
                         </p>
-                        
+
                         <div class="space-y-2">
                             <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50" :class="deleteFuture === 'only' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'">
                                 <input type="radio" x-model="deleteFuture" value="only" class="mr-3">
@@ -56,7 +56,7 @@
                                     <span class="text-gray-500">As próximas parcelas serão mantidas</span>
                                 </span>
                             </label>
-                            
+
                             <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50" :class="deleteFuture === 'all' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'">
                                 <input type="radio" x-model="deleteFuture" value="all" class="mr-3">
                                 <span class="text-sm">
@@ -66,7 +66,7 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <p class="text-sm text-red-600 font-semibold mt-3">
                         ⚠️ Esta ação não pode ser desfeita!
                     </p>

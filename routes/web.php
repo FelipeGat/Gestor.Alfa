@@ -344,18 +344,18 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->name('api.contas');
     });
 
-    /*
+/*
     |--------------------------------------------------------------------------
     | FORNECEDORES
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['auth'])->group(function () {
-        Route::resource('fornecedores', FornecedorController::class)->parameters([
-            'fornecedores' => 'fornecedor'
-        ]);
-        Route::get('/fornecedores/api/buscar-cnpj', [FornecedorController::class, 'buscarPorCnpj'])
-            ->name('fornecedores.buscarCnpj');
-    });
+Route::middleware(['auth'])->group(function () {
+    Route::resource('fornecedores', FornecedorController::class)->parameters([
+        'fornecedores' => 'fornecedor'
+    ]);
+    Route::get('/fornecedores/api/buscar-cnpj', [FornecedorController::class, 'buscarPorCnpj'])
+        ->name('fornecedores.buscarCnpj');
+});
 /*
     |--------------------------------------------------------------------------
     | PORTAL DO CLIENTE

@@ -21,7 +21,7 @@
             <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <ul>
                     @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                    <li>{{ $error }}</li>
                     @endforeach
                 </ul>
             </div>
@@ -33,7 +33,7 @@
 
                 <div class="filters-card">
                     <h3 class="text-lg font-semibold mb-4">Dados Básicos</h3>
-                    
+
                     <div class="filters-grid">
                         <div class="filter-group">
                             <label class="required">Tipo de Pessoa</label>
@@ -45,8 +45,8 @@
 
                         <div class="filter-group">
                             <label class="required" x-text="tipoPessoa === 'PJ' ? 'CNPJ' : 'CPF'"></label>
-                            <input type="text" 
-                                name="cpf_cnpj" 
+                            <input type="text"
+                                name="cpf_cnpj"
                                 x-model="cpfCnpj"
                                 :maxlength="tipoPessoa === 'PJ' ? 18 : 14"
                                 :placeholder="tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'"
@@ -67,12 +67,12 @@
 
                 <div class="filters-card">
                     <h3 class="text-lg font-semibold mb-4">Endereço</h3>
-                    
+
                     <div class="filters-grid">
                         <div class="filter-group">
                             <label class="required">CEP</label>
-                            <input type="text" 
-                                name="cep" 
+                            <input type="text"
+                                name="cep"
                                 x-model="cep"
                                 @blur="buscarCep()"
                                 maxlength="9"
@@ -243,7 +243,13 @@
                 },
 
                 adicionarContato() {
-                    this.contatos.push({ nome: '', cargo: '', email: '', telefone: '', principal: false });
+                    this.contatos.push({
+                        nome: '',
+                        cargo: '',
+                        email: '',
+                        telefone: '',
+                        principal: false
+                    });
                 },
 
                 removerContato(index) {

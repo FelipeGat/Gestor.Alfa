@@ -246,7 +246,7 @@ class ContasPagarController extends Controller
                     ->where('status', '!=', 'pago')
                     ->where('data_vencimento', '>=', $conta->data_vencimento)
                     ->delete();
-                
+
                 return back()->with('success', 'Conta e próximas parcelas excluídas com sucesso!');
             }
         }
@@ -304,10 +304,10 @@ class ContasPagarController extends Controller
             $dataVencimento = Carbon::parse($request->data_inicial);
             $dataFim = $request->data_fim ? Carbon::parse($request->data_fim) : null;
             $parcelasGeradas = 0;
-            
+
             // Para periodicidade MENSAL, gerar 12 parcelas
             // Para outras, gerar proporcionalmente
-            $maxParcelas = match($request->periodicidade) {
+            $maxParcelas = match ($request->periodicidade) {
                 'SEMANAL' => 52,      // 1 ano de semanas
                 'QUINZENAL' => 24,    // 1 ano quinzenal
                 'MENSAL' => 12,       // 1 ano
@@ -316,7 +316,7 @@ class ContasPagarController extends Controller
                 'ANUAL' => 1,         // 1 parcela
                 default => 12
             };
-            
+
             for ($i = 0; $i < $maxParcelas; $i++) {
                 // Parar se ultrapassar data_fim
                 if ($dataFim && $dataVencimento->gt($dataFim)) {

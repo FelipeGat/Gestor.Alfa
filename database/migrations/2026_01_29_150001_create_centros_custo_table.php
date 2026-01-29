@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('empresa_id')->nullable();
             $table->boolean('ativo')->default(true);
             $table->timestamps();
-            
+
             // Foreign key condicional - só adiciona se a tabela empresas existir
             if (Schema::hasTable('empresas')) {
                 $table->foreign('empresa_id')->references('id')->on('empresas')->cascadeOnDelete();

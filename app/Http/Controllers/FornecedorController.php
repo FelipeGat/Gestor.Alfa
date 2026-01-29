@@ -193,9 +193,9 @@ class FornecedorController extends Controller
     public function buscarPorCnpj(Request $request)
     {
         $cnpj = preg_replace('/[^0-9]/', '', $request->cnpj);
-        
+
         $fornecedor = Fornecedor::where('cpf_cnpj', $cnpj)->first();
-        
+
         if ($fornecedor) {
             return response()->json([
                 'exists' => true,
