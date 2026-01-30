@@ -9,7 +9,9 @@
         <style>
             .portal-home {
                 min-height: calc(100vh - 64px);
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                padding: 2rem 1rem;
+                display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
