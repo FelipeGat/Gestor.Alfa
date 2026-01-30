@@ -454,6 +454,9 @@ class ContasPagarController extends Controller
             $dataFim = $request->data_fim ? Carbon::parse($request->data_fim) : null;
             $parcelasGeradas = 0;
 
+            // Armazenar o dia original para tratamento de meses com dias diferentes
+            $diaOriginal = $dataVencimento->day;
+
             // Para periodicidade MENSAL, gerar 12 parcelas
             // Para outras, gerar proporcionalmente
             $maxParcelas = match ($request->periodicidade) {
@@ -503,16 +506,32 @@ class ContasPagarController extends Controller
                         $dataVencimento->addWeeks(2);
                         break;
                     case 'MENSAL':
-                        $dataVencimento->addMonth();
+                        $dataVencimento->addMonthNoOverflow();
+                        // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
                         break;
                     case 'TRIMESTRAL':
-                        $dataVencimento->addMonths(3);
+                        $dataVencimento->addMonthsNoOverflow(3);
+                        // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
                         break;
                     case 'SEMESTRAL':
-                        $dataVencimento->addMonths(6);
+                        $dataVencimento->addMonthsNoOverflow(6);
+                        // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
                         break;
                     case 'ANUAL':
-                        $dataVencimento->addYear();
+                        $dataVencimento->addYearNoOverflow();
+                        // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
                         break;
                 }
             }

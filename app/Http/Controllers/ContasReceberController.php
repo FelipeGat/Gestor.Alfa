@@ -481,6 +481,9 @@ class ContasReceberController extends Controller
             ? Carbon::parse($contaFixa->data_atualizacao_percentual)
             : null;
 
+        // Armazenar o dia original para tratamento de meses com dias diferentes
+        $diaOriginal = $dataAtual->day;
+
         // Limite de segurança: gerar até 120 cobranças (10 anos para mensal)
         $limite = 120;
         $contador = 0;
@@ -528,13 +531,25 @@ class ContasReceberController extends Controller
                     $dataAtual->addWeeks(2);
                     break;
                 case 'mensal':
-                    $dataAtual->addMonth();
+                    $dataAtual->addMonthNoOverflow();
+                    // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                    if ($diaOriginal >= 30 && $dataAtual->day < $diaOriginal) {
+                        $dataAtual->endOfMonth();
+                    }
                     break;
                 case 'semestral':
-                    $dataAtual->addMonths(6);
+                    $dataAtual->addMonthsNoOverflow(6);
+                    // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                    if ($diaOriginal >= 30 && $dataAtual->day < $diaOriginal) {
+                        $dataAtual->endOfMonth();
+                    }
                     break;
                 case 'anual':
-                    $dataAtual->addYear();
+                    $dataAtual->addYearNoOverflow();
+                    // Se o dia original era 30 ou 31 e o mês não tem esse dia, ajustar para o último dia
+                    if ($diaOriginal >= 30 && $dataAtual->day < $diaOriginal) {
+                        $dataAtual->endOfMonth();
+                    }
                     break;
             }
 

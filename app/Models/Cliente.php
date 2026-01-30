@@ -139,10 +139,22 @@ class Cliente extends Model
     /** data vencimento automatica*/
     public function gerarDataVencimento(int $mes, int $ano)
     {
-        return \Carbon\Carbon::create(
-            $ano,
-            $mes,
-            $this->getDiaVencimentoSeguro()
-        );
+        $diaDesejado = $this->dia_vencimento ?? 1;
+
+        // Criar data com o primeiro dia do mês
+        $data = \Carbon\Carbon::create($ano, $mes, 1);
+
+        // Obter o último dia do mês
+        $ultimoDiaDoMes = $data->endOfMonth()->day;
+
+        // Se o dia desejado é 30 ou 31, usar o último dia do mês
+        // Caso contrário, usar o menor entre dia desejado e último dia
+        if ($diaDesejado >= 30) {
+            $data->day($ultimoDiaDoMes);
+        } else {
+            $data->day(min($diaDesejado, $ultimoDiaDoMes));
+        }
+
+        return $data;
     }
 }
