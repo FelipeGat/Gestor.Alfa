@@ -147,7 +147,7 @@ class PortalFuncionarioController extends Controller
             foreach ($request->file('fotos') as $index => $foto) {
                 $path = $foto->store('atendimentos/fotos', 'public');
                 $andamento->fotos()->create([
-                    'caminho' => $path,
+                    'arquivo' => $path,
                 ]);
             }
 
@@ -315,7 +315,7 @@ class PortalFuncionarioController extends Controller
             foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('atendimentos/fotos', 'public');
                 $andamento->fotos()->create([
-                    'caminho' => $path,
+                    'arquivo' => $path,
                 ]);
             }
 
