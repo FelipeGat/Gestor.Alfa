@@ -227,50 +227,106 @@
                 <div class="bg-white shadow rounded-xl p-6 relative">
 
                     {{-- HEADER --}}
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="mb-4">
                         <h3 class="text-sm font-semibold text-gray-700">
                             📊 Resumo Financeiro
                         </h3>
-
-                        <button type="button"
-                            onclick="toggleValoresBancos()"
-                            class="text-gray-400 hover:text-indigo-600 transition p-1 rounded-full hover:bg-gray-100"
-                            title="Mostrar / Ocultar valores"
-                            id="btnToggleBancos">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
                     </div>
 
-                    {{-- FILTRO DE PERÍODO --}}
-                    <form method="GET" class="flex items-center gap-2 mb-6 text-sm">
-                        @if($empresaId)
-                        <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
-                        @endif
-                        <input type="hidden" name="ano" value="{{ $ano }}">
+                    {{-- FILTRO RÁPIDO DE PERÍODO --}}
+                    <div x-data="{
+                        filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}',
+                        mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }},
+                        aplicarFiltro(tipo) {
+                            this.filtroRapido = tipo;
+                            if (tipo !== 'custom') {
+                                this.mostrarCustom = false;
+                                // Remover campos de data antes de submeter
+                                const form = this.$refs.formFiltro;
+                                const inputInicio = form.querySelector('input[name=inicio]');
+                                const inputFim = form.querySelector('input[name=fim]');
+                                if (inputInicio) inputInicio.disabled = true;
+                                if (inputFim) inputFim.disabled = true;
+                                setTimeout(() => form.submit(), 10);
+                            } else {
+                                this.mostrarCustom = true;
+                            }
+                        }
+                    }" class="mb-6">
+                        <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
+                            @if($empresaId)
+                            <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
+                            @endif
+                            <input type="hidden" name="ano" value="{{ $ano }}">
+                            <input type="hidden" name="filtro_rapido" :value="filtroRapido">
 
-                        <span class="text-gray-500">Período:</span>
+                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                <span class="text-gray-500 font-medium">Filtrar por:</span>
 
-                        <input type="date"
-                            name="inicio"
-                            value="{{ $inicio->format('Y-m-d') }}"
-                            class="rounded-md border-gray-300 text-sm">
+                                {{-- Botões de filtro rápido --}}
+                                <button type="button"
+                                    @click="aplicarFiltro('dia')"
+                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Dia
+                                </button>
 
-                        <span class="text-gray-400">até</span>
+                                <button type="button"
+                                    @click="aplicarFiltro('semana')"
+                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Semana
+                                </button>
 
-                        <input type="date"
-                            name="fim"
-                            value="{{ $fim->format('Y-m-d') }}"
-                            class="rounded-md border-gray-300 text-sm">
+                                <button type="button"
+                                    @click="aplicarFiltro('mes')"
+                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Mês
+                                </button>
 
-                        <button class="px-3 py-1 bg-indigo-600 text-white rounded-md text-xs">
-                            Filtrar
-                        </button>
-                    </form>
+                                <button type="button"
+                                    @click="aplicarFiltro('ano')"
+                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Ano
+                                </button>
+
+                                <button type="button"
+                                    @click="aplicarFiltro('proximo_mes')"
+                                    :class="filtroRapido === 'proximo_mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Próximo Mês
+                                </button>
+
+                                <button type="button"
+                                    @click="aplicarFiltro('custom')"
+                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Outro período
+                                </button>
+                            </div>
+
+                            {{-- Campos de data personalizados --}}
+                            <div x-show="mostrarCustom" x-transition class="flex items-center gap-2 mt-3">
+                                <input type="date"
+                                    name="inicio"
+                                    value="{{ $inicio->format('Y-m-d') }}"
+                                    class="rounded-md border-gray-300 text-sm">
+
+                                <span class="text-gray-400">até</span>
+
+                                <input type="date"
+                                    name="fim"
+                                    value="{{ $fim->format('Y-m-d') }}"
+                                    class="rounded-md border-gray-300 text-sm">
+
+                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">
+                                    Aplicar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                     {{-- ================= REALIZADO ================= --}}
                     <div class="mb-6">
@@ -281,26 +337,23 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Receita</span>
-                                <p class="font-bold text-green-600 valor-banco oculto">
+                                <p class="font-bold text-green-600">
                                     R$ {{ number_format($receitaRealizada, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">Despesa</span>
-                                <p class="font-bold text-red-600 valor-banco oculto">
+                                <p class="font-bold text-red-600">
                                     R$ {{ number_format($despesaRealizada, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">Saldo</span>
-                                <p class="font-bold text-blue-600 valor-banco oculto">
+                                <p class="font-bold text-blue-600">
                                     R$ {{ number_format($saldoRealizado, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
                         </div>
                     </div>
@@ -314,26 +367,23 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">A Receber</span>
-                                <p class="font-bold text-green-600 valor-banco oculto">
+                                <p class="font-bold text-green-600">
                                     R$ {{ number_format($aReceber, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">A Pagar</span>
-                                <p class="font-bold text-red-600 valor-banco oculto">
+                                <p class="font-bold text-red-600">
                                     R$ {{ number_format($aPagar, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">Saldo</span>
-                                <p class="font-bold text-blue-600 valor-banco oculto">
+                                <p class="font-bold text-blue-600">
                                     R$ {{ number_format($saldoPrevisto, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
                         </div>
                     </div>
@@ -347,26 +397,23 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Atrasado</span>
-                                <p class="font-bold text-red-600 valor-banco oculto">
+                                <p class="font-bold text-red-600">
                                     R$ {{ number_format($atrasado, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">Pago</span>
-                                <p class="font-bold text-green-600 valor-banco oculto">
+                                <p class="font-bold text-green-600">
                                     R$ {{ number_format($pago, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
 
                             <div>
                                 <span class="text-xs text-gray-500">Diferença</span>
-                                <p class="font-bold text-blue-600 valor-banco oculto">
+                                <p class="font-bold text-blue-600">
                                     R$ {{ number_format($saldoSituacao, 2, ',', '.') }}
                                 </p>
-                                <p class="font-bold text-gray-400 valor-banco-masked">R$ •••••</p>
                             </div>
                         </div>
                     </div>

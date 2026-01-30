@@ -193,9 +193,9 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::get('/', [FinanceiroController::class, 'dashboard'])
             ->name('index');
 
-        // Dashboard financeiro
-        Route::get('/dashboard', [FinanceiroController::class, 'dashboard'])
-            ->name('dashboard');
+        // Dashboard financeiro (COMENTADO - usando DashboardFinanceiroController)
+        // Route::get('/dashboard', [FinanceiroController::class, 'dashboard'])
+        //     ->name('dashboard');
 
         // Cobrar
         Route::get('/cobrar', [FinanceiroController::class, 'cobrar'])

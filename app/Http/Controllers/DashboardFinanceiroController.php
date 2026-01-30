@@ -76,6 +76,18 @@ class DashboardFinanceiroController extends Controller
             $despesaPrevista[] = $despesaPrevistaPorMes[$mes] ?? 0;
         }
 
+        // Criar collection para o gráfico
+        $financeiroMensal = collect();
+        for ($mes = 1; $mes <= 12; $mes++) {
+            $financeiroMensal->push([
+                'mes' => Carbon::create()->month($mes)->translatedFormat('M'),
+                'recebido' => $recebidoPorMes[$mes] ?? 0,
+                'previsto' => $previstoPorMes[$mes] ?? 0,
+                'despesaPaga' => $despesaPagaPorMes[$mes] ?? 0,
+                'despesaPrevista' => $despesaPrevistaPorMes[$mes] ?? 0,
+            ]);
+        }
+
         /**
          * KPIs
          */
@@ -98,29 +110,56 @@ class DashboardFinanceiroController extends Controller
         // Agrupar por tipo
         $contasAgrupadasPorTipo = $contasFinanceiras->groupBy('tipo');
 
-        // Debug temporário
-        if (!isset($contasAgrupadasPorTipo)) {
-            dd('Variável contasAgrupadasPorTipo não foi criada!');
-        }
-
         // Saldo total apenas de contas correntes
         $saldoTotalBancos = $contasFinanceiras
             ->where('tipo', 'corrente')
             ->sum('saldo');
 
-        $inicio = $request->get('inicio')
-            ? Carbon::parse($request->inicio)->startOfDay()
-            : now()->startOfMonth()->startOfDay();
+        // Processar filtro rápido
+        $filtroRapido = $request->get('filtro_rapido', 'mes');
 
-        $fim = $request->get('fim')
-            ? Carbon::parse($request->fim)->endOfDay()
-            : now()->endOfMonth()->endOfDay();
+        switch ($filtroRapido) {
+            case 'dia':
+                $inicio = now()->startOfDay();
+                $fim = now()->endOfDay();
+                break;
+            case 'semana':
+                $inicio = now()->startOfWeek();
+                $fim = now()->endOfWeek();
+                break;
+            case 'mes':
+                $inicio = now()->startOfMonth();
+                $fim = now()->endOfMonth();
+                break;
+            case 'proximo_mes':
+                $proximoMes = now()->addMonth();
+                $inicio = $proximoMes->copy()->startOfMonth();
+                $fim = $proximoMes->copy()->endOfMonth();
+                break;
+            case 'ano':
+                $inicio = now()->startOfYear();
+                $fim = now()->endOfYear();
+                break;
+            case 'custom':
+                $inicio = $request->get('inicio')
+                    ? Carbon::parse($request->inicio)->startOfDay()
+                    : now()->startOfMonth()->startOfDay();
+                $fim = $request->get('fim')
+                    ? Carbon::parse($request->fim)->endOfDay()
+                    : now()->endOfMonth()->endOfDay();
+                break;
+            default:
+                $inicio = now()->startOfMonth();
+                $fim = now()->endOfMonth();
+        }
 
         /**
          * RECEITA / DESPESA REALIZADA
+         * Usar data_pagamento para filtrar
          */
         $receitaRealizada = Cobranca::where('status', 'pago')
-            ->whereBetween('pago_em', [$inicio, $fim])
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->when(
                 $empresaId,
                 fn($q) =>
@@ -133,7 +172,8 @@ class DashboardFinanceiroController extends Controller
             ->sum('valor');
 
         $despesaRealizada = \App\Models\ContaPagar::where('status', 'pago')
-            ->whereBetween('pago_em', [$inicio, $fim])
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->sum('valor');
 
         $saldoRealizado = $receitaRealizada - $despesaRealizada;
@@ -142,7 +182,8 @@ class DashboardFinanceiroController extends Controller
          * PREVISTO
          */
         $aReceber = Cobranca::where('status', '!=', 'pago')
-            ->whereBetween('data_vencimento', [$inicio, $fim])
+            ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
             ->when(
                 $empresaId,
                 fn($q) =>
@@ -155,16 +196,18 @@ class DashboardFinanceiroController extends Controller
             ->sum('valor');
 
         $aPagar = \App\Models\ContaPagar::where('status', 'em_aberto')
-            ->whereBetween('data_vencimento', [$inicio, $fim])
+            ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
             ->sum('valor');
 
         $saldoPrevisto = $aReceber - $aPagar;
 
         /**
-         * ATRASADOS / PAGOS
+         * SITUAÇÃO (dentro do período filtrado)
          */
+        // Atrasados = contas vencidas antes do período que ainda não foram pagas
         $atrasado = Cobranca::where('status', '!=', 'pago')
-            ->whereDate('data_vencimento', '<', now())
+            ->whereDate('data_vencimento', '<', $inicio)
             ->when(
                 $empresaId,
                 fn($q) =>
@@ -176,11 +219,22 @@ class DashboardFinanceiroController extends Controller
             )
             ->sum('valor');
 
+        // Pago = cobranças pagas dentro do período filtrado
         $pago = Cobranca::where('status', 'pago')
-            ->whereBetween('pago_em', [$inicio, $fim])
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+            ->when(
+                $empresaId,
+                fn($q) =>
+                $q->whereHas(
+                    'orcamento',
+                    fn($oq) =>
+                    $oq->where('empresa_id', $empresaId)
+                )
+            )
             ->sum('valor');
 
-        $saldoSituacao = $atrasado - $pago;
+        $saldoSituacao = $pago - $atrasado;
 
         return view('dashboard-financeiro.index', [
             'labels' => $labels,
@@ -188,6 +242,7 @@ class DashboardFinanceiroController extends Controller
             'previsto' => $previsto,
             'despesaPaga' => $despesaPaga,
             'despesaPrevista' => $despesaPrevista,
+            'financeiroMensal' => $financeiroMensal,
             'totalRecebido' => $totalRecebido,
             'totalPrevisto' => $totalPrevisto,
             'empresas' => $empresas,
