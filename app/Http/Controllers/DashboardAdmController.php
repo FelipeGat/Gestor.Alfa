@@ -6,15 +6,53 @@ use App\Models\Empresa;
 use App\Models\Atendimento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
+use PDF;
 
 class DashboardAdmController extends Controller
 {
     public function index(Request $request)
     {
         // ================= FILTROS =================
-        $dataFim = $request->input('data_fim') ? Carbon::parse($request->input('data_fim')) : Carbon::today();
-        $dataInicio = $request->input('data_inicio') ? Carbon::parse($request->input('data_inicio')) : $dataFim->copy()->subDays(29);
+        $filtroRapido = $request->get('filtro_rapido', 'mes');
+
+        // Processar filtro de data
+        $inicio = null;
+        $fim = null;
+
+        switch ($filtroRapido) {
+            case 'dia':
+                $inicio = now()->startOfDay();
+                $fim = now()->endOfDay();
+                break;
+            case 'semana':
+                $inicio = now()->startOfWeek();
+                $fim = now()->endOfWeek();
+                break;
+            case 'mes':
+                $inicio = now()->startOfMonth();
+                $fim = now()->endOfMonth();
+                break;
+            case 'mes_anterior':
+                $inicio = now()->subMonth()->startOfMonth();
+                $fim = now()->subMonth()->endOfMonth();
+                break;
+            case 'ano':
+                $inicio = now()->startOfYear();
+                $fim = now()->endOfYear();
+                break;
+            case 'custom':
+                $inicio = $request->get('data_inicio') ? Carbon::parse($request->get('data_inicio'))->startOfDay() : now()->startOfMonth();
+                $fim = $request->get('data_fim') ? Carbon::parse($request->get('data_fim'))->endOfDay() : now()->endOfMonth();
+                break;
+            default:
+                $inicio = now()->startOfMonth();
+                $fim = now()->endOfMonth();
+        }
+
+        $dataInicio = $inicio;
+        $dataFim = $fim;
 
         $empresaId = $request->input('empresa_id');
         $statusFiltro = $request->input('status_atual');
@@ -41,10 +79,17 @@ class DashboardAdmController extends Controller
         if ($empresaId) {
             $queryCards->where('empresa_id', $empresaId);
         }
-        $chamadosAbertos    = (clone $queryCards)->where('status_atual', 'aberto')->count();
-        $chamadosEmAtendimento = (clone $queryCards)->where('status_atual', 'em_atendimento')->count();
-        $chamadosConcluidos = (clone $queryCards)->where('status_atual', 'concluido')->count();
-        $chamadosAguardando = (clone $queryCards)->where('status_atual', 'aguardando_cliente')->count();
+
+        $statusCount = (clone $queryCards)
+            ->select('status_atual', DB::raw('COUNT(*) as total'))
+            ->groupBy('status_atual')
+            ->pluck('total', 'status_atual');
+
+        $chamadosAbertos = $statusCount->get('aberto', 0);
+        $chamadosEmAtendimento = $statusCount->get('em_atendimento', 0);
+        $chamadosConcluidos = $statusCount->get('concluido', 0);
+        $chamadosAguardando = $statusCount->get('aguardando_cliente', 0);
+        $chamadosCancelados = $statusCount->get('cancelado', 0);
 
         // ================= GRÁFICOS =================
 
@@ -109,8 +154,9 @@ class DashboardAdmController extends Controller
 
         // Retorna a view com todas as variáveis
         return view('dashboard', compact(
-            'dataInicio',
-            'dataFim',
+            'inicio',
+            'fim',
+            'filtroRapido',
             'empresaId',
             'statusFiltro',
             'empresas',
@@ -120,6 +166,7 @@ class DashboardAdmController extends Controller
             'chamadosEmAtendimento',
             'chamadosConcluidos',
             'chamadosAguardando',
+            'chamadosCancelados',
             'labelsAtendimentosDia',
             'valoresAtendimentosDia',
             'labelsAtendimentosTecnico',
@@ -134,5 +181,195 @@ class DashboardAdmController extends Controller
             'labelsChamadosEmpresa',
             'valoresChamadosEmpresa'
         ));
+    }
+
+    /**
+     * Retorna atendimentos via AJAX (para o modal)
+     */
+    public function getAtendimentos(Request $request)
+    {
+        $empresaId = $request->get('empresa_id');
+        $statusFiltro = $request->get('status_atual');
+        $filtroRapido = $request->get('filtro_rapido', 'mes');
+        $inicioCustom = $request->get('inicio_custom');
+        $fimCustom = $request->get('fim_custom');
+
+        // Calcula período
+        $hoje = Carbon::now('America/Sao_Paulo');
+        switch ($filtroRapido) {
+            case 'dia':
+                $inicio = $hoje->copy()->startOfDay();
+                $fim = $hoje->copy()->endOfDay();
+                break;
+            case 'semana':
+                $inicio = $hoje->copy()->startOfWeek();
+                $fim = $hoje->copy()->endOfWeek();
+                break;
+            case 'mes':
+                $inicio = $hoje->copy()->startOfMonth();
+                $fim = $hoje->copy()->endOfMonth();
+                break;
+            case 'mes_anterior':
+                $inicio = $hoje->copy()->subMonth()->startOfMonth();
+                $fim = $hoje->copy()->subMonth()->endOfMonth();
+                break;
+            case 'ano':
+                $inicio = $hoje->copy()->startOfYear();
+                $fim = $hoje->copy()->endOfYear();
+                break;
+            case 'custom':
+                $inicio = $inicioCustom ? Carbon::parse($inicioCustom) : $hoje->copy()->startOfMonth();
+                $fim = $fimCustom ? Carbon::parse($fimCustom) : $hoje->copy()->endOfMonth();
+                break;
+            default:
+                $inicio = $hoje->copy()->startOfMonth();
+                $fim = $hoje->copy()->endOfMonth();
+        }
+
+        // Busca atendimentos
+        $query = Atendimento::with(['cliente:id,nome_fantasia', 'empresa:id,nome_fantasia', 'funcionario:id,nome'])
+            ->whereBetween('data_atendimento', [$inicio, $fim]);
+
+        if ($empresaId) {
+            $query->where('empresa_id', $empresaId);
+        }
+
+        if ($statusFiltro) {
+            $query->where('status_atual', $statusFiltro);
+        }
+
+        $atendimentos = $query->orderBy('data_atendimento', 'desc')->get()->map(function ($atendimento) {
+            return [
+                'numero' => $atendimento->numero_atendimento,
+                'cliente' => $atendimento->cliente->nome_fantasia ?? 'N/A',
+                'empresa' => $atendimento->empresa->nome_fantasia ?? 'N/A',
+                'tecnico' => $atendimento->funcionario->nome ?? 'Não atribuído',
+                'descricao' => Str::limit($atendimento->descricao, 50),
+                'status_atual' => $atendimento->status_atual,
+                'data_atendimento' => Carbon::parse($atendimento->data_atendimento)->format('d/m/Y'),
+                'url' => route('atendimentos.edit', $atendimento->id)
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'atendimentos' => $atendimentos,
+            'total' => $atendimentos->count()
+        ]);
+    }
+
+    /**
+     * Exporta dashboard técnico em PDF
+     */
+    public function exportar(Request $request)
+    {
+        $empresaId = $request->get('empresa_id');
+        $statusFiltro = $request->get('status_atual');
+        $filtroRapido = $request->get('filtro_rapido', 'mes');
+        $inicioCustom = $request->get('inicio_custom');
+        $fimCustom = $request->get('fim_custom');
+
+        // Calcula período
+        $hoje = Carbon::now('America/Sao_Paulo');
+        switch ($filtroRapido) {
+            case 'dia':
+                $inicio = $hoje->copy()->startOfDay();
+                $fim = $hoje->copy()->endOfDay();
+                break;
+            case 'semana':
+                $inicio = $hoje->copy()->startOfWeek();
+                $fim = $hoje->copy()->endOfWeek();
+                break;
+            case 'mes':
+                $inicio = $hoje->copy()->startOfMonth();
+                $fim = $hoje->copy()->endOfMonth();
+                break;
+            case 'mes_anterior':
+                $inicio = $hoje->copy()->subMonth()->startOfMonth();
+                $fim = $hoje->copy()->subMonth()->endOfMonth();
+                break;
+            case 'ano':
+                $inicio = $hoje->copy()->startOfYear();
+                $fim = $hoje->copy()->endOfYear();
+                break;
+            case 'custom':
+                $inicio = $inicioCustom ? Carbon::parse($inicioCustom) : $hoje->copy()->startOfMonth();
+                $fim = $fimCustom ? Carbon::parse($fimCustom) : $hoje->copy()->endOfMonth();
+                break;
+            default:
+                $inicio = $hoje->copy()->startOfMonth();
+                $fim = $hoje->copy()->endOfMonth();
+        }
+
+        // Busca atendimentos
+        $query = Atendimento::with(['cliente:id,nome_fantasia', 'empresa:id,nome_fantasia', 'funcionario:id,nome'])
+            ->whereBetween('data_atendimento', [$inicio, $fim]);
+
+        if ($empresaId) {
+            $query->where('empresa_id', $empresaId);
+        }
+
+        if ($statusFiltro) {
+            $query->where('status_atual', $statusFiltro);
+        }
+
+        $atendimentos = $query->orderBy('data_atendimento', 'desc')->get();
+        $total = $atendimentos->count();
+
+        // Informações para o cabeçalho
+        $periodoTexto = $this->getPeriodoTexto($filtroRapido, $inicio, $fim);
+        $empresaNome = $empresaId ? Empresa::find($empresaId)?->nome_fantasia : 'Todas';
+        $statusTexto = $statusFiltro ? $this->getStatusLabel($statusFiltro) : 'Todos';
+
+        $pdf = PDF::loadView('dashboard.exportar', compact(
+            'atendimentos',
+            'total',
+            'periodoTexto',
+            'empresaNome',
+            'statusTexto',
+            'inicio',
+            'fim'
+        ));
+
+        $nomeArquivo = 'dashboard-tecnico-' . now()->format('Y-m-d-His') . '.pdf';
+        return $pdf->download($nomeArquivo);
+    }
+
+    /**
+     * Retorna texto formatado do período
+     */
+    private function getPeriodoTexto($filtro, $inicio, $fim)
+    {
+        switch ($filtro) {
+            case 'dia':
+                return 'Hoje (' . $inicio->format('d/m/Y') . ')';
+            case 'semana':
+                return 'Esta Semana (' . $inicio->format('d/m') . ' a ' . $fim->format('d/m/Y') . ')';
+            case 'mes':
+                return 'Este Mês (' . $inicio->format('m/Y') . ')';
+            case 'mes_anterior':
+                return 'Mês Anterior (' . $inicio->format('m/Y') . ')';
+            case 'ano':
+                return 'Este Ano (' . $inicio->format('Y') . ')';
+            case 'custom':
+                return $inicio->format('d/m/Y') . ' a ' . $fim->format('d/m/Y');
+            default:
+                return $inicio->format('d/m/Y') . ' a ' . $fim->format('d/m/Y');
+        }
+    }
+
+    /**
+     * Retorna label formatado do status
+     */
+    private function getStatusLabel($status)
+    {
+        $labels = [
+            'aberto' => 'Aberto',
+            'em_atendimento' => 'Em Atendimento',
+            'aguardando_cliente' => 'Aguardando Cliente',
+            'concluido' => 'Concluído',
+            'cancelado' => 'Cancelado'
+        ];
+        return $labels[$status] ?? ucfirst(str_replace('_', ' ', $status));
     }
 }

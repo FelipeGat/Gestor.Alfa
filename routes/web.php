@@ -65,6 +65,14 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.admin')
         ->name('dashboard');
 
+    Route::get('/dashboard/atendimentos', [DashboardAdmController::class, 'getAtendimentos'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.atendimentos');
+
+    Route::get('/dashboard/exportar', [DashboardAdmController::class, 'exportar'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.exportar');
+
     // Dashboard COMERCIAL
     Route::get('/dashboard-comercial', [DashboardComercialController::class, 'index'])
         ->middleware('dashboard.comercial')

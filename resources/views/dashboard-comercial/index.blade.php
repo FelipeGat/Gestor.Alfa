@@ -436,7 +436,7 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
@@ -449,7 +449,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="orc in orcamentos" :key="orc.id">
                                         <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="orc.id"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="orc.numero"></td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.cliente"></td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.empresa"></td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.vendedor"></td>

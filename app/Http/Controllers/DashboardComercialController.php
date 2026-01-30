@@ -140,6 +140,13 @@ class DashboardComercialController extends Controller
             $status = $request->get('status');
             $filtroRapido = $request->get('filtro_rapido', 'mes');
 
+            // Log para debug
+            \Log::info('getOrcamentos chamado', [
+                'empresa_id' => $empresaId,
+                'status' => $status,
+                'filtro_rapido' => $filtroRapido
+            ]);
+
             // Processar filtro de data (mesmo do método comercial)
             $inicio = null;
             $fim = null;
@@ -180,20 +187,28 @@ class DashboardComercialController extends Controller
                 ->when($empresaId, fn($q) => $q->where('empresa_id', $empresaId))
                 ->when($status, fn($q) => $q->where('status', $status))
                 ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($orc) {
-                    return [
-                        'id' => $orc->id,
-                        'cliente' => $orc->cliente ? ($orc->cliente->nome ?? $orc->cliente->razao_social ?? 'N/A') : 'N/A',
-                        'empresa' => $orc->empresa ? ($orc->empresa->nome_fantasia ?? 'N/A') : 'N/A',
-                        'vendedor' => $orc->criadoPor ? ($orc->criadoPor->name ?? 'N/A') : 'N/A',
-                        'valor_total' => number_format($orc->valor_total ?? 0, 2, ',', '.'),
-                        'status' => $orc->status,
-                        'status_label' => $this->getStatusLabel($orc->status),
-                        'data' => $orc->created_at ? $orc->created_at->format('d/m/Y') : 'N/A',
-                        'url' => route('orcamentos.imprimir', $orc->id),
-                    ];
-                });
+                ->get();
+
+            \Log::info('Query executada', [
+                'inicio' => $inicio,
+                'fim' => $fim,
+                'total_encontrado' => $orcamentos->count()
+            ]);
+
+            $orcamentos = $orcamentos->map(function ($orc) {
+                return [
+                    'id' => $orc->id,
+                    'numero' => $orc->numero_orcamento,
+                    'cliente' => $orc->cliente ? ($orc->cliente->nome ?? $orc->cliente->razao_social ?? 'N/A') : 'N/A',
+                    'empresa' => $orc->empresa ? ($orc->empresa->nome_fantasia ?? 'N/A') : 'N/A',
+                    'vendedor' => $orc->criadoPor ? ($orc->criadoPor->name ?? 'N/A') : 'N/A',
+                    'valor_total' => number_format($orc->valor_total ?? 0, 2, ',', '.'),
+                    'status' => $orc->status,
+                    'status_label' => $this->getStatusLabel($orc->status),
+                    'data' => $orc->created_at ? $orc->created_at->format('d/m/Y') : 'N/A',
+                    'url' => route('orcamentos.imprimir', $orc->id),
+                ];
+            });
 
             // Calcular valor total corretamente
             $valorTotal = 0;
