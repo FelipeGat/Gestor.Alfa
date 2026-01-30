@@ -5,13 +5,19 @@
     contaId: null,
     valorTotal: 0,
     valorPago: 0,
+    jurosMulta: 0,
     dataVencimento: '',
+    dataPagamento: '',
     contaFinanceiraId: '',
     formaPagamento: '',
     
     getValorRestante() {
         const restante = this.valorTotal - this.valorPago;
         return restante > 0 ? restante.toFixed(2) : '0.00';
+    },
+    
+    getValorTotalComJuros() {
+        return (parseFloat(this.valorTotal) + parseFloat(this.jurosMulta || 0)).toFixed(2);
     },
     
     formatarMoeda(valor) {
@@ -22,12 +28,19 @@
     },
     
     validarValorPago() {
-        if (this.valorPago > this.valorTotal) {
-            alert('O valor pago não pode ser maior que o valor total da conta.');
-            this.valorPago = this.valorTotal;
+        const totalComJuros = parseFloat(this.getValorTotalComJuros());
+        if (this.valorPago > totalComJuros) {
+            alert('O valor pago não pode ser maior que o valor total + juros/multa.');
+            this.valorPago = totalComJuros;
         }
         if (this.valorPago < 0) {
             this.valorPago = 0;
+        }
+    },
+    
+    validarJurosMulta() {
+        if (this.jurosMulta < 0) {
+            this.jurosMulta = 0;
         }
     }
 }" @confirmar-pagamento.window="
@@ -36,7 +49,9 @@
     contaId = $event.detail.contaId;
     valorTotal = parseFloat($event.detail.valorTotal || 0);
     valorPago = valorTotal;
+    jurosMulta = 0;
     dataVencimento = $event.detail.dataVencimento || '';
+    dataPagamento = new Date().toISOString().split('T')[0];
     contaFinanceiraId = '';
     formaPagamento = '';
 " x-show="open" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
@@ -63,6 +78,13 @@
 
                 <div class="bg-white px-6 py-5 space-y-4">
                     <p class="text-sm text-gray-600">Informe os dados do pagamento:</p>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data do Pagamento <span class="text-red-500">*</span></label>
+                        <input type="date" name="data_pagamento" x-model="dataPagamento" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                        <p class="text-xs text-gray-500 mt-1">Data em que o pagamento foi realizado</p>
+                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento <span class="text-red-500">*</span></label>
@@ -99,6 +121,29 @@
                                 :value="'R$ ' + formatarMoeda(valorTotal)"
                                 disabled
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-semibold">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                ⚠️ Juros / Multa
+                            </label>
+                            <input type="number"
+                                name="juros_multa"
+                                step="0.01"
+                                min="0"
+                                x-model.number="jurosMulta"
+                                @input="valorPago = parseFloat(getValorTotalComJuros())"
+                                @blur="validarJurosMulta()"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 font-semibold text-orange-700">
+                            <p class="text-xs text-gray-500 mt-1">
+                                Valor adicional de juros ou multa (se houver)
+                            </p>
+                        </div>
+
+                        <div x-show="parseFloat(jurosMulta) > 0" class="p-2 bg-orange-50 border border-orange-200 rounded">
+                            <p class="text-sm text-orange-700">
+                                <strong>Total com juros:</strong> R$ <span x-text="formatarMoeda(getValorTotalComJuros())"></span>
+                            </p>
                         </div>
 
                         <div>

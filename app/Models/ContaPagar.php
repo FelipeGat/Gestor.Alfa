@@ -20,6 +20,7 @@ class ContaPagar extends Model
         'conta_fixa_pagar_id',
         'descricao',
         'valor',
+        'juros_multa',
         'data_vencimento',
         'data_inicial',
         'data_fim',
@@ -27,16 +28,19 @@ class ContaPagar extends Model
         'status',
         'tipo',
         'pago_em',
+        'data_pagamento',
         'forma_pagamento',
         'observacoes',
     ];
 
     protected $casts = [
         'data_vencimento' => 'date',
+        'data_pagamento' => 'date',
         'data_inicial' => 'date',
         'data_fim' => 'date',
         'pago_em' => 'datetime',
         'valor' => 'decimal:2',
+        'juros_multa' => 'decimal:2',
     ];
 
     protected $appends = [

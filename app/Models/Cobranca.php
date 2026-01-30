@@ -17,11 +17,13 @@ class Cobranca extends Model
         'boleto_id',
         'descricao',
         'valor',
+        'juros_multa',
         'data_vencimento',
         'status',
         'tipo',
         'conta_fixa_id',
         'pago_em',
+        'data_pagamento',
         'forma_pagamento',
         'parcela_num',
         'parcelas_total',
@@ -29,7 +31,9 @@ class Cobranca extends Model
 
     protected $casts = [
         'data_vencimento' => 'date',
+        'data_pagamento' => 'date',
         'pago_em' => 'datetime',
+        'juros_multa' => 'decimal:2',
     ];
 
     /**

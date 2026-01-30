@@ -159,12 +159,15 @@ class ContasReceberController extends Controller
             'conta_financeira_id' => 'required|exists:contas_financeiras,id',
             'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
             'valor_pago' => 'required|numeric|min:0.01',
+            'juros_multa' => 'nullable|numeric|min:0',
+            'data_pagamento' => 'required|date',
             'criar_nova_cobranca' => 'nullable|boolean',
             'valor_restante' => 'nullable|numeric|min:0',
             'data_vencimento_original' => 'nullable|date',
         ]);
 
         $valorPago = floatval($request->valor_pago);
+        $jurosMulta = floatval($request->juros_multa ?? 0);
         $valorTotal = floatval($cobranca->valor);
 
         // Validações de valor
@@ -172,16 +175,20 @@ class ContasReceberController extends Controller
             return back()->with('error', 'O valor pago deve ser maior que zero.');
         }
 
-        if ($valorPago > $valorTotal) {
-            return back()->with('error', 'O valor pago não pode ser maior que o valor total da cobrança.');
+        $valorTotalComJuros = $valorTotal + $jurosMulta;
+
+        if ($valorPago > $valorTotalComJuros) {
+            return back()->with('error', 'O valor pago não pode ser maior que o valor total da cobrança + juros/multa.');
         }
 
-        DB::transaction(function () use ($cobranca, $request, $valorPago, $valorTotal) {
+        DB::transaction(function () use ($cobranca, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a cobrança atual com o valor pago
             $cobranca->update([
                 'status' => 'pago',
                 'pago_em' => now(),
+                'data_pagamento' => $request->data_pagamento,
                 'valor' => $valorPago, // Atualiza o valor para o que foi efetivamente pago
+                'juros_multa' => $jurosMulta,
                 'conta_financeira_id' => $request->conta_financeira_id,
                 'forma_pagamento' => $request->forma_pagamento,
             ]);

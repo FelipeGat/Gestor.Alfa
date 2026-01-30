@@ -14,6 +14,8 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         formaPagamento: '',
         valorTotal: 0,
         valorPago: 0,
+        jurosMulta: 0,
+        dataPagamento: '',
         dataVencimento: '',
         contasDisponiveis: [],
         todasContas: @js($todasContasFinanceiras),
@@ -21,6 +23,10 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         getValorRestante() {
             const restante = this.valorTotal - this.valorPago;
             return restante > 0 ? restante.toFixed(2) : '0.00';
+        },
+        
+        getValorTotalComJuros() {
+            return (parseFloat(this.valorTotal) + parseFloat(this.jurosMulta || 0)).toFixed(2);
         },
         
         formatarMoeda(valor) {
@@ -31,12 +37,19 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         },
         
         validarValorPago() {
-            if (this.valorPago > this.valorTotal) {
-                alert('O valor pago não pode ser maior que o valor total da cobrança.');
-                this.valorPago = this.valorTotal;
+            const totalComJuros = parseFloat(this.getValorTotalComJuros());
+            if (this.valorPago > totalComJuros) {
+                alert('O valor pago não pode ser maior que o valor total + juros/multa.');
+                this.valorPago = totalComJuros;
             }
             if (this.valorPago < 0) {
                 this.valorPago = 0;
+            }
+        },
+        
+        validarJurosMulta() {
+            if (this.jurosMulta < 0) {
+                this.jurosMulta = 0;
             }
         }
     }"
@@ -47,6 +60,8 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         cobrancaId = $event.detail.cobrancaId;
         valorTotal = parseFloat($event.detail.valorTotal || 0);
         valorPago = valorTotal;
+        jurosMulta = 0;
+        dataPagamento = new Date().toISOString().split('T')[0];
         dataVencimento = $event.detail.dataVencimento || '';
         
         // Filtrar contas pela empresa
@@ -71,6 +86,19 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         <form :action="action" method="POST">
             @csrf
             @method('PATCH')
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Data do Pagamento <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="date"
+                    name="data_pagamento"
+                    x-model="dataPagamento"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                <p class="text-xs text-gray-500 mt-1">Data em que o pagamento foi recebido</p>
+            </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -125,6 +153,30 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
 
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
+                        ⚠️ Juros / Multa
+                    </label>
+                    <input
+                        type="number"
+                        name="juros_multa"
+                        step="0.01"
+                        min="0"
+                        x-model.number="jurosMulta"
+                        @input="valorPago = parseFloat(getValorTotalComJuros())"
+                        @blur="validarJurosMulta()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 font-semibold text-orange-700">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Valor adicional de juros ou multa (se houver)
+                    </p>
+                </div>
+
+                <div x-show="parseFloat(jurosMulta) > 0" class="mb-3 p-2 bg-orange-50 border border-orange-200 rounded">
+                    <p class="text-sm text-orange-700">
+                        <strong>Total com juros:</strong> R$ <span x-text="formatarMoeda(getValorTotalComJuros())"></span>
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         💵 Valor Pago <span class="text-red-500">*</span>
                     </label>
                     <input
@@ -157,22 +209,22 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
             {{-- CAMPOS OCULTOS PARA BAIXA PARCIAL --}}
             <input type="hidden" name="criar_nova_cobranca" :value="parseFloat(getValorRestante()) > 0 ? '1' : '0'">
             <input type="hidden" name="valor_restante" :value="getValorRestante()">
-            <input type="hidden" name="data_vencimento_original" :value="dataVencimento"
+            <input type="hidden" name="data_vencimento_original" :value="dataVencimento">
 
-                <div class="flex gap-3">
-            <button
-                type="button"
-                class="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-                x-on:click="open = false">
-                Cancelar
-            </button>
+            <div class="flex gap-3">
+                <button
+                    type="button"
+                    class="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                    x-on:click="open = false">
+                    Cancelar
+                </button>
 
-            <button
-                type="submit"
-                class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition">
-                Confirmar Baixa
-            </button>
+                <button
+                    type="submit"
+                    class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition">
+                    Confirmar Baixa
+                </button>
+            </div>
+        </form>
     </div>
-    </form>
-</div>
 </div>

@@ -173,12 +173,15 @@ class ContasPagarController extends Controller
             'forma_pagamento'     => 'required|string|max:50',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
             'valor_pago'          => 'required|numeric|min:0.01',
+            'juros_multa'         => 'nullable|numeric|min:0',
+            'data_pagamento'      => 'required|date',
             'criar_nova_conta'    => 'nullable|boolean',
             'valor_restante'      => 'nullable|numeric|min:0',
             'data_vencimento_original' => 'nullable|date',
         ]);
 
         $valorPago = floatval($request->valor_pago);
+        $jurosMulta = floatval($request->juros_multa ?? 0);
         $valorTotal = floatval($conta->valor);
 
         // Validações de valor
@@ -186,16 +189,20 @@ class ContasPagarController extends Controller
             return back()->with('error', 'O valor pago deve ser maior que zero.');
         }
 
-        if ($valorPago > $valorTotal) {
-            return back()->with('error', 'O valor pago não pode ser maior que o valor total da conta.');
+        $valorTotalComJuros = $valorTotal + $jurosMulta;
+
+        if ($valorPago > $valorTotalComJuros) {
+            return back()->with('error', 'O valor pago não pode ser maior que o valor total da conta + juros/multa.');
         }
 
-        DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal) {
+        DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a conta atual com o valor pago
             $conta->update([
                 'status'              => 'pago',
                 'pago_em'             => now(),
+                'data_pagamento'      => $request->data_pagamento,
                 'valor'               => $valorPago, // Atualiza para o valor efetivamente pago
+                'juros_multa'         => $jurosMulta,
                 'forma_pagamento'     => $request->forma_pagamento,
                 'conta_financeira_id' => $request->conta_financeira_id,
             ]);
