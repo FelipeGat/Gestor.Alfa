@@ -265,12 +265,14 @@
 
         <!-- Cronômetro - Só mostra se realmente foi iniciado -->
         @if($atendimento->status_atual === 'em_atendimento' && $atendimento->iniciado_em)
+        @php
+            $pausaAtiva = $atendimento->em_pausa ? $atendimento->pausaAtiva() : null;
+        @endphp
         <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
-             data-iniciado="{{ $atendimento->iniciado_em->timestamp }}" 
-             data-tempo-base="{{ $atendimento->tempo_execucao_segundos ?? 0 }}">
+             data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}" 
+             data-tempo-base="{{ $atendimento->em_pausa ? 0 : ($atendimento->tempo_execucao_segundos ?? 0) }}">
             @if($atendimento->em_pausa)
                 @php
-                    $pausaAtiva = $atendimento->pausaAtiva();
                     $tipoPausaLabel = $pausaAtiva ? $pausaAtiva->tipo_pausa_label : 'Pausa';
                 @endphp
                 <div class="cronometro-label">⏸️ PAUSA PARA {{ strtoupper($tipoPausaLabel) }}</div>
@@ -526,34 +528,23 @@
                 const display = crono.querySelector('.cronometro-display');
                 const pausado = crono.classList.contains('pausado');
                 
-                if (!pausado) {
-                    function atualizar() {
-                        const agora = Math.floor(Date.now() / 1000);
-                        const segundosDecorridos = agora - iniciadoTimestamp;
-                        const totalSegundos = tempoBase + segundosDecorridos;
-                        
-                        const horas = Math.floor(totalSegundos / 3600);
-                        const minutos = Math.floor((totalSegundos % 3600) / 60);
-                        const segundos = totalSegundos % 60;
-                        
-                        display.textContent = 
-                            String(horas).padStart(2, '0') + ':' +
-                            String(minutos).padStart(2, '0') + ':' +
-                            String(segundos).padStart(2, '0');
-                    }
+                function atualizar() {
+                    const agora = Math.floor(Date.now() / 1000);
+                    const segundosDecorridos = agora - iniciadoTimestamp;
+                    const totalSegundos = Math.max(0, tempoBase + segundosDecorridos); // Garante nunca negativo
                     
-                    atualizar();
-                    setInterval(atualizar, 1000);
-                } else {
-                    const horas = Math.floor(tempoBase / 3600);
-                    const minutos = Math.floor((tempoBase % 3600) / 60);
-                    const segundos = tempoBase % 60;
+                    const horas = Math.floor(totalSegundos / 3600);
+                    const minutos = Math.floor((totalSegundos % 3600) / 60);
+                    const segundos = totalSegundos % 60;
                     
                     display.textContent = 
                         String(horas).padStart(2, '0') + ':' +
                         String(minutos).padStart(2, '0') + ':' +
                         String(segundos).padStart(2, '0');
                 }
+                
+                atualizar();
+                setInterval(atualizar, 1000);
             }
         });
 
