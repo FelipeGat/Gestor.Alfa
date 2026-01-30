@@ -100,10 +100,10 @@ class CobrancaController extends Controller
         // Atualizar status do orçamento para 'concluido' quando todas as cobranças estiverem pagas
         if ($cobranca->orcamento_id) {
             $orcamento = $cobranca->orcamento;
-            
+
             // Verifica se todas as cobranças do orçamento estão pagas
             $todasPagas = $orcamento->cobrancas()->where('status', '!=', 'pago')->count() === 0;
-            
+
             if ($todasPagas && $orcamento->status === 'aguardando_pagamento') {
                 $orcamento->update(['status' => 'concluido']);
             }
@@ -112,26 +112,24 @@ class CobrancaController extends Controller
         return back()->with('success', 'Cobrança marcada como paga.');
     }
 
-        public function destroy(Cobranca $cobranca)
-        {
+    public function destroy(Cobranca $cobranca)
+    {
         /** @var User $user */
-            $user = Auth::user();
+        $user = Auth::user();
 
-            abort_if(
-                !$user->canPermissao('cobrancas', 'excluir'),
-                403
-            );
+        abort_if(
+            !$user->canPermissao('cobrancas', 'excluir'),
+            403
+        );
 
-                // Exclui boleto vinculado (se existir)
-                if ($cobranca->boleto) {
-                    $cobranca->boleto->delete();
-                }
+        // Exclui boleto vinculado (se existir)
+        if ($cobranca->boleto) {
+            $cobranca->boleto->delete();
+        }
 
-                // Exclui a cobrança
-                $cobranca->delete();
+        // Exclui a cobrança
+        $cobranca->delete();
 
-                return back()->with('success', 'Cobrança e boleto excluídos com sucesso.');
-            }
-
-
+        return back()->with('success', 'Cobrança e boleto excluídos com sucesso.');
+    }
 }
