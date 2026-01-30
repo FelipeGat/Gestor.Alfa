@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardAdmController extends Controller
 {
@@ -321,7 +321,7 @@ class DashboardAdmController extends Controller
         $empresaNome = $empresaId ? Empresa::find($empresaId)?->nome_fantasia : 'Todas';
         $statusTexto = $statusFiltro ? $this->getStatusLabel($statusFiltro) : 'Todos';
 
-        $pdf = PDF::loadView('dashboard.exportar', compact(
+        $pdf = Pdf::loadView('dashboard.exportar', compact(
             'atendimentos',
             'total',
             'periodoTexto',

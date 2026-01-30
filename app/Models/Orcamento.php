@@ -131,4 +131,9 @@ class Orcamento extends Model
     {
         return $this->hasMany(\App\Models\Cobranca::class);
     }
+
+    public function historicos()
+    {
+        return $this->hasMany(OrcamentoHistorico::class)->orderBy('created_at', 'desc');
+    }
 }

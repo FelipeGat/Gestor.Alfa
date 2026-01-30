@@ -9,7 +9,11 @@ use App\Models\Assunto;
 use App\Models\Atendimento;
 use App\Models\Empresa;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Orcamento;
+use App\Models\OrcamentoHistorico;
 use Illuminate\Http\Request;
 
 class DashboardComercialController extends Controller
@@ -141,7 +145,7 @@ class DashboardComercialController extends Controller
             $filtroRapido = $request->get('filtro_rapido', 'mes');
 
             // Log para debug
-            \Log::info('getOrcamentos chamado', [
+            Log::info('getOrcamentos chamado', [
                 'empresa_id' => $empresaId,
                 'status' => $status,
                 'filtro_rapido' => $filtroRapido
@@ -189,7 +193,7 @@ class DashboardComercialController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            \Log::info('Query executada', [
+            Log::info('Query executada', [
                 'inicio' => $inicio,
                 'fim' => $fim,
                 'total_encontrado' => $orcamentos->count()
@@ -224,7 +228,7 @@ class DashboardComercialController extends Controller
                 'valor_total' => $valorTotal
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erro ao buscar orçamentos: ' . $e->getMessage());
+            Log::error('Erro ao buscar orçamentos: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao buscar orçamentos: ' . $e->getMessage()
@@ -296,7 +300,7 @@ class DashboardComercialController extends Controller
                 $empresa = Empresa::find($empresaId);
             }
 
-            $pdf = \PDF::loadView('dashboard-comercial.exportar', compact(
+            $pdf = Pdf::loadView('dashboard-comercial.exportar', compact(
                 'orcamentos',
                 'valorTotal',
                 'tituloStatus',
@@ -310,7 +314,7 @@ class DashboardComercialController extends Controller
 
             return $pdf->download($nomeArquivo);
         } catch (\Exception $e) {
-            \Log::error('Erro ao exportar dashboard comercial: ' . $e->getMessage());
+            Log::error('Erro ao exportar dashboard comercial: ' . $e->getMessage());
             return back()->with('error', 'Erro ao exportar relatório: ' . $e->getMessage());
         }
     }
@@ -348,5 +352,77 @@ class DashboardComercialController extends Controller
         ];
 
         return $labels[$status] ?? ucfirst($status);
+    }
+
+    /**
+     * Retorna os históricos de um orçamento
+     */
+    public function getHistoricos($orcamentoId)
+    {
+        try {
+            $orcamento = Orcamento::findOrFail($orcamentoId);
+
+            $historicos = $orcamento->historicos()
+                ->with('user:id,name')
+                ->get()
+                ->map(function ($hist) {
+                    return [
+                        'id' => $hist->id,
+                        'observacao' => $hist->observacao,
+                        'usuario' => $hist->user ? $hist->user->name : 'N/A',
+                        'data' => $hist->created_at->format('d/m/Y H:i'),
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'historicos' => $historicos,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar históricos: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao buscar históricos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Adiciona um novo histórico ao orçamento
+     */
+    public function adicionarHistorico(Request $request, $orcamentoId)
+    {
+        try {
+            $request->validate([
+                'observacao' => 'required|string|max:5000'
+            ]);
+
+            $orcamento = Orcamento::findOrFail($orcamentoId);
+
+            // @phpstan-ignore-next-line
+            $historico = OrcamentoHistorico::create([
+                'orcamento_id' => $orcamento->id,
+                'user_id' => Auth::id() ?? 0,
+                'observacao' => $request->observacao,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Histórico adicionado com sucesso!',
+                'historico' => [
+                    'id' => $historico->id,
+                    'observacao' => $historico->observacao,
+                    // @phpstan-ignore-next-line
+                    'usuario' => Auth::user()?->name ?? 'N/A',
+                    'data' => $historico->created_at->format('d/m/Y H:i'),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao adicionar histórico: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao adicionar histórico: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -61,6 +61,12 @@
         filtroRapido: '{{ $filtroRapido }}',
         inicioCustom: '{{ $inicio?->format('Y-m-d') ?? '' }}',
         fimCustom: '{{ $fim?->format('Y-m-d') ?? '' }}',
+        modalHistoricoAberto: false,
+        historicos: [],
+        carregandoHistoricos: false,
+        orcamentoAtual: null,
+        novaObservacao: '',
+        salvandoHistorico: false,
         
         async abrirModal(status, titulo) {
             this.statusFiltro = status;
@@ -127,6 +133,71 @@
                 'cancelado': 'bg-gray-100 text-gray-800',
             };
             return colors[status] || 'bg-gray-100 text-gray-800';
+        },
+        
+        async abrirModalHistorico(orcamento) {
+            this.orcamentoAtual = orcamento;
+            this.modalHistoricoAberto = true;
+            this.carregandoHistoricos = true;
+            this.novaObservacao = '';
+            
+            try {
+                const response = await fetch(`/dashboard-comercial/orcamentos/${orcamento.id}/historicos`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.historicos = data.historicos;
+                }
+            } catch (error) {
+                console.error('Erro ao buscar históricos:', error);
+                alert('Erro ao carregar históricos. Tente novamente.');
+            } finally {
+                this.carregandoHistoricos = false;
+            }
+        },
+        
+        async salvarHistorico() {
+            if (!this.novaObservacao.trim()) {
+                alert('Por favor, preencha a observação.');
+                return;
+            }
+            
+            this.salvandoHistorico = true;
+            
+            try {
+                const response = await fetch(`/dashboard-comercial/orcamentos/${this.orcamentoAtual.id}/historicos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        observacao: this.novaObservacao
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.historicos.unshift(data.historico);
+                    this.novaObservacao = '';
+                    alert('Histórico adicionado com sucesso!');
+                } else {
+                    alert(data.message || 'Erro ao salvar histórico.');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar histórico:', error);
+                alert('Erro ao salvar histórico. Tente novamente.');
+            } finally {
+                this.salvandoHistorico = false;
+            }
+        },
+        
+        fecharModalHistorico() {
+            this.modalHistoricoAberto = false;
+            this.historicos = [];
+            this.orcamentoAtual = null;
+            this.novaObservacao = '';
         }
     }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -463,14 +534,23 @@
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500" x-text="orc.data"></td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                                <a :href="orc.url"
-                                                    target="_blank"
-                                                    class="text-indigo-600 hover:text-indigo-900 font-medium flex items-center gap-1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                                                    </svg>
-                                                    Imprimir
-                                                </a>
+                                                <div class="flex items-center gap-2">
+                                                    <button @click="abrirModalHistorico(orc)"
+                                                        class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                        Histórico
+                                                    </button>
+                                                    <a :href="orc.url"
+                                                        target="_blank"
+                                                        class="text-indigo-600 hover:text-indigo-900 font-medium flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                                        </svg>
+                                                        Imprimir
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
@@ -497,6 +577,106 @@
                             Exportar PDF
                         </button>
                         <button @click="fecharModal()"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Histórico -->
+        <div x-show="modalHistoricoAberto"
+            x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto"
+            @click.self="fecharModalHistorico()">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div x-show="modalHistoricoAberto"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-90"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-90"
+                    class="relative bg-white rounded-lg shadow-xl w-full max-w-3xl"
+                    @click.stop>
+
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>Histórico do Orçamento <span x-text="orcamentoAtual?.numero"></span></span>
+                            </h3>
+                            <button @click="fecharModalHistorico()" class="text-white hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 max-h-[60vh] overflow-y-auto">
+                        <!-- Formulário para nova observação -->
+                        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nova Observação
+                            </label>
+                            <textarea x-model="novaObservacao"
+                                rows="3"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                placeholder="Digite a observação sobre o contato com o cliente..."></textarea>
+                            <div class="mt-2 flex justify-end">
+                                <button @click="salvarHistorico()"
+                                    :disabled="salvandoHistorico"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition">
+                                    <span x-show="!salvandoHistorico">Salvar</span>
+                                    <span x-show="salvandoHistorico">Salvando...</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Loading -->
+                        <div x-show="carregandoHistoricos" class="text-center py-8">
+                            <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-gray-500 mt-2">Carregando históricos...</p>
+                        </div>
+
+                        <!-- Lista de históricos -->
+                        <div x-show="!carregandoHistoricos && historicos.length > 0">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Histórico de Contatos</h4>
+                            <div class="space-y-3">
+                                <template x-for="hist in historicos" :key="hist.id">
+                                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span class="text-sm font-medium text-gray-900" x-text="hist.usuario"></span>
+                                            <span class="text-xs text-gray-500" x-text="hist.data"></span>
+                                        </div>
+                                        <p class="text-sm text-gray-700 whitespace-pre-wrap" x-text="hist.observacao"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Mensagem vazia -->
+                        <div x-show="!carregandoHistoricos && historicos.length === 0" class="text-center py-8">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-gray-500">Nenhum histórico encontrado.</p>
+                            <p class="text-sm text-gray-400 mt-1">Adicione a primeira observação acima.</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end rounded-b-lg">
+                        <button @click="fecharModalHistorico()"
                             class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
                             Fechar
                         </button>

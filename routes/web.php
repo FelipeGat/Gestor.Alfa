@@ -86,6 +86,15 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial.exportar');
 
+    // Histórico de Orçamentos
+    Route::get('/dashboard-comercial/orcamentos/{orcamento}/historicos', [DashboardComercialController::class, 'getHistoricos'])
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial.orcamentos.historicos');
+
+    Route::post('/dashboard-comercial/orcamentos/{orcamento}/historicos', [DashboardComercialController::class, 'adicionarHistorico'])
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial.orcamentos.historicos.store');
+
     // Dashboard FINANCEIRO
     Route::get('/financeiro/dashboard', [DashboardFinanceiroController::class, 'index'])
         ->name('financeiro.dashboard');
