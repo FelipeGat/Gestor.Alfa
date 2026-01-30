@@ -122,6 +122,11 @@
             color: #1e3a8a;
         }
 
+        .status-concluido {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+
         .status-reprovado {
             background-color: #fee2e2;
             color: #991b1b;
@@ -216,6 +221,7 @@
                         @case('financeiro') Financeiro @break
                         @case('aprovado') Aprovado @break
                         @case('aguardando_pagamento') Aguardando Pagamento @break
+                        @case('concluido') Concluído @break
                         @case('reprovado') Reprovado @break
                         @case('cancelado') Cancelado @break
                         @default {{ ucfirst($orc->status) }}

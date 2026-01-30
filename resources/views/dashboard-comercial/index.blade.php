@@ -122,6 +122,7 @@
                 'financeiro': 'bg-amber-100 text-amber-800',
                 'aprovado': 'bg-emerald-100 text-emerald-800',
                 'aguardando_pagamento': 'bg-blue-100 text-blue-800',
+                'concluido': 'bg-green-100 text-green-800',
                 'reprovado': 'bg-red-100 text-red-800',
                 'cancelado': 'bg-gray-100 text-gray-800',
             };
@@ -256,7 +257,7 @@
             </div>
 
             {{-- ================= CARDS DE RESUMO ================= --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
 
                 <div @click="abrirModal('aguardando_aprovacao', 'Aguardando Aprovação')"
                     class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
@@ -268,19 +269,6 @@
                         </svg>
                     </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardando }}</p>
-                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
-                </div>
-
-                <div @click="abrirModal('financeiro', 'Financeiro')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
-                        Financeiro
-                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdFinanceiro }}</p>
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
@@ -297,6 +285,18 @@
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
+                <div @click="abrirModal('financeiro', 'Financeiro')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Financeiro
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdFinanceiro }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
+                </div>
 
                 <div @click="abrirModal('aguardando_pagamento', 'Aguardando Pagamento')"
                     class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
@@ -308,6 +308,18 @@
                         </svg>
                     </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardandoPagamento }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
+                </div>
+
+                <div @click="abrirModal('concluido', 'Concluído')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-green-600 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Concluído
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdConcluido }}</p>
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 

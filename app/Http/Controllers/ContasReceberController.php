@@ -199,6 +199,18 @@ class ContasReceberController extends Controller
                 $contaFinanceira->increment('saldo', $valorPago);
             }
 
+            // Atualizar status do orçamento para 'concluido' quando todas as cobranças estiverem pagas
+            if ($cobranca->orcamento_id) {
+                $orcamento = $cobranca->orcamento;
+                
+                // Verifica se todas as cobranças do orçamento estão pagas
+                $todasPagas = $orcamento->cobrancas()->where('status', '!=', 'pago')->count() === 0;
+                
+                if ($todasPagas && $orcamento->status === 'aguardando_pagamento') {
+                    $orcamento->update(['status' => 'concluido']);
+                }
+            }
+
             // Se houver valor restante, criar nova cobrança
             if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
                 $valorRestante = floatval($request->valor_restante);

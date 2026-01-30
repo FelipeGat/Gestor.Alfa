@@ -78,6 +78,7 @@ class DashboardComercialController extends Controller
         $qtdFinanceiro = $statusCount->get('financeiro', 0);
         $qtdAprovado   = $statusCount->get('aprovado', 0);
         $qtdAguardandoPagamento = $statusCount->get('aguardando_pagamento', 0);
+        $qtdConcluido = $statusCount->get('concluido', 0);
 
         // Métricas por empresa com eager loading
         $orcamentosPorEmpresa = Orcamento::select(
@@ -115,6 +116,7 @@ class DashboardComercialController extends Controller
             'qtdAguardandoPagamento',
             'qtdAprovado',
             'qtdAguardando',
+            'qtdConcluido',
             'statusCount',
             'orcamentosPorEmpresa',
             'metricasFiltradas',
@@ -325,6 +327,7 @@ class DashboardComercialController extends Controller
             'financeiro' => 'Financeiro',
             'aprovado' => 'Aprovado',
             'aguardando_pagamento' => 'Aguardando Pagamento',
+            'concluido' => 'Concluído',
             'reprovado' => 'Reprovado',
             'cancelado' => 'Cancelado',
         ];
