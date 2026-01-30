@@ -29,10 +29,20 @@ class Atendimento extends Model
         'is_orcamento',
         'atendimento_origem_id',
         'data_atendimento',
+        'iniciado_em',
+        'finalizado_em',
+        'tempo_execucao_segundos',
+        'tempo_pausa_segundos',
+        'em_execucao',
+        'em_pausa',
     ];
 
     protected $casts = [
         'data_atendimento' => 'date',
+        'iniciado_em' => 'datetime',
+        'finalizado_em' => 'datetime',
+        'em_execucao' => 'boolean',
+        'em_pausa' => 'boolean',
     ];
 
     /*
@@ -92,6 +102,39 @@ class Atendimento extends Model
             \App\Models\AtendimentoStatusHistorico::class,
             'atendimento_id'
         )->orderBy('created_at', 'desc');
+    }
+
+    public function pausas()
+    {
+        return $this->hasMany(AtendimentoPausa::class)->orderBy('iniciada_em', 'desc');
+    }
+
+    /**
+     * Retorna a pausa ativa (em andamento)
+     */
+    public function pausaAtiva()
+    {
+        return $this->pausas()->whereNull('encerrada_em')->first();
+    }
+
+    /**
+     * Formata o tempo de execução em horas:minutos
+     */
+    public function getTempoExecucaoFormatadoAttribute(): string
+    {
+        $horas = floor($this->tempo_execucao_segundos / 3600);
+        $minutos = floor(($this->tempo_execucao_segundos % 3600) / 60);
+        return sprintf('%02d:%02d', $horas, $minutos);
+    }
+
+    /**
+     * Formata o tempo de pausa em horas:minutos
+     */
+    public function getTempoPausaFormatadoAttribute(): string
+    {
+        $horas = floor($this->tempo_pausa_segundos / 3600);
+        $minutos = floor(($this->tempo_pausa_segundos % 3600) / 60);
+        return sprintf('%02d:%02d', $horas, $minutos);
     }
 
 

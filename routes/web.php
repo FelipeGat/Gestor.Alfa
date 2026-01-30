@@ -464,32 +464,30 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
     ->name('portal-funcionario.')
     ->group(function () {
 
-        Route::get('/dashboard', [PortalFuncionarioController::class, 'dashboard'])
-            ->name('dashboard');
+        // Home do Portal
+        Route::get('/', [PortalFuncionarioController::class, 'index'])->name('index');
 
-        Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])
-            ->name('agenda');
+        // Chamados (lista organizada por status)
+        Route::get('/chamados', [PortalFuncionarioController::class, 'chamados'])->name('chamados');
 
-        // Lista de atendimentos do técnico
-        Route::get('/atendimentos', [PortalFuncionarioController::class, 'atendimentos'])
-            ->name('atendimentos.index');
+        // Detalhes do Atendimento
+        Route::get('/atendimento/{atendimento}', [PortalFuncionarioController::class, 'showAtendimento'])->name('atendimento.show');
 
+        // Ações do Atendimento
+        Route::post('/atendimento/{atendimento}/iniciar', [PortalFuncionarioController::class, 'iniciarAtendimento'])->name('atendimento.iniciar');
+        Route::post('/atendimento/{atendimento}/pausar', [PortalFuncionarioController::class, 'pausarAtendimento'])->name('atendimento.pausar');
+        Route::post('/atendimento/{atendimento}/retomar', [PortalFuncionarioController::class, 'retomarAtendimento'])->name('atendimento.retomar');
+        Route::post('/atendimento/{atendimento}/finalizar', [PortalFuncionarioController::class, 'finalizarAtendimento'])->name('atendimento.finalizar');
 
-        // Visualizar atendimento (somente leitura)
-        Route::get('/atendimentos/{atendimento}', [PortalFuncionarioController::class, 'show'])
-            ->name('atendimentos.show');
+        // Agenda Técnica
+        Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])->name('agenda');
 
-        // Técnico envia para FINALIZAÇÃO
-        Route::post('/atendimentos/{atendimento}/finalizacao', [PortalFuncionarioController::class, 'enviarParaFinalizacao'])
-            ->name('atendimentos.finalizacao');
+        // Documentos
+        Route::get('/documentos', [PortalFuncionarioController::class, 'documentos'])->name('documentos');
 
-        // Técnico aenxa Fotos
-        Route::post('/andamentos/{andamento}/fotos', [AtendimentoAndamentoFotoController::class, 'store'])
-            ->name('andamentos.fotos.store');
-
-        // Técnico deleta Fotos
-        Route::delete('/andamentos/fotos/{foto}',    [AtendimentoAndamentoFotoController::class, 'destroy'])
-            ->name('andamentos.fotos.destroy');
+        // Fotos de Andamento (mantido para compatibilidade)
+        Route::post('/andamentos/{andamento}/fotos', [AtendimentoAndamentoFotoController::class, 'store'])->name('andamentos.fotos.store');
+        Route::delete('/andamentos/fotos/{foto}', [AtendimentoAndamentoFotoController::class, 'destroy'])->name('andamentos.fotos.destroy');
     });
 
 
