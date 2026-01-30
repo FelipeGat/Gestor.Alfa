@@ -20,7 +20,7 @@
         }
 
         .section-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             color: white;
             padding: 1rem;
             border-radius: 0.75rem;
@@ -102,17 +102,17 @@
         }
 
         .priority-badge.alta {
-            background: #fee2e2;
+            background: #fecaca;
             color: #991b1b;
         }
 
         .priority-badge.media {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fed7aa;
+            color: #9a3412;
         }
 
         .priority-badge.baixa {
-            background: #dbeafe;
+            background: #bfdbfe;
             color: #1e40af;
         }
 
@@ -170,7 +170,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             color: white;
         }
 
@@ -179,7 +179,7 @@
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
         }
 
@@ -243,8 +243,13 @@
 
         <!-- EM ATENDIMENTO -->
         @if($emAtendimento->count() > 0)
-        <div class="section-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-            <span class="section-title">⚡ Em Atendimento</span>
+        <div class="section-header" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">
+            <span class="section-title">
+                <svg style="width: 1.25rem; height: 1.25rem; display: inline-block; margin-right: 0.5rem;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+                Em Atendimento
+            </span>
             <span class="section-count">{{ $emAtendimento->count() }}</span>
         </div>
 
@@ -304,7 +309,13 @@
 
         <!-- ABERTOS (FILA) -->
         <div class="section-header">
-            <span class="section-title">📋 Fila de Atendimento</span>
+            <span class="section-title">
+                <svg style="width: 1.25rem; height: 1.25rem; display: inline-block; margin-right: 0.5rem;" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9 4a1 1 0 10-2 0v5a1 1 0 102 0V9zm-3 0a1 1 0 10-2 0v5a1 1 0 102 0V9zm-3 0a1 1 0 10-2 0v5a1 1 0 102 0V9z" clip-rule="evenodd"></path>
+                </svg>
+                Fila de Atendimento
+            </span>
             <span class="section-count">{{ $abertos->count() }}</span>
         </div>
 
@@ -374,8 +385,13 @@
 
         <!-- FINALIZADOS -->
         @if($finalizados->count() > 0)
-        <div class="section-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <span class="section-title">✅ Finalizados Recentes</span>
+        <div class="section-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+            <span class="section-title">
+                <svg style="width: 1.25rem; height: 1.25rem; display: inline-block; margin-right: 0.5rem;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                Finalizados Recentes
+            </span>
             <span class="section-count">{{ $finalizados->count() }}</span>
         </div>
 

@@ -29,18 +29,18 @@
         }
 
         .status-banner.aberto {
-            background: #dbeafe;
+            background: #bfdbfe;
             color: #1e40af;
         }
 
         .status-banner.em_atendimento {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fed7aa;
+            color: #9a3412;
         }
 
         .status-banner.finalizacao {
-            background: #fed7aa;
-            color: #9a3412;
+            background: #fde68a;
+            color: #92400e;
         }
 
         .status-banner.concluido {
@@ -125,22 +125,22 @@
         }
 
         .btn-iniciar {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
         }
 
         .btn-pausar {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
             color: white;
         }
 
         .btn-retomar {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             color: white;
         }
 
         .btn-finalizar {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
             color: white;
         }
 
@@ -316,7 +316,9 @@
         <div class="info-card" style="background: #fffbeb; border-left: 4px solid #f59e0b;">
             <div style="padding: 1rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.5rem;">⏳</span>
+                    <svg style="width: 1.5rem; height: 1.5rem; color: #f59e0b;" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                    </svg>
                     <div style="font-weight: 700; color: #92400e; font-size: 1.125rem;">Aguardando Aprovação do Gerente</div>
                 </div>
                 <div style="font-size: 0.875rem; color: #92400e; line-height: 1.5;">
@@ -329,8 +331,11 @@
         @if($atendimento->finalizado_em)
         <div class="info-card">
             <div class="info-label">Tempo Total de Execução</div>
-            <div class="info-value" style="font-size: 2rem; color: #10b981;">
-                ⏱️ {{ $atendimento->tempo_execucao_formatado }}
+            <div class="info-value" style="font-size: 2rem; color: #059669; display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width: 2rem; height: 2rem;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+                {{ $atendimento->tempo_execucao_formatado }}
             </div>
             
             <!-- Fotos de Início e Finalização -->
@@ -341,7 +346,12 @@
             
             @if($andamentoInicio && $andamentoInicio->fotos->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
-                <div class="info-label">📸 Fotos do Início do Atendimento</div>
+                <div class="info-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg style="width: 1.25rem; height: 1.25rem; color: #059669;" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Fotos do Início do Atendimento
+                </div>
                 @if($atendimento->iniciadoPor)
                 <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
                     Iniciado por: <strong>{{ $atendimento->iniciadoPor->name }}</strong> em {{ $atendimento->iniciado_em->format('d/m/Y H:i') }}
@@ -352,7 +362,7 @@
                     <div>
                         <img src="{{ asset('storage/' . $foto->arquivo) }}" 
                              alt="Foto início" 
-                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #10b981;"
+                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #059669;"
                              onclick="window.open(this.src, '_blank')">
                     </div>
                     @endforeach
