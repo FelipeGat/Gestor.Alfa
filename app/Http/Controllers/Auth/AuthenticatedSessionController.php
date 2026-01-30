@@ -48,7 +48,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     // Funcionário
-    return redirect()->route('portal-funcionario.dashboard');
+    return redirect()->route('portal-funcionario.index');
 }
 
 

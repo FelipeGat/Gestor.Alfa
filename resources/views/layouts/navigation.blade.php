@@ -20,7 +20,7 @@
                     @elseif($isFinanceiro) {{ route('financeiro.dashboard') }}
                     @elseif($isComercial) {{ route('dashboard.comercial') }}
                     @elseif($isCliente) {{ route('portal.index') }}
-                    @else {{ route('portal-funcionario.dashboard') }}
+                    @else {{ route('portal-funcionario.index') }}
                     @endif
                 ">
                     <x-application-logo class="h-9 w-auto text-gray-800" />
@@ -53,7 +53,7 @@
                         @endif
 
                         @if($isFuncionario)
-                        <x-nav-link :href="route('portal-funcionario.dashboard')" class="block px-4 py-2">
+                        <x-nav-link :href="route('portal-funcionario.index')" class="block px-4 py-2">
                             Dashboard Técnico
                         </x-nav-link>
                         @endif
@@ -211,7 +211,7 @@
                 <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
                 @endif
                 @if($isFuncionario)
-                <x-responsive-nav-link :href="route('portal-funcionario.dashboard')">Dashboard Técnico</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal-funcionario.index')">Portal do Funcionário</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
                 <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>

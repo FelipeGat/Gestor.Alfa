@@ -411,7 +411,7 @@
                         <h3 class="card-title">Ações</h3>
                     </div>
                     <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <a href="{{ route('portal-funcionario.dashboard') }}" class="btn btn-outline">
+                        <a href="{{ route('portal-funcionario.index') }}" class="btn btn-outline">
                             <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

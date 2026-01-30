@@ -549,7 +549,7 @@ Route::middleware('auth')->group(function () {
                     ? 'dashboard'
                     : ($user->tipo === 'cliente'
                         ? 'portal.index'
-                        : 'portal-funcionario.dashboard'))
+                        : 'portal-funcionario.index'))
         );
     })->name('password.first.store');
 });
