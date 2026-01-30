@@ -239,9 +239,19 @@ class DashboardAdmController extends Controller
         }
 
         $atendimentos = $query->orderBy('data_atendimento', 'desc')->get()->map(function ($atendimento) {
+            $nomeCliente = 'N/A';
+            if ($atendimento->cliente) {
+                $nomeCliente = $atendimento->cliente->nome_fantasia
+                    ?? $atendimento->cliente->razao_social
+                    ?? $atendimento->cliente->nome
+                    ?? 'N/A';
+            } elseif ($atendimento->nome_solicitante) {
+                $nomeCliente = $atendimento->nome_solicitante;
+            }
+
             return [
                 'numero' => $atendimento->numero_atendimento,
-                'cliente' => $atendimento->cliente->nome_fantasia ?? 'N/A',
+                'cliente' => $nomeCliente,
                 'empresa' => $atendimento->empresa->nome_fantasia ?? 'N/A',
                 'tecnico' => $atendimento->funcionario->nome ?? 'Não atribuído',
                 'descricao' => Str::limit($atendimento->descricao, 50),
@@ -302,7 +312,11 @@ class DashboardAdmController extends Controller
         }
 
         // Busca atendimentos
-        $query = Atendimento::with(['cliente:id,nome_fantasia', 'empresa:id,nome_fantasia', 'funcionario:id,nome'])
+        $query = Atendimento::with([
+            'cliente:id,nome_fantasia,razao_social,nome',
+            'empresa:id,nome_fantasia',
+            'funcionario:id,nome'
+        ])
             ->whereBetween('data_atendimento', [$inicio, $fim]);
 
         if ($empresaId) {

@@ -187,7 +187,15 @@
             @foreach($atendimentos as $atendimento)
             <tr>
                 <td><strong>#{{ $atendimento->id }}</strong></td>
-                <td>{{ $atendimento->cliente->nome_fantasia ?? 'N/A' }}</td>
+                <td>
+                    @if($atendimento->cliente)
+                        {{ $atendimento->cliente->nome_fantasia ?? $atendimento->cliente->razao_social ?? $atendimento->cliente->nome ?? 'N/A' }}
+                    @elseif($atendimento->nome_solicitante)
+                        {{ $atendimento->nome_solicitante }}
+                    @else
+                        N/A
+                    @endif
+                </td>
                 <td>{{ $atendimento->empresa->nome_fantasia ?? 'N/A' }}</td>
                 <td>{{ $atendimento->funcionario->nome ?? 'Não atribuído' }}</td>
                 <td>{{ Str::limit($atendimento->descricao, 40) }}</td>
