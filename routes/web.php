@@ -70,6 +70,14 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial');
 
+    Route::get('/dashboard-comercial/orcamentos', [DashboardComercialController::class, 'getOrcamentos'])
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial.orcamentos');
+
+    Route::get('/dashboard-comercial/exportar', [DashboardComercialController::class, 'exportar'])
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial.exportar');
+
     // Dashboard FINANCEIRO
     Route::get('/financeiro/dashboard', [DashboardFinanceiroController::class, 'index'])
         ->name('financeiro.dashboard');

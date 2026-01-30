@@ -168,6 +168,33 @@ class OrcamentoController extends Controller
         ));
     }
 
+    public function show(Orcamento $orcamento)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            403,
+            'Acesso não autorizado'
+        );
+
+        // Carrega relacionamentos
+        $orcamento->load([
+            'empresa',
+            'cliente',
+            'preCliente',
+            'atendimento',
+            'criadoPor',
+            'itens.item',
+            'taxasItens',
+            'pagamentos',
+            'cobrancas'
+        ]);
+
+        return view('orcamentos.show', compact('orcamento'));
+    }
+
     public function create(Request $request)
     {
         /** @var User $user */

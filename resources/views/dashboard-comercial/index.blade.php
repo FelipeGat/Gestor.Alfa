@@ -1,6 +1,11 @@
 <x-app-layout>
     @push('styles')
     @vite('resources/css/dashboard/dashboard_comercial.css')
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
     @endpush
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -44,14 +49,194 @@
         style="display: none;">
     </div>
 
-    <div class="py-8 bg-gray-50 min-h-screen">
+    <div class="py-8 bg-gray-50 min-h-screen" x-data="{
+        modalAberto: false,
+        carregando: false,
+        tituloModal: '',
+        orcamentos: [],
+        totalOrcamentos: 0,
+        valorTotal: 0,
+        empresaIdFiltro: '{{ $empresaId }}',
+        statusFiltro: '',
+        filtroRapido: '{{ $filtroRapido }}',
+        inicioCustom: '{{ $inicio?->format('Y-m-d') ?? '' }}',
+        fimCustom: '{{ $fim?->format('Y-m-d') ?? '' }}',
+        
+        async abrirModal(status, titulo) {
+            this.statusFiltro = status;
+            this.tituloModal = titulo;
+            this.modalAberto = true;
+            this.carregando = true;
+            
+            try {
+                const params = new URLSearchParams();
+                if (this.empresaIdFiltro) params.append('empresa_id', this.empresaIdFiltro);
+                if (status) params.append('status', status);
+                
+                // Adicionar filtros de data
+                params.append('filtro_rapido', this.filtroRapido || 'mes');
+                if (this.filtroRapido === 'custom' && this.inicioCustom && this.fimCustom) {
+                    params.append('inicio', this.inicioCustom);
+                    params.append('fim', this.fimCustom);
+                }
+                
+                const response = await fetch(`{{ route('dashboard.comercial.orcamentos') }}?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.orcamentos = data.orcamentos;
+                    this.totalOrcamentos = data.total;
+                    this.valorTotal = data.valor_total;
+                }
+            } catch (error) {
+                console.error('Erro ao buscar orçamentos:', error);
+                alert('Erro ao carregar orçamentos. Tente novamente.');
+            } finally {
+                this.carregando = false;
+            }
+        },
+        
+        exportarModal() {
+            const params = new URLSearchParams();
+            if (this.empresaIdFiltro) params.append('empresa_id', this.empresaIdFiltro);
+            if (this.statusFiltro) params.append('status', this.statusFiltro);
+            params.append('filtro_rapido', this.filtroRapido || 'mes');
+            if (this.filtroRapido === 'custom' && this.inicioCustom && this.fimCustom) {
+                params.append('inicio', this.inicioCustom);
+                params.append('fim', this.fimCustom);
+            }
+            
+            const url = `{{ route('dashboard.comercial.exportar') }}?${params}`;
+            console.log('URL de exportação:', url);
+            window.open(url, '_blank');
+        },
+        
+        fecharModal() {
+            this.modalAberto = false;
+            this.orcamentos = [];
+        },
+        
+        getStatusColor(status) {
+            const colors = {
+                'aguardando_aprovacao': 'bg-indigo-100 text-indigo-800',
+                'financeiro': 'bg-amber-100 text-amber-800',
+                'aprovado': 'bg-emerald-100 text-emerald-800',
+                'aguardando_pagamento': 'bg-blue-100 text-blue-800',
+                'reprovado': 'bg-red-100 text-red-800',
+                'cancelado': 'bg-gray-100 text-gray-800',
+            };
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+    }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            {{-- ================= FILTRO RÁPIDO DE PERÍODO ================= --}}
+            <div x-data="{
+                filtroRapido: '{{ $filtroRapido }}',
+                mostrarCustom: {{ $filtroRapido === 'custom' ? 'true' : 'false' }},
+                aplicarFiltro(tipo) {
+                    this.filtroRapido = tipo;
+                    if (tipo !== 'custom') {
+                        this.mostrarCustom = false;
+                        const form = this.$refs.formFiltro;
+                        const inputInicio = form.querySelector('input[name=inicio]');
+                        const inputFim = form.querySelector('input[name=fim]');
+                        if (inputInicio) inputInicio.disabled = true;
+                        if (inputFim) inputFim.disabled = true;
+                        setTimeout(() => form.submit(), 10);
+                    } else {
+                        this.mostrarCustom = true;
+                    }
+                }
+            }" class="mb-6 bg-white rounded-xl shadow-sm p-6">
+                <form method="GET" x-ref="formFiltro" action="{{ route('dashboard.comercial') }}">
+                    @if($empresaId)
+                    <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
+                    @endif
+                    @if($statusFiltro)
+                    <input type="hidden" name="status" value="{{ $statusFiltro }}">
+                    @endif
+                    <input type="hidden" name="filtro_rapido" :value="filtroRapido">
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-gray-700 font-semibold text-sm">Filtrar por período:</span>
+
+                        {{-- Botões de filtro rápido --}}
+                        <button type="button"
+                            @click="aplicarFiltro('mes_anterior')"
+                            :class="filtroRapido === 'mes_anterior' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Mês Anterior
+                        </button>
+
+                        <button type="button"
+                            @click="aplicarFiltro('dia')"
+                            :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Dia
+                        </button>
+
+                        <button type="button"
+                            @click="aplicarFiltro('semana')"
+                            :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Semana
+                        </button>
+
+                        <button type="button"
+                            @click="aplicarFiltro('mes')"
+                            :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Mês
+                        </button>
+
+                        <button type="button"
+                            @click="aplicarFiltro('ano')"
+                            :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Ano
+                        </button>
+
+                        <button type="button"
+                            @click="aplicarFiltro('custom')"
+                            :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-3 py-2 rounded-md text-xs font-medium transition">
+                            Outro período
+                        </button>
+                    </div>
+
+                    {{-- Campos de data customizada --}}
+                    <div x-show="mostrarCustom" x-cloak x-transition class="mt-4 flex flex-wrap items-end gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
+                            <input type="date" name="inicio" value="{{ request('inicio', $inicio?->format('Y-m-d')) }}"
+                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
+                            <input type="date" name="fim" value="{{ request('fim', $fim?->format('Y-m-d')) }}"
+                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 text-sm">
+                        </div>
+                        <button type="submit"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition text-sm font-medium">
+                            Aplicar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             {{-- ================= MÉTRICAS FILTRADAS (QTD E VALOR) ================= --}}
-            <div class="bg-indigo-700 rounded-xl shadow-lg p-8 mb-10 text-white">
+            <div @click="abrirModal('{{ $statusFiltro }}', 'Filtro Atual: {{ $statusFiltro ? ucfirst($statusFiltro) : "Todos os Status" }}')"
+                class="bg-indigo-700 rounded-xl shadow-lg p-8 mb-10 text-white cursor-pointer hover:bg-indigo-800 transition-all transform hover:scale-[1.02]">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
-                        <h3 class="text-indigo-100 text-lg font-medium">Resultado do Filtro Atual</h3>
+                        <h3 class="text-indigo-100 text-lg font-medium flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Resultado do Filtro Atual (clique para ver detalhes)
+                        </h3>
                         <p class="text-sm text-indigo-200">
                             Status: <strong>{{ $statusFiltro ?: 'Todos' }}</strong> |
                             Empresa: <strong>{{ $empresaId ? ($empresas->find($empresaId)->nome_fantasia ?? 'Selecionada') : 'Todas' }}</strong>
@@ -73,25 +258,57 @@
             {{-- ================= CARDS DE RESUMO ================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Aprovação</h3>
+                <div @click="abrirModal('aguardando_aprovacao', 'Aguardando Aprovação')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Aguardando Aprovação
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardando }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Financeiro</h3>
+                <div @click="abrirModal('financeiro', 'Financeiro')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Financeiro
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdFinanceiro }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-emerald-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aprovado</h3>
+                <div @click="abrirModal('aprovado', 'Aprovado')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-emerald-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Aprovado
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAprovado }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
 
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Pagamento</h3>
+                <div @click="abrirModal('aguardando_pagamento', 'Aguardando Pagamento')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Aguardando Pagamento
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </h3>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardandoPagamento }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
             </div>
@@ -138,6 +355,142 @@
                 </div>
             </div>
 
+        </div>
+
+        {{-- ================= MODAL DE ORÇAMENTOS ================= --}}
+        <div x-show="modalAberto"
+            x-cloak
+            @click.away="fecharModal()"
+            @keydown.escape.window="fecharModal()"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div x-show="modalAberto"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    aria-hidden="true"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <!-- Modal Content -->
+                <div x-show="modalAberto"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white" x-text="tituloModal"></h3>
+                                <p class="text-sm text-indigo-100 mt-1">
+                                    <span x-text="totalOrcamentos"></span> orçamento(s) |
+                                    Valor Total: R$ <span x-text="valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})"></span>
+                                </p>
+                            </div>
+                            <button @click="fecharModal()" class="text-white hover:text-indigo-200 transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                        <!-- Loading -->
+                        <div x-show="carregando" class="text-center py-12">
+                            <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-gray-500 mt-4">Carregando orçamentos...</p>
+                        </div>
+
+                        <!-- Tabela de Orçamentos -->
+                        <div x-show="!carregando && orcamentos.length > 0" class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="orc in orcamentos" :key="orc.id">
+                                        <tr class="hover:bg-gray-50 transition">
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="orc.id"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.cliente"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.empresa"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.vendedor"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                                R$ <span x-text="orc.valor_total"></span>
+                                            </td>
+                                            <td class="px-4 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="getStatusColor(orc.status)"
+                                                    x-text="orc.status_label"></span>
+                                            </td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500" x-text="orc.data"></td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                <a :href="orc.url"
+                                                    target="_blank"
+                                                    class="text-indigo-600 hover:text-indigo-900 font-medium flex items-center gap-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                                    </svg>
+                                                    Imprimir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mensagem vazia -->
+                        <div x-show="!carregando && orcamentos.length === 0" class="text-center py-12">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-gray-500">Nenhum orçamento encontrado para este filtro.</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                        <button @click="exportarModal()"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Exportar PDF
+                        </button>
+                        <button @click="fecharModal()"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
