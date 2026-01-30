@@ -313,11 +313,43 @@
             <div class="info-value" style="font-size: 2rem; color: #10b981;">
                 ⏱️ {{ $atendimento->tempo_execucao_formatado }}
             </div>
-            @if($atendimento->tempo_pausa_segundos > 0)
-            <div class="info-label" style="margin-top: 0.5rem;">Tempo de Pausas</div>
-            <div class="info-value" style="color: #f59e0b;">
-                {{ $atendimento->tempo_pausa_formatado }}
+            
+            @if($atendimento->pausas->count() > 0)
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                <div class="info-label">Detalhamento de Pausas</div>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
+                    @foreach($atendimento->pausas as $index => $pausa)
+                    <div style="background: #fef3c7; padding: 0.75rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700; color: #92400e; font-size: 0.875rem;">
+                                    {{ $pausa->tipo_pausa_label }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.25rem;">
+                                    {{ $pausa->iniciada_em->format('d/m/Y H:i') }}
+                                    @if($pausa->encerrada_em)
+                                        → {{ $pausa->encerrada_em->format('H:i') }}
+                                    @endif
+                                </div>
+                            </div>
+                            <div style="font-weight: 700; color: #92400e; font-size: 1.125rem;">
+                                {{ gmdate('H:i:s', $pausa->tempo_segundos ?? 0) }}
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <div class="info-label">Tempo Total de Pausas</div>
+                        <div class="info-value" style="color: #f59e0b; font-size: 1.5rem;">
+                            {{ $atendimento->tempo_pausa_formatado }}
+                        </div>
+                    </div>
+                </div>
             </div>
+            @endif
             @endif
         </div>
         @endif

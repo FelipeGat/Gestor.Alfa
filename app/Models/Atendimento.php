@@ -118,23 +118,27 @@ class Atendimento extends Model
     }
 
     /**
-     * Formata o tempo de execução em horas:minutos
+     * Formata o tempo de execução em horas:minutos:segundos
      */
     public function getTempoExecucaoFormatadoAttribute(): string
     {
-        $horas = floor($this->tempo_execucao_segundos / 3600);
-        $minutos = floor(($this->tempo_execucao_segundos % 3600) / 60);
-        return sprintf('%02d:%02d', $horas, $minutos);
+        $segundos = max(0, $this->tempo_execucao_segundos ?? 0);
+        $horas = floor($segundos / 3600);
+        $minutos = floor(($segundos % 3600) / 60);
+        $segs = $segundos % 60;
+        return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
     }
 
     /**
-     * Formata o tempo de pausa em horas:minutos
+     * Formata o tempo de pausa em horas:minutos:segundos
      */
     public function getTempoPausaFormatadoAttribute(): string
     {
-        $horas = floor($this->tempo_pausa_segundos / 3600);
-        $minutos = floor(($this->tempo_pausa_segundos % 3600) / 60);
-        return sprintf('%02d:%02d', $horas, $minutos);
+        $segundos = max(0, $this->tempo_pausa_segundos ?? 0);
+        $horas = floor($segundos / 3600);
+        $minutos = floor(($segundos % 3600) / 60);
+        $segs = $segundos % 60;
+        return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
     }
 
 
