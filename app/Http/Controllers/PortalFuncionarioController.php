@@ -39,16 +39,25 @@ class PortalFuncionarioController extends Controller
         $funcionarioId = Auth::user()->funcionario_id;
 
         // Buscar atendimentos organizados por status
+        // Abertos: inclui também atendimentos 'em_atendimento' sem iniciado_em (antigos)
         $abertos = Atendimento::with(['cliente', 'empresa', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
-            ->where('status_atual', 'aberto')
+            ->where(function($query) {
+                $query->where('status_atual', 'aberto')
+                      ->orWhere(function($q) {
+                          $q->where('status_atual', 'em_atendimento')
+                            ->whereNull('iniciado_em');
+                      });
+            })
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
             ->orderBy('data_atendimento', 'asc')
             ->get();
 
+        // Em Atendimento: apenas os que foram iniciados pelo novo sistema
         $emAtendimento = Atendimento::with(['cliente', 'empresa', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
             ->where('status_atual', 'em_atendimento')
+            ->whereNotNull('iniciado_em')
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
             ->orderBy('iniciado_em', 'desc')
             ->get();
@@ -76,7 +85,7 @@ class PortalFuncionarioController extends Controller
         // Verificar se o atendimento pertence ao funcionário
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
 
-        $atendimento->load(['cliente', 'empresa', 'assunto', 'andamentos.fotos', 'pausas']);
+        $atendimento->load(['cliente', 'empresa', 'assunto', 'andamentos.fotos', 'pausas.user']);
 
         return view('portal-funcionario.atendimento-detalhes', compact('atendimento'));
     }
@@ -89,7 +98,24 @@ class PortalFuncionarioController extends Controller
         $funcionarioId = Auth::user()->funcionario_id;
         
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
-        abort_if($atendimento->status_atual !== 'aberto', 400, 'Atendimento já foi iniciado');
+        
+        // Permitir iniciar se status é 'aberto' OU 'em_atendimento' sem iniciado_em (atendimentos antigos)
+        if ($atendimento->status_atual !== 'aberto' && $atendimento->iniciado_em !== null) {
+            return back()->with('error', 'Este atendimento já foi iniciado.');
+        }
+
+        // Verificar se já existe atendimento em execução de outro cliente
+        $atendimentoEmExecucao = Atendimento::where('funcionario_id', $funcionarioId)
+            ->where('status_atual', 'em_atendimento')
+            ->where('em_execucao', true)
+            ->whereNotNull('iniciado_em')
+            ->where('id', '!=', $atendimento->id)
+            ->where('cliente_id', '!=', $atendimento->cliente_id)
+            ->exists();
+
+        if ($atendimentoEmExecucao) {
+            return back()->with('error', 'Você já possui um atendimento em execução de outro cliente. Finalize-o antes de iniciar um novo.');
+        }
 
         // Validar 3 fotos obrigatórias
         $request->validate([

@@ -263,11 +263,11 @@
             {{ strtoupper(str_replace('_', ' ', $atendimento->status_atual)) }}
         </div>
 
-        <!-- Cronômetro -->
-        @if($atendimento->status_atual === 'em_atendimento')
+        <!-- Cronômetro - Só mostra se realmente foi iniciado -->
+        @if($atendimento->status_atual === 'em_atendimento' && $atendimento->iniciado_em)
         <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
              data-iniciado="{{ $atendimento->iniciado_em->timestamp }}" 
-             data-tempo-base="{{ $atendimento->tempo_execucao_segundos }}">
+             data-tempo-base="{{ $atendimento->tempo_execucao_segundos ?? 0 }}">
             <div class="cronometro-label">
                 @if($atendimento->em_pausa)
                     ⏸️ PAUSADO
@@ -276,6 +276,24 @@
                 @endif
             </div>
             <div class="cronometro-display">00:00:00</div>
+        </div>
+        @endif
+
+        <!-- Aviso para atendimentos antigos em_atendimento sem iniciado_em -->
+        @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em)
+        <div class="info-card" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width: 1.5rem; height: 1.5rem; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <div style="font-weight: 700; color: #92400e;">Atendimento Antigo</div>
+                    <div style="font-size: 0.875rem; color: #92400e; margin-top: 0.25rem;">
+                        Este atendimento foi marcado como "em atendimento" pelo sistema antigo. 
+                        Use os botões abaixo para <strong>iniciar</strong> o controle de tempo com o novo sistema.
+                    </div>
+                </div>
+            </div>
         </div>
         @endif
 
@@ -368,7 +386,17 @@
             </button>
             @endif
 
-            @if($atendimento->status_atual === 'em_atendimento' && $atendimento->em_execucao)
+            @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em)
+            <button onclick="abrirModalIniciar()" class="btn-action btn-iniciar">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Iniciar Controle de Tempo
+            </button>
+            @endif
+
+            @if($atendimento->status_atual === 'em_atendimento' && $atendimento->iniciado_em && $atendimento->em_execucao)
             <button onclick="abrirModalPausar()" class="btn-action btn-pausar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
