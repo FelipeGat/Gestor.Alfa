@@ -33,8 +33,13 @@ class Funcionario extends Model
         return $this->belongsToMany(Empresa::class);
     }
 
-   public function user()
+    public function user()
     {
         return $this->hasOne(User::class);
+    }
+
+    public function atendimentos()
+    {
+        return $this->hasMany(Atendimento::class);
     }
 }

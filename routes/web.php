@@ -99,6 +99,19 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::get('/financeiro/dashboard', [DashboardFinanceiroController::class, 'index'])
         ->name('financeiro.dashboard');
 
+    // Dashboard TÉCNICO (Gestor)
+    Route::get('/dashboard-tecnico', [App\Http\Controllers\DashboardTecnicoController::class, 'index'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.tecnico');
+
+    Route::get('/dashboard-tecnico/atendimento/{atendimento}', [App\Http\Controllers\DashboardTecnicoController::class, 'detalhesAtendimento'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.tecnico.detalhes');
+
+    Route::get('/dashboard-tecnico/atualizar', [App\Http\Controllers\DashboardTecnicoController::class, 'atualizarDados'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.tecnico.atualizar');
+
     // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class)
         ->middleware('dashboard.comercial');

@@ -18,12 +18,12 @@ class PortalFuncionarioController extends Controller
     public function index()
     {
         $funcionarioId = Auth::user()->funcionario_id;
-        
+
         // Estatísticas rápidas
         $totalAbertos = Atendimento::where('funcionario_id', $funcionarioId)
             ->whereIn('status_atual', ['aberto', 'em_atendimento'])
             ->count();
-            
+
         $totalFinalizados = Atendimento::where('funcionario_id', $funcionarioId)
             ->where('status_atual', 'concluido')
             ->count();
@@ -53,12 +53,12 @@ class PortalFuncionarioController extends Controller
         // Abertos: inclui também atendimentos 'em_atendimento' sem iniciado_em (antigos)
         $abertos = Atendimento::with(['cliente', 'empresa', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('status_atual', 'aberto')
-                      ->orWhere(function($q) {
-                          $q->where('status_atual', 'em_atendimento')
+                    ->orWhere(function ($q) {
+                        $q->where('status_atual', 'em_atendimento')
                             ->whereNull('iniciado_em');
-                      });
+                    });
             })
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
             ->orderBy('data_atendimento', 'asc')
@@ -97,10 +97,10 @@ class PortalFuncionarioController extends Controller
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
 
         $atendimento->load([
-            'cliente', 
-            'empresa', 
-            'assunto', 
-            'andamentos.fotos', 
+            'cliente',
+            'empresa',
+            'assunto',
+            'andamentos.fotos',
             'pausas.user',
             'pausas.retomadoPor',
             'iniciadoPor',
@@ -116,9 +116,9 @@ class PortalFuncionarioController extends Controller
     public function iniciarAtendimento(Request $request, Atendimento $atendimento)
     {
         $funcionarioId = Auth::user()->funcionario_id;
-        
+
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
-        
+
         // Permitir iniciar se status é 'aberto' OU 'em_atendimento' sem iniciado_em (atendimentos antigos)
         if ($atendimento->status_atual !== 'aberto' && $atendimento->iniciado_em !== null) {
             return back()->with('error', 'Este atendimento já foi iniciado.');
@@ -177,7 +177,6 @@ class PortalFuncionarioController extends Controller
             return redirect()
                 ->route('portal-funcionario.atendimento.show', $atendimento)
                 ->with('success', '✅ Atendimento iniciado! Execução em andamento. Bom trabalho!');
-                
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Erro ao iniciar atendimento: ' . $e->getMessage());
@@ -190,7 +189,7 @@ class PortalFuncionarioController extends Controller
     public function pausarAtendimento(Request $request, Atendimento $atendimento)
     {
         $funcionarioId = Auth::user()->funcionario_id;
-        
+
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
         abort_if(!$atendimento->em_execucao, 400, 'Atendimento não está em execução');
         abort_if($atendimento->em_pausa, 400, 'Atendimento já está pausado');
@@ -239,7 +238,6 @@ class PortalFuncionarioController extends Controller
             ][$request->tipo_pausa] ?? 'Pausa';
 
             return back()->with('success', '⏸️ Atendimento pausado. Cronômetro de pausa iniciado para: ' . $tipoLabel);
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Erro ao pausar atendimento: ' . $e->getMessage());
@@ -252,7 +250,7 @@ class PortalFuncionarioController extends Controller
     public function retomarAtendimento(Request $request, Atendimento $atendimento)
     {
         $funcionarioId = Auth::user()->funcionario_id;
-        
+
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
         abort_if(!$atendimento->em_pausa, 400, 'Atendimento não está pausado');
 
@@ -266,7 +264,7 @@ class PortalFuncionarioController extends Controller
         try {
             // Buscar pausa ativa
             $pausaAtiva = $atendimento->pausaAtiva();
-            
+
             if (!$pausaAtiva) {
                 return back()->with('error', 'Nenhuma pausa ativa encontrada');
             }
@@ -290,7 +288,6 @@ class PortalFuncionarioController extends Controller
             DB::commit();
 
             return back()->with('success', 'Atendimento retomado. Cronômetro de execução reiniciado.');
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Erro ao retomar atendimento: ' . $e->getMessage());
@@ -303,7 +300,7 @@ class PortalFuncionarioController extends Controller
     public function finalizarAtendimento(Request $request, Atendimento $atendimento)
     {
         $funcionarioId = Auth::user()->funcionario_id;
-        
+
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
         abort_if($atendimento->status_atual !== 'em_atendimento', 400, 'Atendimento não está em execução');
 
@@ -355,7 +352,6 @@ class PortalFuncionarioController extends Controller
             return redirect()
                 ->route('portal-funcionario.chamados')
                 ->with('success', '✅ Atendimento finalizado! Aguardando aprovação do gerente para conclusão.');
-                
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Erro ao finalizar atendimento: ' . $e->getMessage());
@@ -380,7 +376,7 @@ class PortalFuncionarioController extends Controller
                     'id' => $at->id,
                     'title' => $at->cliente?->nome_fantasia ?? $at->nome_solicitante ?? 'Sem cliente',
                     'start' => $at->data_atendimento->format('Y-m-d'),
-                    'backgroundColor' => match($at->prioridade) {
+                    'backgroundColor' => match ($at->prioridade) {
                         'alta' => '#ef4444',
                         'media' => '#f59e0b',
                         'baixa' => '#3b82f6',

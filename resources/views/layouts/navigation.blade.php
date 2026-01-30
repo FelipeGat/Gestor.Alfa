@@ -46,6 +46,12 @@
                         </x-nav-link>
                         @endif
 
+                        @if($isAdmin)
+                        <x-nav-link :href="route('dashboard.tecnico')" class="block px-4 py-2">
+                            Dashboard Técnico
+                        </x-nav-link>
+                        @endif
+
                         @if($isAdmin || $isComercial)
                         <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
                             Dashboard Comercial

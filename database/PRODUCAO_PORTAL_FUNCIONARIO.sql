@@ -9,10 +9,10 @@
 ALTER TABLE `atendimentos` 
 ADD COLUMN `iniciado_em` TIMESTAMP NULL DEFAULT NULL AFTER `data_atendimento`,
 ADD COLUMN `finalizado_em` TIMESTAMP NULL DEFAULT NULL AFTER `iniciado_em`,
-ADD COLUMN `tempo_execucao_segundos` INT NOT NULL DEFAULT 0 AFTER `finalizado_em` COMMENT 'Tempo efetivo trabalhado',
-ADD COLUMN `tempo_pausa_segundos` INT NOT NULL DEFAULT 0 AFTER `tempo_execucao_segundos` COMMENT 'Tempo total pausado',
-ADD COLUMN `em_execucao` TINYINT(1) NOT NULL DEFAULT 0 AFTER `tempo_pausa_segundos` COMMENT 'Flag se está rodando agora',
-ADD COLUMN `em_pausa` TINYINT(1) NOT NULL DEFAULT 0 AFTER `em_execucao` COMMENT 'Flag se está em pausa';
+ADD COLUMN `tempo_execucao_segundos` INT NOT NULL DEFAULT 0 AFTER `finalizado_em`,
+ADD COLUMN `tempo_pausa_segundos` INT NOT NULL DEFAULT 0 AFTER `tempo_execucao_segundos`,
+ADD COLUMN `em_execucao` TINYINT(1) NOT NULL DEFAULT 0 AFTER `tempo_pausa_segundos`,
+ADD COLUMN `em_pausa` TINYINT(1) NOT NULL DEFAULT 0 AFTER `em_execucao`;
 
 -- ============================================
 -- MIGRATION 2: Criar tabela de pausas

@@ -90,7 +90,7 @@ class Atendimento extends Model
     public function andamentos()
     {
         return $this->hasMany(AtendimentoAndamento::class)
-                    ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc');
     }
 
     public function orcamento()
@@ -152,6 +152,4 @@ class Atendimento extends Model
         $segs = $segundos % 60;
         return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
     }
-
-
 }
