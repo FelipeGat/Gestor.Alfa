@@ -104,6 +104,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.admin')
         ->name('dashboard.tecnico');
 
+    Route::get('/dashboard-tecnico/atendimentos', [App\Http\Controllers\DashboardTecnicoController::class, 'getAtendimentos'])
+        ->middleware('dashboard.admin')
+        ->name('dashboard.tecnico.atendimentos');
+
     Route::get('/dashboard-tecnico/atendimento/{atendimento}', [App\Http\Controllers\DashboardTecnicoController::class, 'detalhesAtendimento'])
         ->middleware('dashboard.admin')
         ->name('dashboard.tecnico.detalhes');
