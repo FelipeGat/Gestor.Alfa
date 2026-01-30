@@ -47,6 +47,29 @@
     <div class="py-8 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            {{-- ================= MÉTRICAS FILTRADAS (QTD E VALOR) ================= --}}
+            <div class="bg-indigo-700 rounded-xl shadow-lg p-8 mb-10 text-white">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h3 class="text-indigo-100 text-lg font-medium">Resultado do Filtro Atual</h3>
+                        <p class="text-sm text-indigo-200">
+                            Status: <strong>{{ $statusFiltro ?: 'Todos' }}</strong> |
+                            Empresa: <strong>{{ $empresaId ? ($empresas->find($empresaId)->nome_fantasia ?? 'Selecionada') : 'Todas' }}</strong>
+                        </p>
+                    </div>
+                    <div class="flex gap-12">
+                        <div class="text-center">
+                            <span class="block text-indigo-200 text-xs uppercase font-bold">Quantidade</span>
+                            <span class="text-4xl font-black">{{ $metricasFiltradas->qtd ?? 0 }}</span>
+                        </div>
+                        <div class="text-center border-l border-indigo-500 pl-12">
+                            <span class="block text-indigo-200 text-xs uppercase font-bold">Valor Total</span>
+                            <span class="text-4xl font-black">R$ {{ number_format($metricasFiltradas->valor_total ?? 0, 2, ',', '.') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- ================= CARDS DE RESUMO ================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
@@ -71,29 +94,6 @@
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardandoPagamento }}</p>
                 </div>
 
-            </div>
-
-            {{-- ================= MÉTRICAS FILTRADAS (QTD E VALOR) ================= --}}
-            <div class="bg-indigo-700 rounded-xl shadow-lg p-8 mb-10 text-white">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <h3 class="text-indigo-100 text-lg font-medium">Resultado do Filtro Atual</h3>
-                        <p class="text-sm text-indigo-200">
-                            Status: <strong>{{ $statusFiltro ?: 'Todos' }}</strong> |
-                            Empresa: <strong>{{ $empresaId ? ($empresas->find($empresaId)->nome_fantasia ?? 'Selecionada') : 'Todas' }}</strong>
-                        </p>
-                    </div>
-                    <div class="flex gap-12">
-                        <div class="text-center">
-                            <span class="block text-indigo-200 text-xs uppercase font-bold">Quantidade</span>
-                            <span class="text-4xl font-black">{{ $metricasFiltradas->qtd ?? 0 }}</span>
-                        </div>
-                        <div class="text-center border-l border-indigo-500 pl-12">
-                            <span class="block text-indigo-200 text-xs uppercase font-bold">Valor Total</span>
-                            <span class="text-4xl font-black">R$ {{ number_format($metricasFiltradas->valor_total ?? 0, 2, ',', '.') }}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {{-- ================= GRÁFICOS ================= --}}
