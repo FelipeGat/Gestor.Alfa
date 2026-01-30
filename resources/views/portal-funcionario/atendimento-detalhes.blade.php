@@ -268,14 +268,22 @@
         <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
              data-iniciado="{{ $atendimento->iniciado_em->timestamp }}" 
              data-tempo-base="{{ $atendimento->tempo_execucao_segundos ?? 0 }}">
-            <div class="cronometro-label">
-                @if($atendimento->em_pausa)
-                    ⏸️ PAUSADO
-                @else
-                    ⏱️ TEMPO DE EXECUÇÃO
-                @endif
-            </div>
-            <div class="cronometro-display">00:00:00</div>
+            @if($atendimento->em_pausa)
+                @php
+                    $pausaAtiva = $atendimento->pausaAtiva();
+                    $tipoPausaLabel = $pausaAtiva ? $pausaAtiva->tipo_pausa_label : 'Pausa';
+                @endphp
+                <div class="cronometro-label">⏸️ PAUSA PARA {{ strtoupper($tipoPausaLabel) }}</div>
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 0.25rem;">
+                    Iniciada às {{ $pausaAtiva ? $pausaAtiva->iniciada_em->format('H:i') : '' }}
+                </div>
+            @else
+                <div class="cronometro-label">⏱️ EXECUÇÃO EM ANDAMENTO</div>
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 0.25rem;">
+                    Iniciado às {{ $atendimento->iniciado_em->format('H:i') }} - Bom trabalho!
+                </div>
+            @endif
+            <div class="cronometro-display" style="margin-top: 0.5rem;">00:00:00</div>
         </div>
         @endif
 

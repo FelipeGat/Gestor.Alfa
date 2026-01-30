@@ -154,8 +154,8 @@ class PortalFuncionarioController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('portal-funcionario.chamados')
-                ->with('success', 'Atendimento iniciado com sucesso! Cronômetro em execução.');
+                ->route('portal-funcionario.atendimento.show', $atendimento)
+                ->with('success', '✅ Atendimento iniciado! Execução em andamento. Bom trabalho!');
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -210,7 +210,14 @@ class PortalFuncionarioController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Atendimento pausado. Cronômetro de pausa iniciado.');
+            $tipoLabel = [
+                'almoco' => 'Almoço',
+                'deslocamento' => 'Deslocamento entre Clientes',
+                'material' => 'Compra de Material',
+                'fim_dia' => 'Encerramento do Dia',
+            ][$request->tipo_pausa] ?? 'Pausa';
+
+            return back()->with('success', '⏸️ Atendimento pausado. Cronômetro de pausa iniciado para: ' . $tipoLabel);
             
         } catch (\Exception $e) {
             DB::rollBack();
