@@ -44,6 +44,8 @@
                 {{ $slot }}
             @endif
         </main>
+
+        @include('components.dashboard-fab')
     </div>
     @stack('scripts')
 </body>

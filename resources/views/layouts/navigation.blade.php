@@ -60,7 +60,7 @@
 
                         @if($isAdmin || $isFinanceiro)
                         <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
-                            Financeiro
+                            Dashboard Financeiro
                         </x-nav-link><br>
                         @endif
 
