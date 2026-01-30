@@ -28,7 +28,18 @@ class PortalFuncionarioController extends Controller
             ->where('status_atual', 'concluido')
             ->count();
 
-        return view('portal-funcionario.index', compact('totalAbertos', 'totalFinalizados'));
+        // Atendimentos em execução ou pausados
+        $totalEmAtendimento = Atendimento::where('funcionario_id', $funcionarioId)
+            ->where('status_atual', 'em_atendimento')
+            ->whereNotNull('iniciado_em')
+            ->count();
+
+        // Verifica se tem algum atendimento pausado
+        $temPausado = Atendimento::where('funcionario_id', $funcionarioId)
+            ->where('em_pausa', true)
+            ->exists();
+
+        return view('portal-funcionario.index', compact('totalAbertos', 'totalFinalizados', 'totalEmAtendimento', 'temPausado'));
     }
 
     /**
@@ -64,7 +75,7 @@ class PortalFuncionarioController extends Controller
 
         $finalizados = Atendimento::with(['cliente', 'empresa', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
-            ->where('status_atual', 'concluido')
+            ->whereIn('status_atual', ['finalizacao', 'concluido'])
             ->orderBy('finalizado_em', 'desc')
             ->limit(20)
             ->get();
@@ -85,7 +96,16 @@ class PortalFuncionarioController extends Controller
         // Verificar se o atendimento pertence ao funcionário
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
 
-        $atendimento->load(['cliente', 'empresa', 'assunto', 'andamentos.fotos', 'pausas.user']);
+        $atendimento->load([
+            'cliente', 
+            'empresa', 
+            'assunto', 
+            'andamentos.fotos', 
+            'pausas.user',
+            'pausas.retomadoPor',
+            'iniciadoPor',
+            'finalizadoPor'
+        ]);
 
         return view('portal-funcionario.atendimento-detalhes', compact('atendimento'));
     }
@@ -133,6 +153,7 @@ class PortalFuncionarioController extends Controller
             $atendimento->update([
                 'status_atual' => 'em_atendimento',
                 'iniciado_em' => now(),
+                'iniciado_por_user_id' => Auth::id(),
                 'em_execucao' => true,
                 'em_pausa' => false,
             ]);
@@ -253,6 +274,7 @@ class PortalFuncionarioController extends Controller
             // Salvar foto de retorno
             $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
             $pausaAtiva->foto_retorno_path = $fotoPath;
+            $pausaAtiva->retomado_por_user_id = Auth::id();
 
             // Encerrar pausa e calcular tempo
             $pausaAtiva->encerrar();
@@ -260,6 +282,7 @@ class PortalFuncionarioController extends Controller
             // Atualizar atendimento
             $atendimento->update([
                 'tempo_pausa_segundos' => $atendimento->tempo_pausa_segundos + $pausaAtiva->tempo_segundos,
+                'iniciado_em' => now(), // Atualizar para rastrear início da nova sessão
                 'em_execucao' => true,
                 'em_pausa' => false,
             ]);
@@ -306,8 +329,9 @@ class PortalFuncionarioController extends Controller
 
             // Atualizar atendimento
             $atendimento->update([
-                'status_atual' => 'concluido',
+                'status_atual' => 'finalizacao',
                 'finalizado_em' => now(),
+                'finalizado_por_user_id' => Auth::id(),
                 'em_execucao' => false,
                 'em_pausa' => false,
             ]);
@@ -330,7 +354,7 @@ class PortalFuncionarioController extends Controller
 
             return redirect()
                 ->route('portal-funcionario.chamados')
-                ->with('success', 'Atendimento finalizado com sucesso!');
+                ->with('success', '✅ Atendimento finalizado! Aguardando aprovação do gerente para conclusão.');
                 
         } catch (\Exception $e) {
             DB::rollBack();

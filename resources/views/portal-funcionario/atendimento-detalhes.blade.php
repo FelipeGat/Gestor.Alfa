@@ -38,6 +38,11 @@
             color: #92400e;
         }
 
+        .status-banner.finalizacao {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
         .status-banner.concluido {
             background: #d1fae5;
             color: #065f46;
@@ -307,6 +312,20 @@
         </div>
         @endif
 
+        @if($atendimento->status_atual === 'finalizacao')
+        <div class="info-card" style="background: #fffbeb; border-left: 4px solid #f59e0b;">
+            <div style="padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <span style="font-size: 1.5rem;">⏳</span>
+                    <div style="font-weight: 700; color: #92400e; font-size: 1.125rem;">Aguardando Aprovação do Gerente</div>
+                </div>
+                <div style="font-size: 0.875rem; color: #92400e; line-height: 1.5;">
+                    Este atendimento foi finalizado pelo técnico e está aguardando revisão e aprovação do gerente de suporte para conclusão final.
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if($atendimento->finalizado_em)
         <div class="info-card">
             <div class="info-label">Tempo Total de Execução</div>
@@ -314,13 +333,62 @@
                 ⏱️ {{ $atendimento->tempo_execucao_formatado }}
             </div>
             
+            <!-- Fotos de Início e Finalização -->
+            @php
+                $andamentoInicio = $atendimento->andamentos->where('descricao', 'Atendimento iniciado pelo técnico')->first();
+                $andamentoFinal = $atendimento->andamentos->where('descricao', '!=', 'Atendimento iniciado pelo técnico')->sortByDesc('created_at')->first();
+            @endphp
+            
+            @if($andamentoInicio && $andamentoInicio->fotos->count() > 0)
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                <div class="info-label">📸 Fotos do Início do Atendimento</div>
+                @if($atendimento->iniciadoPor)
+                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+                    Iniciado por: <strong>{{ $atendimento->iniciadoPor->name }}</strong> em {{ $atendimento->iniciado_em->format('d/m/Y H:i') }}
+                </div>
+                @endif
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
+                    @foreach($andamentoInicio->fotos as $foto)
+                    <div>
+                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
+                             alt="Foto início" 
+                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #10b981;"
+                             onclick="window.open(this.src, '_blank')">
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            
+            @if($andamentoFinal && $andamentoFinal->fotos->count() > 0)
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                <div class="info-label">📸 Fotos da Finalização do Atendimento</div>
+                @if($andamentoFinal->descricao && $andamentoFinal->descricao != 'Atendimento finalizado pelo técnico')
+                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem; border-left: 3px solid #3b82f6;">
+                    <div style="font-size: 0.75rem; color: #1e40af; font-weight: 600; margin-bottom: 0.25rem;">Observações:</div>
+                    <div style="font-size: 0.875rem; color: #1e40af;">{{ $andamentoFinal->descricao }}</div>
+                </div>
+                @endif
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
+                    @foreach($andamentoFinal->fotos as $foto)
+                    <div>
+                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
+                             alt="Foto finalização" 
+                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #8b5cf6;"
+                             onclick="window.open(this.src, '_blank')">
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            
             @if($atendimento->pausas->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label">Detalhamento de Pausas</div>
                 <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
                     @foreach($atendimento->pausas as $index => $pausa)
                     <div style="background: #fef3c7; padding: 0.75rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <div>
                                 <div style="font-weight: 700; color: #92400e; font-size: 0.875rem;">
                                     {{ $pausa->tipo_pausa_label }}
@@ -331,11 +399,45 @@
                                         → {{ $pausa->encerrada_em->format('H:i') }}
                                     @endif
                                 </div>
+                                @if($pausa->user)
+                                <div style="font-size: 0.7rem; color: #78716c; margin-top: 0.25rem;">
+                                    Pausado por: <strong>{{ $pausa->user->name }}</strong>
+                                </div>
+                                @endif
+                                @if($pausa->retomadoPor)
+                                <div style="font-size: 0.7rem; color: #78716c;">
+                                    Retomado por: <strong>{{ $pausa->retomadoPor->name }}</strong>
+                                </div>
+                                @endif
                             </div>
                             <div style="font-weight: 700; color: #92400e; font-size: 1.125rem;">
                                 {{ gmdate('H:i:s', $pausa->tempo_segundos ?? 0) }}
                             </div>
                         </div>
+                        
+                        <!-- Fotos da Pausa -->
+                        @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+                            @if($pausa->foto_inicio_path)
+                            <div>
+                                <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Início</div>
+                                <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
+                                     alt="Foto início pausa" 
+                                     style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
+                                     onclick="window.open(this.src, '_blank')">
+                            </div>
+                            @endif
+                            @if($pausa->foto_retorno_path)
+                            <div>
+                                <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Retorno</div>
+                                <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
+                                     alt="Foto retorno" 
+                                     style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
+                                     onclick="window.open(this.src, '_blank')">
+                            </div>
+                            @endif
+                        </div>
+                        @endif
                     </div>
                     @endforeach
                 </div>
@@ -349,7 +451,6 @@
                     </div>
                 </div>
             </div>
-            @endif
             @endif
         </div>
         @endif
@@ -392,7 +493,7 @@
         </div>
 
         <!-- Pausas Ativas -->
-        @if($atendimento->pausas->count() > 0)
+        @if($atendimento->pausas->count() > 0 && !$atendimento->finalizado_em)
         <div class="info-card">
             <div class="info-label">Histórico de Pausas</div>
             <div class="pausas-list">
@@ -409,6 +510,41 @@
                         @else
                         <br><span style="color: #f59e0b; font-weight: 600;">Em andamento...</span>
                         @endif
+                    </div>
+                    @if($pausa->user)
+                    <div style="font-size: 0.75rem; color: #78716c; margin-top: 0.25rem;">
+                        Pausado por: <strong>{{ $pausa->user->name }}</strong>
+                    </div>
+                    @endif
+                    @if($pausa->retomadoPor)
+                    <div style="font-size: 0.75rem; color: #78716c;">
+                        Retomado por: <strong>{{ $pausa->retomadoPor->name }}</strong>
+                    </div>
+                    @endif
+                    
+                    <!-- Fotos da Pausa -->
+                    @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
+                    <div style="margin-top: 0.75rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem;">
+                        @if($pausa->foto_inicio_path)
+                        <div>
+                            <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Início da Pausa</div>
+                            <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
+                                 alt="Foto início pausa" 
+                                 style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
+                                 onclick="window.open(this.src, '_blank')">
+                        </div>
+                        @endif
+                        @if($pausa->foto_retorno_path)
+                        <div>
+                            <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Retorno</div>
+                            <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
+                                 alt="Foto retorno" 
+                                 style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
+                                 onclick="window.open(this.src, '_blank')">
+                        </div>
+                        @endif
+                    </div>
+                    @endif
                     </div>
                 </div>
                 @endforeach

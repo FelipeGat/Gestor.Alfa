@@ -135,6 +135,11 @@
             <div class="stat-badge">
                 📋 {{ $totalAbertos }} Chamados Abertos
             </div>
+            @if($temPausado && $totalEmAtendimento > 0)
+            <div class="stat-badge">
+                🔄 {{ $totalEmAtendimento }} Em Atendimento
+            </div>
+            @endif
             <div class="stat-badge">
                 ✅ {{ $totalFinalizados }} Finalizados
             </div>

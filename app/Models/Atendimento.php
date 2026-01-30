@@ -30,7 +30,9 @@ class Atendimento extends Model
         'atendimento_origem_id',
         'data_atendimento',
         'iniciado_em',
+        'iniciado_por_user_id',
         'finalizado_em',
+        'finalizado_por_user_id',
         'tempo_execucao_segundos',
         'tempo_pausa_segundos',
         'em_execucao',
@@ -107,6 +109,16 @@ class Atendimento extends Model
     public function pausas()
     {
         return $this->hasMany(AtendimentoPausa::class)->orderBy('iniciada_em', 'desc');
+    }
+
+    public function iniciadoPor()
+    {
+        return $this->belongsTo(User::class, 'iniciado_por_user_id');
+    }
+
+    public function finalizadoPor()
+    {
+        return $this->belongsTo(User::class, 'finalizado_por_user_id');
     }
 
     /**

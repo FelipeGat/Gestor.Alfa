@@ -384,7 +384,11 @@
             <div class="chamado-card {{ $atendimento->prioridade }}" style="opacity: 0.7;">
                 <div class="card-header">
                     <span class="card-numero">#{{ $atendimento->numero_atendimento }}</span>
+                    @if($atendimento->status_atual === 'finalizacao')
+                    <span style="color: #f59e0b; font-weight: 700;">⏳ AGUARDANDO APROVAÇÃO</span>
+                    @else
                     <span style="color: #10b981; font-weight: 700;">✓ CONCLUÍDO</span>
+                    @endif
                 </div>
 
                 <div class="card-cliente">

@@ -31,7 +31,7 @@
             <div class="hidden sm:flex sm:space-x-8 sm:items-center">
 
                 {{-- ============ GESTÃO ============ --}}
-                @if($isAdmin || $isComercial || $isFinanceiro || $isFuncionario)
+                @if($isAdmin || $isComercial || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
                     <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
                         Gestão
@@ -52,19 +52,13 @@
                         </x-nav-link>
                         @endif
 
-                        @if($isFuncionario)
-                        <x-nav-link :href="route('portal-funcionario.index')" class="block px-4 py-2">
-                            Dashboard Técnico
-                        </x-nav-link>
-                        @endif
-
                         @if($isAdmin || $isFinanceiro)
                         <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
                             Financeiro
                         </x-nav-link><br>
                         @endif
 
-                        @if($isAdmin || $isFuncionario)
+                        @if($isAdmin)
                         <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
                             Atendimentos
                         </x-nav-link>
@@ -200,7 +194,7 @@
     <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
 
         {{-- Gestão --}}
-        @if($isAdmin || $isComercial || $isFinanceiro || $isFuncionario)
+        @if($isAdmin || $isComercial || $isFinanceiro)
         <details>
             <summary class="font-medium text-gray-700">Gestão</summary>
             <div class="pl-4 space-y-1">
@@ -216,7 +210,7 @@
                 @if($isAdmin || $isFinanceiro)
                 <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
                 @endif
-                @if($isAdmin || $isFuncionario)
+                @if($isAdmin)
                 <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
                 @endif
             </div>

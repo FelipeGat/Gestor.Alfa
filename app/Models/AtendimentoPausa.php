@@ -12,6 +12,7 @@ class AtendimentoPausa extends Model
         'tipo_pausa',
         'iniciada_em',
         'encerrada_em',
+        'retomado_por_user_id',
         'tempo_segundos',
         'foto_inicio_path',
         'foto_retorno_path',
@@ -30,6 +31,11 @@ class AtendimentoPausa extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function retomadoPor()
+    {
+        return $this->belongsTo(User::class, 'retomado_por_user_id');
     }
 
     /**
