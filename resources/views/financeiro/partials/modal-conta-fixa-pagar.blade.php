@@ -44,7 +44,25 @@
             await this.$nextTick();
             
             // Preencher variáveis do Alpine
-            this.fornecedorId = data.fornecedor_id || '';
+            this.fornecedorId = data.fornecedor_id || (data.fornecedor ? data.fornecedor.id : '');
+
+            // Preencher campo hidden e input de busca do fornecedor (caso estejam presentes)
+            this.$nextTick(() => {
+                const inputHidden = document.getElementById('fornecedor-id-fixa');
+                const inputBusca = document.getElementById('busca-fornecedor-fixa');
+                if (inputHidden) inputHidden.value = this.fornecedorId;
+                if (inputBusca && this.fornecedorId) {
+                    // Buscar nome do fornecedor selecionado
+                    const fornecedores = [
+                        ...Array.from(document.querySelectorAll('#lista-fornecedores-fixa input[type=radio]')).map(r => ({
+                            id: r.value,
+                            nome: r.parentElement.querySelector('span')?.innerText || ''
+                        }))
+                    ];
+                    const fornecedorSel = fornecedores.find(f => f.id == this.fornecedorId);
+                    if (fornecedorSel) inputBusca.value = fornecedorSel.nome;
+                }
+            });
             this.centroCustoId = data.centro_custo_id || '';
             this.contaId = data.conta_id || '';
             this.descricao = data.descricao || '';

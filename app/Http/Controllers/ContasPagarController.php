@@ -487,18 +487,23 @@ class ContasPagarController extends Controller
                     break;
                 }
 
-                // AJUSTE: Para datas 29/30/31, usar o último dia do mês se necessário
-                $diaDesejado = $contaFixa->dia_vencimento;
-                $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
-                $diaVencimento = min($diaDesejado, $ultimoDiaDoMes);
-                $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                // Para SEMANAL, usar a data diretamente, sem ajuste de dia do mês
+                if ($contaFixa->periodicidade === 'SEMANAL') {
+                    $dataVencimentoAjustada = $dataVencimento->copy();
+                } else {
+                    // AJUSTE: Para datas 29/30/31, usar o último dia do mês se necessário
+                    $diaDesejado = $contaFixa->dia_vencimento;
+                    $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                    $diaVencimento = min($diaDesejado, $ultimoDiaDoMes);
+                    $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                }
 
                 ContaPagar::create([
                     'centro_custo_id'      => $contaFixa->centro_custo_id,
                     'conta_id'             => $contaFixa->conta_id,
                     'conta_fixa_pagar_id'  => $contaFixa->id,
                     'fornecedor_id'        => $contaFixa->fornecedor_id,
-                    'descricao'            => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('m/Y'),
+                    'descricao'            => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('d/m/Y'),
                     'valor'                => $contaFixa->valor,
                     'data_vencimento'      => $dataVencimentoAjustada->format('Y-m-d'),
                     'forma_pagamento'      => $contaFixa->forma_pagamento,
@@ -637,17 +642,74 @@ class ContasPagarController extends Controller
                 'conta_financeira_id' => $request->conta_financeira_id,
             ]);
 
-            // Atualizar todas as parcelas em aberto vinculadas a essa conta fixa
-            ContaPagar::where('conta_fixa_pagar_id', $contaFixa->id)
+            // Atualizar todas as parcelas em aberto vinculadas a essa conta fixa, incluindo as datas
+            $parcelas = ContaPagar::where('conta_fixa_pagar_id', $contaFixa->id)
                 ->where('status', '!=', 'pago')
-                ->update([
+                ->orderBy('data_vencimento', 'asc')
+                ->get();
+
+            $dataVencimento = Carbon::parse($request->data_inicial);
+            $diaOriginal = $dataVencimento->day;
+
+            foreach ($parcelas as $parcela) {
+                // Calcular nova data de vencimento conforme periodicidade
+                $dataVencimentoAjustada = null;
+                switch ($request->periodicidade) {
+                    case 'SEMANAL':
+                        $dataVencimentoAjustada = $dataVencimento->copy();
+                        $dataVencimento->addWeek();
+                        break;
+                    case 'QUINZENAL':
+                        $dataVencimentoAjustada = $dataVencimento->copy();
+                        $dataVencimento->addWeeks(2);
+                        break;
+                    case 'MENSAL':
+                        $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                        $diaVencimento = min($diaOriginal, $ultimoDiaDoMes);
+                        $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                        $dataVencimento->addMonthNoOverflow();
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
+                        break;
+                    case 'TRIMESTRAL':
+                        $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                        $diaVencimento = min($diaOriginal, $ultimoDiaDoMes);
+                        $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                        $dataVencimento->addMonthsNoOverflow(3);
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
+                        break;
+                    case 'SEMESTRAL':
+                        $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                        $diaVencimento = min($diaOriginal, $ultimoDiaDoMes);
+                        $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                        $dataVencimento->addMonthsNoOverflow(6);
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
+                        break;
+                    case 'ANUAL':
+                        $ultimoDiaDoMes = $dataVencimento->copy()->endOfMonth()->day;
+                        $diaVencimento = min($diaOriginal, $ultimoDiaDoMes);
+                        $dataVencimentoAjustada = $dataVencimento->copy()->day($diaVencimento);
+                        $dataVencimento->addYearNoOverflow();
+                        if ($diaOriginal >= 30 && $dataVencimento->day < $diaOriginal) {
+                            $dataVencimento->endOfMonth();
+                        }
+                        break;
+                }
+                $parcela->update([
                     'centro_custo_id'     => $request->centro_custo_id,
                     'conta_id'            => $request->conta_id,
                     'fornecedor_id'       => $request->fornecedor_id,
                     'valor'               => $request->valor,
                     'forma_pagamento'     => $request->forma_pagamento,
                     'conta_financeira_id' => $request->conta_financeira_id,
+                    'data_vencimento'     => $dataVencimentoAjustada ? $dataVencimentoAjustada->format('Y-m-d') : $parcela->data_vencimento,
                 ]);
+            }
         });
 
         $parcelasAtualizadas = ContaPagar::where('conta_fixa_pagar_id', $contaFixa->id)

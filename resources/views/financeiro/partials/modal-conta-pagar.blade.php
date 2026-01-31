@@ -292,7 +292,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Conta Bancária (para pagamento)</label>
                             <select name="conta_financeira_id"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-                                <option value="">Selecione (opcional)...</option>
+                                <option value="">Selecione...</option>
                                 @foreach(\App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get() as $contaBancaria)
                                 <option value="{{ $contaBancaria->id }}">{{ $contaBancaria->nome }}</option>
                                 @endforeach

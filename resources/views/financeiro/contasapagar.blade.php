@@ -110,13 +110,69 @@
 
             {{-- FILTROS --}}
             <form method="GET" action="{{ route('financeiro.contasapagar') }}" class="filters-card">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div class="filter-group">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                    </script>
+                    <div class="filter-group relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Descrição ou centro de custo..."
+                        <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
+                            placeholder="Descrição, centro de custo ou fornecedor..."
+                            autocomplete="off"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                        <input type="hidden" name="fornecedor_id" id="busca-fornecedor-id" value="{{ request('fornecedor_id') }}">
+                        <div id="autocomplete-fornecedor" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
                     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Busca fornecedor dentro do campo Buscar
+    const inputBusca = document.getElementById('busca-geral');
+    const lista = document.getElementById('autocomplete-fornecedor');
+    const inputHidden = document.getElementById('busca-fornecedor-id');
+    let fornecedores = [];
+
+    fornecedores = [
+        @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
+        { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social) },
+        @endforeach
+    ];
+
+    function renderLista(filtro = '') {
+        lista.innerHTML = '';
+        if (!filtro || filtro.length < 2) {
+            lista.classList.add('hidden');
+            return;
+        }
+        const filtrados = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
+        if (filtrados.length === 0) {
+            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum fornecedor encontrado</span>';
+            lista.classList.remove('hidden');
+            return;
+        }
+        filtrados.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'px-3 py-2 cursor-pointer hover:bg-red-50 text-sm';
+            div.textContent = f.nome;
+            div.onclick = () => {
+                inputHidden.value = f.id;
+                inputBusca.value = f.nome;
+                lista.classList.add('hidden');
+                setTimeout(() => { inputBusca.form.submit(); }, 100);
+            };
+            lista.appendChild(div);
+        });
+        lista.classList.remove('hidden');
+    }
+
+    inputBusca.addEventListener('input', e => {
+        renderLista(e.target.value);
+        // Limpa fornecedor_id se o texto não corresponder a nenhum fornecedor
+        if (!fornecedores.some(f => f.nome.toLowerCase() === e.target.value.toLowerCase())) {
+            inputHidden.value = '';
+        }
+    });
+    inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+    inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+});
+</script>
 
                     <div class="filter-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Custo</label>
@@ -156,7 +212,7 @@
                             @endforeach
                         </select>
                     </div>
-
+                                        
                     <div class="filter-group lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
                         <div class="flex items-center gap-2">
