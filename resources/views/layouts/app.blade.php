@@ -41,7 +41,7 @@
             @hasSection('content')
                 @yield('content')
             @else
-                {{ $slot }}
+                {{ $slot ?? '' }}
             @endif
         </main>
 

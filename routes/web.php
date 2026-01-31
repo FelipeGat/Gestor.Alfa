@@ -6,6 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
+
+use App\Http\Controllers\RelatorioCustosOrcamentosController;
+
+// Relatórios
+Route::middleware(['auth'])->group(function () {
+    Route::get('/relatorios', function () {
+        return view('relatorios.index');
+    })->name('relatorios.index');
+    Route::get('/relatorios/custos-orcamentos', [RelatorioCustosOrcamentosController::class, 'index'])->name('relatorios.custos-orcamentos');
+});
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CobrancaController;

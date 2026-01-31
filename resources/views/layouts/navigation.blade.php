@@ -154,9 +154,9 @@
 
                 {{-- ============ RELATÓRIOS ============ --}}
                 @if($isAdmin)
-                <span class="text-gray-400 cursor-not-allowed">
+                <x-nav-link :href="route('relatorios.index')" class="font-medium text-gray-700">
                     Relatórios
-                </span>
+                </x-nav-link>
                 @endif
 
 
@@ -262,6 +262,16 @@
                 <x-responsive-nav-link :href="route('fornecedores.index')">Fornecedores</x-responsive-nav-link>
                 @endif
                 <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
+            </div>
+        </details>
+        @endif
+
+        {{-- Relatórios --}}
+        @if($isAdmin)
+        <details>
+            <summary class="font-medium text-gray-700">Relatórios</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')">Custos x Orçamentos</x-responsive-nav-link>
             </div>
         </details>
         @endif
