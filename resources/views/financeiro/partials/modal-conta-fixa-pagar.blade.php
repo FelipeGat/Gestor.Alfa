@@ -160,13 +160,51 @@
                         {{-- Fornecedor --}}
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Fornecedor</label>
-                            <select name="fornecedor_id" x-model="fornecedorId"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Selecione (opcional)...</option>
+                            <input type="text" id="busca-fornecedor-fixa" placeholder="Buscar fornecedor..." class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 mb-2">
+                            <div id="lista-fornecedores-fixa" class="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1 bg-white">
+                                <label class="block text-gray-500 text-sm">Carregando fornecedores...</label>
+                            </div>
+                            <input type="hidden" name="fornecedor_id" id="fornecedor-id-fixa">
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // Busca e lista de fornecedores (conta fixa)
+                            const inputBusca = document.getElementById('busca-fornecedor-fixa');
+                            const lista = document.getElementById('lista-fornecedores-fixa');
+                            const inputHidden = document.getElementById('fornecedor-id-fixa');
+                            let fornecedores = [];
+
+                            fornecedores = [
                                 @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
-                                <option value="{{ $fornecedor->id }}">{{ $fornecedor->razao_social }}</option>
+                                { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social) },
                                 @endforeach
-                            </select>
+                            ];
+
+                            function renderLista(filtro = '') {
+                                lista.innerHTML = '';
+                                const filtrados = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
+                                if (filtrados.length === 0) {
+                                    lista.innerHTML = '<span class="block text-gray-400 text-sm">Nenhum fornecedor encontrado</span>';
+                                    return;
+                                }
+                                filtrados.forEach(f => {
+                                    const label = document.createElement('label');
+                                    label.className = 'flex items-center gap-2 cursor-pointer hover:bg-red-50 rounded px-2 py-1';
+                                    label.innerHTML = `<input type=\"radio\" name=\"fornecedor_radio_fixa\" value=\"${f.id}\"> <span class=\"text-sm\">${f.nome}</span>`;
+                                    label.onclick = () => {
+                                        inputHidden.value = f.id;
+                                        inputBusca.value = f.nome;
+                                        lista.querySelectorAll('label').forEach(l => l.classList.remove('bg-red-100'));
+                                        label.classList.add('bg-red-100');
+                                    };
+                                    lista.appendChild(label);
+                                });
+                            }
+
+                            renderLista();
+                            inputBusca.addEventListener('input', e => renderLista(e.target.value));
+                            inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+                        });
+                        </script>
                         </div>
 
                         <div>
