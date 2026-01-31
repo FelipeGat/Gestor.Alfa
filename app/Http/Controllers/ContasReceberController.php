@@ -17,7 +17,7 @@ class ContasReceberController extends Controller
     {
         // ================= PREPARAÇÃO DA QUERY BASE =================
         $query = Cobranca::with([
-            'cliente:id,nome,nome_fantasia',
+            'cliente:id,nome,nome_fantasia,cpf_cnpj',
             'anexos',
             'orcamento.empresa:id,nome_fantasia',
             'contaFixa.empresa:id,nome_fantasia'
@@ -39,12 +39,6 @@ class ContasReceberController extends Controller
             403,
             'Acesso não autorizado'
         );
-
-        // ================= PREPARAÇÃO DA QUERY BASE =================
-        $query = Cobranca::with(['cliente:id,nome,nome_fantasia', 'anexos', 'orcamento.empresa:id,nome_fantasia'])
-            ->select('cobrancas.*')
-            ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id')
-            ->where('cobrancas.status', '!=', 'pago');
 
 
         // ================= APLICAÇÃO DOS FILTROS =================

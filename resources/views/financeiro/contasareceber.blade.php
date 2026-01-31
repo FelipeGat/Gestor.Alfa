@@ -336,6 +336,7 @@
                                 <th>Vencimento</th>
                                 <th>Empresa</th>
                                 <th>Cliente</th>
+                                <th>CNPJ/CPF</th>
                                 <th>Descrição</th>
                                 <th>Tipo</th>
                                 <th class="text-right">Valor</th>
@@ -370,6 +371,9 @@
                                 </td>
                                 <td data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
+                                </td>
+                                <td data-label="CNPJ/CPF">
+                                    {{ $cobranca->cliente?->cpf_cnpj_formatado ?? '—' }}
                                 </td>
                                 <td data-label="Descrição">
                                     {{ $cobranca->descricao }}

@@ -12,10 +12,26 @@ use App\Models\Email;
 use App\Models\Telefone;
 use App\Models\NotaFiscal;
 
-
 class Cliente extends Model
 {
     use SoftDeletes;
+
+    /**
+     * Retorna o CPF ou CNPJ formatado
+     */
+    public function getCpfCnpjFormatadoAttribute(): ?string
+    {
+        $valor = preg_replace('/\D/', '', $this->cpf_cnpj);
+        if (!$valor) return null;
+        if (strlen($valor) === 11) {
+            // CPF: xxx.xxx.xxx-xx
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $valor);
+        } elseif (strlen($valor) === 14) {
+            // CNPJ: xx.xxx.xxx/xxxx-xx
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $valor);
+        }
+        return $this->cpf_cnpj;
+    }
 
     protected $fillable = [
         'nome',
