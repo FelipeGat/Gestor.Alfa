@@ -82,46 +82,39 @@ class ContasReceberController extends Controller
             });
         }
 
-        // Clonando a query *antes* do filtro de status para os contadores
+
+
+        // Clonar a query para os KPIs (com todos os filtros, inclusive status)
+        $queryParaKPIs = clone $query;
+
+        // Clonar a query para os contadores rápidos (antes do filtro de status)
         $queryParaContadores = clone $query;
 
-        // Filtro de Status (pode ser um ou mais)
-        if ($request->filled('status') && is_array($request->input('status')) && !empty($request->input('status')[0])) {
-            $query->where(function ($q) use ($request) {
-                foreach ($request->input('status') as $status) {
-                    if ($status === 'pendente') {
-                        $q->orWhere(function ($sub) {
-                            $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today());
-                        });
-                    } elseif ($status === 'vencido') {
-                        $q->orWhere(function ($sub) {
-                            $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today());
-                        });
-                    }
-                }
-            });
-        }
-
-        // ================= CÁLCULO DOS KPIs E TOTAIS (baseado na query com filtros) =================
-        // KPIs devem considerar o período filtrado
-        $kpisQueryBase = Cobranca::query();
-
-        // Aplicar mesmo filtro de período dos KPIs
-        if ($vencimentoInicio) {
-            $kpisQueryBase->where('data_vencimento', '>=', $vencimentoInicio);
-        }
-        if ($vencimentoFim) {
-            $kpisQueryBase->where('data_vencimento', '<=', $vencimentoFim);
-        }
-
+        // ================= CÁLCULO DOS KPIs E TOTAIS (baseado na query com todos os filtros) =================
         $kpis = [
-            'a_receber' => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
-            'recebido'  => (clone $kpisQueryBase)->where('status', 'pago')->sum('valor'),
-            'vencido'   => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
-            'vence_hoje' => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', today())->sum('valor'),
+            // A Receber: status diferente de pago e vencimento futuro
+            'a_receber' => (clone $queryParaKPIs)
+                ->where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', '>=', today())
+                ->sum('valor'),
+            // Recebido: status pago
+            'recebido'  => (clone $queryParaKPIs)
+                ->where('status', 'pago')
+                ->sum('valor'),
+            // Vencido: status diferente de pago e vencimento passado
+            'vencido'   => (clone $queryParaKPIs)
+                ->where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', '<', today())
+                ->sum('valor'),
+            // Vence hoje: status diferente de pago e vencimento hoje
+            'vence_hoje' => (clone $queryParaKPIs)
+                ->where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', today())
+                ->sum('valor'),
         ];
 
-        $totalGeralFiltrado = (clone $kpisQueryBase)->sum('valor');
+        // Total geral filtrado: soma de todos os valores da query filtrada
+        $totalGeralFiltrado = (clone $queryParaKPIs)->sum('valor');
 
         // ================= DADOS PARA FILTROS RÁPIDOS (baseado na query *sem* filtro de status) =================
         $contadoresStatus = [
