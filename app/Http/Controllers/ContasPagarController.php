@@ -131,6 +131,9 @@ class ContasPagarController extends Controller
 
         // Dados para filtros
         $centrosCusto = CentroCusto::where('ativo', true)->orderBy('nome')->get();
+        $empresas = \App\Models\Empresa::orderBy('razao_social')->get();
+        $categorias = \App\Models\Categoria::orderBy('nome')->get();
+        $subcategorias = \App\Models\Subcategoria::orderBy('nome')->get();
 
         return view('financeiro.contasapagar', compact(
             'contas',
@@ -140,7 +143,9 @@ class ContasPagarController extends Controller
             'contadoresTipo',
             'vencimentoInicio',
             'vencimentoFim',
-            'centrosCusto'
+            'centrosCusto',
+            'categorias',
+            'subcategorias'
         ));
     }
 

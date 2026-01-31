@@ -131,6 +131,32 @@
                         </select>
                     </div>
 
+                    <div class="filter-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Categorias</label>
+                        <select name="categoria_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($categorias as $categoria)
+                            <option value="{{ $categoria->id }}" {{ request('categoria_id') == $categoria->id ? 'selected' : '' }}>
+                                {{ $categoria->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SubCategorias</label>
+                        <select name="subcategoria_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($subcategorias as $subcategoria)
+                            <option value="{{ $subcategoria->id }}" {{ request('subcategoria_id') == $subcategoria->id ? 'selected' : '' }}>
+                                {{ $subcategoria->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="filter-group lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
                         <div class="flex items-center gap-2">
@@ -244,6 +270,7 @@
                         <thead>
                             <tr>
                                 <th>Vencimento</th>
+                                <th>Fornecedor</th>
                                 <th>Centro de Custo</th>
                                 <th>Categoria</th>
                                 <th>Descrição</th>
@@ -262,6 +289,9 @@
                             @endphp
                             <tr class="{{ $linhaClass }}">
                                 <td data-label="Vencimento">{{ $conta->data_vencimento->format('d/m/Y') }}</td>
+                                <td data-label="Fornecedor">
+                                    {{ $conta->fornecedor ? ($conta->fornecedor->razao_social ?: $conta->fornecedor->nome_fantasia ?: '-') : '-' }}
+                                </td>
                                 <td data-label="Centro de Custo">{{ $conta->centroCusto->nome }}</td>
                                 <td data-label="Categoria">{{ $conta->conta->nome }}</td>
                                 <td data-label="Descrição">{{ $conta->descricao }}</td>
