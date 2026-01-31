@@ -258,10 +258,12 @@
                     <p class="text-3xl font-bold text-gray-800 mt-1" id="ind-finalizados">{{ $indicadores['finalizados'] }}</p>
                 </div>
 
-                <!-- Técnicos Ativos -->
-                <div class="bg-white shadow rounded-xl p-6 border-l-4 border-teal-500 hover:shadow-xl transition-all">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Técnicos Ativos</h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1" id="ind-tecnicos-ativos">{{ $indicadores['tecnicos_ativos'] }}</p>
+
+                <!-- Aguardando Finalização (clicável) -->
+                <div @click="abrirModal('finalizacao', 'Aguardando Finalização')"
+                    class="bg-white shadow rounded-xl p-6 border-l-4 border-pink-500 cursor-pointer hover:shadow-xl hover:scale-105 transition-all">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Finalização</h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1" id="ind-aguardando-finalizacao">{{ $indicadores['aguardando_finalizacao'] }}</p>
                 </div>
 
                 <!-- Técnicos em Pausa -->
@@ -382,9 +384,10 @@
                             <div class="tempo-row">
                                 <div class="tempo-item">
                                     <p class="tempo-label">Tempo Trabalhado</p>
-                                    <p class="tempo-valor tempo-trabalhado" 
+                                    <p class="tempo-valor tempo-trabalhado"
                                        data-segundos="{{ $tecnicoData['total_tempo_trabalhado'] }}"
-                                       data-em-execucao="{{ $atendimentoAtual->em_execucao ? 'true' : 'false' }}">
+                                       data-iniciado-em="{{ $atendimentoAtual && $atendimentoAtual->em_execucao && $atendimentoAtual->iniciado_em ? $atendimentoAtual->iniciado_em->format('Y-m-d H:i:s') : '' }}"
+                                       data-em-execucao="{{ $atendimentoAtual && $atendimentoAtual->em_execucao ? 'true' : 'false' }}">
                                         {{ gmdate('H:i:s', $tecnicoData['total_tempo_trabalhado']) }}
                                     </p>
                                 </div>
@@ -688,9 +691,17 @@
     setInterval(function() {
         // Atualizar tempos trabalhados
         document.querySelectorAll('.tempo-trabalhado[data-em-execucao="true"]').forEach(el => {
-            let segundos = parseInt(el.dataset.segundos) + 1;
-            el.dataset.segundos = segundos;
-            el.textContent = formatarTempo(segundos);
+            let baseSegundos = parseInt(el.dataset.segundos) || 0;
+            let iniciadoEm = el.dataset.iniciadoEm;
+            if (iniciadoEm) {
+                let iniciado = new Date(iniciadoEm.replace(/-/g, '/'));
+                let agora = new Date();
+                let diff = Math.floor((agora - iniciado) / 1000);
+                let total = baseSegundos + diff;
+                el.textContent = formatarTempo(total);
+            } else {
+                el.textContent = formatarTempo(baseSegundos);
+            }
         });
         
         // Atualizar tempos de pausa

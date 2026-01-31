@@ -275,11 +275,15 @@
                     {{ $atendimento->cliente?->nome_fantasia ?? $atendimento->nome_solicitante ?? 'Sem cliente' }}
                 </div>
 
+
                 <div class="card-info">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{ $atendimento->empresa?->nome_fantasia ?? 'N/A' }}
+                    @php
+                        $data = $atendimento->finalizado_em ?? $atendimento->iniciado_em ?? $atendimento->data_atendimento;
+                    @endphp
+                    {{ $data ? $data->format('d/m/Y H:i') : '-' }}
                 </div>
 
                 <div class="card-info">
@@ -338,11 +342,15 @@
                     {{ $atendimento->cliente?->nome_fantasia ?? $atendimento->nome_solicitante ?? 'Sem cliente' }}
                 </div>
 
+
                 <div class="card-info">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{ $atendimento->data_atendimento->format('d/m/Y') }}
+                    @php
+                        $data = $atendimento->finalizado_em ?? $atendimento->iniciado_em ?? $atendimento->data_atendimento;
+                    @endphp
+                    {{ $data ? $data->format('d/m/Y H:i') : '-' }}
                 </div>
 
                 <div class="card-info">
@@ -413,14 +421,25 @@
 
                 <div class="card-info">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    @php
+                        // Exibe a data mais relevante: finalizado_em > iniciado_em > data_atendimento
+                        $data = $atendimento->finalizado_em ?? $atendimento->iniciado_em ?? $atendimento->data_atendimento;
+                    @endphp
+                    {{ $data ? $data->format('d/m/Y H:i') : '-' }}
+                </div>
+
+                <div class="card-info">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Tempo: {{ $atendimento->tempo_execucao_formatado }}
                 </div>
 
                 <div class="card-footer">
-                    <a href="{{ route('portal-funcionario.atendimento.show', $atendimento) }}" class="btn btn-secondary">
-                        Ver Detalhes
+                    <a href="{{ route('portal-funcionario.atendimento.show', $atendimento) }}" class="btn btn-secondary" target="_blank">
+                        Abrir
                     </a>
                 </div>
             </div>

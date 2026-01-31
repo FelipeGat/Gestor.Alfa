@@ -272,10 +272,14 @@
         @if($atendimento->status_atual === 'em_atendimento' && $atendimento->iniciado_em)
         @php
             $pausaAtiva = $atendimento->em_pausa ? $atendimento->pausaAtiva() : null;
+            $tempoBase = $atendimento->tempo_execucao_segundos ?? 0;
+            if (!$atendimento->em_pausa && $atendimento->iniciado_em) {
+                $tempoBase += now()->diffInSeconds($atendimento->iniciado_em);
+            }
         @endphp
         <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
              data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}" 
-             data-tempo-base="{{ $atendimento->em_pausa ? 0 : ($atendimento->tempo_execucao_segundos ?? 0) }}">
+             data-tempo-base="{{ $atendimento->em_pausa ? 0 : $tempoBase }}">
             @if($atendimento->em_pausa)
                 @php
                     $tipoPausaLabel = $pausaAtiva ? $pausaAtiva->tipo_pausa_label : 'Pausa';

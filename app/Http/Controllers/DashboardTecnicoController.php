@@ -109,13 +109,10 @@ class DashboardTecnicoController extends Controller
                 ->whereIn('status_atual', ['finalizacao', 'concluido'])
                 ->count(),
 
-            // Técnicos ativos no período
-            'tecnicos_ativos' => (clone $queryCards)
-                ->where('status_atual', 'em_atendimento')
-                ->where('em_execucao', true)
-                ->whereNotNull('iniciado_em')
-                ->distinct('funcionario_id')
-                ->count('funcionario_id'),
+            // Aguardando Finalização (status = finalizacao)
+            'aguardando_finalizacao' => (clone $queryCards)
+                ->where('status_atual', 'finalizacao')
+                ->count(),
 
             // Técnicos em pausa no período
             'tecnicos_pausados' => (clone $queryCards)
@@ -159,24 +156,30 @@ class DashboardTecnicoController extends Controller
                 $totalTempoTrabalhado = $atendimentosDoPeriodo->sum('tempo_execucao_segundos');
                 $totalTempoPausas = $atendimentosDoPeriodo->sum('tempo_pausa_segundos');
 
-                if ($atendimentoAtual && $atendimentoAtual->em_execucao) {
-                    $ultimaPausa = $atendimentoAtual->pausas()
-                        ->whereNotNull('encerrada_em')
-                        ->latest('encerrada_em')
-                        ->first();
-
-                    $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimentoAtual->iniciado_em;
-                    $totalTempoTrabalhado += $agora->diffInSeconds($inicioContagem);
+                // Corrigir tempo trabalhado para atendimento em execução
+                if ($atendimentoAtual && $atendimentoAtual->em_execucao && !$atendimentoAtual->em_pausa && $atendimentoAtual->iniciado_em) {
+                    $diff = $atendimentoAtual->iniciado_em->diffInSeconds($agora, false);
+                    if ($diff > 0) {
+                        $totalTempoTrabalhado += $diff;
+                    }
                 }
 
                 $pausaAtiva = null;
                 $tempoPausaAtual = 0;
                 if ($atendimentoAtual && $atendimentoAtual->em_pausa) {
                     $pausaAtiva = $atendimentoAtual->pausaAtiva();
-                    if ($pausaAtiva) {
-                        $tempoPausaAtual = $agora->diffInSeconds($pausaAtiva->iniciada_em);
+                    if ($pausaAtiva && $pausaAtiva->iniciada_em) {
+                        $diff = $pausaAtiva->iniciada_em->diffInSeconds($agora, false);
+                        if ($diff > 0) {
+                            $tempoPausaAtual = $diff;
+                        }
                     }
                 }
+
+                // Nunca mostrar valores negativos
+                $totalTempoTrabalhado = max(0, $totalTempoTrabalhado);
+                $totalTempoPausas = max(0, $totalTempoPausas);
+                $tempoPausaAtual = max(0, $tempoPausaAtual);
 
                 return [
                     'funcionario' => $funcionario,
@@ -309,7 +312,15 @@ class DashboardTecnicoController extends Controller
                     return [
                         'id' => $atendimento->id ?? '',
                         'numero' => $atendimento->numero_chamado ?? (isset($atendimento->id) ? '#' . $atendimento->id : 'N/D'),
-                        'cliente' => isset($atendimento->cliente->nome_fantasia) ? $atendimento->cliente->nome_fantasia : 'N/D',
+                        'cliente' => (
+                            isset($atendimento->cliente->nome_fantasia) && $atendimento->cliente->nome_fantasia
+                            ? $atendimento->cliente->nome_fantasia
+                            : (isset($atendimento->cliente->razao_social) && $atendimento->cliente->razao_social
+                                ? $atendimento->cliente->razao_social
+                                : (isset($atendimento->cliente->nome) && $atendimento->cliente->nome
+                                    ? $atendimento->cliente->nome
+                                    : 'Sem cliente'))
+                        ),
                         'empresa' => isset($atendimento->empresa->nome_fantasia) ? $atendimento->empresa->nome_fantasia : 'N/D',
                         'tecnico' => $tecnico,
                         'assunto' => isset($atendimento->assunto->nome) ? $atendimento->assunto->nome : 'N/D',

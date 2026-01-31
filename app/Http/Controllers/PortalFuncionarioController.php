@@ -96,7 +96,7 @@ class PortalFuncionarioController extends Controller
         // Verificar se o atendimento pertence ao funcionário
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
 
-        $atendimento->load([
+        $atendimento = Atendimento::with([
             'cliente',
             'empresa',
             'assunto',
@@ -105,7 +105,7 @@ class PortalFuncionarioController extends Controller
             'pausas.retomadoPor',
             'iniciadoPor',
             'finalizadoPor'
-        ]);
+        ])->findOrFail($atendimento->id);
 
         return view('portal-funcionario.atendimento-detalhes', compact('atendimento'));
     }
@@ -194,27 +194,41 @@ class PortalFuncionarioController extends Controller
         abort_if(!$atendimento->em_execucao, 400, 'Atendimento não está em execução');
         abort_if($atendimento->em_pausa, 400, 'Atendimento já está pausado');
 
-        $request->validate([
+        $regras = [
             'tipo_pausa' => 'required|in:almoco,deslocamento,material,fim_dia',
-            'foto' => 'required|image|max:5120',
-        ], [
+        ];
+        $mensagens = [
             'tipo_pausa.required' => 'Selecione o tipo de pausa',
-            'foto.required' => 'É obrigatório enviar 1 foto ao pausar',
-        ]);
+        ];
+        // Só exige foto se não for material
+        if ($request->tipo_pausa !== 'material') {
+            $regras['foto'] = 'required|image|max:5120';
+            $mensagens['foto.required'] = 'É obrigatório enviar 1 foto ao pausar';
+        }
+        $request->validate($regras, $mensagens);
 
         DB::beginTransaction();
         try {
-            // Calcular tempo decorrido desde o início ou última retomada
+            // Calcular tempo decorrido desde o início ou última retomada usando timestamps
             $ultimaPausa = $atendimento->pausas()->whereNotNull('encerrada_em')->latest('encerrada_em')->first();
             $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
-            $tempoDecorrido = now()->diffInSeconds($inicioContagem);
-
-            // Atualizar tempo de execução
+            $agora = now();
+            // Auditoria: log para depuração
+            \Log::info('[PAUSAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+            if (!$inicioContagem) {
+                // Não deve acontecer, mas se acontecer, não incrementa nada
+                $tempoDecorrido = 0;
+            } else {
+                $tempoDecorrido = max(0, $agora->timestamp - $inicioContagem->timestamp);
+            }
+            $novoTempoExecucao = max(0, ($atendimento->tempo_execucao_segundos ?? 0) + $tempoDecorrido);
             $atendimento->update([
-                'tempo_execucao_segundos' => $atendimento->tempo_execucao_segundos + $tempoDecorrido,
+                'tempo_execucao_segundos' => $novoTempoExecucao,
                 'em_execucao' => false,
                 'em_pausa' => true,
             ]);
+            $atendimento->refresh();
+            \Log::info('[PAUSAR] tempoDecorrido=' . $tempoDecorrido . ' | novoTempoExecucao=' . $novoTempoExecucao);
 
             // Salvar foto
             $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
@@ -224,7 +238,7 @@ class PortalFuncionarioController extends Controller
                 'atendimento_id' => $atendimento->id,
                 'user_id' => Auth::id(),
                 'tipo_pausa' => $request->tipo_pausa,
-                'iniciada_em' => now(),
+                'iniciada_em' => $agora,
                 'foto_inicio_path' => $fotoPath,
             ]);
 
@@ -254,39 +268,40 @@ class PortalFuncionarioController extends Controller
         abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
         abort_if(!$atendimento->em_pausa, 400, 'Atendimento não está pausado');
 
-        $request->validate([
-            'foto' => 'required|image|max:5120',
-        ], [
-            'foto.required' => 'É obrigatório enviar 1 foto ao retomar',
-        ]);
+        $regras = [];
+        $mensagens = [];
+        // Só exige foto se não for material
+        $pausaAtiva = $atendimento->pausaAtiva();
+        if ($pausaAtiva && $pausaAtiva->tipo_pausa !== 'material') {
+            $regras['foto'] = 'required|image|max:5120';
+            $mensagens['foto.required'] = 'É obrigatório enviar 1 foto ao retomar';
+        }
+        $request->validate($regras, $mensagens);
+
+        if (!$pausaAtiva) {
+            return back()->with('error', 'Nenhuma pausa ativa encontrada');
+        }
 
         DB::beginTransaction();
         try {
-            // Buscar pausa ativa
-            $pausaAtiva = $atendimento->pausaAtiva();
-
-            if (!$pausaAtiva) {
-                return back()->with('error', 'Nenhuma pausa ativa encontrada');
+            // Salvar foto de retorno se enviada
+            if ($request->hasFile('foto')) {
+                $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
+                $pausaAtiva->foto_retorno_path = $fotoPath;
             }
-
-            // Salvar foto de retorno
-            $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
-            $pausaAtiva->foto_retorno_path = $fotoPath;
             $pausaAtiva->retomado_por_user_id = Auth::id();
-
             // Encerrar pausa e calcular tempo
             $pausaAtiva->encerrar();
-
             // Atualizar atendimento
+            $novoTempoPausa = max(0, ($atendimento->tempo_pausa_segundos ?? 0) + ($pausaAtiva->tempo_segundos ?? 0));
             $atendimento->update([
-                'tempo_pausa_segundos' => $atendimento->tempo_pausa_segundos + $pausaAtiva->tempo_segundos,
-                'iniciado_em' => now(), // Atualizar para rastrear início da nova sessão
+                'tempo_pausa_segundos' => $novoTempoPausa,
+                'iniciado_em' => now(), // Sempre que retoma, novo início de execução
                 'em_execucao' => true,
                 'em_pausa' => false,
             ]);
-
+            $atendimento->refresh();
             DB::commit();
-
             return back()->with('success', 'Atendimento retomado. Cronômetro de execução reiniciado.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -316,12 +331,27 @@ class PortalFuncionarioController extends Controller
 
         DB::beginTransaction();
         try {
-            // Se estava em execução, calcular tempo final
+            // Se estava em execução, calcular tempo final usando timestamps
             if ($atendimento->em_execucao) {
                 $ultimaPausa = $atendimento->pausas()->whereNotNull('encerrada_em')->latest('encerrada_em')->first();
                 $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
-                $tempoDecorrido = now()->diffInSeconds($inicioContagem);
-                $atendimento->tempo_execucao_segundos += $tempoDecorrido;
+                $agora = now();
+                \Log::info('[FINALIZAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+                if (!$inicioContagem) {
+                    $tempoDecorrido = 0;
+                } else {
+                    $tempoDecorrido = max(0, $agora->timestamp - $inicioContagem->timestamp);
+                }
+                $tempoExecucao = max(0, ($atendimento->tempo_execucao_segundos ?? 0) + $tempoDecorrido);
+                if ($tempoExecucao < 0) {
+                    \Log::warning('tempo_execucao_segundos negativo detectado e corrigido', [
+                        'atendimento_id' => $atendimento->id,
+                        'valor_calculado' => $tempoExecucao,
+                        'incremento' => $tempoDecorrido,
+                    ]);
+                    $tempoExecucao = 0;
+                }
+                $atendimento->tempo_execucao_segundos = $tempoExecucao;
             }
 
             // Atualizar atendimento
@@ -331,6 +361,7 @@ class PortalFuncionarioController extends Controller
                 'finalizado_por_user_id' => Auth::id(),
                 'em_execucao' => false,
                 'em_pausa' => false,
+                'tempo_execucao_segundos' => $atendimento->tempo_execucao_segundos,
             ]);
 
             // Criar andamento final com fotos
