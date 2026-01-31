@@ -304,7 +304,7 @@ class ContasPagarController extends Controller
             'conta_id'            => 'required|exists:contas,id',
             'descricao'           => 'required|string|max:255',
             'valor'               => 'required|numeric|min:0.01|max:999999.99',
-            'data_vencimento'     => 'required|date|after_or_equal:today',
+            'data_vencimento'     => 'required|date',
             'observacoes'         => 'nullable|string|max:1000',
             'fornecedor_id'       => 'nullable|exists:fornecedores,id',
             'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
