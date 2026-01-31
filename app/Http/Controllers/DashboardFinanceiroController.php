@@ -262,7 +262,115 @@ class DashboardFinanceiroController extends Controller
             ];
         }
 
+        // ================= INDICADORES INTELIGENTES =================
+        // 1) % da renda comprometida
+        $percentualRendaComprometida = $receitaRealizada > 0 ? round(($despesaRealizada / $receitaRealizada) * 100, 1) : 0;
+
+        // 2) Ticket médio de despesas
+        $despesasPagas = ContaPagar::where('status', 'pago')
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'));
+        $totalDespesasRealizadas = $despesasPagas->sum('valor');
+        $quantidadeDespesas = (clone $despesasPagas)->count();
+        $ticketMedioDespesas = $quantidadeDespesas > 0 ? round($totalDespesasRealizadas / $quantidadeDespesas, 2) : 0;
+
+        // 3) Custo fixo x variável
+        $custoFixo = ContaPagar::where('status', 'pago')
+            ->where('tipo', 'FIXA')
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+            ->sum('valor');
+        $custoVariavel = ContaPagar::where('status', 'pago')
+            ->where('tipo', 'VARIAVEL')
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+            ->sum('valor');
+        $totalCustos = $custoFixo + $custoVariavel;
+        $percentualFixo = $totalCustos > 0 ? round(($custoFixo / $totalCustos) * 100, 1) : 0;
+        $percentualVariavel = $totalCustos > 0 ? round(($custoVariavel / $totalCustos) * 100, 1) : 0;
+
+        // 4) Meta mensal (Orçado x Realizado)
+        $orcado = \App\Models\ContaFixaPagar::where(function ($q) use ($inicio, $fim) {
+            $q->whereNull('data_fim')
+                ->orWhere('data_fim', '>=', $inicio->format('Y-m-d'));
+        })
+            ->where('data_inicial', '<=', $fim->format('Y-m-d'))
+            ->where('ativo', true)
+            ->sum('valor');
+        $realizado = ContaPagar::where('status', 'pago')
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+            ->where('tipo', 'FIXA')
+            ->sum('valor');
+        $diferencaMeta = $orcado - $realizado;
+        $percentualMeta = $orcado > 0 ? round(($realizado / $orcado) * 100, 1) : 0;
+
+        // ================= ALERTAS E INSIGHTS AUTOMÁTICOS =================
+        $alertasFinanceiros = [];
+        // 1) Gastos acima do normal em Alimentação
+        $categoriaAlimentacao = \App\Models\Categoria::where('nome', 'Alimentação')->first();
+        if ($categoriaAlimentacao) {
+            // Buscar IDs das subcategorias de Alimentação
+            $subcategoriasIds = $categoriaAlimentacao->subcategorias->pluck('id');
+            // Buscar IDs das contas dessas subcategorias
+            $contasIds = \App\Models\Conta::whereIn('subcategoria_id', $subcategoriasIds)->pluck('id');
+            // Média dos últimos 3 meses
+            $mediaUltimos3 = ContaPagar::where('status', 'pago')
+                ->whereIn('conta_id', $contasIds)
+                ->whereBetween('data_pagamento', [
+                    Carbon::parse($inicio)->copy()->subMonths(3)->startOfMonth(),
+                    Carbon::parse($inicio)->copy()->subMonths(1)->endOfMonth()
+                ])
+                ->sum('valor') / 3;
+            // Gasto atual
+            $gastoAtual = ContaPagar::where('status', 'pago')
+                ->whereIn('conta_id', $contasIds)
+                ->whereBetween('data_pagamento', [$inicio, $fim])
+                ->sum('valor');
+            if ($mediaUltimos3 > 0 && $gastoAtual > $mediaUltimos3 * 1.2) {
+                $percentualAcima = round((($gastoAtual - $mediaUltimos3) / $mediaUltimos3) * 100, 1);
+                $alertasFinanceiros[] = [
+                    'tipo' => 'alerta',
+                    'mensagem' => "Gastos acima do normal em Alimentação: {$percentualAcima}% acima da média dos últimos 3 meses.",
+                ];
+            }
+        }
+
+        // 2) Meta de economia atingida
+        $categoriaEconomia = \App\Models\Categoria::where('nome', 'Economia')->first();
+        if ($categoriaEconomia) {
+            $subcategoriasIds = $categoriaEconomia->subcategorias->pluck('id');
+            $contasIds = \App\Models\Conta::whereIn('subcategoria_id', $subcategoriasIds)->pluck('id');
+            // Orçado: soma de contas fixas dessa categoria
+            $orcadoEconomia = \App\Models\ContaFixaPagar::whereIn('conta_id', $contasIds)
+                ->where(function ($q) use ($inicio, $fim) {
+                    $q->whereNull('data_fim')
+                        ->orWhere('data_fim', '>=', $inicio->format('Y-m-d'));
+                })
+                ->where('data_inicial', '<=', $fim->format('Y-m-d'))
+                ->where('ativo', true)
+                ->sum('valor');
+            // Realizado: soma de contas pagas dessa categoria
+            $realizadoEconomia = ContaPagar::where('status', 'pago')
+                ->whereIn('conta_id', $contasIds)
+                ->whereBetween('data_pagamento', [$inicio, $fim])
+                ->sum('valor');
+            if ($orcadoEconomia > 0 && $realizadoEconomia >= $orcadoEconomia) {
+                $alertasFinanceiros[] = [
+                    'tipo' => 'sucesso',
+                    'mensagem' => 'Meta de economia atingida! 🎉',
+                ];
+            } elseif ($orcadoEconomia > 0) {
+                $falta = $orcadoEconomia - $realizadoEconomia;
+                $alertasFinanceiros[] = [
+                    'tipo' => 'info',
+                    'mensagem' => 'Faltam R$ ' . number_format($falta, 2, ',', '.') . ' para atingir a meta de economia.',
+                ];
+            }
+        }
+
         return view('dashboard-financeiro.index', [
+            // ...existente...
             'dadosCentros' => $dadosCentros,
             'labels' => $labels,
             'recebido' => $recebido,
@@ -289,6 +397,18 @@ class DashboardFinanceiroController extends Controller
             'atrasado' => $atrasado,
             'pago' => $pago,
             'saldoSituacao' => $saldoSituacao,
+            // Novos indicadores
+            'percentualRendaComprometida' => $percentualRendaComprometida,
+            'ticketMedioDespesas' => $ticketMedioDespesas,
+            'custoFixo' => $custoFixo,
+            'custoVariavel' => $custoVariavel,
+            'percentualFixo' => $percentualFixo,
+            'percentualVariavel' => $percentualVariavel,
+            'orcado' => $orcado,
+            'realizadoMeta' => $realizado,
+            'diferencaMeta' => $diferencaMeta,
+            'percentualMeta' => $percentualMeta,
+            'alertasFinanceiros' => $alertasFinanceiros,
         ]);
     }
 }

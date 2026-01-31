@@ -94,6 +94,7 @@
                 </a>
             </div>
 
+
             {{-- ================= GRÁFICO ================= --}}
             <div class="bg-white shadow rounded-xl p-6 mb-10">
                 <div class="flex items-center justify-between mb-4">
@@ -129,25 +130,9 @@
                 </div>
             </div>
 
-            {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-                @foreach($dadosCentros as $centro => $dados)
-                <div class="bg-white shadow rounded-xl p-6 flex flex-col items-center">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
-                        Gastos por Categoria<br><span class="text-xs text-gray-500">{{ $centro }}</span>
-                    </h3>
-                    <div class="w-full flex-1 flex items-center justify-center">
-                        <canvas id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220"></canvas>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-
                 <div class="bg-white shadow rounded-xl p-6 relative">
-
                     {{-- HEADER --}}
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -158,7 +143,6 @@
                             </svg>
                             Saldo em Bancos
                         </h3>
-
                         {{-- BOTAO MOSTRAR / OCULTAR --}}
                         <button type="button"
                             onclick="toggleValoresBancos()"
@@ -173,7 +157,6 @@
                             </svg>
                         </button>
                     </div>
-
                     {{-- TOTAL (Apenas Contas Correntes) --}}
                     <div class="mb-4 pb-4 border-b">
                         <span class="text-xs text-gray-500 uppercase">Saldo Total (Contas Correntes)</span>
@@ -184,7 +167,6 @@
                             R$ •••••
                         </p>
                     </div>
-
                     {{-- LISTA DE CONTAS AGRUPADAS POR TIPO --}}
                     <div class="space-y-4">
                         @foreach($contasAgrupadasPorTipo as $tipo => $contas)
@@ -196,37 +178,31 @@
                                     {{ $tipo === 'corrente' ? 'Conta Corrente' : ($tipo === 'poupanca' ? 'Poupança' : ucfirst($tipo)) }}
                                 </span>
                             </div>
-
                             {{-- CONTAS DESTE TIPO --}}
                             <div class="space-y-2">
                                 @foreach($contas as $conta)
                                 <div class="flex items-center justify-between rounded-lg px-4 py-3 
                                     {{ $tipo === 'corrente' ? 'bg-blue-50' : ($tipo === 'poupanca' ? 'bg-green-50' : 'bg-purple-50') }}">
-
                                     <div class="flex items-center gap-3">
                                         {{-- LOGO (opcional) --}}
                                         @if($conta->logo)
                                         <img src="{{ asset('images/bancos/'.$conta->logo) }}"
                                             class="h-6 w-6 object-contain">
                                         @endif
-
                                         <span class="text-sm font-medium text-gray-700">
                                             {{ $conta->nome }}
                                         </span>
                                     </div>
-
                                     {{-- VALOR --}}
                                     <div class="text-right">
                                         <span class="font-semibold valor-banco hidden
                                             {{ $conta->saldo < 0 ? 'text-red-600' : 'text-emerald-600' }}">
                                             R$ {{ number_format($conta->saldo, 2, ',', '.') }}
                                         </span>
-
                                         <span class="font-semibold text-gray-400 valor-banco-masked">
                                             R$ •••••
                                         </span>
                                     </div>
-
                                 </div>
                                 @endforeach
                             </div>
@@ -234,49 +210,24 @@
                         @endforeach
                     </div>
                 </div>
-
-
                 {{-- RESUMO FINANCEIRO --}}
-
                 <div class="bg-white shadow rounded-xl p-6 relative">
-
                     {{-- HEADER --}}
                     <div class="mb-4">
                         <h3 class="text-sm font-semibold text-gray-700">
                             📊 Resumo Financeiro
                         </h3>
                     </div>
-
                     {{-- FILTRO RÁPIDO DE PERÍODO --}}
-                    <div x-data="{
-                        filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}',
-                        mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }},
-                        aplicarFiltro(tipo) {
-                            this.filtroRapido = tipo;
-                            if (tipo !== 'custom') {
-                                this.mostrarCustom = false;
-                                // Remover campos de data antes de submeter
-                                const form = this.$refs.formFiltro;
-                                const inputInicio = form.querySelector('input[name=inicio]');
-                                const inputFim = form.querySelector('input[name=fim]');
-                                if (inputInicio) inputInicio.disabled = true;
-                                if (inputFim) inputFim.disabled = true;
-                                setTimeout(() => form.submit(), 10);
-                            } else {
-                                this.mostrarCustom = true;
-                            }
-                        }
-                    }" class="mb-6">
+                    <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }" class="mb-6">
                         <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
                             @if($empresaId)
                             <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
                             @endif
                             <input type="hidden" name="ano" value="{{ $ano }}">
                             <input type="hidden" name="filtro_rapido" :value="filtroRapido">
-
                             <div class="flex flex-wrap items-center gap-2 text-sm">
                                 <span class="text-gray-500 font-medium">Filtrar por:</span>
-
                                 {{-- Botões de filtro rápido --}}
                                 <button type="button"
                                     @click="aplicarFiltro('dia')"
@@ -284,35 +235,30 @@
                                     class="px-3 py-1.5 rounded-md text-xs font-medium transition">
                                     Dia
                                 </button>
-
                                 <button type="button"
                                     @click="aplicarFiltro('semana')"
                                     :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="px-3 py-1.5 rounded-md text-xs font-medium transition">
                                     Semana
                                 </button>
-
                                 <button type="button"
                                     @click="aplicarFiltro('mes')"
                                     :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="px-3 py-1.5 rounded-md text-xs font-medium transition">
                                     Mês
                                 </button>
-
                                 <button type="button"
                                     @click="aplicarFiltro('ano')"
                                     :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="px-3 py-1.5 rounded-md text-xs font-medium transition">
                                     Ano
                                 </button>
-
                                 <button type="button"
                                     @click="aplicarFiltro('proximo_mes')"
                                     :class="filtroRapido === 'proximo_mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                                     class="px-3 py-1.5 rounded-md text-xs font-medium transition">
                                     Próximo Mês
                                 </button>
-
                                 <button type="button"
                                     @click="aplicarFiltro('custom')"
                                     :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
@@ -320,34 +266,28 @@
                                     Outro período
                                 </button>
                             </div>
-
                             {{-- Campos de data personalizados --}}
                             <div x-show="mostrarCustom" x-transition class="flex items-center gap-2 mt-3">
                                 <input type="date"
                                     name="inicio"
                                     value="{{ $inicio->format('Y-m-d') }}"
                                     class="rounded-md border-gray-300 text-sm">
-
                                 <span class="text-gray-400">até</span>
-
                                 <input type="date"
                                     name="fim"
                                     value="{{ $fim->format('Y-m-d') }}"
                                     class="rounded-md border-gray-300 text-sm">
-
                                 <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">
                                     Aplicar
                                 </button>
                             </div>
                         </form>
                     </div>
-
                     {{-- ================= REALIZADO ================= --}}
                     <div class="mb-6">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
                             Realizado
                         </span>
-
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Receita</span>
@@ -355,14 +295,12 @@
                                     R$ {{ number_format($receitaRealizada, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">Despesa</span>
                                 <p class="font-bold text-red-600">
                                     R$ {{ number_format($despesaRealizada, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">Saldo</span>
                                 <p class="font-bold text-blue-600">
@@ -371,13 +309,11 @@
                             </div>
                         </div>
                     </div>
-
                     {{-- ================= PREVISTO ================= --}}
                     <div class="mb-6 border-t pt-4">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
                             Previsto
                         </span>
-
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">A Receber</span>
@@ -385,14 +321,12 @@
                                     R$ {{ number_format($aReceber, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">A Pagar</span>
                                 <p class="font-bold text-red-600">
                                     R$ {{ number_format($aPagar, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">Saldo</span>
                                 <p class="font-bold text-blue-600">
@@ -401,13 +335,11 @@
                             </div>
                         </div>
                     </div>
-
                     {{-- ================= SITUAÇÃO ================= --}}
                     <div class="border-t pt-4">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
                             Situação
                         </span>
-
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Atrasado</span>
@@ -415,14 +347,12 @@
                                     R$ {{ number_format($atrasado, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">Pago</span>
                                 <p class="font-bold text-green-600">
                                     R$ {{ number_format($pago, 2, ',', '.') }}
                                 </p>
                             </div>
-
                             <div>
                                 <span class="text-xs text-gray-500">Diferença</span>
                                 <p class="font-bold text-blue-600">
@@ -431,10 +361,96 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
+            </div>
 
+            {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+                @foreach($dadosCentros as $centro => $dados)
+                <div class="bg-white shadow rounded-xl p-6 flex flex-col items-center">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
+                        Gastos por Categoria<br><span class="text-xs text-gray-500">{{ $centro }}</span>
+                    </h3>
+                    <div class="w-full flex-1 flex items-center justify-center">
+                        <canvas id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220"></canvas>
+                    </div>
+                </div>
+                @endforeach
+            </div>
 
+            {{-- ================= NOVOS CARDS: INDICADORES E ALERTAS ================= --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                {{-- CARD 1: INDICADORES INTELIGENTES --}}
+                <div class="bg-white shadow rounded-xl p-6 flex flex-col gap-6">
+                    <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
+                        Indicadores Inteligentes
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- % da renda comprometida --}}
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-gray-500">% da renda comprometida</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl font-bold">{{ $percentualRendaComprometida }}%</span>
+                                @php
+                                    $cor = $percentualRendaComprometida <= 60 ? 'bg-emerald-500' : ($percentualRendaComprometida <= 80 ? 'bg-yellow-400' : 'bg-red-500');
+                                @endphp
+                                <span class="px-2 py-1 rounded text-xs text-white {{ $cor }}">
+                                    {{ $percentualRendaComprometida <= 60 ? 'Saudável' : ($percentualRendaComprometida <= 80 ? 'Atenção' : 'Alerta') }}
+                                </span>
+                            </div>
+                        </div>
+                        {{-- Ticket médio de despesas --}}
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-gray-500">Ticket médio de despesas</span>
+                            <span class="text-2xl font-bold text-blue-700">R$ {{ number_format($ticketMedioDespesas, 2, ',', '.') }}</span>
+                        </div>
+                        {{-- Custo fixo x variável --}}
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-gray-500">Custo Fixo</span>
+                            <span class="font-bold text-indigo-600">R$ {{ number_format($custoFixo, 2, ',', '.') }} <span class="text-xs text-gray-400">({{ $percentualFixo }}%)</span></span>
+                            <span class="text-xs text-gray-500 mt-1">Custo Variável</span>
+                            <span class="font-bold text-pink-600">R$ {{ number_format($custoVariavel, 2, ',', '.') }} <span class="text-xs text-gray-400">({{ $percentualVariavel }}%)</span></span>
+                        </div>
+                        {{-- Meta mensal (Orçado x Realizado) --}}
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-gray-500">Meta mensal (Orçado x Realizado)</span>
+                            <div class="w-full bg-gray-200 rounded-full h-4 mb-1">
+                                <div class="h-4 rounded-full {{ $percentualMeta >= 100 ? 'bg-emerald-500' : 'bg-indigo-500' }}" style="width: {{ min($percentualMeta, 100) }}%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-600">
+                                <span>Orçado: <b>R$ {{ number_format($orcado, 2, ',', '.') }}</b></span>
+                                <span>Realizado: <b>R$ {{ number_format($realizadoMeta, 2, ',', '.') }}</b></span>
+                                <span>Dif: <b>R$ {{ number_format($diferencaMeta, 2, ',', '.') }}</b></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- CARD 2: ALERTAS E INSIGHTS AUTOMÁTICOS --}}
+                <div class="bg-white shadow rounded-xl p-6 flex flex-col gap-4">
+                    <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
+                        Alertas e Insights Automáticos
+                    </h3>
+                    @if(count($alertasFinanceiros) === 0)
+                        <div class="text-gray-400 text-sm">Nenhum alerta ou insight para o período selecionado.</div>
+                    @else
+                        <ul class="space-y-2">
+                            @foreach($alertasFinanceiros as $alerta)
+                                <li>
+                                    @if($alerta['tipo'] === 'alerta')
+                                        <span class="inline-block px-2 py-1 bg-red-500 text-white rounded text-xs font-bold mr-2">Alerta</span>
+                                    @elseif($alerta['tipo'] === 'sucesso')
+                                        <span class="inline-block px-2 py-1 bg-emerald-500 text-white rounded text-xs font-bold mr-2">Sucesso</span>
+                                    @else
+                                        <span class="inline-block px-2 py-1 bg-blue-500 text-white rounded text-xs font-bold mr-2">Info</span>
+                                    @endif
+                                    <span class="text-gray-700">{!! $alerta['mensagem'] !!}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
             </div>
 
 
