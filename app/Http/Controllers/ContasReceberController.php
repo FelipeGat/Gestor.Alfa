@@ -15,6 +15,21 @@ class ContasReceberController extends Controller
 {
     public function index(Request $request)
     {
+        // ================= PREPARAÇÃO DA QUERY BASE =================
+        $query = Cobranca::with([
+            'cliente:id,nome,nome_fantasia',
+            'anexos',
+            'orcamento.empresa:id,nome_fantasia',
+            'contaFixa.empresa:id,nome_fantasia'
+        ])
+            ->select('cobrancas.*')
+            ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id')
+            ->where('cobrancas.status', '!=', 'pago');
+
+        // Filtro por Cliente (autocomplete)
+        if ($request->filled('cliente_id')) {
+            $query->where('cobrancas.cliente_id', $request->input('cliente_id'));
+        }
         /** @var User $user */
         $user = Auth::user();
 

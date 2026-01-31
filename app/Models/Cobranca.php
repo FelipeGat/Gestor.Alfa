@@ -10,6 +10,23 @@ class Cobranca extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Accessor para empresa relacionada via Conta Fixa ou Orçamento
+     */
+    public function getEmpresaRelacionadaAttribute()
+    {
+        // Se houver orçamento, prioriza empresa do orçamento
+        if ($this->orcamento && $this->orcamento->empresa) {
+            return $this->orcamento->empresa;
+        }
+        // Se for receita fixa, retorna empresa da conta fixa
+        if ($this->contaFixa && $this->contaFixa->empresa) {
+            return $this->contaFixa->empresa;
+        }
+        return null;
+    }
+    use SoftDeletes;
+
     protected $fillable = [
         'orcamento_id',
         'cliente_id',

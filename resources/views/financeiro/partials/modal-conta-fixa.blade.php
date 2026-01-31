@@ -9,6 +9,7 @@
     form: {
         empresa_id: '',
         cliente_id: '',
+        cliente_nome: '',
         categoria: 'Contratos',
         valor: '',
         conta_financeira_id: '',
@@ -20,6 +21,24 @@
         data_atualizacao_percentual: '',
         observacao: '',
         ativo: true
+    },
+    mostrarSugestoesCliente: false,
+    sugestoesClientes: [],
+    filtrarClientes() {
+        if (!this.form.cliente_nome || this.form.cliente_nome.length < 2) {
+            this.sugestoesClientes = [];
+            return;
+        }
+        const filtro = this.form.cliente_nome.toLowerCase();
+        this.sugestoesClientes = this.clientes.filter(c => {
+            const nome = c.nome || c.nome_fantasia || c.razao_social || '';
+            return nome.toLowerCase().includes(filtro);
+        });
+    },
+    selecionarCliente(cliente) {
+        this.form.cliente_id = cliente.id;
+        this.form.cliente_nome = cliente.nome || cliente.nome_fantasia || cliente.razao_social;
+        this.mostrarSugestoesCliente = false;
     },
     
     async buscarEmpresas() {
@@ -198,14 +217,27 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Cliente <span class="text-red-500">*</span>
                             </label>
-                            <select x-model="form.cliente_id"
-                                required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="">Selecione...</option>
-                                <template x-for="cliente in clientes" :key="cliente.id">
-                                    <option :value="cliente.id" x-text="cliente.nome || cliente.nome_fantasia || cliente.razao_social"></option>
-                                </template>
-                            </select>
+                            <div class="relative">
+                                <input type="text"
+                                    x-ref="inputCliente"
+                                    x-model="form.cliente_nome"
+                                    @input="filtrarClientes()"
+                                    @focus="mostrarSugestoesCliente = true; filtrarClientes()"
+                                    @blur="setTimeout(() => mostrarSugestoesCliente = false, 150)"
+                                    placeholder="Digite para buscar..."
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    autocomplete="off"
+                                    required
+                                >
+                                <input type="hidden" x-model="form.cliente_id">
+                                <div x-show="mostrarSugestoesCliente && sugestoesClientes.length > 0" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto">
+                                    <template x-for="cliente in sugestoesClientes" :key="cliente.id">
+                                        <div class="px-3 py-2 cursor-pointer hover:bg-purple-50 text-sm" @mousedown.prevent="selecionarCliente(cliente)">
+                                            <span x-text="cliente.nome || cliente.nome_fantasia || cliente.razao_social"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Categoria --}}

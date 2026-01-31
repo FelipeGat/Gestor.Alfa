@@ -99,9 +99,66 @@
                     {{-- Busca --}}
                     <div class="filter-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Cliente ou descrição..."
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <div class="relative">
+                            <input type="text" name="search" id="busca-cliente" value="{{ request('search') }}"
+                                placeholder="Cliente ou descrição..."
+                                autocomplete="off"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
+                            <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
+                        </div>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // Busca cliente dentro do campo Buscar
+                            const inputBusca = document.getElementById('busca-cliente');
+                            const lista = document.getElementById('autocomplete-cliente');
+                            const inputHidden = document.getElementById('busca-cliente-id');
+                            let clientes = [];
+
+                            clientes = [
+                                @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get() as $cliente)
+                                { id: {{ $cliente->id }}, nome: @json($cliente->nome_fantasia ?? $cliente->nome ?? $cliente->razao_social) },
+                                @endforeach
+                            ];
+
+                            function renderLista(filtro = '') {
+                                lista.innerHTML = '';
+                                if (!filtro || filtro.length < 2) {
+                                    lista.classList.add('hidden');
+                                    return;
+                                }
+                                const filtrados = clientes.filter(c => c.nome && c.nome.toLowerCase().includes(filtro.toLowerCase()));
+                                if (filtrados.length === 0) {
+                                    lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum cliente encontrado</span>';
+                                    lista.classList.remove('hidden');
+                                    return;
+                                }
+                                filtrados.forEach(c => {
+                                    const div = document.createElement('div');
+                                    div.className = 'px-3 py-2 cursor-pointer hover:bg-emerald-50 text-sm';
+                                    div.textContent = c.nome;
+                                    div.onclick = () => {
+                                        inputHidden.value = c.id;
+                                        inputBusca.value = c.nome;
+                                        lista.classList.add('hidden');
+                                        setTimeout(() => { inputBusca.form.submit(); }, 100);
+                                    };
+                                    lista.appendChild(div);
+                                });
+                                lista.classList.remove('hidden');
+                            }
+
+                            inputBusca.addEventListener('input', e => {
+                                renderLista(e.target.value);
+                                // Limpa cliente_id se o texto não corresponder a nenhum cliente
+                                if (!clientes.some(c => c.nome && c.nome.toLowerCase() === e.target.value.toLowerCase())) {
+                                    inputHidden.value = '';
+                                }
+                            });
+                            inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+                            inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+                        });
+                        </script>
                     </div>
 
                     {{-- Empresa --}}
@@ -309,7 +366,7 @@
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
                                 </td>
                                 <td data-label="Empresa">
-                                    {{ $cobranca->orcamento?->empresa?->nome_fantasia ?? '—' }}
+                                    {{ $cobranca->orcamento?->empresa?->nome_fantasia ?? $cobranca->empresa_relacionada?->nome_fantasia ?? '—' }}
                                 </td>
                                 <td data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
