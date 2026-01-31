@@ -48,18 +48,19 @@ class ContasPagarController extends Controller
             });
         }
 
-        // Filtro de Período
-        $vencimentoInicio = $request->input('vencimento_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $vencimentoFim = $request->input('vencimento_fim', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        // Filtro de Período (sempre obrigatório nos filtros)
+        $vencimentoInicio = $request->input('vencimento_inicio') ?? Carbon::now()->startOfMonth()->format('Y-m-d');
+        $vencimentoFim = $request->input('vencimento_fim') ?? Carbon::now()->endOfMonth()->format('Y-m-d');
 
-        if ($vencimentoInicio) {
-            $query->where('data_vencimento', '>=', $vencimentoInicio);
-        }
-        if ($vencimentoFim) {
-            $query->where('data_vencimento', '<=', $vencimentoFim);
-        }
+        // Sempre aplicar filtro de período, mesmo se outros filtros estiverem ativos
+        $query->where('data_vencimento', '>=', $vencimentoInicio)
+            ->where('data_vencimento', '<=', $vencimentoFim);
 
         // Filtro por Centro de Custo
+        // Filtro por Conta
+        if ($request->filled('conta_id')) {
+            $query->where('conta_id', $request->input('conta_id'));
+        }
         if ($request->filled('centro_custo_id')) {
             $query->where('centro_custo_id', $request->input('centro_custo_id'));
         }
