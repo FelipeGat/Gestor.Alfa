@@ -392,7 +392,10 @@ class ContasReceberController extends Controller
 
             $contasPagarQuery->where(function ($q) use ($search) {
                 $q->where('descricao', 'like', $search)
-                    ->orWhereHas('fornecedor', fn($sq) => $sq->where('nome', 'like', $search))
+                    ->orWhereHas('fornecedor', function ($sq) use ($search) {
+                        $sq->where('razao_social', 'like', $search)
+                            ->orWhere('nome_fantasia', 'like', $search);
+                    })
                     ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $search));
             });
         }

@@ -309,6 +309,7 @@ class ContasPagarController extends Controller
             'fornecedor_id'       => 'nullable|exists:fornecedores,id',
             'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
+            'orcamento_id'        => 'nullable|exists:orcamentos,id',
         ]);
 
         ContaPagar::create([
@@ -321,6 +322,7 @@ class ContasPagarController extends Controller
             'fornecedor_id'       => $request->fornecedor_id,
             'forma_pagamento'     => $request->forma_pagamento,
             'conta_financeira_id' => $request->conta_financeira_id,
+            'orcamento_id'        => $request->orcamento_id,
             'status'              => 'em_aberto',
             'tipo'                => 'avulsa',
         ]);
@@ -341,7 +343,7 @@ class ContasPagarController extends Controller
             403
         );
 
-        $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor']);
+        $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento']);
 
         return response()->json($conta);
     }

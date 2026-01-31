@@ -31,7 +31,12 @@ class ContaPagar extends Model
         'data_pagamento',
         'forma_pagamento',
         'observacoes',
+        'orcamento_id',
     ];
+    public function orcamento()
+    {
+        return $this->belongsTo(Orcamento::class);
+    }
 
     protected $casts = [
         'data_vencimento' => 'date',

@@ -1,5 +1,35 @@
 {{-- MODAL: NOVA CONTA A PAGAR --}}
 <div x-data="{ 
+            clienteBusca: '',
+            mostrarListaClientes: false,
+            clientesFiltrados: [],
+            buscarClientes() {
+                if (!Array.isArray(this.clientes)) {
+                    this.clientesFiltrados = [];
+                    return;
+                }
+                if (!this.clienteBusca) {
+                    this.clientesFiltrados = this.clientes;
+                    return;
+                }
+                const busca = this.clienteBusca.toLowerCase();
+                this.clientesFiltrados = this.clientes.filter(c => (c.nome_fantasia ? c.nome_fantasia.toLowerCase() : '').includes(busca));
+            },
+        async carregarOrcamentos() {
+            if (!this.clienteId) {
+                this.orcamentos = [];
+                this.orcamentoId = '';
+                return;
+            }
+            try {
+                const r = await fetch(`/api/orcamentos-por-cliente/${this.clienteId}`);
+                if (!r.ok) throw new Error('Erro ao carregar orçamentos');
+                this.orcamentos = await r.json();
+            } catch (err) {
+                alert('Erro ao carregar orçamentos');
+                this.orcamentos = [];
+            }
+        },
     open: false,
     editando: false,
     contaId: null,
@@ -8,31 +38,32 @@
     contas: [],
     categoriaId: '',
     subcategoriaId: '',
+    // Orçamento
+    vincularOrcamento: '',
+    clienteId: '',
+    clientes: @js(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get(['id','nome_fantasia'])),
+    orcamentos: [],
+    orcamentoId: '',
     
     async carregarConta(id) {
         try {
             const response = await fetch(`/financeiro/contas-a-pagar/${id}`);
             if (!response.ok) throw new Error('Erro ao carregar conta');
             const data = await response.json();
-            
-            console.log('Dados recebidos:', data);
-            
+
             // Carregar selects em cascata primeiro
             if (data.conta?.subcategoria?.categoria_id) {
                 this.categoriaId = data.conta.subcategoria.categoria_id;
                 await this.loadSubcategorias();
-                
                 if (data.conta?.subcategoria_id) {
                     this.subcategoriaId = data.conta.subcategoria_id;
                     await this.loadContas();
                 }
             }
-            
-            // Aguardar renderização completa
+
+            // Preencher campos normais
             await this.$nextTick();
-            await this.$nextTick(); // Duplo nextTick para garantir
-            
-            // Preencher TODOS os campos após selects carregarem
+            await this.$nextTick();
             const campos = {
                 fornecedor_id: data.fornecedor_id,
                 centro_custo_id: data.centro_custo_id,
@@ -44,17 +75,27 @@
                 forma_pagamento: data.forma_pagamento,
                 conta_financeira_id: data.conta_financeira_id
             };
-            
-            console.log('Preenchendo campos:', campos);
-            
             for (const [name, value] of Object.entries(campos)) {
                 const field = document.querySelector(`[name=${name}]`);
                 if (field && value !== null && value !== undefined) {
                     field.value = value;
-                    console.log(`Campo ${name} preenchido com:`, value);
                 }
             }
-            
+
+            // Preencher vínculo orçamento/cliente
+            if (data.orcamento_id && data.orcamento) {
+                this.vincularOrcamento = 'sim';
+                this.clienteId = data.orcamento.cliente_id;
+                this.clienteBusca = data.orcamento.cliente?.nome_fantasia || '';
+                await this.carregarOrcamentos();
+                this.orcamentoId = data.orcamento_id;
+            } else {
+                this.vincularOrcamento = '';
+                this.clienteId = '';
+                this.clienteBusca = '';
+                this.orcamentoId = '';
+            }
+
             this.editando = true;
             this.contaId = id;
             this.open = true;
@@ -298,6 +339,43 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <!-- Vinculação a Orçamento/Serviço -->
+                        <div class="md:col-span-2 mt-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Conta vinculada a serviço/orçamento?</label>
+                            <select x-model="vincularOrcamento" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                <option value="">Não</option>
+                                <option value="sim">Sim</option>
+                            </select>
+                        </div>
+
+                        <!-- Seleção de Cliente e Orçamento -->
+                        <template x-if="vincularOrcamento === 'sim'">
+                            <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                                    <input type="text" x-model="clienteBusca" @input="buscarClientes()" @focus="mostrarListaClientes = true" placeholder="Buscar cliente..." class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 mb-2">
+                                    <div x-show="mostrarListaClientes && clientesFiltrados.length > 0" class="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1 bg-white z-10 absolute">
+                                        <template x-for="cliente in clientesFiltrados" :key="cliente.id">
+                                            <label class="flex items-center gap-2 cursor-pointer hover:bg-orange-50 rounded px-2 py-1">
+                                                <input type="radio" name="cliente_radio_pagar" :value="cliente.id" @change="clienteId = cliente.id; clienteBusca = cliente.nome_fantasia; mostrarListaClientes = false; carregarOrcamentos();">
+                                                <span class="text-sm" x-text="cliente.nome_fantasia"></span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                    <input type="hidden" name="cliente_id" :value="clienteId">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Orçamento</label>
+                                    <select name="orcamento_id" x-model="orcamentoId" :disabled="!clienteId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        <option value="">Selecione...</option>
+                                        <template x-for="orc in orcamentos" :key="orc.id">
+                                            <option :value="orc.id" x-text="`#${orc.numero_orcamento} - ${orc.descricao} [${orc.status}] R$ ${orc.valor_total}`"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                        </template>
 
                         {{-- Observações --}}
                         <div class="md:col-span-2">

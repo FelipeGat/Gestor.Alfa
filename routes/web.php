@@ -51,6 +51,7 @@ Route::middleware(['auth'])->prefix('api')->group(function () {
     Route::get('/empresas', [EmpresaController::class, 'apiList']);
     Route::get('/clientes', [ClienteController::class, 'apiList']);
     Route::get('/contas-financeiras/{empresa_id}', [ContasFinanceirasController::class, 'apiListByEmpresa']);
+    Route::get('/orcamentos-por-cliente/{cliente_id}', [\App\Http\Controllers\Api\FinanceiroOrcamentoController::class, 'orcamentosPorCliente']);
 });
 
 /*
