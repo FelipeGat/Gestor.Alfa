@@ -135,6 +135,7 @@ class ContasPagarController extends Controller
         $categorias = \App\Models\Categoria::orderBy('nome')->get();
         $subcategorias = \App\Models\Subcategoria::orderBy('nome')->get();
 
+        $contasFiltro = \App\Models\Conta::orderBy('nome')->get();
         return view('financeiro.contasapagar', compact(
             'contas',
             'kpis',
@@ -145,7 +146,8 @@ class ContasPagarController extends Controller
             'vencimentoFim',
             'centrosCusto',
             'categorias',
-            'subcategorias'
+            'subcategorias',
+            'contasFiltro'
         ));
     }
 

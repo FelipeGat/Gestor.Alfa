@@ -212,6 +212,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             @endforeach
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contas</label>
+                        <select name="conta_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($contasFiltro as $conta)
+                            <option value="{{ $conta->id }}" {{ request('conta_id') == $conta->id ? 'selected' : '' }}>
+                                {{ $conta->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
                                         
                     <div class="filter-group lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
