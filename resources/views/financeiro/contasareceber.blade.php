@@ -274,6 +274,11 @@
                             <span>Contrato</span>
                             <span class="count">{{ $contadoresTipo['contrato'] }}</span>
                         </a>
+                        <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('nota_fiscal'), ['nota_fiscal' => 1])) }}"
+                            class="quick-filter-btn {{ request('nota_fiscal') == '1' ? 'active' : '' }}">
+                            <span>Nota Fiscal</span>
+                            <span class="count">{{ $contadoresNotaFiscal ?? 0 }}</span>
+                        </a>
                     </div>
 
                     {{-- Grupo de Botões (Direita) --}}

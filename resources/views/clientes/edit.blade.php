@@ -532,10 +532,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cliente</label>
                             <select name="tipo_cliente"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
-                                <option value="CONTRATO" @selected(old('tipo_cliente', $cliente->
-                                    tipo_cliente)=='CONTRATO')>Contrato</option>
-                                <option value="AVULSO" @selected(old('tipo_cliente', $cliente->
-                                    tipo_cliente)=='AVULSO')>Avulso</option>
+                                <option value="CONTRATO" @selected(old('tipo_cliente', $cliente->tipo_cliente)=='CONTRATO')>Contrato</option>
+                                <option value="AVULSO" @selected(old('tipo_cliente', $cliente->tipo_cliente)=='AVULSO')>Avulso</option>
                             </select>
                         </div>
 
@@ -551,9 +549,15 @@
                             <select name="dia_vencimento"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
                                 <option value="">Selecione</option>
-                                @for($i=1;$i<=28;$i++) <option value="{{ $i }}" @selected(old('dia_vencimento',
-                                    $cliente->dia_vencimento)==$i)>Dia {{ $i }}</option>
+                                @for($i=1;$i<=28;$i++) <option value="{{ $i }}" @selected(old('dia_vencimento', $cliente->dia_vencimento)==$i)>Dia {{ $i }}</option>
                                     @endfor
+                            </select>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cliente Com Nota Fiscal?</label>
+                            <select name="nota_fiscal" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                <option value="0" @selected(old('nota_fiscal', $cliente->nota_fiscal)==0)>Não</option>
+                                <option value="1" @selected(old('nota_fiscal', $cliente->nota_fiscal)==1)>Sim</option>
                             </select>
                         </div>
                     </div>

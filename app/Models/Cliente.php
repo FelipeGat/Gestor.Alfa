@@ -43,6 +43,7 @@ class Cliente extends Model
         'cpf_cnpj',
         'razao_social',
         'tipo_cliente',
+        'nota_fiscal',
         'data_cadastro',
         'cep',
         'logradouro',
@@ -58,6 +59,7 @@ class Cliente extends Model
 
     protected $casts = [
         'ativo'          => 'boolean',
+        'nota_fiscal'    => 'boolean',
         'valor_mensal'   => 'decimal:2',
         'dia_vencimento' => 'integer',
     ];

@@ -68,6 +68,13 @@ class ContasReceberController extends Controller
             $query->where('cobrancas.tipo', $request->input('tipo'));
         }
 
+        // Filtro por Nota Fiscal
+        if ($request->filled('nota_fiscal')) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('nota_fiscal', 1);
+            });
+        }
+
         // Filtro por Empresa
         if ($request->filled('empresa_id')) {
             $query->whereHas('orcamento', function ($q) use ($request) {
@@ -128,6 +135,13 @@ class ContasReceberController extends Controller
             'contrato'  => (clone $queryParaContadores)->where('tipo', 'contrato')->count(),
         ];
 
+        // Contador de Nota Fiscal
+        $contadoresNotaFiscal = (clone $queryParaContadores)
+            ->whereHas('cliente', function ($q) {
+                $q->where('nota_fiscal', 1);
+            })
+            ->count();
+
         // ================= PAGINAÇÃO =================
         $cobrancas = $query
             ->orderBy('data_vencimento', 'asc')
@@ -147,6 +161,7 @@ class ContasReceberController extends Controller
             'totalGeralFiltrado',
             'contadoresStatus',
             'contadoresTipo',
+            'contadoresNotaFiscal',
             'vencimentoInicio',
             'vencimentoFim',
             'empresas'

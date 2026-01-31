@@ -76,6 +76,11 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
+        // Validação extra: impedir cadastro duplicado após busca Receita
+        $cpfCnpjLimpo = preg_replace('/\D/', '', $request->cpf_cnpj);
+        if (Cliente::where('cpf_cnpj', $cpfCnpjLimpo)->exists()) {
+            return back()->withErrors(['cpf_cnpj' => 'Este CPF/CNPJ já está cadastrado no sistema.'])->withInput();
+        }
 
         /** @var User $user */
         $user = Auth::user();
@@ -101,6 +106,9 @@ class ClienteController extends Controller
                 'tipo_cliente'  => 'required|in:CONTRATO,AVULSO',
                 'data_cadastro' => 'required|date',
 
+                'valor_mensal'   => 'required_if:tipo_cliente,CONTRATO|nullable|numeric|min:0.01',
+                'dia_vencimento' => 'required_if:tipo_cliente,CONTRATO|nullable|integer|min:1|max:28',
+
                 'cep'           => 'nullable|string|max:20',
                 'logradouro'    => 'nullable|string|max:255',
                 'numero'        => 'nullable|string|max:20',
@@ -111,9 +119,6 @@ class ClienteController extends Controller
 
                 'inscricao_estadual'   => 'nullable|string|max:50',
                 'inscricao_municipal' => 'nullable|string|max:50',
-
-                'valor_mensal'   => 'nullable|numeric|min:0',
-                'dia_vencimento' => 'nullable|integer|min:1|max:28',
 
                 'emails'      => 'required|array|min:1',
                 'emails.*'    => 'required|email',
@@ -126,6 +131,8 @@ class ClienteController extends Controller
             [
                 'cpf_cnpj.unique' => 'Este CPF/CNPJ já está cadastrado no sistema.',
                 'cpf_cnpj.required' => 'Informe o CPF ou CNPJ.',
+                'valor_mensal.required_if' => 'Informe o valor mensal para clientes do tipo CONTRATO.',
+                'dia_vencimento.required_if' => 'Informe o dia de vencimento para clientes do tipo CONTRATO.',
             ]
         );
 
@@ -139,6 +146,7 @@ class ClienteController extends Controller
             'tipo_pessoa'    => $request->tipo_pessoa,
             'cpf_cnpj'       => preg_replace('/\D/', '', $request->cpf_cnpj),
             'tipo_cliente'   => $request->tipo_cliente,
+            'nota_fiscal'    => $request->nota_fiscal ?? false,
             'data_cadastro'  => $request->data_cadastro,
             'cep'            => $request->cep,
             'logradouro'     => $request->logradouro,
@@ -164,10 +172,12 @@ class ClienteController extends Controller
 
         if ($request->filled('telefones')) {
             foreach ($request->telefones as $i => $telefone) {
-                $cliente->telefones()->create([
-                    'valor'     => $telefone,
-                    'principal' => ($request->telefone_principal == $i),
-                ]);
+                if (trim($telefone) !== '') {
+                    $cliente->telefones()->create([
+                        'valor'     => $telefone,
+                        'principal' => ($request->telefone_principal == $i),
+                    ]);
+                }
             }
         }
 
@@ -221,28 +231,31 @@ class ClienteController extends Controller
             'Acesso não autorizado'
         );
 
+        $cpfCnpjNormalizado = preg_replace('/\D/', '', $request->cpf_cnpj);
+        $request->merge(['cpf_cnpj' => $cpfCnpjNormalizado]);
+
         $request->validate(
             [
                 'nome' => 'required|string|max:255',
-
                 'cpf_cnpj' => [
                     'required',
                     'string',
-                    Rule::unique('clientes', 'cpf_cnpj')->ignore($cliente->id),
+                    function ($attribute, $value, $fail) use ($cliente) {
+                        $existe = \App\Models\Cliente::where('cpf_cnpj', $value)
+                            ->whereNull('deleted_at')
+                            ->where('id', '!=', $cliente->id)
+                            ->exists();
+                        if ($existe) {
+                            $fail('Este CPF/CNPJ já está cadastrado em outro cliente.');
+                        }
+                    },
                 ],
-
                 'tipo_pessoa' => 'required|in:PF,PJ',
                 'razao_social' => 'nullable|required_if:tipo_pessoa,PJ|string|max:255',
-
-
                 'valor_mensal'   => 'nullable|numeric|min:0',
                 'dia_vencimento' => 'nullable|integer|min:1|max:28',
-
                 'emails'   => 'required|array|min:1',
                 'emails.*' => 'required|email',
-            ],
-            [
-                'cpf_cnpj.unique' => 'Este CPF/CNPJ já está cadastrado em outro cliente.',
             ]
         );
 
@@ -265,6 +278,7 @@ class ClienteController extends Controller
             'inscricao_estadual'  => $request->inscricao_estadual,
             'inscricao_municipal' => $request->inscricao_municipal,
             'observacoes'    => $request->observacoes,
+            'nota_fiscal'    => $request->nota_fiscal ?? false,
         ]);
 
 
@@ -290,29 +304,8 @@ class ClienteController extends Controller
         // Responsáveis do Portal (vínculo usuário / cliente)
         if ($request->has('usuarios_portal')) {
             $cliente->users()->sync($request->usuarios_portal);
-        } else {
-            // Se desmarcar todos, remove todos os acessos ao portal
-            $cliente->users()->detach();
         }
 
-        return redirect()->route('clientes.index')
-            ->with('success', 'Cliente atualizado com sucesso!');
-    }
-
-
-    public function destroy(Cliente $cliente)
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        abort_if(
-            !$user->isAdminPanel() &&
-                !$user->canPermissao('clientes', 'excluir'),
-            403,
-            'Acesso não autorizado'
-        );
-
-        $cliente->delete();
 
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente excluído com sucesso!');

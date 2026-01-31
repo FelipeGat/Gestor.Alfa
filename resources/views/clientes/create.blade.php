@@ -488,21 +488,29 @@
                             </select>
                         </div>
 
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor Mensal</label>
-                            <input type="number" step="0.01" name="valor_mensal" placeholder="0,00"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                        </div>
 
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dia de Vencimento</label>
-                            <select name="dia_vencimento"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
-                                <option value="">Selecione</option>
-                                @for($i=1;$i<=28;$i++) <option value="{{ $i }}">Dia {{ $i }}</option>
-                                    @endfor
-                            </select>
-                        </div>
+                            <div class="col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Valor Mensal</label>
+                                <input type="number" step="0.01" name="valor_mensal" placeholder="0,00"
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            </div>
+
+                            <div class="col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dia de Vencimento</label>
+                                <select name="dia_vencimento"
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
+                                    <option value="">Selecione</option>
+                                    @for($i=1;$i<=28;$i++) <option value="{{ $i }}">Dia {{ $i }}</option>
+                                        @endfor
+                                </select>
+                            </div>
+                            <div class="col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cliente Com Nota Fiscal?</label>
+                                <select name="nota_fiscal" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                    <option value="0">Não</option>
+                                    <option value="1">Sim</option>
+                                </select>
+                            </div>
                     </div>
                 </div>
 
