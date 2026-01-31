@@ -1,21 +1,27 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 use App\Models\Cobranca;
 use App\Models\Empresa;
+use App\Models\ContaFinanceira;
+use App\Models\ContaPagar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\ContaFinanceira;
 
 class DashboardFinanceiroController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Exibe o dashboard financeiro com KPIs e gráficos.
+     */
+    public function index(Request $request): \Illuminate\View\View
     {
         $empresaId = $request->get('empresa_id');
         $ano = $request->get('ano', now()->year);
 
+        // Base para consultas de cobranças
         $baseQuery = Cobranca::query()
             ->whereYear('data_vencimento', $ano);
 
@@ -27,9 +33,7 @@ class DashboardFinanceiroController extends Controller
             );
         }
 
-        /**
-         * DADOS AGRUPADOS DO BANCO
-         */
+        // DADOS AGRUPADOS DO BANCO
         $recebidoPorMes = (clone $baseQuery)
             ->where('status', 'pago')
             ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
@@ -45,14 +49,14 @@ class DashboardFinanceiroController extends Controller
             ->toArray();
 
         // DESPESAS POR MÊS
-        $despesaPagaPorMes = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+        $despesaPagaPorMes = ContaPagar::whereYear('data_vencimento', $ano)
             ->where('status', 'pago')
             ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
             ->groupBy('mes')
             ->pluck('total', 'mes')
             ->toArray();
 
-        $despesaPrevistaPorMes = \App\Models\ContaPagar::whereYear('data_vencimento', $ano)
+        $despesaPrevistaPorMes = ContaPagar::whereYear('data_vencimento', $ano)
             ->where('status', 'em_aberto')
             ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
             ->groupBy('mes')
@@ -76,7 +80,7 @@ class DashboardFinanceiroController extends Controller
             $despesaPrevista[] = $despesaPrevistaPorMes[$mes] ?? 0;
         }
 
-        // Criar collection para o gráfico
+        // Criar collection para o gráfico mensal
         $financeiroMensal = collect();
         for ($mes = 1; $mes <= 12; $mes++) {
             $financeiroMensal->push([
@@ -88,18 +92,14 @@ class DashboardFinanceiroController extends Controller
             ]);
         }
 
-        /**
-         * KPIs
-         */
+        // KPIs
         $totalRecebido = (clone $baseQuery)->where('status', 'pago')->sum('valor');
         $totalPrevisto = (clone $baseQuery)->where('status', '!=', 'pago')->sum('valor');
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
-        /**
-         * SALDOS DAS CONTAS BANCÁRIAS
-         */
-        $contasFinanceiras = \App\Models\ContaFinanceira::query()
+        // SALDOS DAS CONTAS BANCÁRIAS
+        $contasFinanceiras = ContaFinanceira::query()
             ->when($empresaId, function ($q) use ($empresaId) {
                 $q->where('empresa_id', $empresaId);
             })
@@ -115,7 +115,7 @@ class DashboardFinanceiroController extends Controller
             ->where('tipo', 'corrente')
             ->sum('saldo');
 
-        // Processar filtro rápido
+        // Processar filtro rápido (período)
         $filtroRapido = $request->get('filtro_rapido', 'mes');
 
         switch ($filtroRapido) {
@@ -153,10 +153,7 @@ class DashboardFinanceiroController extends Controller
                 $fim = now()->endOfMonth();
         }
 
-        /**
-         * RECEITA / DESPESA REALIZADA
-         * Usar data_pagamento para filtrar
-         */
+        // RECEITA / DESPESA REALIZADA (usa data_pagamento)
         $receitaRealizada = Cobranca::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
@@ -171,7 +168,7 @@ class DashboardFinanceiroController extends Controller
             )
             ->sum('valor');
 
-        $despesaRealizada = \App\Models\ContaPagar::where('status', 'pago')
+        $despesaRealizada = ContaPagar::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->sum('valor');
@@ -195,7 +192,7 @@ class DashboardFinanceiroController extends Controller
             )
             ->sum('valor');
 
-        $aPagar = \App\Models\ContaPagar::where('status', 'em_aberto')
+        $aPagar = ContaPagar::where('status', 'em_aberto')
             ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
             ->sum('valor');
@@ -236,7 +233,37 @@ class DashboardFinanceiroController extends Controller
 
         $saldoSituacao = $pago - $atrasado;
 
+        // Gráficos de Gastos por Categoria (TOP 5 por centro de custo)
+        $centros = [
+            'Geral' => 1,
+            'Delta' => 2,
+            'GW'    => 3,
+            'Invest' => 4,
+        ];
+
+        $dadosCentros = [];
+        foreach ($centros as $nome => $centroId) {
+            $categorias = ContaPagar::query()
+                ->selectRaw('categorias.nome as categoria_nome, SUM(contas_pagar.valor) as total')
+                ->join('contas', 'contas.id', '=', 'contas_pagar.conta_id')
+                ->join('subcategorias', 'subcategorias.id', '=', 'contas.subcategoria_id')
+                ->join('categorias', 'categorias.id', '=', 'subcategorias.categoria_id')
+                ->where('contas_pagar.centro_custo_id', $centroId)
+                ->where('contas_pagar.status', 'pago')
+                ->whereBetween('contas_pagar.data_pagamento', [$inicio, $fim])
+                ->groupBy('categorias.nome')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get();
+
+            $dadosCentros[$nome] = [
+                'labels' => $categorias->pluck('categoria_nome')->toArray(),
+                'data'   => $categorias->pluck('total')->map(fn($v) => (float) $v)->toArray(),
+            ];
+        }
+
         return view('dashboard-financeiro.index', [
+            'dadosCentros' => $dadosCentros,
             'labels' => $labels,
             'recebido' => $recebido,
             'previsto' => $previsto,

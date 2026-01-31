@@ -129,6 +129,20 @@
                 </div>
             </div>
 
+            {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+                @foreach($dadosCentros as $centro => $dados)
+                <div class="bg-white shadow rounded-xl p-6 flex flex-col items-center">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
+                        Gastos por Categoria<br><span class="text-xs text-gray-500">{{ $centro }}</span>
+                    </h3>
+                    <div class="w-full flex-1 flex items-center justify-center">
+                        <canvas id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220"></canvas>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
 
@@ -439,6 +453,51 @@
 
     {{-- ================= SCRIPTS ================= --}}
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Gráficos de pizza por centro de custo
+                const dadosCentros = @json($dadosCentros);
+                const cores = [
+                    '#2563eb', '#f59e42', '#10b981', '#f43f5e', '#a21caf',
+                    '#eab308', '#0ea5e9', '#f472b6', '#64748b', '#22d3ee'
+                ];
+                Object.entries(dadosCentros).forEach(([centro, dados], idx) => {
+                    const ctx = document.getElementById('grafico-categoria-' + centro.toLowerCase().replace(/ /g, '-'));
+                    if (!ctx) return;
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: dados.labels,
+                            datasets: [{
+                                data: dados.data,
+                                backgroundColor: cores.slice(0, dados.labels.length),
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { size: 13 }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw || 0;
+                                            return label + ': R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
