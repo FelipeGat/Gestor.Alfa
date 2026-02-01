@@ -202,7 +202,7 @@ class ContasReceberController extends Controller
             // Atualizar a cobrança atual com o valor pago
             $cobranca->update([
                 'status' => 'pago',
-                'pago_em' => now(),
+                'pago_em' => $request->data_pagamento,
                 'data_pagamento' => $request->data_pagamento,
                 'valor' => $valorPago, // Atualiza o valor para o que foi efetivamente pago
                 'juros_multa' => $jurosMulta,
@@ -349,6 +349,12 @@ class ContasReceberController extends Controller
             'Acesso não autorizado'
         );
 
+        // ================= DADOS PARA FILTROS =================
+        $centrosCusto = \App\Models\CentroCusto::where('ativo', true)->orderBy('nome')->get();
+        $categorias = \App\Models\Categoria::where('ativo', true)->orderBy('nome')->get();
+        $subcategorias = \App\Models\Subcategoria::where('ativo', true)->orderBy('nome')->get();
+        $contasFiltro = \App\Models\Conta::where('ativo', true)->orderBy('nome')->get();
+
         // ================= BUSCAR COBRANÇAS (ENTRADAS) =================
         $cobrancasQuery = Cobranca::with([
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
@@ -437,7 +443,11 @@ class ContasReceberController extends Controller
         return view('financeiro.movimentacao', compact(
             'movimentacoes',
             'totalEntradas',
-            'totalSaidas'
+            'totalSaidas',
+            'centrosCusto',
+            'categorias',
+            'subcategorias',
+            'contasFiltro'
         ));
     }
 

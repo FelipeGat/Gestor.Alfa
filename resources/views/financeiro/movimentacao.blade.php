@@ -98,27 +98,178 @@
             </div>
 
             {{-- ================= FILTROS ================= --}}
+            {{-- FILTROS PADRÃO (igual contas a pagar) --}}
             <form method="GET" action="{{ route('financeiro.movimentacao') }}" class="filters-card">
-                <div class="filters-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                    <div class="filter-group relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                        <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
+                            placeholder="Descrição, centro de custo, cliente ou fornecedor..."
+                            autocomplete="off"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <input type="hidden" name="fornecedor_id" id="busca-fornecedor-id" value="{{ request('fornecedor_id') }}">
+                        <div id="autocomplete-fornecedor" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
+                    </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Busca fornecedor dentro do campo Buscar
+    const inputBusca = document.getElementById('busca-geral');
+    const lista = document.getElementById('autocomplete-fornecedor');
+    const inputHidden = document.getElementById('busca-fornecedor-id');
+    let fornecedores = [];
+
+    fornecedores = [
+        @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
+        { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social) },
+        @endforeach
+    ];
+
+    function renderLista(filtro = '') {
+        lista.innerHTML = '';
+        if (!filtro || filtro.length < 2) {
+            lista.classList.add('hidden');
+            return;
+        }
+        const filtrados = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
+        if (filtrados.length === 0) {
+            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum fornecedor encontrado</span>';
+            lista.classList.remove('hidden');
+            return;
+        }
+        filtrados.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm';
+            div.textContent = f.nome;
+            div.onclick = () => {
+                inputHidden.value = f.id;
+                inputBusca.value = f.nome;
+                lista.classList.add('hidden');
+                setTimeout(() => { inputBusca.form.submit(); }, 100);
+            };
+            lista.appendChild(div);
+        });
+        lista.classList.remove('hidden');
+    }
+
+    inputBusca.addEventListener('input', e => {
+        renderLista(e.target.value);
+        // Limpa fornecedor_id se o texto não corresponder a nenhum fornecedor
+        if (!fornecedores.some(f => f.nome.toLowerCase() === e.target.value.toLowerCase())) {
+            inputHidden.value = '';
+        }
+    });
+    inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+    inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+});
+</script>
+
                     <div class="filter-group">
-                        <label>Buscar por Cliente ou Descrição</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ex: Invest, Manutenção...">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Custo</label>
+                        <select name="centro_custo_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todos</option>
+                            @foreach($centrosCusto as $centro)
+                            <option value="{{ $centro->id }}" {{ request('centro_custo_id') == $centro->id ? 'selected' : '' }}>
+                                {{ $centro->nome }} ({{ $centro->tipo }})
+                            </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="filter-group">
-                        <label>Data Pagamento (Início)</label>
-                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Categorias</label>
+                        <select name="categoria_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($categorias as $categoria)
+                            <option value="{{ $categoria->id }}" {{ request('categoria_id') == $categoria->id ? 'selected' : '' }}>
+                                {{ $categoria->nome }}
+                            </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="filter-group">
-                        <label>Data Pagamento (Fim)</label>
-                        <input type="date" name="data_fim" value="{{ request('data_fim') }}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SubCategorias</label>
+                        <select name="subcategoria_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($subcategorias as $subcategoria)
+                            <option value="{{ $subcategoria->id }}" {{ request('subcategoria_id') == $subcategoria->id ? 'selected' : '' }}>
+                                {{ $subcategoria->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contas</label>
+                        <select name="conta_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todas</option>
+                            @foreach($contasFiltro as $conta)
+                            <option value="{{ $conta->id }}" {{ request('conta_id') == $conta->id ? 'selected' : '' }}>
+                                {{ $conta->nome }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-group lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
+                        <div class="flex items-center gap-2">
+                            @php
+                            $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                            $mesAnterior = $dataAtual->copy()->subMonth();
+                            $proximoMes = $dataAtual->copy()->addMonth();
+                            $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                            @endphp
+
+                            <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'data_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+
+                            <div class="flex-1 text-center font-bold text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
+                                {{ $mesAtualNome }}
+                            </div>
+
+                            <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'data_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="filters-actions">
-                    <button class="btn btn-primary">Filtrar</button>
-                    <a href="{{ route('financeiro.movimentacao') }}" class="btn btn-secondary">Limpar</a>
+                <details class="mt-4">
+                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                        🗓️ Período Personalizado
+                    </summary>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+                            <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+                            <input type="date" name="data_fim" value="{{ request('data_fim') }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                    </div>
+                </details>
+
+                <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between mt-6">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <a href="{{ route('financeiro.movimentacao') }}" class="btn btn-secondary">Limpar</a>
+                    </div>
                 </div>
             </form>
 
