@@ -33,14 +33,15 @@ class RelatorioCustosOrcamentosController extends Controller
         $orcamentoId = $request->input('orcamento_id');
         $clienteId = $request->input('cliente_id');
 
-        // Carregar orçamentos filtrados por cliente e status
+        // Carregar orçamentos filtrados por cliente e status (inclui CONCLUIDO)
+        $statusOrcamentos = ['APROVADO', 'EM_ANDAMENTO', 'CONCLUIDO'];
         if ($clienteId) {
             $orcamentos = Orcamento::where('cliente_id', $clienteId)
-                ->whereIn('status', ['APROVADO', 'EM_ANDAMENTO'])
+                ->whereIn('status', $statusOrcamentos)
                 ->orderByDesc('created_at')
                 ->get();
         } else {
-            $orcamentos = Orcamento::whereIn('status', ['APROVADO', 'EM_ANDAMENTO'])
+            $orcamentos = Orcamento::whereIn('status', $statusOrcamentos)
                 ->orderByDesc('created_at')
                 ->get();
         }
@@ -61,19 +62,57 @@ class RelatorioCustosOrcamentosController extends Controller
             ];
 
             // 2) Custos Operacionais
-            $custosQuery = ContaPagar::with(['fornecedor', 'centroCusto'])
-                ->where('orcamento_id', $orcamentoId);
+            $custosQuery = ContaPagar::with([
+                'fornecedor',
+                'centroCusto.subcategoria',
+                'conta.subcategoria',
+                'conta.subcategoria.categoria',
+            ])->where('orcamento_id', $orcamentoId);
+            $custosQuery = ContaPagar::with([
+                'conta.subcategoria',
+                'conta.subcategoria.categoria',
+            ])->where('orcamento_id', $orcamentoId);
             $custos = $custosQuery->get();
             $totalCustos = $custos->sum('valor');
             $custosPorTipo = [
                 'FIXO' => $custos->where('tipo', 'FIXO')->sum('valor'),
                 'VARIAVEL' => $custos->where('tipo', 'VARIAVEL')->sum('valor'),
             ];
-            $custosPorCategoria = $custos->groupBy('centroCusto.categoria_id')->map(function ($items, $catId) {
+            // Agrupamento para drilldown: categoria > subcategoria > conta (usando Conta -> Subcategoria -> Categoria)
+            $custosPorCategoria = $custos->filter(function ($item) {
+                return $item->conta && $item->conta->subcategoria && $item->conta->subcategoria->categoria;
+            })->groupBy(function ($item) {
+                return $item->conta->subcategoria->categoria->id;
+            })->map(function ($items, $catId) {
+                $categoria = optional($items->first()->conta->subcategoria->categoria);
+                // Subcategorias
+                $subcategorias = $items->groupBy(function ($item) {
+                    return $item->conta->subcategoria->id;
+                })->map(function ($subItems, $subId) {
+                    $subcategoria = optional($subItems->first()->conta->subcategoria);
+                    // Contas
+                    $contas = $subItems->groupBy(function ($item) {
+                        return $item->conta_id;
+                    })->map(function ($contaItems, $contaId) {
+                        $conta = optional($contaItems->first()->conta);
+                        return [
+                            'conta_id' => $contaId,
+                            'conta_nome' => $conta->nome ?? '—',
+                            'valor' => $contaItems->sum('valor'),
+                        ];
+                    })->values();
+                    return [
+                        'subcategoria_id' => $subId,
+                        'subcategoria_nome' => $subcategoria->nome ?? '—',
+                        'valor' => $subItems->sum('valor'),
+                        'contas' => $contas,
+                    ];
+                })->values();
                 return [
                     'categoria_id' => $catId,
-                    'categoria_nome' => optional($items->first()->centroCusto?->categoria)->nome ?? '—',
+                    'categoria_nome' => $categoria->nome ?? '—',
                     'valor' => $items->sum('valor'),
+                    'subcategorias' => $subcategorias,
                 ];
             })->values();
             $qtdLancamentos = $custos->count();

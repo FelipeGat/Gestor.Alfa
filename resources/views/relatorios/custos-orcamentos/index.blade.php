@@ -149,10 +149,11 @@
                     <div class="bg-white shadow rounded-xl p-6">
                         <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                             <div class="w-2 h-6 bg-orange-500 rounded-full"></div>
-                            <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Custos por Categoria</h3>
+                            <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider" id="titulo-custos-categoria">Custos por Categoria</h3>
                         </div>
-                        <div class="h-[300px] flex justify-center">
+                        <div class="h-[300px] flex flex-col items-center justify-center">
                             <canvas id="graficoCustosCategoria"></canvas>
+                            <button id="btn-voltar-drilldown" class="mt-4 px-4 py-1 bg-gray-200 text-gray-700 rounded font-semibold text-xs hidden">Voltar</button>
                         </div>
                     </div>
                 </div>
@@ -236,6 +237,7 @@
                 {{-- SCRIPTS DOS GRÁFICOS --}}
                 @push('scripts')
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
                 <script>
                     Chart.defaults.font.family = "'Inter', 'ui-sans-serif', 'system-ui'";
                     Chart.defaults.color = '#64748b';
@@ -288,35 +290,99 @@
                         }
                     });
 
-                    // Gráfico Custos por Categoria
-                    const ctxCategoria = document.getElementById('graficoCustosCategoria').getContext('2d');
-                    new Chart(ctxCategoria, {
-                        type: 'doughnut',
-                        data: {
-                            labels: {!! json_encode($custosPorCategoria->pluck('categoria_nome')) !!},
-                            datasets: [{
-                                data: {!! json_encode($custosPorCategoria->pluck('valor')) !!},
-                                backgroundColor: ['#6366f1','#f59e42','#10b981','#ef4444','#fbbf24','#a78bfa','#2dd4bf','#f43f5e'],
-                                borderWidth: 2,
-                                borderColor: '#fff'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            cutout: '70%',
-                            plugins: {
-                                legend: {
-                                    position: 'right',
-                                    labels: {
-                                        usePointStyle: true,
-                                        padding: 20,
-                                        font: { size: 11, weight: '600' }
+                    // Drilldown de Custos por Categoria
+                    const custosPorCategoria = @json($custosPorCategoria);
+                    let nivelAtual = 'categoria';
+                    let categoriaSelecionada = null;
+                    let subcategoriaSelecionada = null;
+                    let chartCategoria = null;
+
+                    function renderGraficoCategoria(dados, titulo, nivel) {
+                        const ctx = document.getElementById('graficoCustosCategoria').getContext('2d');
+                        if (chartCategoria) chartCategoria.destroy();
+                        let labels = [];
+                        let valores = [];
+                        let cores = ['#6366f1','#f59e42','#10b981','#ef4444','#fbbf24','#a78bfa','#2dd4bf','#f43f5e'];
+                        if (nivel === 'categoria') {
+                            labels = dados.map(c => c.categoria_nome);
+                            valores = dados.map(c => c.valor);
+                        } else if (nivel === 'subcategoria') {
+                            labels = dados.map(s => s.subcategoria_nome);
+                            valores = dados.map(s => s.valor);
+                        } else if (nivel === 'conta') {
+                            labels = dados.map(c => c.conta_nome);
+                            valores = dados.map(c => c.valor);
+                        }
+                        chartCategoria = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: valores,
+                                    backgroundColor: cores,
+                                    borderWidth: 2,
+                                    borderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '70%',
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20,
+                                            font: { size: 11, weight: '600' }
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return ' R$ ' + context.parsed + '';
+                                            }
+                                        }
+                                    }
+                                },
+                                onClick: (e, elements) => {
+                                    if (elements.length > 0) {
+                                        const idx = elements[0].index;
+                                        if (nivel === 'categoria') {
+                                            categoriaSelecionada = dados[idx];
+                                            nivelAtual = 'subcategoria';
+                                            renderGraficoCategoria(categoriaSelecionada.subcategorias, 'Custos por Subcategoria', 'subcategoria');
+                                            document.getElementById('btn-voltar-drilldown').classList.remove('hidden');
+                                            document.getElementById('titulo-custos-categoria').innerText = 'Custos por Subcategoria';
+                                        } else if (nivel === 'subcategoria') {
+                                            subcategoriaSelecionada = dados[idx];
+                                            nivelAtual = 'conta';
+                                            renderGraficoCategoria(subcategoriaSelecionada.contas, 'Custos por Conta', 'conta');
+                                            document.getElementById('titulo-custos-categoria').innerText = 'Custos por Conta';
+                                        }
                                     }
                                 }
                             }
+                        });
+                    }
+
+                    // Botão voltar
+                    document.getElementById('btn-voltar-drilldown').addEventListener('click', function() {
+                        if (nivelAtual === 'conta') {
+                            renderGraficoCategoria(categoriaSelecionada.subcategorias, 'Custos por Subcategoria', 'subcategoria');
+                            nivelAtual = 'subcategoria';
+                            document.getElementById('titulo-custos-categoria').innerText = 'Custos por Subcategoria';
+                        } else if (nivelAtual === 'subcategoria') {
+                            renderGraficoCategoria(custosPorCategoria, 'Custos por Categoria', 'categoria');
+                            nivelAtual = 'categoria';
+                            document.getElementById('btn-voltar-drilldown').classList.add('hidden');
+                            document.getElementById('titulo-custos-categoria').innerText = 'Custos por Categoria';
                         }
                     });
+
+                    // Inicialização
+                    renderGraficoCategoria(custosPorCategoria, 'Custos por Categoria', 'categoria');
+
 
                     // Gráfico Orçado x Realizado
                     const ctxOrcado = document.getElementById('graficoOrcadoRealizado').getContext('2d');
