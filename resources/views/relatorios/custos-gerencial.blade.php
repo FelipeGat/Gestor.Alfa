@@ -177,27 +177,90 @@
 
             {{-- KPIs (Cards de Resumo) --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-blue-500">
+                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-blue-500 kpi-card" onclick="showKpiFormula('valorOrcado')" style="cursor:pointer">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 text-center">Valor Orçado</span>
                     <span class="text-2xl font-black text-gray-800">R$ {{ number_format($valorOrcado,2,',','.') }}</span>
                 </div>
-                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-red-500">
+                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-red-500 kpi-card" onclick="showKpiFormula('custoTotal')" style="cursor:pointer">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 text-center">Custo Total Real</span>
                     <span class="text-2xl font-black text-red-600">R$ {{ number_format($custoTotal,2,',','.') }}</span>
                 </div>
-                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-emerald-500">
+                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-emerald-500 kpi-card" onclick="showKpiFormula('receitaRecebida')" style="cursor:pointer">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 text-center">Receita Recebida</span>
                     <span class="text-2xl font-black text-emerald-600">R$ {{ number_format($receitaRecebida,2,',','.') }}</span>
                 </div>
-                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-amber-500">
+                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-amber-500 kpi-card" onclick="showKpiFormula('lucro')" style="cursor:pointer">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 text-center">Lucro / Prejuízo</span>
                     <span class="text-2xl font-black text-amber-700">R$ {{ number_format($lucro,2,',','.') }}</span>
                 </div>
-                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-purple-500">
+                <div class="section-card flex flex-col items-center justify-center p-6 border-l-4 border-l-purple-500 kpi-card" onclick="showKpiFormula('margem')" style="cursor:pointer">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 text-center">Margem (%)</span>
                     <span class="text-2xl font-black text-purple-700">{{ number_format($margem,2,',','.') }}%</span>
                 </div>
             </div>
+
+            <script>
+            function showKpiFormula(tipo) {
+                let title = '', formula = '', explicacao = '';
+                switch(tipo) {
+                    case 'valorOrcado':
+                        title = 'Valor Orçado';
+                        formula = 'Valor Orçado = Soma dos valores previstos no orçamento';
+                        explicacao = 'Este valor representa o total planejado para o serviço, conforme definido no orçamento.';
+                        break;
+                    case 'custoTotal':
+                        title = 'Custo Total Real';
+                        formula = 'Custo Total = Soma de todos os custos pagos vinculados ao orçamento';
+                        explicacao = 'É a soma de todos os pagamentos realizados para execução do serviço.';
+                        break;
+                    case 'receitaRecebida':
+                        title = 'Receita Recebida';
+                        formula = 'Receita Recebida = Soma de todas as cobranças pagas do orçamento';
+                        explicacao = 'Total efetivamente recebido do cliente para este orçamento.';
+                        break;
+                    case 'lucro':
+                        title = 'Lucro / Prejuízo';
+                        formula = 'Lucro = Receita Recebida - Custo Total';
+                        explicacao = 'Diferença entre o que foi recebido e o que foi gasto.';
+                        break;
+                    case 'margem':
+                        title = 'Margem (%)';
+                        formula = 'Margem = (Lucro / Valor Orçado) x 100';
+                        explicacao = 'Percentual do lucro em relação ao valor orçado.';
+                        break;
+                }
+                let valores = {
+                    valorOrcado: 'R$ {{ number_format($valorOrcado,2,',','.') }}',
+                    custoTotal: 'R$ {{ number_format($custoTotal,2,',','.') }}',
+                    receitaRecebida: 'R$ {{ number_format($receitaRecebida,2,',','.') }}',
+                    lucro: 'R$ {{ number_format($lucro,2,',','.') }}',
+                    margem: '{{ number_format($margem,2,',','.') }}%'
+                };
+                let detalhes = '';
+                if(tipo === 'lucro') {
+                    detalhes = `<b>Receita Recebida:</b> ${valores.receitaRecebida}<br><b>Custo Total:</b> ${valores.custoTotal}`;
+                } else if(tipo === 'margem') {
+                    detalhes = `<b>Lucro:</b> ${valores.lucro}<br><b>Valor Orçado:</b> ${valores.valorOrcado}`;
+                }
+                let html = `<div style='font-size:1.1em'><b>${title}</b><br><br><b>Fórmula:</b><br>${formula}<br><br>${explicacao}`;
+                if(detalhes) html += `<br><br><b>Valores usados:</b><br>${detalhes}`;
+                html += '</div>';
+                let modal = document.createElement('div');
+                modal.className = 'modal-card';
+                let content = document.createElement('div');
+                content.className = 'modal-card-content';
+                let closeBtn = document.createElement('button');
+                closeBtn.className = 'modal-card-close';
+                closeBtn.innerHTML = '&times;';
+                closeBtn.onclick = () => modal.remove();
+                content.appendChild(closeBtn);
+                let info = document.createElement('div');
+                info.innerHTML = html;
+                content.appendChild(info);
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+            }
+            </script>
 
             {{-- Alertas Automáticos --}}
             @if(count($alertas) > 0)
@@ -479,7 +542,12 @@
             let extra = document.createElement('div');
             extra.className = 'modal-extra-info';
             if(tipo === 'categoria') {
-                extra.innerHTML = `<b>Detalhamento por Categoria, Subcategoria e Conta:</b><br><br>` + document.getElementById('detalhamento-categoria-modal-html').innerHTML;
+                const detalhamento = document.getElementById('detalhamento-categoria-modal-html');
+                if (detalhamento) {
+                    extra.innerHTML = `<b>Detalhamento por Categoria, Subcategoria e Conta:</b><br><br>` + detalhamento.innerHTML;
+                } else {
+                    extra.innerHTML = `<b>Detalhamento por Categoria, Subcategoria e Conta:</b><br><br><i>Não há dados detalhados disponíveis para este orçamento.</i>`;
+                }
             } else if(tipo === 'ieo') {
                 extra.innerHTML = `<b>Eficiência Operacional (IEO):</b><br>
                 - Mede a eficiência do uso dos recursos ao longo do tempo.<br>

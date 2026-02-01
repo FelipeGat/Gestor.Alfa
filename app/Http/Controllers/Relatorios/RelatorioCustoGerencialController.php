@@ -142,7 +142,8 @@ class RelatorioCustoGerencialController extends Controller
         }
 
         // Custos por categoria (usar data_pagamento padronizado)
-        $categorias = Categoria::all();
+        // Carregar subcategorias e contas para cada categoria
+        $categorias = Categoria::with(['subcategorias.contas'])->get();
         // Montar custos por categoria usando relação indireta
         $custosPorCategoria = $categorias->mapWithKeys(function ($cat) use ($custos) {
             $valorReal = $custos->filter(function ($c) use ($cat) {
@@ -209,8 +210,17 @@ class RelatorioCustoGerencialController extends Controller
 
         // Alertas automáticos
         $alertas = [];
-        if ($custoTotal > ($custoMaximo * 0.7)) {
-            $alertas[] = '⚠️ Este orçamento já consumiu mais de 70% do custo permitido.';
+        // Alerta de consumo de custo só aparece se:
+        // 1. Orçamento não está concluído
+        // 2. Custo total > 70% do custo máximo permitido
+        // 3. IEO existe e é maior que 100
+        if (
+            $orcamento->status !== 'concluido'
+            && $custoTotal > ($custoMaximo * 0.7)
+            && $ieo !== null
+            && $ieo > 100
+        ) {
+            $alertas[] = '⚠️ Consumo de custo acima do esperado para o estágio atual do serviço.';
         }
         if ($burnRate > $burnRatePlanejado) {
             $alertas[] = '🔴 Custo diário atual está acima do planejado.';
@@ -254,6 +264,8 @@ class RelatorioCustoGerencialController extends Controller
             'ieoStatus' => $ieoStatus,
             'burnRate' => $burnRate,
             'burnRatePlanejado' => $burnRatePlanejado,
+            'custos' => $custos, // garantir que $custos está disponível na view
+            'categorias' => $categorias,
             'custosPorCategoria' => $custosPorCategoria,
             'orcadoXRealizado' => [
                 'Valor Orçado' => $valorOrcado,
