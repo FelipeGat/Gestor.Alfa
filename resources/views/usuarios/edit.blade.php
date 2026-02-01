@@ -48,7 +48,7 @@
                     <div>
                         <label class="text-sm font-medium text-gray-700">Tipo de Usuário</label>
                         <select name="tipo" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                            @foreach(['admin','administrativo','financeiro','comercial'] as $tipo)
+                            @foreach(['admin','administrativo','financeiro','comercial','cliente'] as $tipo)
                             <option value="{{ $tipo }}" @selected($usuario->tipo === $tipo)>
                                 {{ ucfirst($tipo) }}
                             </option>

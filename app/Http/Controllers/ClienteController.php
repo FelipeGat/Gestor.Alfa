@@ -193,6 +193,16 @@ class ClienteController extends Controller
             'primeiro_acesso' => true,
         ]);
 
+
+        // Vincular perfil 'cliente' ao usuário
+        $perfilCliente = \App\Models\Perfil::where('slug', 'cliente')->first();
+        if ($perfilCliente) {
+            $userCliente->perfis()->sync([$perfilCliente->id]);
+        }
+
+        // Vincular usuário ao cliente na tabela cliente_user
+        $userCliente->clientes()->syncWithoutDetaching([$cliente->id]);
+
         Mail::to($userCliente->email)->send(new PrimeiroAcessoMail($userCliente));
 
         return redirect()->route('clientes.index')
