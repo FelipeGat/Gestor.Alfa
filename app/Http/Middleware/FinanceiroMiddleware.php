@@ -17,7 +17,7 @@ class FinanceiroMiddleware
         }
 
         // Admin sempre pode
-        if ($user->tipo === 'admin') {
+        if ($user->tipo === 'admin' || $user->tipo === 'financeiro') {
             return $next($request);
         }
 

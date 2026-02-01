@@ -263,7 +263,7 @@
                 <div @click="abrirModal('finalizacao', 'Aguardando Finalização')"
                     class="bg-white shadow rounded-xl p-6 border-l-4 border-pink-500 cursor-pointer hover:shadow-xl hover:scale-105 transition-all">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Aguardando Finalização</h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1" id="ind-aguardando-finalizacao">{{ $indicadores['aguardando_finalizacao'] }}</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1" id="ind-aguardando-finalizacao">{{ $indicadores['aguardando_finalizacao'] ?? 0 }}</p>
                 </div>
 
                 <!-- Técnicos em Pausa -->

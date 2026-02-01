@@ -3,11 +3,12 @@
     @php
     $user = auth()->user();
 
+    // Papéis principais
     $isAdmin = $user->isAdminPanel();
-    $isComercial = $user->tipo === 'comercial';
+    $isFinanceiro = $user->perfis()->where('slug', 'financeiro')->exists();
+    $isComercial = $user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial';
     $isCliente = $user->tipo === 'cliente';
     $isFuncionario = $user->tipo === 'funcionario';
-    $isFinanceiro = $user->perfis()->where('slug', 'financeiro')->exists();
     @endphp
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

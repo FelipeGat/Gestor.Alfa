@@ -1,3 +1,17 @@
+@php
+    $user = auth()->user();
+    $isAdmin = $user && $user->isAdminPanel();
+    $isFinanceiro = $user && $user->perfis()->where('slug', 'financeiro')->exists();
+@endphp
+
+@if(!($isAdmin || $isFinanceiro))
+    <div class="max-w-2xl mx-auto mt-16 p-8 bg-white rounded shadow text-center">
+        <h2 class="text-2xl font-bold mb-4 text-red-600">Acesso negado</h2>
+        <p class="text-gray-700">Você não tem permissão para acessar o Dashboard Financeiro.</p>
+    </div>
+    @php return; @endphp
+@endif
+
 <x-app-layout>
     @push('styles')
     @vite('resources/css/dashboard/dashboard_comercial.css')

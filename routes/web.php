@@ -109,6 +109,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Dashboard FINANCEIRO
     Route::get('/financeiro/dashboard', [DashboardFinanceiroController::class, 'index'])
+        ->middleware('financeiro')
         ->name('financeiro.dashboard');
 
     // Dashboard TÉCNICO (Gestor)
