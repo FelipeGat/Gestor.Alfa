@@ -195,6 +195,22 @@
                 </button>
             </div>
         </div>
+</div>
+
+    {{-- ================= MOBILE USER MENU ================= --}}
+    <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
+        <div class="border-t border-gray-100 pt-4">
+            <x-responsive-nav-link :href="route('profile.edit')">
+                Editar Usuário
+            </x-responsive-nav-link>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-responsive-nav-link :href="route('logout')"
+                    onclick="event.preventDefault(); this.closest('form').submit();">
+                    Sair
+                </x-responsive-nav-link>
+            </form>
+        </div>
     </div>
 
     {{-- ================= MOBILE MENU (ANINHADO IGUAL AO DESKTOP) ================= --}}
