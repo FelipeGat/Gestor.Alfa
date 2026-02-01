@@ -23,9 +23,9 @@
             </div>
 
             {{-- BOTÃO VOLTAR --}}
-            <a href="{{ route('financeiro.dashboard') }}"
+            <a href="{{ route('relatorios.index') }}"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group print:hidden"
-                title="Voltar para Dashboard Financeiro">
+                title="Voltar para Relatórios">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
@@ -124,7 +124,7 @@
                         </div>
                         <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
                             <span class="block text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Duração</span>
-                            <span class="font-bold text-gray-700">{{ $dias }} dias</span>
+                            <span class="font-bold text-gray-700">{{ (int) $dias }} {{ $dias == 1 ? 'dia' : 'dias' }}</span>
                         </div>
                     </div>
                 </div>
@@ -182,10 +182,10 @@
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Saúde do Orçamento</h3>
                     </div>
                     <div class="h-[200px]">
-                        <x-line-chart :labels="array_keys($custoAcumuladoLinha)" :datasets="[
-                            ['label' => 'Custo Acumulado', 'data' => array_values($custoAcumuladoLinha), 'borderColor' => '#ef4444'],
-                            ['label' => 'Custo Máximo', 'data' => array_fill(0, count($custoAcumuladoLinha), $custoMaximo), 'borderColor' => '#3b82f6']
-                        ]" />
+                            <x-line-chart :labels="collect($custoAcumuladoLinha)->keys()->toArray()" :datasets="[
+                                ['label' => 'Custo Acumulado', 'data' => array_values($custoAcumuladoLinha), 'borderColor' => '#ef4444'],
+                                ['label' => 'Custo Máximo', 'data' => array_fill(0, count($custoAcumuladoLinha), $custoMaximo), 'borderColor' => '#3b82f6']
+                            ]" />
                     </div>
                     <div class="mt-4 pt-3 border-t border-gray-50 text-center">
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Margem mínima: {{ $margemMinima * 100 }}%</span>
@@ -199,12 +199,16 @@
                             <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Eficiência Operacional (IEO)</h3>
                         </div>
                         <div class="flex flex-col items-center py-4">
-                            <span class="text-5xl font-black {{ $ieoStatus == 'Alerta' ? 'text-red-600' : ($ieoStatus == 'Atenção' ? 'text-amber-600' : 'text-emerald-600') }}">
-                                {{ number_format($ieo,2,',','.') }}%
-                            </span>
-                            <span class="mt-2 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest {{ $ieoStatus == 'Alerta' ? 'bg-red-100 text-red-700' : ($ieoStatus == 'Atenção' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') }}">
-                                Status: {{ $ieoStatus }}
-                            </span>
+                            @if(is_null($ieo))
+                                <span class="text-base font-bold text-gray-400">IEO não disponível</span>
+                            @else
+                                <span class="text-5xl font-black {{ $ieoStatus == 'Alerta' ? 'text-red-600' : ($ieoStatus == 'Atenção' ? 'text-amber-600' : 'text-emerald-600') }}">
+                                    {{ number_format($ieo,2,',','.') }}%
+                                </span>
+                                <span class="mt-2 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest {{ $ieoStatus == 'Alerta' ? 'bg-red-100 text-red-700' : ($ieoStatus == 'Atenção' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') }}">
+                                    Status: {{ $ieoStatus }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                     <p class="text-[10px] text-gray-400 text-center italic">Baseado no tempo decorrido vs custo consumido</p>
@@ -226,7 +230,11 @@
                             </div>
                             <div class="flex justify-between items-end pt-2">
                                 <span class="text-xs font-bold text-gray-400 uppercase">Planejado</span>
-                                <span class="text-xl font-black text-gray-800">R$ {{ number_format($burnRatePlanejado,2,',','.') }} <small class="text-[10px] text-gray-400">/ dia</small></span>
+                                @if(is_null($burnRatePlanejado))
+                                    <span class="text-xs font-bold text-amber-600">Não disponível <span title="Necessário detalhamento de custos previstos">&#9432;</span></span>
+                                @else
+                                    <span class="text-xl font-black text-gray-800">R$ {{ number_format($burnRatePlanejado,2,',','.') }} <small class="text-[10px] text-gray-400">/ dia</small></span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -241,7 +249,9 @@
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Evolução no Tempo</h3>
                     </div>
                     <div class="h-[250px]">
-                        <x-line-chart :labels="array_keys($custoAcumuladoLinha)" :datasets="[['label' => 'Custo Acumulado', 'data' => array_values($custoAcumuladoLinha), 'borderColor' => '#ef4444']]" />
+                        <x-line-chart :labels="json_encode(array_keys($custoAcumuladoLinha))" :datasets="json_encode([
+                            ['label' => 'Custo Acumulado', 'data' => array_values($custoAcumuladoLinha), 'borderColor' => '#ef4444']
+                        ])" />
                     </div>
                 </div>
                 <div class="section-card">
@@ -250,7 +260,7 @@
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Por Categoria</h3>
                     </div>
                     <div class="h-[250px]">
-                        <x-pie-chart :labels="array_keys($custosPorCategoria->toArray())" :data="array_values($custosPorCategoria->toArray())" />
+                            <x-pie-chart :labels="$custosPorCategoria->keys()" :data="$custosPorCategoria->values()" />
                     </div>
                 </div>
                 <div class="section-card">
@@ -259,7 +269,7 @@
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Orçado x Realizado</h3>
                     </div>
                     <div class="h-[250px]">
-                        <x-bar-chart :labels="array_keys($orcadoXRealizado)" :data="array_values($orcadoXRealizado)" />
+                            <x-bar-chart :labels="array_keys($orcadoXRealizado)" :data="array_values($orcadoXRealizado)" />
                     </div>
                 </div>
             </div>
@@ -274,7 +284,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr class="bg-gray-50">
-                                <th class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Categoria</th>
+                                <th class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Conta</th>
                                 <th class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Planejado</th>
                                 <th class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Real</th>
                                 <th class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Desvio (%)</th>
@@ -353,7 +363,7 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ \Illuminate\Support\Carbon::parse($linha['data'])->format('d/m/Y') }}</td>
                                     <td class="px-4 py-3 text-sm font-bold text-gray-800">{{ $linha['fornecedor'] }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $linha['categoria'] }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $linha['conta'] }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ $linha['descricao'] }}</td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700">

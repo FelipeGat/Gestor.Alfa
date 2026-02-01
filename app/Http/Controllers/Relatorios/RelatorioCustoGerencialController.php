@@ -66,15 +66,19 @@ class RelatorioCustoGerencialController extends Controller
         // Buscar custos vinculados ao orçamento e período
         $inicio = $dataInicio ? Carbon::parse($dataInicio) : Carbon::parse($orcamento->data_inicio);
         $fim = $dataFim ? Carbon::parse($dataFim) : Carbon::parse($orcamento->data_fim);
-        $dias = $inicio->diffInDays($fim) + 1;
-        $custos = ContaPagar::where('orcamento_id', $orcamentoId)
-            ->whereBetween('data_pagamento', [$inicio, $fim])
+        // Correção 1: Duração correta (mínimo 1 dia)
+        $dias = max(1, $inicio->diffInDays($fim) + 1);
+
+        // CORREÇÃO: Trazer todos os custos vinculados ao orçamento, já carregando fornecedor e categoria
+        // Isso garante que os gráficos, desvios e tabelas tenham acesso aos dados relacionados
+        // Carregar fornecedor e relação indireta de categoria
+        $custos = ContaPagar::with(['fornecedor', 'conta.subcategoria.categoria'])
+            ->where('orcamento_id', $orcamentoId)
             ->get();
 
-        // Receita recebida (cobrancas pagas vinculadas ao orçamento)
+        // Correção 3: Receita recebida deve considerar TODAS as cobranças pagas do orçamento (sem filtro de data)
         $receitaRecebida = Cobranca::where('orcamento_id', $orcamentoId)
             ->whereNotNull('data_pagamento')
-            ->whereBetween('data_pagamento', [$inicio, $fim])
             ->where('status', 'pago')
             ->sum('valor');
 
@@ -83,11 +87,18 @@ class RelatorioCustoGerencialController extends Controller
         $lucro = $receitaRecebida - $custoTotal;
         $margem = $valorOrcado > 0 ? ($lucro / $valorOrcado) * 100 : 0;
 
-        // Curva de Saúde
+        // Curva de Saúde (usar data_pagamento padronizado)
         $margemMinima = 0.3;
         $custoMaximo = $valorOrcado * (1 - $margemMinima);
-        $custoAcumulado = $custos->sortBy('data')->groupBy('data')->map(function ($dia) {
-            return $dia->sum('valor');
+        // Gráficos: usar data_pagamento, mas se nulo usar created_at
+        $custoAcumulado = $custos->map(function ($c) {
+            $data = $c->data_pagamento ?? $c->created_at;
+            return [
+                'data' => $data ? $data->format('Y-m-d') : null,
+                'valor' => $c->valor
+            ];
+        })->filter(fn($c) => $c['data'])->groupBy('data')->map(function ($dia) {
+            return collect($dia)->sum('valor');
         });
         $custoAcumuladoLinha = [];
         $acumulado = 0;
@@ -95,27 +106,54 @@ class RelatorioCustoGerencialController extends Controller
             $acumulado += $valor;
             $custoAcumuladoLinha[$data] = $acumulado;
         }
+        // Garantir pelo menos um ponto no gráfico
+        if (empty($custoAcumuladoLinha)) {
+            $custoAcumuladoLinha[date('Y-m-d')] = 0;
+        }
 
-        // IEO
+        // Correção 5: IEO deve usar custo previsto, não valor de venda
         $hoje = Carbon::now();
-        $diasExecutados = $inicio->diffInDays($hoje) + 1;
-        $custoRealAteHoje = $custos->where('data', '<=', $hoje)->sum('valor');
-        $custoPlanejadoAteHoje = ($valorOrcado / $dias) * $diasExecutados;
-        $ieo = $custoPlanejadoAteHoje > 0 ? ($custoRealAteHoje / $custoPlanejadoAteHoje) * 100 : 0;
-        if ($ieo <= 100) $ieoStatus = 'Saudável';
-        elseif ($ieo <= 110) $ieoStatus = 'Atenção';
-        else $ieoStatus = 'Alerta';
+        $diasExecutados = max(1, $inicio->diffInDays($hoje) + 1);
+        // Buscar custo previsto total dos itens do orçamento
+        $itensOrcamento = $orcamento->itens()->with('item')->get();
+        $custoPrevistoTotal = $itensOrcamento->sum('subtotal');
+        // Custo real acumulado até hoje (usar data_pagamento)
+        $custoRealAteHoje = $custos->where('data_pagamento', '<=', $hoje)->sum('valor');
+        // Custo planejado até hoje
+        $custoPlanejadoAteHoje = $dias > 0 ? ($custoPrevistoTotal / $dias) * $diasExecutados : 0;
+        $ieo = ($custoPlanejadoAteHoje > 0) ? ($custoRealAteHoje / $custoPlanejadoAteHoje) * 100 : null;
+        if (is_null($ieo)) {
+            $ieoStatus = 'Indisponível';
+        } elseif ($ieo <= 100) {
+            $ieoStatus = 'Saudável';
+        } elseif ($ieo <= 110) {
+            $ieoStatus = 'Atenção';
+        } else {
+            $ieoStatus = 'Alerta';
+        }
 
-        // Burn Rate
-        $burnRate = $diasExecutados > 0 ? $custoTotal / $diasExecutados : 0;
-        $burnRatePlanejado = $dias > 0 ? $valorOrcado / $dias : 0;
+        // Burn Rate real (custo total / dias executados)
+        $burnRate = $diasExecutados > 0 ? $custoTotal / $diasExecutados : null;
+        // Correção 2: Burn Rate Planejado deve usar custo previsto
+        if ($custoPrevistoTotal > 0 && $dias > 0) {
+            $burnRatePlanejado = $custoPrevistoTotal / $dias;
+        } else {
+            $burnRatePlanejado = null; // Indisponível
+        }
 
-        // Custos por categoria
+        // Custos por categoria (usar data_pagamento padronizado)
         $categorias = Categoria::all();
+        // Montar custos por categoria usando relação indireta
         $custosPorCategoria = $categorias->mapWithKeys(function ($cat) use ($custos) {
-            $valorReal = $custos->where('categoria_id', $cat->id)->sum('valor');
+            $valorReal = $custos->filter(function ($c) use ($cat) {
+                return optional(optional(optional($c->conta)->subcategoria)->categoria)->id === $cat->id;
+            })->sum('valor');
             return [$cat->nome => $valorReal];
         });
+        // Garantir pelo menos uma categoria no gráfico
+        if ($custosPorCategoria->isEmpty()) {
+            $custosPorCategoria = collect(['Sem Categoria' => 0]);
+        }
 
         // Orçado x Realizado
         $orcadoXRealizado = [
@@ -123,15 +161,20 @@ class RelatorioCustoGerencialController extends Controller
             'Custo Total' => $custoTotal,
             'Receita Recebida' => $receitaRecebida,
         ];
+        // Garantir pelo menos um valor para gráfico de barras
+        if (empty($orcadoXRealizado)) {
+            $orcadoXRealizado = ['Sem Dados' => 0];
+        }
 
-        // Desvio por categoria
+        // Desvio por categoria (usar data_pagamento padronizado)
         $desvios = [];
-        $itensOrcamento = $orcamento->itens()->with('item')->get();
         foreach ($categorias as $cat) {
             $planejado = $itensOrcamento->filter(function ($item) use ($cat) {
                 return $item->item && $item->item->categoria_id == $cat->id;
             })->sum('subtotal');
-            $real = $custos->where('categoria_id', $cat->id)->sum('valor');
+            $real = $custos->filter(function ($c) use ($cat) {
+                return optional(optional(optional($c->conta)->subcategoria)->categoria)->id === $cat->id;
+            })->sum('valor');
             $percentual = $planejado > 0 ? (($real - $planejado) / $planejado) * 100 : 0;
             $desvios[] = [
                 'categoria' => $cat->nome,
@@ -144,12 +187,25 @@ class RelatorioCustoGerencialController extends Controller
 
         // Ranking de custos
         $topCustos = $custos->sortByDesc('valor')->take(5)->map(function ($c) {
+            $fornecedor = '';
+            if ($c->fornecedor) {
+                $fornecedor = $c->fornecedor->nome_fantasia ?? $c->fornecedor->razao_social ?? $c->fornecedor->nome ?? '';
+            }
             return [
-                'fornecedor' => $c->fornecedor->nome ?? '',
+                'fornecedor' => $fornecedor,
                 'tipo' => $c->tipo,
                 'valor' => $c->valor,
             ];
         });
+        if ($topCustos->isEmpty()) {
+            $topCustos = collect([
+                [
+                    'fornecedor' => 'Sem Fornecedor',
+                    'tipo' => '',
+                    'valor' => 0,
+                ]
+            ]);
+        }
 
         // Alertas automáticos
         $alertas = [];
@@ -168,12 +224,13 @@ class RelatorioCustoGerencialController extends Controller
             }
         }
 
-        // Tabela detalhada
+        // Tabela detalhada (usar data_pagamento padronizado)
+        // Exibir CONTA ao invés de categoria na tabela detalhada
         $tabela = $custos->map(function ($c) {
             return [
-                'data' => $c->data,
-                'fornecedor' => $c->fornecedor->nome ?? '',
-                'categoria' => $c->categoria->nome ?? '',
+                'data' => $c->data_pagamento,
+                'fornecedor' => $c->fornecedor ? ($c->fornecedor->nome_fantasia ?? $c->fornecedor->razao_social ?? '') : '',
+                'conta' => $c->conta ? $c->conta->nome : '',
                 'descricao' => $c->descricao,
                 'tipo' => $c->tipo,
                 'valor' => $c->valor,
@@ -198,7 +255,11 @@ class RelatorioCustoGerencialController extends Controller
             'burnRate' => $burnRate,
             'burnRatePlanejado' => $burnRatePlanejado,
             'custosPorCategoria' => $custosPorCategoria,
-            'orcadoXRealizado' => $orcadoXRealizado,
+            'orcadoXRealizado' => [
+                'Valor Orçado' => $valorOrcado,
+                'Custo Total' => $custoTotal,
+                'Receita Recebida' => $receitaRecebida,
+            ],
             'desvios' => $desvios,
             'topCustos' => $topCustos,
             'alertas' => $alertas,
@@ -209,6 +270,8 @@ class RelatorioCustoGerencialController extends Controller
             'fim' => $fim,
             'clienteId' => $clienteId,
             'orcamentoId' => $orcamentoId,
+            // Passar custoPrevistoTotal para a view para exibir avisos
+            'custoPrevistoTotal' => $custoPrevistoTotal,
         ]);
     }
 }

@@ -1,6 +1,15 @@
 <div class="bg-white shadow rounded-xl p-6">
     <div class="text-xs text-gray-500 mb-2">Gráfico de Linha (visual)</div>
+    
     <div class="overflow-x-auto">
+        @php
+            if (!is_array($datasets) && !is_object($datasets)) {
+                $datasets = [];
+            }
+            if (!is_array($labels) && !is_object($labels)) {
+                $labels = [];
+            }
+        @endphp
         <table class="min-w-full text-xs">
             <thead>
                 <tr class="bg-gray-50">
