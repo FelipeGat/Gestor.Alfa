@@ -1,3 +1,34 @@
+@if(isset($categorias))
+    <div id="detalhamento-categoria-modal-html" style="display:none">
+        <table class="min-w-full text-xs">
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>Subcategoria</th>
+                    <th>Conta</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($categorias as $cat)
+                @foreach($cat->subcategorias ?? [] as $sub)
+                    @foreach($sub->contas ?? [] as $conta)
+                        <tr>
+                            <td>{{ $cat->nome }}</td>
+                            <td>{{ $sub->nome }}</td>
+                            <td>{{ $conta->nome }}</td>
+                            <td>R$ {{ number_format(
+                                $custos->filter(fn($c) => $c->conta && $c->conta->id == $conta->id)->sum('valor'),
+                                2, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                @endforeach
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+
 <x-app-layout>
     @push('styles')
     @vite('resources/css/financeiro/index.css')
@@ -5,6 +36,20 @@
         @media print {
             .print\:hidden { display: none !important; }
         }
+        .card-zoom { transition: box-shadow 0.2s; }
+        .card-zoom:hover { box-shadow: 0 0 0 4px #3b82f633; }
+        .modal-card {
+            position: fixed; z-index: 50; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+        }
+        .modal-card-content {
+            background: #fff; border-radius: 1rem; padding: 2rem; min-width: 350px; min-height: 200px; box-shadow: 0 8px 32px #0002;
+            position: relative; max-width: 90vw; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-card-close {
+            position: absolute; top: 1rem; right: 1rem; background: #eee; border: none; border-radius: 50%; width: 2rem; height: 2rem; font-size: 1.2rem; cursor: pointer;
+        }
+        .modal-extra-info { margin-top: 2rem; background: #f9fafb; border-radius: 0.5rem; padding: 1rem; font-size: 0.95rem; color: #374151; }
     </style>
     @endpush
 
@@ -176,7 +221,7 @@
 
             {{-- Indicadores Avançados --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="section-card">
+                <div class="section-card card-zoom cursor-pointer" onclick="openCardModal(this, 'saude')">
                     <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                         <div class="w-2 h-6 bg-red-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Saúde do Orçamento</h3>
@@ -192,7 +237,7 @@
                     </div>
                 </div>
 
-                <div class="section-card flex flex-col justify-between">
+                <div class="section-card flex flex-col justify-between card-zoom cursor-pointer" onclick="openCardModal(this, 'ieo')">
                     <div>
                         <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                             <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
@@ -214,7 +259,7 @@
                     <p class="text-[10px] text-gray-400 text-center italic">Baseado no tempo decorrido vs custo consumido</p>
                 </div>
 
-                <div class="section-card flex flex-col justify-between">
+                <div class="section-card flex flex-col justify-between card-zoom cursor-pointer" onclick="openCardModal(this, 'burnrate')">
                     <div>
                         <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                             <div class="w-2 h-6 bg-blue-500 rounded-full"></div>
@@ -243,7 +288,7 @@
 
             {{-- Gráficos Gerenciais --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="section-card">
+                <div class="section-card card-zoom cursor-pointer" onclick="openCardModal(this, 'evolucao')">
                     <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                         <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Evolução no Tempo</h3>
@@ -254,7 +299,7 @@
                         ])" />
                     </div>
                 </div>
-                <div class="section-card">
+                <div class="section-card card-zoom cursor-pointer" onclick="openCardModal(this, 'categoria')">
                     <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                         <div class="w-2 h-6 bg-orange-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Por Categoria</h3>
@@ -263,7 +308,7 @@
                             <x-pie-chart :labels="$custosPorCategoria->keys()" :data="$custosPorCategoria->values()" />
                     </div>
                 </div>
-                <div class="section-card">
+                <div class="section-card card-zoom cursor-pointer" onclick="openCardModal(this, 'orcado')">
                     <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                         <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Orçado x Realizado</h3>
@@ -275,7 +320,7 @@
             </div>
 
             {{-- Desvios e Análises --}}
-            <div class="section-card mb-6 overflow-hidden">
+            <div class="section-card mb-6 overflow-hidden card-zoom cursor-pointer" onclick="openCardModal(this, 'desvios')">
                 <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                     <div class="w-2 h-6 bg-amber-500 rounded-full"></div>
                     <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Análise de Desvios por Categoria</h3>
@@ -308,7 +353,7 @@
             </div>
 
             {{-- Ranking de Custos --}}
-            <div class="section-card mb-6 overflow-hidden">
+            <div class="section-card mb-6 overflow-hidden card-zoom cursor-pointer" onclick="openCardModal(this, 'top5')">
                 <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
                     <div class="w-2 h-6 bg-gray-800 rounded-full"></div>
                     <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Top 5 Maiores Lançamentos</h3>
@@ -336,7 +381,7 @@
             </div>
 
             {{-- Tabela Detalhada --}}
-            <div class="section-card overflow-hidden">
+            <div class="section-card overflow-hidden card-zoom cursor-pointer" onclick="openCardModal(this, 'base')">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-6 bg-gray-800 rounded-full"></div>
@@ -395,4 +440,104 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .card-zoom { transition: box-shadow 0.2s; }
+        .card-zoom:hover { box-shadow: 0 0 0 4px #3b82f633; }
+        .modal-card {
+            position: fixed; z-index: 50; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+        }
+        .modal-card-content {
+            background: #fff; border-radius: 1rem; padding: 2rem; min-width: 350px; min-height: 200px; box-shadow: 0 8px 32px #0002;
+            position: relative; max-width: 90vw; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-card-close {
+            position: absolute; top: 1rem; right: 1rem; background: #eee; border: none; border-radius: 50%; width: 2rem; height: 2rem; font-size: 1.2rem; cursor: pointer;
+        }
+        .modal-extra-info { margin-top: 2rem; background: #f9fafb; border-radius: 0.5rem; padding: 1rem; font-size: 0.95rem; color: #374151; }
+    </style>
+
+    <script>
+        function openCardModal(card, tipo) {
+            document.querySelectorAll('.modal-card').forEach(e => e.remove());
+            const modal = document.createElement('div');
+            modal.className = 'modal-card';
+            const content = document.createElement('div');
+            content.className = 'modal-card-content';
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-card-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => modal.remove();
+            content.appendChild(closeBtn);
+            const clone = card.cloneNode(true);
+            clone.classList.remove('card-zoom');
+            clone.style.cursor = 'default';
+            clone.removeAttribute('onclick');
+            content.appendChild(clone);
+            // Informações adicionais por tipo de card
+            let extra = document.createElement('div');
+            extra.className = 'modal-extra-info';
+            if(tipo === 'categoria') {
+                extra.innerHTML = `<b>Detalhamento por Categoria, Subcategoria e Conta:</b><br><br>` + document.getElementById('detalhamento-categoria-modal-html').innerHTML;
+            } else if(tipo === 'ieo') {
+                extra.innerHTML = `<b>Eficiência Operacional (IEO):</b><br>
+                - Mede a eficiência do uso dos recursos ao longo do tempo.<br>
+                - Compara o tempo decorrido com o custo consumido.<br>
+                - Ajuda a identificar desvios operacionais e oportunidades de melhoria.`;
+            } else {
+                switch(tipo) {
+                    case 'saude':
+                        extra.innerHTML = `<b>Análise detalhada:</b><br>
+                        - Evolução do custo acumulado ao longo do tempo.<br>
+                        - Margem mínima e máxima atingidas.<br>
+                        - Alertas de estouro de orçamento.<br>
+                        - Histórico de alterações relevantes.`;
+                        break;
+                    case 'burnrate':
+                        extra.innerHTML = `<b>Comparativo Burn Rate:</b><br>
+                        - Burn rate atual vs planejado.<br>
+                        - Tendência de consumo diário.<br>
+                        - Dicas para controle de custos.<br>
+                        - Comparação com outros orçamentos.`;
+                        break;
+                    case 'evolucao':
+                        extra.innerHTML = `<b>Evolução no Tempo:</b><br>
+                        - Identificação de picos de custo.<br>
+                        - Datas críticas e eventos relevantes.<br>
+                        - Comentários sobre variações inesperadas.`;
+                        break;
+                    case 'desvios':
+                        extra.innerHTML = `<b>Desvios por Categoria:</b><br>
+                        - Ranking de maiores desvios.<br>
+                        - Categorias críticas para o orçamento.<br>
+                        - Recomendações para ajuste de planejamento.`;
+                        break;
+                    case 'orcado':
+                        extra.innerHTML = `<b>Orçado x Realizado:</b><br>
+                        - Percentual de atingimento das metas.<br>
+                        - Histórico de revisões do orçamento.<br>
+                        - Impacto dos desvios no resultado final.`;
+                        break;
+                    case 'top5':
+                        extra.innerHTML = `<b>Top 5 Maiores Lançamentos:</b><br>
+                        - Detalhamento dos fornecedores e tipos.<br>
+                        - Datas e justificativas dos maiores custos.<br>
+                        - Oportunidades de renegociação ou revisão.`;
+                        break;
+                    case 'base':
+                        extra.innerHTML = `<b>Base Operacional de Custos:</b><br>
+                        - Resumo das principais contas e centros de custo.<br>
+                        - Oportunidades de otimização.<br>
+                        - Análise de recorrências e sazonalidades.`;
+                        break;
+                    default:
+                        extra.innerHTML = '';
+                }
+            }
+            content.appendChild(extra);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+    </script>
 </x-app-layout>
