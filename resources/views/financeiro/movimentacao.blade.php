@@ -95,15 +95,6 @@
                     </svg>
                     Extrato
                 </a>
-                {{-- CUSTOS X ORÇAMENTOS --}}
-                <a href="{{ route('relatorios.custos-orcamentos') }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow-md border border-purple-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-4.41 0-8-1.79-8-4V6c0-2.21 3.59-4 8-4s8 1.79 8 4v8c0 2.21-3.59 4-8 4z" />
-                    </svg>
-                    Custos x Orçamentos
-                </a>
-
             </div>
 
             {{-- ================= FILTROS ================= --}}

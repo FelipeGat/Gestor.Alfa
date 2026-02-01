@@ -4,11 +4,11 @@
     $user = auth()->user();
 
     // Papéis principais
-    $isAdmin = $user->isAdminPanel();
-    $isFinanceiro = $user->perfis()->where('slug', 'financeiro')->exists();
-    $isComercial = $user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial';
-    $isCliente = $user->tipo === 'cliente';
-    $isFuncionario = $user->tipo === 'funcionario';
+    $isAdmin = $user && method_exists($user, 'isAdminPanel') ? $user->isAdminPanel() : false;
+    $isFinanceiro = $user && method_exists($user, 'perfis') ? $user->perfis()->where('slug', 'financeiro')->exists() : false;
+    $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
+    $isCliente = $user && isset($user->tipo) ? $user->tipo === 'cliente' : false;
+    $isFuncionario = $user && isset($user->tipo) ? $user->tipo === 'funcionario' : false;
     @endphp
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -168,7 +168,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500">
-                            {{ $user->name }}
+                            {{ $user ? $user->name : 'Visitante' }}
                         </button>
                     </x-slot>
 

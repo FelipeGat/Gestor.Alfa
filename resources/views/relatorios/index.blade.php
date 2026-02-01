@@ -22,6 +22,20 @@
                         <div class="text-xs text-gray-500">Acompanhe custos, receitas e margens por orçamento</div>
                     </div>
                 </a>
+                <!-- Relatório Gerencial de Custos -->
+                <a href="{{ route('relatorios.custos-gerencial') }}" class="group block bg-white shadow rounded-xl p-6 hover:shadow-lg transition border border-gray-100">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="p-3 bg-red-100 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-red-700 transition">Gerencial de Custos</div>
+                        <div class="text-xs text-gray-500">Cenário, risco e decisão executiva em tempo real</div>
+                    </div>
+                </a>
                 <!-- Adicione outros ícones de relatórios aqui -->
             </div>
         </div>

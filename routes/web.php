@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 
 use App\Http\Controllers\RelatorioCustosOrcamentosController;
+use App\Http\Controllers\Relatorios\RelatorioCustoGerencialController;
 
 // Relatórios
 Route::middleware(['auth'])->group(function () {
@@ -15,6 +16,7 @@ Route::middleware(['auth'])->group(function () {
         return view('relatorios.index');
     })->name('relatorios.index');
     Route::get('/relatorios/custos-orcamentos', [RelatorioCustosOrcamentosController::class, 'index'])->name('relatorios.custos-orcamentos');
+    Route::get('relatorios/custos-gerencial', [\App\Http\Controllers\Relatorios\RelatorioCustoGerencialController::class, 'index'])->name('relatorios.custos-gerencial');
 });
 
 use App\Http\Controllers\ProfileController;
