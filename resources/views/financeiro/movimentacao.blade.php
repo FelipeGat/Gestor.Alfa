@@ -303,7 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <th>DESCRIÇÃO</th>
                                     <th>CLIENTE/FORNECEDOR</th>
                                     <th>VALOR</th>
-                                    <th>BANCO</th>
+                                    <th>BANCO ORIGEM</th>
+                                    <th>BANCO DESTINO</th>
                                     <th>FORMA PAGTO</th>
                                     <th>AÇÕES</th>
                                 </tr>
@@ -320,33 +321,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     {{-- TIPO --}}
                                     <td>
-                                        @if($isEntrada)
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">
-                                            ENTRADA
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $isEntrada ? 'bg-green-600' : 'bg-red-600' }} text-white">
+                                            {{ $isEntrada ? 'ENTRADA' : 'SAÍDA' }}
                                         </span>
-                                        @else
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-600 text-white">
-                                            SAÍDA
-                                        </span>
+                                        @if(isset($mov->tipo))
+                                            <div class="text-xs text-gray-700 mt-1">
+                                                {{
+                                                    [
+                                                        'ajuste_entrada' => 'AJUSTE',
+                                                        'ajuste_saida' => 'AJUSTE',
+                                                        'injeção_receita' => 'INJEÇÃO DE RECEITA',
+                                                        'transferencia_entrada' => 'TRANSFERÊNCIA',
+                                                        'transferencia_saida' => 'TRANSFERÊNCIA',
+                                                    ][$mov->tipo] ?? strtoupper($mov->tipo ?? $mov->tipo_movimentacao)
+                                                }}
+                                            </div>
                                         @endif
                                     </td>
 
                                     {{-- DATA --}}
                                     <td>
-                                        {{ optional($mov->pago_em)->format('d/m/Y') ?? '—' }}
+                                        @if($mov->is_financeiro ?? false)
+                                            {{ \Carbon\Carbon::parse($mov->data_movimentacao)->format('d/m/Y') }}
+                                        @else
+                                            {{ optional($mov->pago_em)->format('d/m/Y') ?? '—' }}
+                                        @endif
                                     </td>
 
                                     {{-- DESCRIÇÃO --}}
                                     <td>
-                                        {{ $mov->descricao }}
+                                        {{ $mov->descricao ?? '-' }}
+                                        @if(isset($mov->observacao) && $mov->observacao)
+                                            <div class="text-xs text-blue-700 font-semibold mt-1">
+                                                {{ $mov->observacao }}
+                                            </div>
+                                        @endif
                                         @if($isEntrada && $mov->orcamento_id)
-                                        <div class="text-xs text-gray-500">
-                                            Origem: Orçamento #{{ $mov->orcamento_id }}
-                                        </div>
+                                            <div class="text-xs text-gray-500">
+                                                Origem: Orçamento #{{ $mov->orcamento_id }}
+                                            </div>
                                         @elseif(!$isEntrada)
-                                        <div class="text-xs text-gray-500">
-                                            {{ $mov->conta->nome ?? 'Conta não informada' }}
-                                        </div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ $mov->conta->nome ?? 'Conta não informada' }}
+                                            </div>
                                         @endif
                                     </td>
 
@@ -365,8 +382,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </td>
 
                                     {{-- BANCO --}}
+                                    {{-- BANCO ORIGEM --}}
                                     <td>
-                                        {{ $mov->contaFinanceira?->nome ?? '—' }}
+                                        @if(property_exists($mov, 'contaOrigem') && $mov->contaOrigem)
+                                            {{ $mov->contaOrigem->nome }}
+                                        @elseif(isset($mov->contaFinanceira))
+                                            {{ $mov->contaFinanceira?->nome ?? '—' }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    {{-- BANCO DESTINO --}}
+                                    <td>
+                                        @if(isset($mov->contaDestino) && $mov->contaDestino)
+                                            {{ $mov->contaDestino->nome }}
+                                        @elseif(isset($mov->conta_destino_id) && $mov->conta_destino_id)
+                                            {{ optional(\App\Models\ContaFinanceira::find($mov->conta_destino_id))->nome ?? '—' }}
+                                        @else
+                                            —
+                                        @endif
                                     </td>
 
                                     {{-- FORMA PAGAMENTO --}}

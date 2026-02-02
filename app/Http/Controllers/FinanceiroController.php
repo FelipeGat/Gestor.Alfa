@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Services\Financeiro\GeradorCobrancaOrcamento;
 use Illuminate\Validation\ValidationException;
-
+use App\Services\MovimentacaoFinanceiraService;
+use App\Http\Controllers\Controller;
 
 class FinanceiroController extends Controller
 {
@@ -35,9 +36,9 @@ class FinanceiroController extends Controller
         $hoje = Carbon::today();
         $kpisGerais = [
             'total_receber' => Cobranca::where('status', '!=', 'pago')->sum('valor'),
-            'total_pago'    => Cobranca::where('status', 'pago')->sum('valor'),
+            'total_pago' => Cobranca::where('status', 'pago')->sum('valor'),
             'total_vencido' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', $hoje)->sum('valor'),
-            'vence_hoje'    => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
+            'vence_hoje' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
         ];
 
         // ================= QUERY BASE PARA ORÇAMENTOS =================
@@ -91,10 +92,10 @@ class FinanceiroController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | GERAR COBRANÇA (ORÇAMENTO → COM MODAL PARA CONTAS A RECEBER)
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | GERAR COBRANÇA (ORÇAMENTO → COM MODAL PARA CONTAS A RECEBER)
+        |--------------------------------------------------------------------------
+        */
     public function gerarCobranca(Request $request, Orcamento $orcamento)
     {
         /** @var User $user */
@@ -121,9 +122,9 @@ class FinanceiroController extends Controller
             // Não exigir parcelas/vencimentos para formas de pagamento à vista (pix, debito)
             $dados = $request->validate([
                 'forma_pagamento' => 'required|in:pix,debito,credito,boleto,faturado',
-                'parcelas'        => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1|max:12',
-                'vencimentos'     => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1|max:12',
-                'vencimentos.*'   => 'required_if:forma_pagamento,credito,boleto,faturado|date|after_or_equal:today',
+                'parcelas' => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1|max:12',
+                'vencimentos' => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1|max:12',
+                'vencimentos.*' => 'required_if:forma_pagamento,credito,boleto,faturado|date|after_or_equal:today',
                 'valores_parcelas' => 'nullable|array',
                 'valores_parcelas.*' => 'nullable|numeric|min:0.01',
             ]);
@@ -156,16 +157,16 @@ class FinanceiroController extends Controller
 
                 foreach ($parcelasGeradas as $index => $parcela) {
                     Cobranca::create([
-                        'orcamento_id'    => $orcamento->id,
-                        'cliente_id'      => $parcela['cliente_id'] ?? $orcamento->cliente_id,
-                        'descricao'       => $parcela['descricao'],
-                        'valor'           => $parcela['valor'],
+                        'orcamento_id' => $orcamento->id,
+                        'cliente_id' => $parcela['cliente_id'] ?? $orcamento->cliente_id,
+                        'descricao' => $parcela['descricao'],
+                        'valor' => $parcela['valor'],
                         'data_vencimento' => $parcela['data_vencimento'],
-                        'status'          => 'pendente',
-                        'origem'          => $parcela['origem'] ?? 'orcamento',
+                        'status' => 'pendente',
+                        'origem' => $parcela['origem'] ?? 'orcamento',
                         'forma_pagamento' => $dados['forma_pagamento'] ?? null,
-                        'parcela_num'     => $index + 1,
-                        'parcelas_total'  => $totalParcelas,
+                        'parcela_num' => $index + 1,
+                        'parcelas_total' => $totalParcelas,
                     ]);
                 }
 
@@ -210,9 +211,9 @@ class FinanceiroController extends Controller
         $hoje = Carbon::today();
         $kpisGerais = [
             'total_receber' => Cobranca::where('status', '!=', 'pago')->sum('valor'),
-            'total_pago'    => Cobranca::where('status', 'pago')->sum('valor'),
+            'total_pago' => Cobranca::where('status', 'pago')->sum('valor'),
             'total_vencido' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', $hoje)->sum('valor'),
-            'vence_hoje'    => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
+            'vence_hoje' => Cobranca::where('status', '!=', 'pago')->whereDate('data_vencimento', $hoje)->sum('valor'),
         ];
 
         // ================= QUERY BASE PARA ORÇAMENTOS =================
@@ -437,5 +438,45 @@ class FinanceiroController extends Controller
             'pago',
             'saldoSituacao'
         ));
+    }
+    /**
+     * Realiza ajuste manual de saldo em uma conta financeira.
+     */
+    public function ajusteManual(Request $request)
+    {
+
+        $validated = $request->validate([
+            'conta_id' => 'required|exists:contas_financeiras,id',
+            'valor' => 'required|numeric',
+            'data' => 'required|date',
+            'tipo_ajuste' => 'required|in:ajuste_entrada,ajuste_saida',
+            'observacao' => 'nullable|string|max:255',
+        ]);
+
+        $conta = \App\Models\ContaFinanceira::findOrFail($validated['conta_id']);
+        $dataAjuste = $validated['data'];
+        $observacao = $validated['observacao'] ?? '';
+        $tipoMov = $validated['tipo_ajuste'];
+        $valor = abs($validated['valor']);
+        if ($valor == 0) {
+            return redirect()->back()->with('info', 'O valor informado é zero. Nenhum ajuste necessário.');
+        }
+        // Para saída, valor negativo
+        if ($tipoMov === 'ajuste_saida') {
+            $valor = -$valor;
+        }
+        $service = new \App\Services\MovimentacaoFinanceiraService();
+        $service->registrar([
+            'conta_origem_id' => $conta->id,
+            'conta_destino_id' => $conta->id,
+            'tipo' => $tipoMov,
+            'valor' => $valor,
+            'observacao' => $observacao,
+            'user_id' => $request->user() ? $request->user()->id : null,
+            'data_movimentacao' => $dataAjuste,
+        ]);
+        return redirect()->route('financeiro.movimentacao')->with('success', 'Ajuste manual realizado com sucesso!');
+
+        return redirect()->back()->with('success', 'Ajuste manual realizado com sucesso.');
     }
 }

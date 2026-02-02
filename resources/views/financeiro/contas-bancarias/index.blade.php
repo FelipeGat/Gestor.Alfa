@@ -199,6 +199,8 @@
                                             @method('DELETE')
                                             <button class="btn btn-sm btn-delete">Excluir</button>
                                         </form>
+
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="abrirModalAjusteUnificado({{ $conta->id }}, '{{ $conta->nome }}')">Ajuste Manual</button>
                                     </div>
                                 </td>
                             </tr>
@@ -218,4 +220,11 @@
         </div>
     </div>
 
+
+
+    {{-- Modal Ajuste Unificado Moderno --}}
+    @include('financeiro.partials.modal-ajuste-unificado')
+
 </x-app-layout>
+
+

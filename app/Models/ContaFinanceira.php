@@ -11,11 +11,6 @@ class ContaFinanceira extends Model
 
     protected $table = 'contas_financeiras';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mass Assignment
-    |--------------------------------------------------------------------------
-    */
     protected $fillable = [
         'empresa_id',
         'nome',
@@ -27,11 +22,6 @@ class ContaFinanceira extends Model
         'ativo',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Casts
-    |--------------------------------------------------------------------------
-    */
     protected $casts = [
         'ativo' => 'boolean',
         'limite_credito' => 'decimal:2',
@@ -40,81 +30,62 @@ class ContaFinanceira extends Model
         'saldo' => 'decimal:2',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACCESSORS – REGRA FINANCEIRA REAL
-    |--------------------------------------------------------------------------
-    */
+    /**
+     * Recalcula o saldo da conta a partir de uma data, considerando todas as movimentações futuras.
+     * Atualiza o campo saldo no banco.
+     * @param string|null $dataAjuste (formato Y-m-d ou Y-m-d H:i:s)
+     */
+    public function reprocessarSaldo($dataAjuste = null)
+    {
+        $query = $this->movimentacoes()->whereNull('deleted_at');
+        if ($dataAjuste) {
+            $query->where('data_movimentacao', '>=', $dataAjuste);
+        }
+        $movs = $query->orderBy('data_movimentacao')->orderBy('id')->get();
+
+        // Busca saldo imediatamente anterior à dataAjuste
+        $saldoBase = 0;
+        if ($dataAjuste) {
+            $saldoBase = $this->movimentacoes()
+                ->where('data_movimentacao', '<', $dataAjuste)
+                ->whereNull('deleted_at')
+                ->orderBy('data_movimentacao', 'desc')
+                ->orderBy('id', 'desc')
+                ->pluck('saldo_resultante')
+                ->first() ?? 0;
+        }
+
+        // Recalcula saldo movimentação a movimentação
+        $saldo = $saldoBase;
+        foreach ($movs as $mov) {
+            // Débito (saída) se tipo for saída, crédito (entrada) se tipo for entrada
+            // Para tipos customizados, ajuste conforme regra
+            if (in_array($mov->tipo, ['TRANSFERENCIA_SAIDA', 'AJUSTE_SALDO_NEGATIVO'])) {
+                $saldo -= $mov->valor;
+            } else {
+                $saldo += $mov->valor;
+            }
+            // Atualiza saldo_resultante na movimentação (precisa existir na tabela)
+            $mov->saldo_resultante = $saldo;
+            $mov->save();
+        }
+        // Atualiza saldo final da conta
+        $this->saldo = $saldo;
+        $this->save();
+    }
 
     /**
-     * Cheque especial utilizado automaticamente
+     * Relacionamento com movimentações financeiras (todas onde a conta é origem ou destino)
      */
-    public function getChequeEspecialUtilizadoAttribute()
+    public function movimentacoes()
     {
-        return $this->saldo < 0 ? abs($this->saldo) : 0;
+        return $this->hasMany(\App\Models\MovimentacaoFinanceira::class, 'conta_origem_id');
     }
-
     /**
-     * Saldo disponível real da conta
+     * Relacionamento com empresa
      */
-    public function getSaldoDisponivelAttribute()
-    {
-        $saldoPositivo = max($this->saldo, 0);
-
-        return $saldoPositivo
-            + ($this->limite_cheque_especial - $this->cheque_especial_utilizado);
-    }
-
-    /**
-     * Crédito disponível no cartão
-     */
-    public function getCreditoDisponivelAttribute()
-    {
-        return max(
-            $this->limite_credito - $this->limite_credito_utilizado,
-            0
-        );
-    }
-
-    /**
-     * Saldo total exibido no sistema
-     */
-    public function getSaldoTotalAttribute()
-    {
-        return $this->tipo === 'credito'
-            ? $this->credito_disponivel
-            : $this->saldo_disponivel;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Scopes
-    |--------------------------------------------------------------------------
-    */
-
-    public function scopeAtivas($query)
-    {
-        return $query->where('ativo', true);
-    }
-
-    public function scopeDaEmpresa($query, $empresaId)
-    {
-        return $query->where('empresa_id', $empresaId);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relacionamentos
-    |--------------------------------------------------------------------------
-    */
-
     public function empresa()
     {
-        return $this->belongsTo(Empresa::class);
-    }
-
-    public function cobrancas()
-    {
-        return $this->hasMany(Cobranca::class);
+        return $this->belongsTo(\App\Models\Empresa::class, 'empresa_id');
     }
 }

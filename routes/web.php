@@ -250,10 +250,6 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::get('/', [FinanceiroController::class, 'dashboard'])
             ->name('index');
 
-        // Dashboard financeiro (COMENTADO - usando DashboardFinanceiroController)
-        // Route::get('/dashboard', [FinanceiroController::class, 'dashboard'])
-        //     ->name('dashboard');
-
         // Cobrar
         Route::get('/cobrar', [FinanceiroController::class, 'cobrar'])
             ->name('cobrar');
@@ -427,6 +423,14 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         Route::get('/api/contas/{subcategoriaId}', [ContasPagarController::class, 'getContas'])
             ->name('api.contas');
+
+        // Ajuste Manual, Transferência e Injeção de Receita
+        Route::post('/contas-financeiras/ajuste-manual', [FinanceiroController::class, 'ajusteManual'])
+            ->name('contas-financeiras.ajuste-manual');
+        Route::post('/contas-financeiras/transferencia', [FinanceiroController::class, 'transferencia'])
+            ->name('contas-financeiras.transferencia');
+        Route::post('/contas-financeiras/injecao-receita', [FinanceiroController::class, 'injecaoReceita'])
+            ->name('contas-financeiras.injecao-receita');
     });
 
 /*
