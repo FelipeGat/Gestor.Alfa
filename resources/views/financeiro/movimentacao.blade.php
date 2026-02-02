@@ -355,11 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     {{-- DATA --}}
                                     <td>
-                                        @if($mov->is_financeiro ?? false)
-                                            {{ \Carbon\Carbon::parse($mov->data_movimentacao)->format('d/m/Y') }}
-                                        @else
-                                            {{ optional($mov->pago_em)->format('d/m/Y') ?? '—' }}
-                                        @endif
+                                        {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m/Y') }}
                                     </td>
 
                                     {{-- DESCRIÇÃO --}}

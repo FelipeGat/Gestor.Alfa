@@ -216,6 +216,18 @@ class ContasReceberController extends Controller
                 $contaFinanceira->increment('saldo', $valorPago);
             }
 
+            // Registrar movimentação financeira
+            \App\Models\MovimentacaoFinanceira::create([
+                'conta_origem_id' => null,
+                'conta_destino_id' => $request->conta_financeira_id,
+                'tipo' => 'ajuste_entrada',
+                'valor' => $valorPago,
+                'saldo_resultante' => $contaFinanceira ? $contaFinanceira->saldo : null,
+                'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
+                'user_id' => $request->user() ? $request->user()->id : null,
+                'data_movimentacao' => $request->data_pagamento,
+            ]);
+
             // Atualizar status do orçamento para 'concluido' quando todas as cobranças estiverem pagas
             if ($cobranca->orcamento_id) {
                 $orcamento = $cobranca->orcamento;

@@ -207,7 +207,7 @@ class ContasPagarController extends Controller
             // Atualizar a conta atual com o valor pago
             $conta->update([
                 'status'              => 'pago',
-                'pago_em'             => now(),
+                'pago_em'             => $request->data_pagamento,
                 'data_pagamento'      => $request->data_pagamento,
                 'valor'               => $valorPago, // Atualiza para o valor efetivamente pago
                 'juros_multa'         => $jurosMulta,
@@ -221,6 +221,17 @@ class ContasPagarController extends Controller
                 if ($contaBancaria) {
                     $contaBancaria->decrement('saldo', $valorPago);
                 }
+                // Registrar movimentação financeira
+                \App\Models\MovimentacaoFinanceira::create([
+                    'conta_origem_id' => $request->conta_financeira_id,
+                    'conta_destino_id' => null,
+                    'tipo' => 'ajuste_saida',
+                    'valor' => $valorPago,
+                    'saldo_resultante' => $contaBancaria ? $contaBancaria->saldo : null,
+                    'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id,
+                    'user_id' => $request->user() ? $request->user()->id : null,
+                    'data_movimentacao' => $request->data_pagamento,
+                ]);
             }
 
             // Se houver valor restante, criar nova conta
