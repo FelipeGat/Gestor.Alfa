@@ -340,6 +340,12 @@ class ContasReceberController extends Controller
 
     public function movimentacao(Request $request)
     {
+        // Se não houver filtro de data, usar mês atual
+        if (!$request->filled('data_inicio') && !$request->filled('data_fim')) {
+            $inicio = Carbon::now()->startOfMonth()->format('Y-m-d');
+            $fim = Carbon::now()->endOfMonth()->format('Y-m-d');
+            $request->merge(['data_inicio' => $inicio, 'data_fim' => $fim]);
+        }
         /** @var User $user */
         $user = Auth::user();
 
@@ -427,20 +433,20 @@ class ContasReceberController extends Controller
             });
         }
 
-        $movFinanceiras = $movFinanceirasQuery->get()->map(function ($item) {
-            // Define tipo_movimentacao para compatibilidade com extrato
-            if (in_array($item->tipo, ['ajuste_entrada', 'injeção_receita', 'transferencia_entrada'])) {
-                $item->tipo_movimentacao = 'entrada';
-            } else {
-                $item->tipo_movimentacao = 'saida';
-            }
-            $item->is_financeiro = true;
-            // Garante que contaDestino esteja sempre preenchido (objeto ou null)
-            if (!isset($item->contaDestino) && isset($item->conta_destino_id) && $item->conta_destino_id) {
-                $item->contaDestino = \App\Models\ContaFinanceira::find($item->conta_destino_id);
-            }
-            return $item;
-        });
+        $movFinanceiras = $movFinanceirasQuery->get()
+            // Filtra apenas ajustes de entrada/saída
+            ->filter(function ($item) {
+                return in_array($item->tipo, ['ajuste_entrada', 'ajuste_saida']);
+            })
+            ->map(function ($item) {
+                $item->tipo_movimentacao = $item->tipo === 'ajuste_entrada' ? 'entrada' : 'saida';
+                $item->is_financeiro = true;
+                // Garante que contaDestino esteja sempre preenchido (objeto ou null)
+                if (!isset($item->contaDestino) && isset($item->conta_destino_id) && $item->conta_destino_id) {
+                    $item->contaDestino = \App\Models\ContaFinanceira::find($item->conta_destino_id);
+                }
+                return $item;
+            });
 
         // ================= COMBINAR E ORDENAR =================
         $cobrancas = $cobrancasQuery->get()->map(function ($item) {
@@ -455,14 +461,29 @@ class ContasReceberController extends Controller
             return $item;
         });
 
+        // Filtro de tipo (entrada/saida)
         $movimentacoes = $cobrancas
             ->concat($contasPagar)
             ->concat($movFinanceiras)
-            ->sortByDesc(function ($item) {
+            ->filter(function ($item) use ($request) {
+                if (!$request->filled('tipo_movimentacao')) {
+                    return true;
+                }
+                return $item->tipo_movimentacao === $request->input('tipo_movimentacao');
+            });
+
+        // Ordenação dinâmica
+        $orderBy = $request->input('order_by', 'data');
+        $orderDir = strtolower($request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if ($orderBy === 'data') {
+            $movimentacoes = $movimentacoes->sortBy(function ($item) {
                 // Usa data_movimentacao para movimentações financeiras, pago_em para cobranças/contas a pagar
                 return $item->is_financeiro ? $item->data_movimentacao : ($item->pago_em ?? $item->data_movimentacao);
-            })
-            ->values();
+            }, SORT_REGULAR, $orderDir === 'desc');
+        }
+
+        $movimentacoes = $movimentacoes->values();
 
         // Paginar manualmente
         $page = $request->get('page', 1);
