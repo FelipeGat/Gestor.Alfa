@@ -162,8 +162,8 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::resource('cobrancas', CobrancaController::class);
 
     // Busca unificada Cliente + Pré-Cliente (Orçamentos)
+    // Busca unificada Cliente + Pré-Cliente (Orçamentos)
     Route::get('/busca-clientes', [BuscaClienteController::class, 'buscar'])
-        ->middleware('dashboard.comercial')
         ->name('busca-clientes');
 
     // Clientes

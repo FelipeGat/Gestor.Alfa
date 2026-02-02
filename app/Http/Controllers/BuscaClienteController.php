@@ -11,6 +11,12 @@ class BuscaClienteController extends Controller
 {
     public function buscar(Request $request)
     {
+        $user = $request->user();
+        // Permitir admin, administrativo e tecnico
+        $permitidos = ['admin', 'administrativo', 'tecnico'];
+        if (!$user || !$user->perfis()->whereIn('slug', $permitidos)->exists()) {
+            abort(403);
+        }
         try {
             $q = trim((string) $request->query('q'));
 
