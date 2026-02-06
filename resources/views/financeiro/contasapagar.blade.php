@@ -229,12 +229,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
                         <div class="flex items-center gap-2">
                             @php
-                            $dataAtual = request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio')) : \Carbon\Carbon::now();
-                            $mesAnterior = $dataAtual->copy()->subMonth();
-                            $proximoMes = $dataAtual->copy()->addMonth();
-                            $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
-                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                                $hoje = \Carbon\Carbon::today();
+                                $ontem = \Carbon\Carbon::yesterday();
+                                $dataAtual = request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio')) : \Carbon\Carbon::now();
+                                $mesAnterior = $dataAtual->copy()->subMonth();
+                                $proximoMes = $dataAtual->copy()->addMonth();
+                                $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                                $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
                             @endphp
+
+                            <a href="{{ route('financeiro.contasapagar', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
+                                'vencimento_inicio' => $ontem->format('Y-m-d'),
+                                'vencimento_fim' => $ontem->format('Y-m-d')
+                            ])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Ontem
+                            </a>
+                            <a href="{{ route('financeiro.contasapagar', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
+                                'vencimento_inicio' => $hoje->format('Y-m-d'),
+                                'vencimento_fim' => $hoje->format('Y-m-d')
+                            ])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Hoje
+                            </a>
 
                             <a href="{{ route('financeiro.contasapagar', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
@@ -261,18 +282,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-red-600 transition">
                         🗓️ Período Personalizado
                     </summary>
+                    @php
+                        $dataAtual = request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio')) : \Carbon\Carbon::now();
+                        $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                        $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+                        $vencimentoInicio = request('vencimento_inicio') ?? $inicioPadrao;
+                        $vencimentoFim = request('vencimento_fim') ?? $fimPadrao;
+                    @endphp
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
-                            <input type="date" name="vencimento_inicio" value="{{ request('vencimento_inicio') }}"
+                            <input type="date" name="vencimento_inicio" id="vencimento_inicio" value="{{ $vencimentoInicio }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
-                            <input type="date" name="vencimento_fim" value="{{ request('vencimento_fim') }}"
+                            <input type="date" name="vencimento_fim" id="vencimento_fim" value="{{ $vencimentoFim }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
                         </div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const inicio = document.getElementById('vencimento_inicio');
+                            const fim = document.getElementById('vencimento_fim');
+                            if (inicio && fim) {
+                                inicio.addEventListener('change', function () {
+                                    if (inicio.value) {
+                                        const data = new Date(inicio.value);
+                                        data.setDate(data.getDate() + 1);
+                                        const nextDay = data.toISOString().slice(0, 10);
+                                        fim.value = nextDay;
+                                    }
+                                });
+                            }
+                        });
+                    </script>
                 </details>
 
                 <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between mt-6">

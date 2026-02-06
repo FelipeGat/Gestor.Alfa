@@ -188,48 +188,54 @@
                             <summary id="periodoPersonalizadoSummary" class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                                 🗓️ Período Personalizado
                             </summary>
+                            @php
+                                $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                                $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                                $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+                                $dataInicio = request('data_inicio') ?? $inicioPadrao;
+                                $dataFim = request('data_fim') ?? $fimPadrao;
+                            @endphp
                             <div id="periodoPersonalizadoContent" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                        @push('scripts')
-                                        <script>
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            const details = document.getElementById('periodoPersonalizadoDetails');
-                                            const summary = document.getElementById('periodoPersonalizadoSummary');
-                                            if (details && summary) {
-                                                summary.addEventListener('click', function (e) {
-                                                    // Força abrir ao clicar em qualquer parte do summary
-                                                    if (!details.open) {
-                                                        e.preventDefault();
-                                                        details.open = true;
-                                                    }
-                                                });
-                                            }
-                                            // Preencher data final automaticamente ao escolher data inicial
-                                            const dataInicio = document.querySelector('input[name="data_inicio"]');
-                                            const dataFim = document.querySelector('input[name="data_fim"]');
-                                            if (dataInicio && dataFim) {
-                                                dataInicio.addEventListener('change', function () {
-                                                    if (dataInicio.value) {
-                                                        const data = new Date(dataInicio.value);
-                                                        data.setDate(data.getDate() + 1);
-                                                        const nextDay = data.toISOString().slice(0, 10);
-                                                        dataFim.value = nextDay;
-                                                    }
-                                                });
-                                            }
-                                        });
-                                        </script>
-                                        @endpush
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Data Inicial</label>
-                                    <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
+                                    <input type="date" name="data_inicio" id="data_inicio_movimentacao" value="{{ $dataInicio }}"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Data Final</label>
-                                    <input type="date" name="data_fim" value="{{ request('data_fim') }}"
+                                    <input type="date" name="data_fim" id="data_fim_movimentacao" value="{{ $dataFim }}"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 </div>
                             </div>
+                            @push('scripts')
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const details = document.getElementById('periodoPersonalizadoDetails');
+                                    const summary = document.getElementById('periodoPersonalizadoSummary');
+                                    if (details && summary) {
+                                        summary.addEventListener('click', function (e) {
+                                            if (!details.open) {
+                                                e.preventDefault();
+                                                details.open = true;
+                                            }
+                                        });
+                                    }
+                                    // Preencher data final automaticamente ao escolher data inicial
+                                    const dataInicio = document.getElementById('data_inicio_movimentacao');
+                                    const dataFim = document.getElementById('data_fim_movimentacao');
+                                    if (dataInicio && dataFim) {
+                                        dataInicio.addEventListener('change', function () {
+                                            if (dataInicio.value) {
+                                                const data = new Date(dataInicio.value);
+                                                data.setDate(data.getDate() + 1);
+                                                const nextDay = data.toISOString().slice(0, 10);
+                                                dataFim.value = nextDay;
+                                            }
+                                        });
+                                    }
+                                });
+                            </script>
+                            @endpush
                         </details>
                     </div>
                 </div>
