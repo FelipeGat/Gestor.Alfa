@@ -130,8 +130,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let fornecedores = [];
 
     fornecedores = [
-        @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
-        { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social) },
+        @foreach($contas as $conta)
+            @if($conta->fornecedor)
+                { id: {{ $conta->fornecedor->id }}, nome: @json($conta->fornecedor->razao_social ?: $conta->fornecedor->nome_fantasia ?: '-') },
+            @endif
+        @endforeach
+    ];
+
+    // Contas para busca por valor
+    let contasPorValor = [
+        @foreach($contas as $conta)
+        { id: {{ $conta->id }}, valor: {{ $conta->valor }}, descricao: @json($conta->descricao) },
         @endforeach
     ];
 
@@ -141,22 +150,43 @@ document.addEventListener('DOMContentLoaded', function() {
             lista.classList.add('hidden');
             return;
         }
-        const filtrados = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
-        if (filtrados.length === 0) {
-            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum fornecedor encontrado</span>';
+        let resultados = [];
+        // Busca por nome de fornecedor
+        const filtradosFornecedor = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
+        resultados = resultados.concat(filtradosFornecedor.map(f => ({ tipo: 'fornecedor', ...f })));
+
+        // Busca por valor
+        if (!isNaN(filtro.replace(',', '.')) && filtro.match(/^\d+[\.,]?\d*$/)) {
+            const valorBusca = parseFloat(filtro.replace(',', '.'));
+            const filtradosValor = contasPorValor.filter(c => c.valor === valorBusca);
+            resultados = resultados.concat(filtradosValor.map(c => ({ tipo: 'valor', ...c })));
+        }
+
+        if (resultados.length === 0) {
+            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum resultado encontrado</span>';
             lista.classList.remove('hidden');
             return;
         }
-        filtrados.forEach(f => {
+        resultados.forEach(r => {
             const div = document.createElement('div');
             div.className = 'px-3 py-2 cursor-pointer hover:bg-red-50 text-sm';
-            div.textContent = f.nome;
-            div.onclick = () => {
-                inputHidden.value = f.id;
-                inputBusca.value = f.nome;
-                lista.classList.add('hidden');
-                setTimeout(() => { inputBusca.form.submit(); }, 100);
-            };
+            if (r.tipo === 'fornecedor') {
+                div.textContent = r.nome;
+                div.onclick = () => {
+                    inputHidden.value = r.id;
+                    inputBusca.value = r.nome;
+                    lista.classList.add('hidden');
+                    setTimeout(() => { inputBusca.form.submit(); }, 100);
+                };
+            } else if (r.tipo === 'valor') {
+                div.textContent = 'Valor: R$ ' + r.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' - ' + r.descricao;
+                div.onclick = () => {
+                    inputHidden.value = '';
+                    inputBusca.value = r.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    lista.classList.add('hidden');
+                    setTimeout(() => { inputBusca.form.submit(); }, 100);
+                };
+            }
             lista.appendChild(div);
         });
         lista.classList.remove('hidden');

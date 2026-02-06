@@ -382,33 +382,13 @@ class ContasReceberController extends Controller
 
     public function movimentacao(Request $request)
     {
-        // Early return: se for filtro de saída, retorna apenas movimentações financeiras do tipo 'saida'
-        if ($request->filled('tipo_movimentacao') && $request->input('tipo_movimentacao') === 'saida') {
-            $movimentacoes = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
-                ->where('tipo', 'saida')
-                ->when($request->filled('data_inicio'), function ($query) use ($request) {
-                    $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
-                })
-                ->when($request->filled('data_fim'), function ($query) use ($request) {
-                    $query->whereDate('data_movimentacao', '<=', $request->data_fim);
-                })
-                ->get()
-                ->map(function ($item) {
-                    $item->tipo_movimentacao = 'saida';
-                    $item->is_financeiro = true;
-                    return $item;
-                });
+        // ================= DADOS PARA FILTROS =================
+        $centrosCusto = \App\Models\CentroCusto::where('ativo', true)->orderBy('nome')->get();
+        $categorias = \App\Models\Categoria::where('ativo', true)->orderBy('nome')->get();
+        $subcategorias = \App\Models\Subcategoria::where('ativo', true)->orderBy('nome')->get();
+        $contasFiltro = \App\Models\Conta::where('ativo', true)->orderBy('nome')->get();
+        $empresas = \App\Models\Empresa::orderBy('nome_fantasia')->get();
 
-            return view('financeiro.movimentacao', compact(
-                'movimentacoes',
-                'centrosCusto',
-                'categorias',
-                'subcategorias',
-                'contasFiltro',
-                'empresas',
-                'contadoresStatus'
-            ));
-        }
         // Se não houver filtro de data, usar mês atual
         if (!$request->filled('data_inicio') && !$request->filled('data_fim')) {
             $inicio = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -424,19 +404,65 @@ class ContasReceberController extends Controller
             'Acesso não autorizado'
         );
 
-        // ================= DADOS PARA FILTROS =================
-        $centrosCusto = \App\Models\CentroCusto::where('ativo', true)->orderBy('nome')->get();
-        $categorias = \App\Models\Categoria::where('ativo', true)->orderBy('nome')->get();
-        $subcategorias = \App\Models\Subcategoria::where('ativo', true)->orderBy('nome')->get();
-        $contasFiltro = \App\Models\Conta::where('ativo', true)->orderBy('nome')->get();
-        $empresas = \App\Models\Empresa::orderBy('nome_fantasia')->get();
+        // Early return: se for filtro de saída, retorna apenas movimentações financeiras do tipo 'saida'
+        if ($request->filled('tipo_movimentacao') && $request->input('tipo_movimentacao') === 'saida') {
+            $movimentacoesQuery = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
+                ->where('tipo', 'saida');
+            if ($request->filled('empresa_id')) {
+                $empresaId = $request->input('empresa_id');
+                $movimentacoesQuery->whereHas('contaDestino', function ($q) use ($empresaId) {
+                    $q->where('empresa_id', $empresaId);
+                });
+            }
+            $movimentacoesCollection = $movimentacoesQuery
+                ->when($request->filled('data_inicio'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
+                })
+                ->when($request->filled('data_fim'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '<=', $request->data_fim);
+                })
+                ->get()
+                ->map(function ($item) {
+                    $item->tipo_movimentacao = 'saida';
+                    $item->is_financeiro = true;
+                    return $item;
+                });
+            // Paginação manual
+            $page = $request->get('page', 1);
+            $perPage = 15;
+            $total = $movimentacoesCollection->count();
+            $movimentacoes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $movimentacoesCollection->forPage($page, $perPage),
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            $contadoresStatus = [
+                'recebido' => 0,
+                'pago'     => $movimentacoesCollection->count(),
+            ];
+            $totalEntradas = 0;
+            $totalSaidas = $movimentacoesCollection->sum('valor');
+            return view('financeiro.movimentacao', compact(
+                'movimentacoes',
+                'centrosCusto',
+                'categorias',
+                'subcategorias',
+                'contasFiltro',
+                'empresas',
+                'contadoresStatus',
+                'totalEntradas',
+                'totalSaidas'
+            ));
+        }
 
         // ================= BUSCAR COBRANÇAS (ENTRADAS) =================
         $cobrancasQuery = Cobranca::with([
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
             'orcamento:id,empresa_id,forma_pagamento',
             'contaFixa:id,empresa_id',
-            'contaFinanceira:id,nome,tipo'
+            'contaFinanceira:id,nome,tipo,empresa_id'
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
@@ -447,48 +473,7 @@ class ContasReceberController extends Controller
         if ($request->filled('data_fim')) {
             $cobrancasQuery->whereDate('pago_em', '<=', $request->data_fim);
         }
-
-        // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
-        $contasPagarQuery = \App\Models\ContaPagar::with([
-            'centroCusto:id,nome',
-            'conta:id,nome',
-            'fornecedor:id,razao_social,nome_fantasia',
-            'contaFinanceira:id,nome,tipo',
-            'orcamento:id,empresa_id',
-            'contaFixaPagar:id',
-        ])
-            ->where('status', 'pago')
-            ->whereNotNull('pago_em');
-
-        // FILTRO ESPECIAL PARA DEBUG: apenas conta id=144 e data 05/02/2026 se ?debug_conta=144 for passado na URL
-        // (Removido filtro especial debug_conta)
-        // Filtro de data para contas a pagar
-        if ($request->filled('data_inicio')) {
-            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
-        }
-        if ($request->filled('data_fim')) {
-            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
-        }
-
-        // Filtro por centro de custo
-        if ($request->filled('centro_custo_id')) {
-            $centroCustoId = $request->input('centro_custo_id');
-            $contasPagarQuery->where('centro_custo_id', $centroCustoId);
-        }
-
-        // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
-        $contasPagarQuery = \App\Models\ContaPagar::with([
-            'centroCusto:id,nome',
-            'conta:id,nome',
-            'fornecedor:id,razao_social,nome_fantasia',
-            'contaFinanceira:id,nome,tipo',
-            'orcamento:id,empresa_id',
-            'contaFixaPagar:id',
-        ])
-            ->where('status', 'pago')
-            ->whereNotNull('pago_em');
-
-        // Filtro por empresa para receitas e despesas
+        // Filtro por empresa: igual à tela de contas a receber
         if ($request->filled('empresa_id')) {
             $empresaId = $request->input('empresa_id');
             $cobrancasQuery->where(function ($query) use ($empresaId) {
@@ -497,11 +482,63 @@ class ContasReceberController extends Controller
                 })
                     ->orWhereHas('contaFixa', function ($q) use ($empresaId) {
                         $q->where('empresa_id', $empresaId);
+                    })
+                    ->orWhereHas('contaFinanceira', function ($q) use ($empresaId) {
+                        $q->where('empresa_id', $empresaId);
                     });
             });
-            $contasPagarQuery->whereHas('orcamento', function ($q) use ($empresaId) {
-                $q->where('empresa_id', $empresaId);
+        }
+        $cobrancasPagas = $cobrancasQuery->get();
+        // Montar movimentações de entrada a partir das cobranças pagas
+        $movFinanceirasEntradas = $cobrancasPagas->map(function ($cobranca) {
+            $mov = new \stdClass();
+            $mov->tipo_movimentacao = 'entrada';
+            $mov->is_financeiro = false;
+            $mov->valor = $cobranca->valor;
+            $mov->descricao = $cobranca->descricao;
+            $mov->cliente = $cobranca->cliente;
+            $mov->pago_em = $cobranca->pago_em;
+            $mov->forma_pagamento = $cobranca->forma_pagamento;
+            $mov->contaFinanceira = $cobranca->contaFinanceira;
+            $mov->usuario = $cobranca->usuario;
+            $mov->cobranca = $cobranca;
+            return $mov;
+        });
+
+        // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
+        $contasPagarQuery = \App\Models\ContaPagar::with([
+            'centroCusto:id,nome',
+            'conta:id,nome',
+            'fornecedor:id,razao_social,nome_fantasia',
+            'contaFinanceira:id,nome,tipo',
+            'orcamento:id,empresa_id',
+            'contaFixaPagar:id',
+        ])
+            ->where('status', 'pago')
+            ->whereNotNull('pago_em');
+        // Filtro de data para contas a pagar
+        if ($request->filled('data_inicio')) {
+            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
+        }
+        if ($request->filled('data_fim')) {
+            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
+        }
+        // Filtro por empresa nas despesas (contas a pagar): só mostrar despesas da empresa selecionada
+        if ($request->filled('empresa_id')) {
+            $empresaId = $request->input('empresa_id');
+            $contasPagarQuery->where(function ($query) use ($empresaId) {
+                $query->whereHas('orcamento', function ($q) use ($empresaId) {
+                    $q->where('empresa_id', $empresaId);
+                })
+                    ->orWhereHas('contaFinanceira', function ($q) use ($empresaId) {
+                        $q->where('empresa_id', $empresaId);
+                    });
             });
+        }
+        // Filtro por centro de custo: AFETA APENAS DESPESAS (CONTAS A PAGAR)
+        if ($request->filled('centro_custo_id')) {
+            $centroCustoId = $request->input('centro_custo_id');
+            $contasPagarQuery->where('centro_custo_id', $centroCustoId);
         }
         // Filtro por centro de custo só para despesas
         if ($request->filled('centro_custo_id')) {
@@ -580,11 +617,17 @@ class ContasReceberController extends Controller
 
 
         // ================= COMBINAR E ORDENAR =================
-        // Entradas: apenas movimentações financeiras de recebimento (tipo entrada, observação 'Recebimento de cobrança')
-        $movFinanceirasEntradas = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
+        // Entradas: apenas movimentações financeiras de recebimento (tipo entrada, observação 'Recebimento de cobrança ID%')
+        $movFinanceirasEntradasQuery = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
             ->where('tipo', 'entrada')
-            ->where('observacao', 'like', 'Recebimento de cobrança ID%')
-            // Filtros de data para entradas financeiras
+            ->where('observacao', 'like', 'Recebimento de cobrança ID%');
+        if ($request->filled('empresa_id')) {
+            $empresaId = $request->input('empresa_id');
+            $movFinanceirasEntradasQuery->whereHas('contaDestino', function ($q) use ($empresaId) {
+                $q->where('empresa_id', $empresaId);
+            });
+        }
+        $movFinanceirasEntradas = $movFinanceirasEntradasQuery
             ->when($request->filled('data_inicio'), function ($query) use ($request) {
                 $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
             })
@@ -607,24 +650,40 @@ class ContasReceberController extends Controller
         $movFinanceirasSaidas = $movFinanceiras;
 
         if ($request->filled('centro_custo_id')) {
-            // Sempre mostrar apenas movimentações financeiras do tipo 'saida' (pagamentos realizados)
-            $movimentacoes = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
-                ->where('tipo', 'saida')
-                ->when($request->filled('data_inicio'), function ($query) use ($request) {
-                    $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
-                })
-                ->when($request->filled('data_fim'), function ($query) use ($request) {
-                    $query->whereDate('data_movimentacao', '<=', $request->data_fim);
-                })
-                ->get()
-                ->map(function ($item) {
-                    $item->tipo_movimentacao = 'saida';
-                    $item->is_financeiro = true;
-                    return $item;
-                });
-
-            // Debug: mostra o conteúdo das movimentações para rastrear valores
-            dd($movimentacoes->toArray());
+            // Quando filtrar por centro de custo, mostrar apenas contas a pagar desse centro de custo
+            $contasPagarCollection = $contasPagarQuery->get()->map(function ($item) {
+                $item->tipo_movimentacao = 'saida';
+                $item->is_financeiro = false;
+                return $item;
+            });
+            // Paginação manual
+            $page = $request->get('page', 1);
+            $perPage = 15;
+            $total = $contasPagarCollection->count();
+            $movimentacoes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $contasPagarCollection->forPage($page, $perPage),
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            $contadoresStatus = [
+                'recebido' => 0,
+                'pago'     => $contasPagarCollection->count(),
+            ];
+            $totalEntradas = 0;
+            $totalSaidas = $contasPagarCollection->sum('valor');
+            return view('financeiro.movimentacao', compact(
+                'movimentacoes',
+                'centrosCusto',
+                'categorias',
+                'subcategorias',
+                'contasFiltro',
+                'empresas',
+                'contadoresStatus',
+                'totalEntradas',
+                'totalSaidas'
+            ));
         } else {
             // Caso contrário, mostrar entradas e saídas corretamente
             $orderBy = $request->input('order_by', 'data');

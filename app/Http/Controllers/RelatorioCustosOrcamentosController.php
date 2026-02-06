@@ -34,7 +34,7 @@ class RelatorioCustosOrcamentosController extends Controller
         $clienteId = $request->input('cliente_id');
 
         // Carregar orçamentos filtrados por cliente e status (inclui CONCLUIDO)
-        $statusOrcamentos = ['APROVADO', 'EM_ANDAMENTO', 'CONCLUIDO'];
+        $statusOrcamentos = ['APROVADO', 'EM_ANDAMENTO', 'FINANCEIRO', 'CONCLUIDO', 'AGUARDANDO PAGAMENTO', 'AGUARDANDO_PAGAMENTO'];
         if ($clienteId) {
             $orcamentos = Orcamento::where('cliente_id', $clienteId)
                 ->whereIn('status', $statusOrcamentos)
