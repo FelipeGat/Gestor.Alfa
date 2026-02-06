@@ -389,6 +389,13 @@ class ContasReceberController extends Controller
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
+        // Filtro de data para cobranças
+        if ($request->filled('data_inicio')) {
+            $cobrancasQuery->whereDate('pago_em', '>=', $request->data_inicio);
+        }
+        if ($request->filled('data_fim')) {
+            $cobrancasQuery->whereDate('pago_em', '<=', $request->data_fim);
+        }
 
         // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
         $contasPagarQuery = \App\Models\ContaPagar::with([
@@ -401,6 +408,13 @@ class ContasReceberController extends Controller
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
+        // Filtro de data para contas a pagar
+        if ($request->filled('data_inicio')) {
+            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
+        }
+        if ($request->filled('data_fim')) {
+            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
+        }
 
         // Filtro por centro de custo
         if ($request->filled('centro_custo_id')) {
@@ -481,8 +495,7 @@ class ContasReceberController extends Controller
 
         // ================= MOVIMENTAÇÕES FINANCEIRAS (AJUSTES, TRANSFERÊNCIAS, INJEÇÕES) =================
         $movFinanceirasQuery = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario']);
-
-        // Filtros de data
+        // Filtros de data para movimentações financeiras
         if ($request->filled('data_inicio')) {
             $movFinanceirasQuery->whereDate('data_movimentacao', '>=', $request->data_inicio);
         }
@@ -496,7 +509,6 @@ class ContasReceberController extends Controller
                     ->orWhere('conta_destino_id', $request->conta_id);
             });
         }
-
         $movFinanceiras = $movFinanceirasQuery->get()
             // Filtra apenas ajustes de entrada/saída
             ->filter(function ($item) {
@@ -518,6 +530,13 @@ class ContasReceberController extends Controller
         $movFinanceirasEntradas = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
             ->where('tipo', 'entrada')
             ->where('observacao', 'like', 'Recebimento de cobrança ID%')
+            // Filtros de data para entradas financeiras
+            ->when($request->filled('data_inicio'), function ($query) use ($request) {
+                $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
+            })
+            ->when($request->filled('data_fim'), function ($query) use ($request) {
+                $query->whereDate('data_movimentacao', '<=', $request->data_fim);
+            })
             ->get()
             ->map(function ($item) {
                 $item->tipo_movimentacao = 'entrada';
