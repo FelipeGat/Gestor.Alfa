@@ -23,7 +23,17 @@ class RelatorioCustoGerencialController extends Controller
 
         // Listar clientes e orçamentos para os filtros
         $clientes = Cliente::orderBy('nome')->get();
-        $orcamentos = Orcamento::with('cliente')->orderBy('id', 'desc')->get();
+        $orcamentos = Orcamento::with('cliente')
+            ->whereIn('status', [
+                'APROVADO',
+                'EM_ANDAMENTO',
+                'FINANCEIRO',
+                'CONCLUIDO',
+                'AGUARDANDO PAGAMENTO',
+                'AGUARDANDO_PAGAMENTO'
+            ])
+            ->orderBy('id', 'desc')
+            ->get();
 
         // Se não selecionou orçamento, retorna apenas os filtros e mensagem
         if (!$orcamentoId) {
