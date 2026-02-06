@@ -644,10 +644,24 @@ class ContasReceberController extends Controller
         $contasPagar = $contasPagarQuery->get()->map(function ($item) {
             $item->tipo_movimentacao = 'saida';
             $item->is_financeiro = false;
+            // Garante que usuario seja sempre o objeto User
+            if (method_exists($item, 'usuario') && $item->usuario) {
+                $item->usuario = $item->usuario;
+            } elseif (isset($item->user_id)) {
+                $item->usuario = \App\Models\User::find($item->user_id);
+            } else {
+                $item->usuario = null;
+            }
             return $item;
         });
 
-        $movFinanceirasSaidas = $movFinanceiras;
+        $movFinanceirasSaidas = $movFinanceiras->map(function ($item) {
+            // Garante que usuario seja sempre o objeto User
+            if (!isset($item->usuario) && isset($item->user_id)) {
+                $item->usuario = \App\Models\User::find($item->user_id);
+            }
+            return $item;
+        });
 
         if ($request->filled('centro_custo_id')) {
             // Quando filtrar por centro de custo, mostrar apenas contas a pagar desse centro de custo

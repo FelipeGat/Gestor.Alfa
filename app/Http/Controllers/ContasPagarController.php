@@ -253,6 +253,7 @@ class ContasPagarController extends Controller
                     'data_vencimento'     => $request->data_vencimento_original ?? $conta->data_vencimento,
                     'status'              => 'em_aberto',
                     'tipo'                => $conta->tipo,
+                    'user_id'             => $request->user() ? $request->user()->id : null,
                 ]);
             }
         });
