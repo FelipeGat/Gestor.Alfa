@@ -156,12 +156,12 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                         ⚠️ Juros / Multa
                     </label>
                     <input
-                        type="number"
+                        type="text"
                         name="juros_multa"
                         step="0.01"
                         min="0"
-                        x-model.number="jurosMulta"
-                        @input="valorPago = parseFloat(getValorTotalComJuros())"
+                        x-model="jurosMulta"
+                        @input="jurosMulta = jurosMulta.replace(',', '.')"
                         @blur="validarJurosMulta()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 font-semibold text-orange-700">
                     <p class="text-xs text-gray-500 mt-1">
@@ -180,11 +180,12 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                         💵 Valor Pago <span class="text-red-500">*</span>
                     </label>
                     <input
-                        type="number"
+                        type="text"
                         name="valor_pago"
                         step="0.01"
                         min="0"
-                        x-model.number="valorPago"
+                        x-model="valorPago"
+                        @input="valorPago = valorPago.replace(',', '.')"
                         @blur="validarValorPago()"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-semibold text-emerald-700">

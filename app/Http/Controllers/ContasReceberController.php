@@ -178,6 +178,18 @@ class ContasReceberController extends Controller
             return back()->with('error', 'Esta cobrança já está paga.');
         }
 
+        // Pré-processa valores para aceitar vírgula como separador decimal
+        $input = $request->all();
+        if (isset($input['valor_pago'])) {
+            $input['valor_pago'] = str_replace(',', '.', $input['valor_pago']);
+        }
+        if (isset($input['juros_multa'])) {
+            $input['juros_multa'] = str_replace(',', '.', $input['juros_multa']);
+        }
+        if (isset($input['valor_restante'])) {
+            $input['valor_restante'] = str_replace(',', '.', $input['valor_restante']);
+        }
+        $request->merge($input);
         $request->validate([
             'conta_financeira_id' => 'required|exists:contas_financeiras,id',
             'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
@@ -190,9 +202,20 @@ class ContasReceberController extends Controller
         ]);
 
 
-        $valorTotal = $request->has('valor_total') ? floatval($request->valor_total) : floatval($cobranca->valor);
-        $valorPago = floatval($request->valor_pago);
-        $jurosMulta = floatval($request->juros_multa ?? 0);
+        // Corrige valores para aceitar vírgula como separador decimal
+        $valorTotal = $request->has('valor_total') ? floatval(str_replace(',', '.', $request->valor_total)) : floatval($cobranca->valor);
+        $valorPago = floatval(str_replace(',', '.', $request->valor_pago));
+        $jurosMulta = floatval(str_replace(',', '.', $request->juros_multa ?? 0));
+
+        // Corrige lógica: valor pago pode ser igual ao valor total ou ao valor total + juros/multa
+        $valorTotalComJuros = $valorTotal + $jurosMulta;
+
+        if ($valorPago < $valorTotal) {
+            return back()->with('error', 'O valor pago não pode ser menor que o valor da cobrança.');
+        }
+        if ($valorPago > $valorTotalComJuros) {
+            return back()->with('error', 'O valor pago não pode ser maior que o valor total da cobrança + juros/multa.');
+        }
 
         // Validações de valor
         if ($valorPago <= 0) {
@@ -207,15 +230,16 @@ class ContasReceberController extends Controller
 
         DB::transaction(function () use ($cobranca, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a cobrança atual com o valor pago
-            $cobranca->update([
-                'status' => 'pago',
-                'pago_em' => $request->data_pagamento,
-                'data_pagamento' => $request->data_pagamento,
-                'valor' => $valorTotal, // Salva o valor ajustado para este recebimento
-                'juros_multa' => $jurosMulta,
-                'conta_financeira_id' => $request->conta_financeira_id,
-                'forma_pagamento' => $request->forma_pagamento,
-            ]);
+            $cobranca->status = 'pago';
+            $cobranca->pago_em = $request->data_pagamento;
+            $cobranca->data_pagamento = $request->data_pagamento;
+            $cobranca->valor = $valorTotal;
+            $cobranca->juros_multa = $jurosMulta;
+            $cobranca->conta_financeira_id = $request->conta_financeira_id;
+            $cobranca->forma_pagamento = $request->forma_pagamento;
+            $cobranca->user_id = $request->user() ? $request->user()->id : null;
+            $cobranca->save();
+            \Log::info('Cobrança marcada como paga', ['id' => $cobranca->id, 'status' => $cobranca->status, 'valor_pago' => $valorPago, 'juros_multa' => $jurosMulta]);
 
             // Atualizar o saldo da conta financeira (RECEITA = AUMENTA O SALDO)
             $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
@@ -228,7 +252,7 @@ class ContasReceberController extends Controller
                     'tipo' => 'entrada',
                     'valor' => $valorPago,
                     'saldo_resultante' => $contaFinanceira->saldo,
-                    'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
+                    'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id . ($jurosMulta > 0 ? ' | Juros/Multa: R$ ' . number_format($jurosMulta, 2, ',', '.') : ''),
                     'user_id' => $request->user() ? $request->user()->id : null,
                     'data_movimentacao' => $request->data_pagamento,
                 ]);
@@ -638,6 +662,11 @@ class ContasReceberController extends Controller
                     $contaFinanceira->decrement('saldo', $cobranca->valor);
                 }
             }
+
+            // Remover movimentação financeira associada
+            \App\Models\MovimentacaoFinanceira::where('tipo', 'entrada')
+                ->where('observacao', 'like', 'Recebimento de cobrança ID ' . $cobranca->id . '%')
+                ->delete();
 
             $cobranca->update([
                 'status' => 'pendente',

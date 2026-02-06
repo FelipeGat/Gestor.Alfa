@@ -215,6 +215,7 @@ class ContasPagarController extends Controller
                 'juros_multa'         => $jurosMulta,
                 'forma_pagamento'     => $request->forma_pagamento,
                 'conta_financeira_id' => $request->conta_financeira_id,
+                'user_id'             => $request->user() ? $request->user()->id : null,
             ]);
 
             // Atualizar saldo da conta bancária se informada (DESPESA = DIMINUI O SALDO)

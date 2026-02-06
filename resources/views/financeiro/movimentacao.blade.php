@@ -306,9 +306,9 @@
                                     <th>DESCRIÇÃO</th>
                                     <th>CLIENTE/FORNECEDOR</th>
                                     <th>VALOR</th>
-                                    <th>BANCO ORIGEM</th>
                                     <th>CENTRO DE CUSTO</th>
                                     <th>FORMA PAGTO</th>
+                                    <th>USUÁRIO</th>
                                     <th>AÇÕES</th>
                                 </tr>
                             </thead>
@@ -399,51 +399,71 @@
 
                                     {{-- VALOR --}}
                                     <td class="text-right font-bold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}
-                                    </td>
-
-                                    {{-- BANCO --}}
-                                    {{-- BANCO ORIGEM --}}
-                                    <td>
-                                        @if($contaPagar && $contaPagar->contaFinanceira)
-                                            {{ $contaPagar->contaFinanceira->nome }}
-                                        @elseif(property_exists($mov, 'contaOrigem') && $mov->contaOrigem)
-                                            {{ $mov->contaOrigem->nome }}
-                                        @elseif(isset($mov->contaFinanceira))
-                                            {{ $mov->contaFinanceira?->nome ?? '—' }}
-                                        @else
-                                            —
-                                        @endif
+                                        <span style="white-space: nowrap;">{{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}</span>
                                     </td>
                                     {{-- CENTRO DE CUSTO --}}
                                     <td>
-                                        @if($isEntrada && isset($mov->orcamento) && isset($mov->orcamento->centroCusto))
-                                            {{ $mov->orcamento->centroCusto->nome ?? '—' }}
-                                        @elseif(!$isEntrada && ($contaPagar && $contaPagar->centroCusto))
-                                            {{ $contaPagar->centroCusto->nome ?? '—' }}
-                                        @elseif(isset($mov->centroCusto))
-                                            {{ $mov->centroCusto->nome ?? '—' }}
-                                        @else
-                                            —
-                                        @endif
+                                        <span style="white-space: nowrap;">
+                                            @if($isEntrada)
+                                                {{-- Para receitas, exibe o banco/conta financeira --}}
+                                                {{ $mov->contaDestino?->nome ?? '—' }}
+                                            @elseif($contaPagar && $contaPagar->centroCusto)
+                                                {{ $contaPagar->centroCusto->nome ?? '—' }}
+                                            @elseif(isset($mov->centroCusto))
+                                                {{ $mov->centroCusto->nome ?? '—' }}
+                                            @else
+                                                —
+                                            @endif
+                                        </span>
                                     </td>
-
                                     {{-- FORMA PAGAMENTO --}}
                                     <td>
-                                        @if($contaPagar && $formaPagtoMov)
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                {{ strtoupper(str_replace('_', ' ', $formaPagtoMov)) }}
-                                            </span>
-                                        @elseif($mov->forma_pagamento)
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
-                                            </span>
+                                        @if($isEntrada)
+                                            @if($mov->forma_pagamento)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                    {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
+                                                </span>
+                                            @elseif($mov->contaDestino && $mov->contaDestino->tipo)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                    {{ strtoupper(str_replace('_', ' ', $mov->contaDestino->tipo)) }}
+                                                </span>
+                                            @else
+                                                —
+                                            @endif
                                         @else
-                                            —
+                                            @if($contaPagar && $formaPagtoMov)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                    {{ strtoupper(str_replace('_', ' ', $formaPagtoMov)) }}
+                                                </span>
+                                            @elseif($mov->forma_pagamento)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                    {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
+                                                </span>
+                                            @else
+                                                —
+                                            @endif
                                         @endif
                                     </td>
-
-                                    {{-- AÇÕES --}}
+                                    {{-- USUÁRIO RESPONSÁVEL --}}
+                                    <td>
+                                        @php
+                                            // Tenta pegar o usuário relacionado à movimentação
+                                            $usuario = null;
+                                            if (isset($mov->usuario) && $mov->usuario) {
+                                                $usuario = $mov->usuario;
+                                            } elseif (isset($mov->user) && $mov->user) {
+                                                $usuario = $mov->user;
+                                            } elseif (isset($mov->contaPagar) && $mov->contaPagar && $mov->contaPagar->usuario) {
+                                                $usuario = $mov->contaPagar->usuario;
+                                            } elseif (isset($mov->cobranca) && $mov->cobranca && $mov->cobranca->usuario) {
+                                                $usuario = $mov->cobranca->usuario;
+                                            } elseif (isset($mov->user_id)) {
+                                                // fallback para user_id direto
+                                                $usuario = \App\Models\User::find($mov->user_id);
+                                            }
+                                        @endphp
+                                        {{ $usuario?->name ?? $usuario?->nome ?? '—' }}
+                                    </td>
                                     <td>
                                         <div class="flex items-center gap-2">
 
@@ -457,17 +477,28 @@
                                             </a>
 
                                             {{-- DELETAR / ESTORNAR --}}
-                                            <form method="POST"
-                                                action="{{ route('financeiro.movimentacao.estornar', $mov) }}"
-                                                onsubmit="return confirm('Deseja estornar esta cobrança e devolvê-la para Contas a Receber?')">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit"
-                                                    class="btn btn-danger btn-sm"
-                                                    title="Estornar Pagamento">
-                                                    ↩️
-                                                </button>
-                                            </form>
+                                            @php
+                                                // Para movimentações de recebimento, buscar o ID da cobrança
+                                                $cobrancaId = null;
+                                                if ($isEntrada && isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
+                                                    $cobrancaId = $matches[1];
+                                                }
+                                            @endphp
+                                            @if($cobrancaId)
+                                                <form method="POST"
+                                                    action="{{ route('financeiro.movimentacao.estornar', $cobrancaId) }}"
+                                                    onsubmit="return confirm('Deseja estornar esta cobrança e devolvê-la para Contas a Receber?')">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="btn btn-danger btn-sm"
+                                                        title="Estornar Pagamento">
+                                                        ↩️
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-gray-400">Não estornável</span>
+                                            @endif
                                             @else
                                             {{-- Estornar Conta a Pagar --}}
                                             <form method="POST"
