@@ -382,6 +382,33 @@ class ContasReceberController extends Controller
 
     public function movimentacao(Request $request)
     {
+        // Early return: se for filtro de saída, retorna apenas movimentações financeiras do tipo 'saida'
+        if ($request->filled('tipo_movimentacao') && $request->input('tipo_movimentacao') === 'saida') {
+            $movimentacoes = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
+                ->where('tipo', 'saida')
+                ->when($request->filled('data_inicio'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
+                })
+                ->when($request->filled('data_fim'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '<=', $request->data_fim);
+                })
+                ->get()
+                ->map(function ($item) {
+                    $item->tipo_movimentacao = 'saida';
+                    $item->is_financeiro = true;
+                    return $item;
+                });
+
+            return view('financeiro.movimentacao', compact(
+                'movimentacoes',
+                'centrosCusto',
+                'categorias',
+                'subcategorias',
+                'contasFiltro',
+                'empresas',
+                'contadoresStatus'
+            ));
+        }
         // Se não houver filtro de data, usar mês atual
         if (!$request->filled('data_inicio') && !$request->filled('data_fim')) {
             $inicio = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -432,6 +459,9 @@ class ContasReceberController extends Controller
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
+
+        // FILTRO ESPECIAL PARA DEBUG: apenas conta id=144 e data 05/02/2026 se ?debug_conta=144 for passado na URL
+        // (Removido filtro especial debug_conta)
         // Filtro de data para contas a pagar
         if ($request->filled('data_inicio')) {
             $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
@@ -577,10 +607,29 @@ class ContasReceberController extends Controller
         $movFinanceirasSaidas = $movFinanceiras;
 
         if ($request->filled('centro_custo_id')) {
-            // Se filtrar centro de custo, mostrar só despesas
-            $movimentacoes = $contasPagar->concat($movFinanceirasSaidas);
+            // Sempre mostrar apenas movimentações financeiras do tipo 'saida' (pagamentos realizados)
+            $movimentacoes = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
+                ->where('tipo', 'saida')
+                ->when($request->filled('data_inicio'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
+                })
+                ->when($request->filled('data_fim'), function ($query) use ($request) {
+                    $query->whereDate('data_movimentacao', '<=', $request->data_fim);
+                })
+                ->get()
+                ->map(function ($item) {
+                    $item->tipo_movimentacao = 'saida';
+                    $item->is_financeiro = true;
+                    return $item;
+                });
+
+            // Debug: mostra o conteúdo das movimentações para rastrear valores
+            dd($movimentacoes->toArray());
         } else {
             // Caso contrário, mostrar entradas e saídas corretamente
+            $orderBy = $request->input('order_by', 'data');
+            $orderDir = strtolower($request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
             $movimentacoes = $movFinanceirasEntradas
                 ->concat($contasPagar)
                 ->concat($movFinanceirasSaidas)
@@ -590,57 +639,51 @@ class ContasReceberController extends Controller
                     }
                     return $item->tipo_movimentacao === $request->input('tipo_movimentacao');
                 });
+
+            if ($orderBy === 'data') {
+                $movimentacoes = $movimentacoes->sortBy(function ($item) {
+                    // Usa data_movimentacao para movimentações financeiras, pago_em para cobranças/contas a pagar
+                    return $item->is_financeiro ? $item->data_movimentacao : ($item->pago_em ?? $item->data_movimentacao);
+                }, SORT_REGULAR, $orderDir === 'desc');
+            }
+
+            $movimentacoes = $movimentacoes->values();
+
+            // Paginar manualmente
+            $page = $request->get('page', 1);
+            $perPage = 15;
+            $total = $movimentacoes->count();
+            $movimentacoes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $movimentacoes->forPage($page, $perPage),
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            // ================= KPIs =================
+            $totalEntradas = $movFinanceirasEntradas->sum('valor') + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->sum('valor');
+            $totalSaidas = $contasPagar->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'saida')->sum('valor');
+
+            // ================= CONTADORES PARA FILTROS RÁPIDOS =================
+            $contadoresStatus = [
+                'recebido' => $movFinanceirasEntradas->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->count(),
+                'pago'     => $contasPagar->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'saida')->count(),
+            ];
+
+            return view('financeiro.movimentacao', compact(
+                'movimentacoes',
+                'totalEntradas',
+                'totalSaidas',
+                'centrosCusto',
+                'categorias',
+                'subcategorias',
+                'contasFiltro',
+                'empresas',
+                'contadoresStatus'
+            ));
         }
-
-        // Ordenação dinâmica
-        $orderBy = $request->input('order_by', 'data');
-        $orderDir = strtolower($request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-
-        if ($orderBy === 'data') {
-            $movimentacoes = $movimentacoes->sortBy(function ($item) {
-                // Usa data_movimentacao para movimentações financeiras, pago_em para cobranças/contas a pagar
-                return $item->is_financeiro ? $item->data_movimentacao : ($item->pago_em ?? $item->data_movimentacao);
-            }, SORT_REGULAR, $orderDir === 'desc');
-        }
-
-        $movimentacoes = $movimentacoes->values();
-
-        // Paginar manualmente
-        $page = $request->get('page', 1);
-        $perPage = 15;
-        $total = $movimentacoes->count();
-        $movimentacoes = new \Illuminate\Pagination\LengthAwarePaginator(
-            $movimentacoes->forPage($page, $perPage),
-            $total,
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        // ================= KPIs =================
-        $totalEntradas = $movFinanceirasEntradas->sum('valor') + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->sum('valor');
-        $totalSaidas = $contasPagar->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'saida')->sum('valor');
-
-        // ================= CONTADORES PARA FILTROS RÁPIDOS =================
-        $contadoresStatus = [
-            'recebido' => $movFinanceirasEntradas->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->count(),
-            'pago'     => $contasPagar->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'saida')->count(),
-        ];
-
-        return view('financeiro.movimentacao', compact(
-            'movimentacoes',
-            'totalEntradas',
-            'totalSaidas',
-            'centrosCusto',
-            'categorias',
-            'subcategorias',
-            'contasFiltro',
-            'contadoresStatus',
-            'empresas'
-        ));
-    }
-
-    // ================= RECIBO =================
+    } // ================= RECIBO =================
     public function recibo(Cobranca $cobranca)
     {
         return view('financeiro.recibos.recibo-pagamento', compact('cobranca'));

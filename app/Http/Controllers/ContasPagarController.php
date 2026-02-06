@@ -198,12 +198,7 @@ class ContasPagarController extends Controller
         if ($valorPago <= 0) {
             return back()->with('error', 'O valor pago deve ser maior que zero.');
         }
-
-        $valorTotalComJuros = $valorTotal + $jurosMulta;
-
-        if ($valorPago > $valorTotalComJuros) {
-            return back()->with('error', 'O valor pago não pode ser maior que o valor total da conta + juros/multa.');
-        }
+        // Permite valor pago diferente do valor total, para casos de fatura variável
 
         DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a conta atual com o valor pago e o valor total ajustado
@@ -223,14 +218,20 @@ class ContasPagarController extends Controller
                 $contaBancaria = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
                 if ($contaBancaria) {
                     $contaBancaria->decrement('saldo', $valorPago);
+                    // Antes de criar, remove qualquer movimentação anterior deste pagamento (evita duplicidade)
+                    \App\Models\MovimentacaoFinanceira::where('tipo', 'saida')
+                        ->where(function ($q) use ($conta) {
+                            $q->where('observacao', 'like', 'Pagamento de conta a pagar ID ' . $conta->id . '%');
+                        })
+                        ->delete();
                     // Registrar movimentação financeira (apenas UM lançamento por pagamento)
                     \App\Models\MovimentacaoFinanceira::create([
                         'conta_origem_id' => $request->conta_financeira_id,
                         'conta_destino_id' => null,
                         'tipo' => 'saida',
-                        'valor' => $valorPago,
+                        'valor' => $valorPago, // SEMPRE o valor pago!
                         'saldo_resultante' => $contaBancaria->saldo,
-                        'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id,
+                        'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id . ' | Valor pago: R$ ' . number_format($valorPago, 2, ',', '.'),
                         'user_id' => $request->user() ? $request->user()->id : null,
                         'data_movimentacao' => $request->data_pagamento,
                     ]);
@@ -289,6 +290,13 @@ class ContasPagarController extends Controller
                     $contaFinanceira->increment('saldo', $conta->valor);
                 }
             }
+
+            // Remover TODAS as movimentações financeiras associadas a este pagamento
+            \App\Models\MovimentacaoFinanceira::where('tipo', 'saida')
+                ->where(function ($q) use ($conta) {
+                    $q->where('observacao', 'like', 'Pagamento de conta a pagar ID ' . $conta->id . '%');
+                })
+                ->delete();
 
             $conta->update([
                 'status' => 'em_aberto',

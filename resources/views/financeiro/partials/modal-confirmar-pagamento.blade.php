@@ -28,11 +28,6 @@
     },
     
     validarValorPago() {
-        const totalComJuros = parseFloat(this.getValorTotalComJuros());
-        if (this.valorPago > totalComJuros) {
-            alert('O valor pago não pode ser maior que o valor total + juros/multa.');
-            this.valorPago = totalComJuros;
-        }
         if (this.valorPago < 0) {
             this.valorPago = 0;
         }
