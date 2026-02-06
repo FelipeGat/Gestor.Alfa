@@ -56,11 +56,12 @@
         orcamentos: [],
         totalOrcamentos: 0,
         valorTotal: 0,
-        empresaIdFiltro: '{{ $empresaId }}',
-        statusFiltro: '',
-        filtroRapido: '{{ $filtroRapido }}',
-        inicioCustom: '{{ $inicio?->format('Y-m-d') ?? '' }}',
-        fimCustom: '{{ $fim?->format('Y-m-d') ?? '' }}',
+        empresaIdFiltro: '{{ $empresaId ?? '' }}',
+        statusFiltro: '{{ $statusFiltro ?? '' }}',
+        filtroRapido: '{{ $filtroRapido ?? '' }}',
+        origemFiltro: '{{ request('origem', 'todos') }}',
+        inicioCustom: '{{ request('inicio', $inicio?->format('Y-m-d')) ?? '' }}',
+        fimCustom: '{{ request('fim', $fim?->format('Y-m-d')) ?? '' }}',
         modalHistoricoAberto: false,
         historicos: [],
         carregandoHistoricos: false,
@@ -78,17 +79,16 @@
                 const params = new URLSearchParams();
                 if (this.empresaIdFiltro) params.append('empresa_id', this.empresaIdFiltro);
                 if (status) params.append('status', status);
-                
                 // Adicionar filtros de data
                 params.append('filtro_rapido', this.filtroRapido || 'mes');
                 if (this.filtroRapido === 'custom' && this.inicioCustom && this.fimCustom) {
                     params.append('inicio', this.inicioCustom);
                     params.append('fim', this.fimCustom);
                 }
-                
+                // Adicionar filtro de origem
+                params.append('origem', this.origemFiltro || 'todos');
                 const response = await fetch(`{{ route('dashboard.comercial.orcamentos') }}?${params}`);
                 const data = await response.json();
-                
                 if (data.success) {
                     this.orcamentos = data.orcamentos;
                     this.totalOrcamentos = data.total;
@@ -206,6 +206,7 @@
             <div x-data="{
                 filtroRapido: '{{ $filtroRapido }}',
                 mostrarCustom: {{ $filtroRapido === 'custom' ? 'true' : 'false' }},
+                origemFiltro: '{{ request('origem', 'todos') }}',
                 aplicarFiltro(tipo) {
                     this.filtroRapido = tipo;
                     if (tipo !== 'custom') {
@@ -219,6 +220,12 @@
                     } else {
                         this.mostrarCustom = true;
                     }
+                },
+                aplicarOrigem(origem) {
+                    this.origemFiltro = origem;
+                    const form = this.$refs.formFiltro;
+                    form.querySelector('input[name=origem]').value = origem;
+                    setTimeout(() => form.submit(), 10);
                 }
             }" class="mb-6 bg-white rounded-xl shadow-sm p-6">
                 <form method="GET" x-ref="formFiltro" action="{{ route('dashboard.comercial') }}">
@@ -231,50 +238,70 @@
                     <input type="hidden" name="filtro_rapido" :value="filtroRapido">
 
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-gray-700 font-semibold text-sm">Filtrar por período:</span>
 
-                        {{-- Botões de filtro rápido --}}
-                        <button type="button"
-                            @click="aplicarFiltro('mes_anterior')"
-                            :class="filtroRapido === 'mes_anterior' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Mês Anterior
-                        </button>
-
-                        <button type="button"
-                            @click="aplicarFiltro('dia')"
-                            :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Dia
-                        </button>
-
-                        <button type="button"
-                            @click="aplicarFiltro('semana')"
-                            :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Semana
-                        </button>
-
-                        <button type="button"
-                            @click="aplicarFiltro('mes')"
-                            :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Mês
-                        </button>
-
-                        <button type="button"
-                            @click="aplicarFiltro('ano')"
-                            :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Ano
-                        </button>
-
-                        <button type="button"
-                            @click="aplicarFiltro('custom')"
-                            :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                            class="px-3 py-2 rounded-md text-xs font-medium transition">
-                            Outro período
-                        </button>
+                        <div class="flex w-full justify-between items-center gap-3">
+                            <div class="flex gap-3 items-center">
+                                <span class="text-gray-700 font-semibold text-sm">Filtrar por período:</span>
+                                {{-- Botões de filtro rápido --}}
+                                <button type="button"
+                                    @click="aplicarFiltro('mes_anterior')"
+                                    :class="filtroRapido === 'mes_anterior' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Mês Anterior
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('dia')"
+                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Dia
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('semana')"
+                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Semana
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('mes')"
+                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Mês
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('ano')"
+                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Ano
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('custom')"
+                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    Outro período
+                                </button>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="hidden" name="origem" :value="origemFiltro">
+                                <button type="button"
+                                    @click="aplicarOrigem('todos')"
+                                    :class="origemFiltro === 'todos' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    TODOS
+                                </button>
+                                <button type="button"
+                                    @click="aplicarOrigem('contrato')"
+                                    :class="origemFiltro === 'contrato' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    CONTRATOS
+                                </button>
+                                <button type="button"
+                                    @click="aplicarOrigem('avulso')"
+                                    :class="origemFiltro === 'avulso' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    AVULSO
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Campos de data customizada --}}

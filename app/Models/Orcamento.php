@@ -9,10 +9,14 @@ use App\Models\OrcamentoItem;
 use App\Models\OrcamentoTaxa;
 use App\Models\OrcamentoPagamento;
 
-
 class Orcamento extends Model
 {
     use HasFactory;
+
+    public function centroCusto()
+    {
+        return $this->belongsTo(\App\Models\CentroCusto::class);
+    }
 
     protected $table = 'orcamentos';
 
@@ -24,6 +28,7 @@ class Orcamento extends Model
         'pre_cliente_id',
         'numero_orcamento',
         'status',
+        'data_agendamento',
         'valor_total',
         'desconto',
         'desconto_servico_valor',
@@ -46,6 +51,7 @@ class Orcamento extends Model
         'descricao_taxas' => 'array',
         'desconto_servico_valor' => 'float',
         'desconto_produto_valor' => 'float',
+        'data_agendamento' => 'date',
     ];
 
 

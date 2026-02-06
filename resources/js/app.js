@@ -142,14 +142,18 @@ Alpine.data('gerarCobranca', () => ({
 
     validarEEnviar(event) {
         const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
-        const somaDistribuida = this.valoresParcelas.reduce((acc, val) => acc + parseFloat(val || 0), 0);
-        
-        // Validar se a soma total não ultrapassa o valor original
-        if (somaDistribuida > valorTotal) {
-            alert(`Erro: A soma das parcelas (R$ ${somaDistribuida.toFixed(2)}) ultrapassa o valor total da cobrança (R$ ${valorTotal.toFixed(2)}).\n\nPor favor, ajuste os valores antes de salvar.`);
-            return false;
+        // Só valida soma se for parcelado
+        if (["boleto", "credito", "faturado"].includes(this.forma)) {
+            const somaDistribuida = this.valoresParcelas.reduce((acc, val) => acc + parseFloat(val || 0), 0);
+            const diferenca = somaDistribuida - valorTotal;
+            if (diferenca > 0.10) {
+                alert(`Erro: A soma das parcelas (R$ ${somaDistribuida.toFixed(2)}) ultrapassa o valor total da cobrança (R$ ${valorTotal.toFixed(2)}).\n\nPor favor, ajuste os valores antes de salvar.`);
+                return false;
+            } else if (diferenca < -0.10) {
+                alert(`Erro: A soma das parcelas (R$ ${somaDistribuida.toFixed(2)}) é inferior ao valor total da cobrança (R$ ${valorTotal.toFixed(2)}).\n\nPor favor, ajuste os valores antes de salvar.`);
+                return false;
+            }
         }
-        
         // Se passou na validação, submeter o formulário
         event.target.submit();
     },

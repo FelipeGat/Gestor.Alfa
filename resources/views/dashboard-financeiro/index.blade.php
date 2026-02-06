@@ -117,8 +117,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-                        </svg>
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                         Fluxo Financeiro Mensal (Previsto x Recebido)
                     </h3>
 
@@ -143,7 +143,75 @@
                     <canvas id="chartFinanceiroMensal"></canvas>
                 </div>
             </div>
-
+            <div>
+                {{-- FILTRO RÁPIDO DE PERÍODO --}}
+                <h2 class="text-lg font-bold text-gray-800 text-center">Filtrar por Data:</h2>
+                <div class="flex gap-2 justify-center">
+                    <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }" class="mb-6">
+                        <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
+                            @if($empresaId)
+                            <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
+                            @endif
+                            <input type="hidden" name="ano" value="{{ $ano }}">
+                            <input type="hidden" name="filtro_rapido" :value="filtroRapido">
+                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                
+                                {{-- Botões de filtro rápido --}}
+                                <button type="button"
+                                    @click="aplicarFiltro('dia')"
+                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Dia
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('semana')"
+                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Semana
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('mes')"
+                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Mês
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('ano')"
+                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Ano
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('proximo_mes')"
+                                    :class="filtroRapido === 'proximo_mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Próximo Mês
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('custom')"
+                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    Outro período
+                                </button>
+                            </div>
+                            {{-- Campos de data personalizados --}}
+                            <div x-show="mostrarCustom" x-transition class="flex items-center gap-2 mt-3">
+                                <input type="date"
+                                    name="inicio"
+                                    value="{{ $inicio->format('Y-m-d') }}"
+                                    class="rounded-md border-gray-300 text-sm">
+                                <span class="text-gray-400">até</span>
+                                <input type="date"
+                                    name="fim"
+                                    value="{{ $fim->format('Y-m-d') }}"
+                                    class="rounded-md border-gray-300 text-sm">
+                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">
+                                    Aplicar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
                 <div class="bg-white shadow rounded-xl p-6 relative">
@@ -232,71 +300,7 @@
                             📊 Resumo Financeiro
                         </h3>
                     </div>
-                    {{-- FILTRO RÁPIDO DE PERÍODO --}}
-                    <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }" class="mb-6">
-                        <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
-                            @if($empresaId)
-                            <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
-                            @endif
-                            <input type="hidden" name="ano" value="{{ $ano }}">
-                            <input type="hidden" name="filtro_rapido" :value="filtroRapido">
-                            <div class="flex flex-wrap items-center gap-2 text-sm">
-                                <span class="text-gray-500 font-medium">Filtrar por:</span>
-                                {{-- Botões de filtro rápido --}}
-                                <button type="button"
-                                    @click="aplicarFiltro('dia')"
-                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Dia
-                                </button>
-                                <button type="button"
-                                    @click="aplicarFiltro('semana')"
-                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Semana
-                                </button>
-                                <button type="button"
-                                    @click="aplicarFiltro('mes')"
-                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Mês
-                                </button>
-                                <button type="button"
-                                    @click="aplicarFiltro('ano')"
-                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Ano
-                                </button>
-                                <button type="button"
-                                    @click="aplicarFiltro('proximo_mes')"
-                                    :class="filtroRapido === 'proximo_mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Próximo Mês
-                                </button>
-                                <button type="button"
-                                    @click="aplicarFiltro('custom')"
-                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
-                                    Outro período
-                                </button>
-                            </div>
-                            {{-- Campos de data personalizados --}}
-                            <div x-show="mostrarCustom" x-transition class="flex items-center gap-2 mt-3">
-                                <input type="date"
-                                    name="inicio"
-                                    value="{{ $inicio->format('Y-m-d') }}"
-                                    class="rounded-md border-gray-300 text-sm">
-                                <span class="text-gray-400">até</span>
-                                <input type="date"
-                                    name="fim"
-                                    value="{{ $fim->format('Y-m-d') }}"
-                                    class="rounded-md border-gray-300 text-sm">
-                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">
-                                    Aplicar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+    
                     {{-- ================= REALIZADO ================= --}}
                     <div class="mb-6">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
@@ -305,13 +309,13 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Receita</span>
-                                <p class="font-bold text-green-600">
+                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('receita')">
                                     R$ {{ number_format($receitaRealizada, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Despesa</span>
-                                <p class="font-bold text-red-600">
+                                <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('despesa')">
                                     R$ {{ number_format($despesaRealizada, 2, ',', '.') }}
                                 </p>
                             </div>
@@ -320,6 +324,111 @@
                                 <p class="font-bold text-blue-600">
                                     R$ {{ number_format($saldoRealizado, 2, ',', '.') }}
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Modal de Lançamentos -->
+                        <div id="modal-lancamentos" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+                            <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-6 relative">
+                                <button onclick="fecharModalLancamentos()" class="absolute top-2 right-2 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <h3 id="modal-titulo" class="text-lg font-bold text-gray-800">Lançamentos</h3>
+                                        <button onclick="imprimirModalLancamentos()" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="inline h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" /></svg>
+                                            Imprimir
+                                        </button>
+                                    </div>
+                                    <span id="modal-total" class="text-base font-semibold text-gray-700"></span>
+                                </div>
+                                    <style>
+                                    @media print {
+                                        /* Esconde tudo que não é o modal ou seus pais */
+                                        body * { visibility: hidden !important; }
+                                        #modal-lancamentos, #modal-lancamentos * { visibility: visible !important; }
+                                        
+                                        /* Posicionamento do modal no topo absoluto */
+                                        #modal-lancamentos { 
+                                            position: fixed !important; 
+                                            left: 0 !important; 
+                                            top: 0 !important; 
+                                            width: 100% !important; 
+                                            height: auto !important;
+                                            margin: 0 !important; 
+                                            padding: 0 !important; 
+                                            background: white !important; 
+                                            z-index: 9999 !important;
+                                            overflow: visible !important;
+                                            opacity: 1 !important;
+                                            transform: none !important;
+                                        }
+                                        
+                                        #modal-lancamentos .bg-white { 
+                                            box-shadow: none !important; 
+                                            padding: 0 !important; 
+                                            margin: 0 !important;
+                                            width: 100% !important;
+                                            max-width: none !important;
+                                        }
+
+                                        .print\:hidden { display: none !important; }
+
+                                        /* Remove scroll e trava de altura */
+                                        #modal-lancamentos .max-h-80 { 
+                                            max-height: none !important; 
+                                            overflow: visible !important; 
+                                        }
+
+                                        /* Estilização da Tabela de Relatório */
+                                        #modal-lancamentos table { 
+                                            width: 100% !important; 
+                                            border-collapse: collapse !important; 
+                                            margin-top: 10px !important;
+                                            table-layout: auto !important;
+                                        }
+                                        #modal-lancamentos th { 
+                                            background-color: #f8fafc !important; 
+                                            color: #1e293b !important;
+                                            border: 1px solid #cbd5e1 !important; 
+                                            padding: 8px 6px !important;
+                                            text-transform: uppercase;
+                                            font-size: 9px;
+                                        }
+                                        #modal-lancamentos td { 
+                                            border: 1px solid #e2e8f0 !important; 
+                                            padding: 6px !important;
+                                            font-size: 9px;
+                                            color: #334155 !important;
+                                        }
+                                        
+                                        /* Forçar cores na impressão */
+                                        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                        
+                                        /* Configuração de página para remover cabeçalhos/rodapés do navegador se possível */
+                                        @page { margin: 1cm; }
+                                    }
+                                    </style>
+                                    <script>
+                                    function imprimirModalLancamentos() {
+                                        window.print();
+                                    }
+                                    </script>
+                                <div id="modal-print-header" class="hidden print:flex flex-col mb-6 border-b-2 border-gray-800 pb-4">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight" id="print-header-titulo"></h1>
+                                            <p class="text-xs text-gray-500 font-medium" id="print-header-data"></p>
+                                        </div>
+                                        <div class="text-right flex flex-col items-end">
+                                            <span class="text-[10px] text-gray-400 uppercase font-bold">Valor Total do Relatório</span>
+                                            <div id="print-header-total" class="text-xl font-bold"></div>
+                                            <span class="text-[10px] text-gray-400 mt-1 italic">Relatório Gerencial de Lançamentos</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="modal-lista-lancamentos" class="max-h-80 overflow-y-auto text-sm">
+                                    <!-- Conteúdo preenchido via JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -331,13 +440,13 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">A Receber</span>
-                                <p class="font-bold text-green-600">
+                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('previsto_receber')">
                                     R$ {{ number_format($aReceber, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">A Pagar</span>
-                                <p class="font-bold text-red-600">
+                                <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('previsto_pagar')">
                                     R$ {{ number_format($aPagar, 2, ',', '.') }}
                                 </p>
                             </div>
@@ -357,19 +466,19 @@
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Atrasado</span>
-                                <p class="font-bold text-red-600">
+                                <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_atrasado')">
                                     R$ {{ number_format($atrasado, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Pago</span>
-                                <p class="font-bold text-green-600">
+                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_pago')">
                                     R$ {{ number_format($pago, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Diferença</span>
-                                <p class="font-bold text-blue-600">
+                                <p class="font-bold text-blue-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_diferenca')">
                                     R$ {{ number_format($saldoSituacao, 2, ',', '.') }}
                                 </p>
                             </div>
@@ -379,14 +488,22 @@
             </div>
 
             {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
+            <div class="mb-4 flex flex-col items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-800 text-center">Custos por Categorias:</h2>
+                <div class="flex gap-2 justify-center">
+                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="categoria">Categorias</button>
+                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="subcategoria">Subcategorias</button>
+                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="conta">Contas</button>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
                 @foreach($dadosCentros as $centro => $dados)
                 <div class="bg-white shadow rounded-xl p-6 flex flex-col items-center">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
-                        Gastos por Categoria<br><span class="text-xs text-gray-500">{{ $centro }}</span>
+                        Gastos por <span id="grafico-nivel-{{ Str::slug($centro) }}">Categoria</span><br><span class="text-xs text-gray-500">{{ $centro }}</span>
                     </h3>
                     <div class="w-full flex-1 flex items-center justify-center">
-                        <canvas id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220"></canvas>
+                        <canvas class="grafico-categoria" data-centro="{{ $centro }}" id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220" style="cursor:pointer;"></canvas>
                     </div>
                 </div>
                 @endforeach
@@ -465,6 +582,8 @@
                         </ul>
                     @endif
                 </div>
+
+                </div>
             </div>
 
 
@@ -483,48 +602,248 @@
 
     {{-- ================= SCRIPTS ================= --}}
     @push('scripts')
+    <script>
+        // Dados dos lançamentos vindos do backend (precisa ser enviado pelo controller)
+        const lancamentosReceita = @json($lancamentosReceita ?? []);
+        const lancamentosDespesa = @json($lancamentosDespesa ?? []);
+        const lancamentosPrevistoReceber = @json($lancamentosPrevistoReceber ?? []);
+        const lancamentosPrevistoPagar = @json($lancamentosPrevistoPagar ?? []);
+        const lancamentosAtrasado = @json($lancamentosAtrasado ?? []);
+        const lancamentosPago = @json($lancamentosPago ?? []);
+        const lancamentosDiferenca = @json($lancamentosDiferenca ?? []);
+        function mostrarLancamentos(tipo) {
+            let lista = [];
+            let titulo = '';
+            let totalColor = '';
+            const dataAtual = new Date().toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('print-header-data').innerText = `Gerado em: ${dataAtual}`;
+
+            if (tipo === 'receita') {
+                lista = lancamentosReceita;
+                titulo = 'Lançamentos de Receita';
+                totalColor = 'text-green-600';
+            } else if (tipo === 'despesa') {
+                lista = lancamentosDespesa;
+                titulo = 'Lançamentos de Despesa';
+                totalColor = 'text-red-600';
+            } else if (tipo === 'previsto_receber') {
+                lista = lancamentosPrevistoReceber;
+                titulo = 'Lançamentos a Receber';
+                totalColor = 'text-green-600';
+            } else if (tipo === 'previsto_pagar') {
+                lista = lancamentosPrevistoPagar;
+                titulo = 'Lançamentos a Pagar';
+                totalColor = 'text-red-600';
+            } else if (tipo === 'situacao_atrasado') {
+                lista = lancamentosAtrasado;
+                titulo = 'Lançamentos Atrasados';
+                totalColor = 'text-red-600';
+            } else if (tipo === 'situacao_pago') {
+                lista = lancamentosPago;
+                titulo = 'Lançamentos Pagos';
+                totalColor = 'text-green-600';
+            } else if (tipo === 'situacao_diferenca') {
+                lista = lancamentosDiferenca;
+                titulo = 'Lançamentos Diferença';
+                totalColor = 'text-blue-600';
+            }
+            // Calcular total
+            let total = lista.reduce((acc, l) => acc + (parseFloat(l.valor) || 0), 0);
+            let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            
+            document.getElementById('modal-titulo').innerText = titulo;
+            document.getElementById('print-header-titulo').innerText = titulo;
+            document.getElementById('print-header-total').innerHTML = totalFormatado;
+            document.getElementById('print-header-total').className = `text-xl font-bold ${totalColor}`;
+            document.getElementById('modal-total').innerHTML = `<span class='${totalColor}'>${totalFormatado}</span>`;
+            const container = document.getElementById('modal-lista-lancamentos');
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-center py-6">Nenhum lançamento encontrado.</div>';
+            } else {
+                let thExtra = '';
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    thExtra = `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>Empresa</th>`;
+                } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
+                    thExtra = `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>Centro de Custo</th>`;
+                }
+                container.innerHTML = `
+                <div class='overflow-x-auto'>
+                <table class='w-full text-xs text-left border border-gray-200 rounded'>
+                    <thead class='bg-gray-100 sticky top-0'>
+                        <tr>
+                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Pagamento</th>
+                            ${thExtra}
+                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Cliente/Fornecedor</th>
+                            ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>CNPJ/CPF</th>` : ''}
+                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Descrição</th>
+                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Tipo</th>
+                            <th class='px-2 py-2 font-semibold text-gray-700 border-b text-right'>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${lista.map(l => `
+                            <tr>
+                                <td class='px-2 py-1 whitespace-nowrap'>${l.data ?? ''}</td>
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.empresa ?? '-'}</td>` : ''}
+                                ${(tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.centro_custo ?? '-'}</td>` : ''}
+                                <td class='px-2 py-1 whitespace-nowrap'>${l.cliente ?? '-'}</td>
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.cnpjcpf ?? '-'}</td>` : ''}
+                                <td class='px-2 py-1'>${l.descricao ?? '-'}</td>
+                                <td class='px-2 py-1 whitespace-nowrap'>${l.tipo ?? '-'}</td>
+                                <td class='px-2 py-1 whitespace-nowrap text-right ${totalColor}'>R$ ${parseFloat(l.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                </div>
+                `;
+            }
+            document.getElementById('modal-lancamentos').classList.remove('hidden');
+        }
+        function fecharModalLancamentos() {
+            document.getElementById('modal-lancamentos').classList.add('hidden');
+        }
+        // Fechar modal ao clicar fora
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('modal-lancamentos');
+            if (!modal.classList.contains('hidden') && e.target === modal) {
+                fecharModalLancamentos();
+            }
+        });
+    </script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Gráficos de pizza por centro de custo
+                // Gráficos de pizza por centro de custo com navegação de níveis
                 const dadosCentros = @json($dadosCentros);
                 const cores = [
                     '#2563eb', '#f59e42', '#10b981', '#f43f5e', '#a21caf',
                     '#eab308', '#0ea5e9', '#f472b6', '#64748b', '#22d3ee'
                 ];
-                Object.entries(dadosCentros).forEach(([centro, dados], idx) => {
-                    const ctx = document.getElementById('grafico-categoria-' + centro.toLowerCase().replace(/ /g, '-'));
+                // Estado de nível por centro: categoria, subcategoria, conta
+                const niveis = ['categoria', 'subcategoria', 'conta'];
+                const estadoNivel = {};
+                const charts = {};
+
+                Object.entries(dadosCentros).forEach(([centro, dados]) => {
+                    const centroSlug = centro.toLowerCase().replace(/ /g, '-');
+                    estadoNivel[centro] = 0; // 0: categoria, 1: subcategoria, 2: conta
+                    const ctx = document.getElementById('grafico-categoria-' + centroSlug);
                     if (!ctx) return;
-                    new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: dados.labels,
-                            datasets: [{
-                                data: dados.data,
-                                backgroundColor: cores.slice(0, dados.labels.length),
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        font: { size: 13 }
-                                    }
+
+                    function getChartData() {
+                        const nivel = niveis[estadoNivel[centro]];
+                        if (nivel === 'categoria') {
+                            return {
+                                labels: (dados.categorias || []).map(c => c.nome),
+                                data: (dados.categorias || []).map(c => c.total),
+                            };
+                        } else if (nivel === 'subcategoria') {
+                            const cat = (dados.categorias || [])[0];
+                            if (!cat) return {labels: [], data: []};
+                            const subs = (dados.subcategorias && dados.subcategorias[cat.nome]) || [];
+                            return {
+                                labels: subs.map(s => s.nome),
+                                data: subs.map(s => s.total),
+                            };
+                        } else if (nivel === 'conta') {
+                            const cat = (dados.categorias || [])[0];
+                            if (!cat) return {labels: [], data: []};
+                            const subs = (dados.subcategorias && dados.subcategorias[cat.nome]) || [];
+                            const sub = subs[0];
+                            if (!sub) return {labels: [], data: []};
+                            const contas = (dados.contas && dados.contas[cat.nome] && dados.contas[cat.nome][sub.nome]) || [];
+                            return {
+                                labels: contas.map(c => c.nome),
+                                data: contas.map(c => c.total),
+                            };
+                        }
+                        return {labels: [], data: []};
+                    }
+
+                    function updateChart() {
+                        const nivel = niveis[estadoNivel[centro]];
+                        const chartData = getChartData();
+                        if (charts[centro]) {
+                            charts[centro].data.labels = chartData.labels;
+                            charts[centro].data.datasets[0].data = chartData.data;
+                            charts[centro].data.datasets[0].backgroundColor = cores.slice(0, chartData.labels.length);
+                            charts[centro].update();
+                        } else {
+                            charts[centro] = new Chart(ctx, {
+                                type: 'pie',
+                                data: {
+                                    labels: chartData.labels,
+                                    datasets: [{
+                                        data: chartData.data,
+                                        backgroundColor: cores.slice(0, chartData.labels.length),
+                                    }]
                                 },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            const label = context.label || '';
-                                            const value = context.raw || 0;
-                                            return label + ': R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                font: { size: 13 }
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.raw || 0;
+                                                    return label + ': R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            });
                         }
+                        // Atualiza o texto do nível
+                        const nivelEl = document.getElementById('grafico-nivel-' + centroSlug);
+                        if (nivelEl) {
+                            nivelEl.textContent = nivel.charAt(0).toUpperCase() + nivel.slice(1);
+                        }
+                    }
+
+                    // Inicializa
+                    updateChart();
+
+                    // Ao clicar no gráfico, alterna o nível
+                    ctx.onclick = function() {
+                        estadoNivel[centro] = (estadoNivel[centro] + 1) % niveis.length;
+                        updateChart();
+                    };
+
+                    // Botões de nível
+                    // Botões de nível: aplicar destaque visual
+                    function updateBotoesNivel() {
+                        document.querySelectorAll('.btn-nivel-categoria').forEach(btn => {
+                            const nivel = btn.getAttribute('data-nivel');
+                            if (niveis[estadoNivel[centro]] === nivel) {
+                                btn.classList.add('bg-indigo-600', 'text-white');
+                                btn.classList.remove('bg-gray-100', 'text-gray-700');
+                            } else {
+                                btn.classList.remove('bg-indigo-600', 'text-white');
+                                btn.classList.add('bg-gray-100', 'text-gray-700');
+                            }
+                        });
+                    }
+                    document.querySelectorAll('.btn-nivel-categoria').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const nivel = this.getAttribute('data-nivel');
+                            const idx = niveis.indexOf(nivel);
+                            if (idx !== -1) {
+                                estadoNivel[centro] = idx;
+                                updateChart();
+                                updateBotoesNivel();
+                            }
+                        });
                     });
+                    // Atualizar botões ao iniciar
+                    updateBotoesNivel();
                 });
             });
         </script>

@@ -162,12 +162,23 @@
                             @foreach($atendimentosParaOrcamento as $atendimento)
                             <tr>
                                 <td class="font-mono font-bold text-blue-600">#{{ $atendimento->numero_atendimento }}</td>
-                                <td>{{ $atendimento->cliente->nome ?? '—' }}</td>
+                                <td>
+                                    @if($atendimento->cliente)
+                                        {{ $atendimento->cliente->nome }}
+                                    @elseif(!empty($atendimento->nome_solicitante))
+                                        {{ $atendimento->nome_solicitante }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td>{{ $atendimento->empresa?->nome_fantasia ?? '—' }}</td>
                                 <td>{{ $atendimento->created_at->format('d/m/Y') }}</td>
-                                <td class="text-right">
+                                <td class="text-right flex gap-2 justify-end">
                                     <a href="{{ route('orcamentos.create', ['atendimento_id' => $atendimento->id]) }}" class="btn btn-pre btn-sm">
                                         Criar Orçamento
+                                    </a>
+                                    <a href="{{ route('atendimentos.edit', $atendimento->id) }}" target="_blank" class="btn btn-sm btn-secondary" title="Imprimir Atendimento">
+                                        <span style="font-size: 1.1em;">🖨️</span> Atendimento
                                     </a>
                                 </td>
                             </tr>

@@ -98,9 +98,9 @@
             </div>
 
             {{-- ================= FILTROS ================= --}}
-            {{-- FILTROS PADRÃO (igual contas a pagar) --}}
+            
             <form method="GET" action="{{ route('financeiro.movimentacao') }}" class="filters-card">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2">
                     <div class="filter-group relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
                         <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
@@ -110,114 +110,53 @@
                         <input type="hidden" name="fornecedor_id" id="busca-fornecedor-id" value="{{ request('fornecedor_id') }}">
                         <div id="autocomplete-fornecedor" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
                     </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Busca fornecedor dentro do campo Buscar
-    const inputBusca = document.getElementById('busca-geral');
-    const lista = document.getElementById('autocomplete-fornecedor');
-    const inputHidden = document.getElementById('busca-fornecedor-id');
-    let fornecedores = [];
-
-    fornecedores = [
-        @foreach(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get() as $fornecedor)
-        { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social) },
-        @endforeach
-    ];
-
-    function renderLista(filtro = '') {
-        lista.innerHTML = '';
-        if (!filtro || filtro.length < 2) {
-            lista.classList.add('hidden');
-            return;
-        }
-        const filtrados = fornecedores.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase()));
-        if (filtrados.length === 0) {
-            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum fornecedor encontrado</span>';
-            lista.classList.remove('hidden');
-            return;
-        }
-        filtrados.forEach(f => {
-            const div = document.createElement('div');
-            div.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm';
-            div.textContent = f.nome;
-            div.onclick = () => {
-                inputHidden.value = f.id;
-                inputBusca.value = f.nome;
-                lista.classList.add('hidden');
-                setTimeout(() => { inputBusca.form.submit(); }, 100);
-            };
-            lista.appendChild(div);
-        });
-        lista.classList.remove('hidden');
-    }
-
-    inputBusca.addEventListener('input', e => {
-        renderLista(e.target.value);
-        // Limpa fornecedor_id se o texto não corresponder a nenhum fornecedor
-        if (!fornecedores.some(f => f.nome.toLowerCase() === e.target.value.toLowerCase())) {
-            inputHidden.value = '';
-        }
-    });
-    inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
-    inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
-});
-</script>
-
+                    <div class="filter-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                        <select name="empresa_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="">Todas as Empresas</option>
+                            @foreach($empresas as $empresa)
+                            <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
+                                {{ $empresa->nome_fantasia }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="filter-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Custo</label>
                         <select name="centro_custo_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Todos</option>
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="">Todos os Centros de Custo</option>
                             @foreach($centrosCusto as $centro)
                             <option value="{{ $centro->id }}" {{ request('centro_custo_id') == $centro->id ? 'selected' : '' }}>
-                                {{ $centro->nome }} ({{ $centro->tipo }})
+                                {{ $centro->nome }}
                             </option>
                             @endforeach
                         </select>
                     </div>
+                </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
                     <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Categorias</label>
-                        <select name="categoria_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Todas</option>
-                            @foreach($categorias as $categoria)
-                            <option value="{{ $categoria->id }}" {{ request('categoria_id') == $categoria->id ? 'selected' : '' }}>
-                                {{ $categoria->nome }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">SubCategorias</label>
-                        <select name="subcategoria_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Todas</option>
-                            @foreach($subcategorias as $subcategoria)
-                            <option value="{{ $subcategoria->id }}" {{ request('subcategoria_id') == $subcategoria->id ? 'selected' : '' }}>
-                                {{ $subcategoria->nome }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Contas</label>
-                        <select name="conta_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Todas</option>
-                            @foreach($contasFiltro as $conta)
-                            <option value="{{ $conta->id }}" {{ request('conta_id') == $conta->id ? 'selected' : '' }}>
-                                {{ $conta->nome }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
-                        <div class="flex items-center gap-2">
+                        <div class="w-full flex justify-center">
+                            <div class="flex items-center gap-2 flex-wrap" style="max-width: 700px; width: 100%; justify-content: center;">
+                            @php
+                                $hoje = \Carbon\Carbon::today();
+                                $ontem = \Carbon\Carbon::yesterday();
+                            @endphp
+                            <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Ontem
+                            </a>
+                            <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $hoje->format('Y-m-d'), 'data_fim' => $hoje->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $hoje->format('Y-m-d') && request('data_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Hoje
+                            </a>
                             @php
                             $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
                             $mesAnterior = $dataAtual->copy()->subMonth();
@@ -243,29 +182,73 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
+                            </div>
                         </div>
+                        <details class="mt-2" id="periodoPersonalizadoDetails">
+                            <summary id="periodoPersonalizadoSummary" class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                                🗓️ Período Personalizado
+                            </summary>
+                            <div id="periodoPersonalizadoContent" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        @push('scripts')
+                                        <script>
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const details = document.getElementById('periodoPersonalizadoDetails');
+                                            const summary = document.getElementById('periodoPersonalizadoSummary');
+                                            if (details && summary) {
+                                                summary.addEventListener('click', function (e) {
+                                                    // Força abrir ao clicar em qualquer parte do summary
+                                                    if (!details.open) {
+                                                        e.preventDefault();
+                                                        details.open = true;
+                                                    }
+                                                });
+                                            }
+                                            // Preencher data final automaticamente ao escolher data inicial
+                                            const dataInicio = document.querySelector('input[name="data_inicio"]');
+                                            const dataFim = document.querySelector('input[name="data_fim"]');
+                                            if (dataInicio && dataFim) {
+                                                dataInicio.addEventListener('change', function () {
+                                                    if (dataInicio.value) {
+                                                        const data = new Date(dataInicio.value);
+                                                        data.setDate(data.getDate() + 1);
+                                                        const nextDay = data.toISOString().slice(0, 10);
+                                                        dataFim.value = nextDay;
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        </script>
+                                        @endpush
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Data Inicial</label>
+                                    <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Data Final</label>
+                                    <input type="date" name="data_fim" value="{{ request('data_fim') }}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
 
-                <details class="mt-4">
-                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                        🗓️ Período Personalizado
-                    </summary>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
-                            <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
-                            <input type="date" name="data_fim" value="{{ request('data_fim') }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
+                <div class="flex flex-wrap gap-2 items-center justify-between mt-2">
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'entrada'])) }}"
+                            class="quick-filter-btn status-recebido {{ request('tipo_movimentacao') === 'entrada' ? 'active' : '' }}"
+                            @if(request('tipo_movimentacao') === 'entrada') style="background:#16a34a;color:#fff;border-color:#16a34a" @endif>
+                            <span>Recebidos</span>
+                            <span class="count">{{ $contadoresStatus['recebido'] ?? 0 }}</span>
+                        </a>
+                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'saida'])) }}"
+                            class="quick-filter-btn status-pago {{ request('tipo_movimentacao') === 'saida' ? 'active' : '' }}"
+                            @if(request('tipo_movimentacao') === 'saida') style="background:#dc2626;color:#fff;border-color:#dc2626" @endif>
+                            <span>Pagos</span>
+                            <span class="count">{{ $contadoresStatus['pago'] ?? 0 }}</span>
+                        </a>
                     </div>
-                </details>
-
-                <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between mt-6">
                     <div class="flex flex-wrap gap-2">
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                         <a href="{{ route('financeiro.movimentacao') }}" class="btn btn-secondary">Limpar</a>
@@ -318,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <th>CLIENTE/FORNECEDOR</th>
                                     <th>VALOR</th>
                                     <th>BANCO ORIGEM</th>
-                                    <th>BANCO DESTINO</th>
+                                    <th>CENTRO DE CUSTO</th>
                                     <th>FORMA PAGTO</th>
                                     <th>AÇÕES</th>
                                 </tr>
@@ -360,7 +343,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     {{-- DESCRIÇÃO --}}
                                     <td>
-                                        {{ $mov->descricao ?? '-' }}
+                                        @php
+                                            $contaPagar = null;
+                                            $descricaoMov = $mov->descricao ?? '-';
+                                            $fornecedorMov = null;
+                                            $contaMov = null;
+                                            $formaPagtoMov = null;
+                                            $empresaMov = null;
+                                            // Detecta se é ajuste de saída de conta a pagar
+                                            if(isset($mov->observacao) && preg_match('/Pagamento de conta a pagar ID (\d+)/', $mov->observacao, $matches)) {
+                                                $contaPagar = \App\Models\ContaPagar::with(['fornecedor', 'conta', 'contaFinanceira', 'orcamento'])->find($matches[1]);
+                                                if($contaPagar) {
+                                                    $descricaoMov = $contaPagar->descricao;
+                                                    $fornecedorMov = $contaPagar->fornecedor;
+                                                    $contaMov = $contaPagar->conta;
+                                                    $formaPagtoMov = $contaPagar->forma_pagamento;
+                                                    $empresaMov = $contaPagar->orcamento && $contaPagar->orcamento->empresa ? $contaPagar->orcamento->empresa : null;
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $descricaoMov ?? '-' }}
                                         @if(isset($mov->observacao) && $mov->observacao)
                                             <div class="text-xs text-blue-700 font-semibold mt-1">
                                                 {{ $mov->observacao }}
@@ -370,9 +372,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="text-xs text-gray-500">
                                                 Origem: Orçamento #{{ $mov->orcamento_id }}
                                             </div>
-                                        @elseif(!$isEntrada)
+                                        @elseif(!$isEntrada && $contaMov)
                                             <div class="text-xs text-gray-500">
-                                                {{ $mov->conta->nome ?? 'Conta não informada' }}
+                                                {{ $contaMov->nome ?? 'Conta não informada' }}
                                             </div>
                                         @endif
                                     </td>
@@ -380,9 +382,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     {{-- CLIENTE/FORNECEDOR --}}
                                     <td>
                                         @if($isEntrada)
-                                        {{ $mov->cliente?->nome ?? $mov->cliente?->nome_fantasia ?? $mov->cliente?->razao_social ?? '—' }}
+                                            @php
+                                                $cliente = $mov->cliente ?? null;
+                                            @endphp
+                                            {{ $cliente?->nome_fantasia ?? $cliente?->nome ?? $cliente?->razao_social ?? '—' }}
+                                        @elseif($contaPagar && $fornecedorMov)
+                                            {{ $fornecedorMov->nome_fantasia ?? $fornecedorMov->razao_social ?? '—' }}
                                         @else
-                                        {{ $mov->fornecedor?->nome_fantasia ?? $mov->fornecedor?->razao_social ?? '—' }}
+                                            {{ $mov->fornecedor?->nome_fantasia ?? $mov->fornecedor?->razao_social ?? '—' }}
                                         @endif
                                     </td>
 
@@ -394,7 +401,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     {{-- BANCO --}}
                                     {{-- BANCO ORIGEM --}}
                                     <td>
-                                        @if(property_exists($mov, 'contaOrigem') && $mov->contaOrigem)
+                                        @if($contaPagar && $contaPagar->contaFinanceira)
+                                            {{ $contaPagar->contaFinanceira->nome }}
+                                        @elseif(property_exists($mov, 'contaOrigem') && $mov->contaOrigem)
                                             {{ $mov->contaOrigem->nome }}
                                         @elseif(isset($mov->contaFinanceira))
                                             {{ $mov->contaFinanceira?->nome ?? '—' }}
@@ -402,12 +411,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                             —
                                         @endif
                                     </td>
-                                    {{-- BANCO DESTINO --}}
+                                    {{-- CENTRO DE CUSTO --}}
                                     <td>
-                                        @if(isset($mov->contaDestino) && $mov->contaDestino)
-                                            {{ $mov->contaDestino->nome }}
-                                        @elseif(isset($mov->conta_destino_id) && $mov->conta_destino_id)
-                                            {{ optional(\App\Models\ContaFinanceira::find($mov->conta_destino_id))->nome ?? '—' }}
+                                        @if($isEntrada && isset($mov->orcamento) && isset($mov->orcamento->centroCusto))
+                                            {{ $mov->orcamento->centroCusto->nome ?? '—' }}
+                                        @elseif(!$isEntrada && ($contaPagar && $contaPagar->centroCusto))
+                                            {{ $contaPagar->centroCusto->nome ?? '—' }}
+                                        @elseif(isset($mov->centroCusto))
+                                            {{ $mov->centroCusto->nome ?? '—' }}
                                         @else
                                             —
                                         @endif
@@ -415,12 +426,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     {{-- FORMA PAGAMENTO --}}
                                     <td>
-                                        @if($mov->forma_pagamento)
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                            {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
-                                        </span>
+                                        @if($contaPagar && $formaPagtoMov)
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                {{ strtoupper(str_replace('_', ' ', $formaPagtoMov)) }}
+                                            </span>
+                                        @elseif($mov->forma_pagamento)
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                                                {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
+                                            </span>
                                         @else
-                                        —
+                                            —
                                         @endif
                                     </td>
 

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -241,10 +242,17 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 | PORTAL DO FINANCEIRO
 |--------------------------------------------------------------------------
 */
+
 Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     ->prefix('financeiro')
     ->name('financeiro.')
     ->group(function () {
+
+        // Cancelar agendamento de cobrança
+        Route::delete(
+            '/cancelar-agendamento/{orcamento}',
+            [FinanceiroController::class, 'cancelarAgendamento']
+        )->name('cancelar-agendamento');
 
         // Dashboard financeiro
         Route::get('/', [FinanceiroController::class, 'dashboard'])
@@ -331,6 +339,13 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             '/contas-fixas/{contaFixa}',
             [ContasReceberController::class, 'updateContaFixa']
         )->name('contas-fixas.update');
+
+
+        // Agendar cobrança de orçamento
+        Route::post(
+            '/agendar-cobranca/{orcamento}',
+            [FinanceiroController::class, 'agendarCobranca']
+        )->name('agendar-cobranca');
 
         // Pipeline do orçamento
         Route::post(
@@ -451,6 +466,8 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
+    Route::get('/portal/atendimentos', [PortalController::class, 'atendimentos'])
+        ->name('portal.atendimentos');
 
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
@@ -628,6 +645,5 @@ Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
         ], 500);
     }
 });
-
 
 require __DIR__ . '/auth.php';

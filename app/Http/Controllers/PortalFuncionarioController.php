@@ -137,14 +137,14 @@ class PortalFuncionarioController extends Controller
             return back()->with('error', 'Você já possui um atendimento em execução de outro cliente. Finalize-o antes de iniciar um novo.');
         }
 
-        // Validar 3 fotos obrigatórias
+        // Validar 1 foto obrigatória
         $request->validate([
-            'fotos' => 'required|array|min:3|max:3',
+            'fotos' => 'required|array|min:1|max:1',
             'fotos.*' => 'required|image|max:5120', // 5MB max
         ], [
-            'fotos.required' => 'É obrigatório enviar 3 fotos para iniciar o atendimento',
-            'fotos.min' => 'É obrigatório enviar exatamente 3 fotos',
-            'fotos.max' => 'É obrigatório enviar exatamente 3 fotos',
+            'fotos.required' => 'É obrigatório enviar 1 foto para iniciar o atendimento',
+            'fotos.min' => 'É obrigatório enviar exatamente 1 foto',
+            'fotos.max' => 'É obrigatório enviar exatamente 1 foto',
         ]);
 
         DB::beginTransaction();
@@ -164,11 +164,13 @@ class PortalFuncionarioController extends Controller
                 'descricao' => 'Atendimento iniciado pelo técnico',
             ]);
 
-            // Salvar as 3 fotos
-            foreach ($request->file('fotos') as $index => $foto) {
+            // Salvar a foto (padronizado para storage/app/public/atendimentos/fotos)
+            foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('atendimentos/fotos', 'public');
+                // Salva apenas o caminho relativo (sem 'public/' ou 'storage/')
+                $relativePath = ltrim(str_replace(['public/', 'storage/'], '', $path), '/');
                 $andamento->fotos()->create([
-                    'arquivo' => $path,
+                    'arquivo' => $relativePath,
                 ]);
             }
 
@@ -320,13 +322,13 @@ class PortalFuncionarioController extends Controller
         abort_if($atendimento->status_atual !== 'em_atendimento', 400, 'Atendimento não está em execução');
 
         $request->validate([
-            'fotos' => 'required|array|min:3|max:3',
+            'fotos' => 'required|array|min:1|max:1',
             'fotos.*' => 'required|image|max:5120',
             'observacao' => 'nullable|string|max:1000',
         ], [
-            'fotos.required' => 'É obrigatório enviar 3 fotos para finalizar o atendimento',
-            'fotos.min' => 'É obrigatório enviar exatamente 3 fotos',
-            'fotos.max' => 'É obrigatório enviar exatamente 3 fotos',
+            'fotos.required' => 'É obrigatório enviar 1 foto para finalizar o atendimento',
+            'fotos.min' => 'É obrigatório enviar exatamente 1 foto',
+            'fotos.max' => 'É obrigatório enviar exatamente 1 foto',
         ]);
 
         DB::beginTransaction();
@@ -370,11 +372,12 @@ class PortalFuncionarioController extends Controller
                 'descricao' => $request->observacao ?? 'Atendimento finalizado pelo técnico',
             ]);
 
-            // Salvar as 3 fotos finais
+            // Salvar a foto final
             foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('atendimentos/fotos', 'public');
+                $relativePath = ltrim(str_replace(['public/', 'storage/'], '', $path), '/');
                 $andamento->fotos()->create([
-                    'arquivo' => $path,
+                    'arquivo' => $relativePath,
                 ]);
             }
 

@@ -40,7 +40,7 @@
             <div class="main-content">
 
                 {{-- ===== NOVO ANDAMENTO ===== --}}
-                @if($atendimento->status_atual !== 'concluido')
+                @if(strtolower($atendimento->status_atual) !== 'concluido')
                 <div class="card">
                     <div class="card-header">
                         <h3>
@@ -66,7 +66,7 @@
                         @endif
 
                         <form method="POST" action="{{ route('atendimentos.andamentos.store', $atendimento) }}"
-                            class="form-section">
+                            class="form-section" enctype="multipart/form-data">
                             @csrf
 
                             <div class="form-group">
@@ -78,6 +78,16 @@
                                     placeholder="Descreva o que foi feito ou a próxima etapa..."
                                     class="@error('descricao') border-red-500 @enderror">{{ old('descricao') }}</textarea>
                                 @error('descricao')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label for="fotos">
+                                    Fotos do Andamento
+                                </label>
+                                <input type="file" name="fotos[]" accept="image/*" class="@error('fotos') border-red-500 @enderror">
+                                @error('fotos')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -190,8 +200,8 @@
                                     @if($andamento->fotos->count())
                                     <div class="timeline-images">
                                         @foreach($andamento->fotos as $foto)
-                                        <a href="{{ asset($foto->arquivo) }}" target="_blank" class="timeline-image">
-                                            <img src="{{ asset($foto->arquivo) }}" alt="Anexo">
+                                        <a href="{{ asset('storage/' . $foto->arquivo) }}" target="_blank" class="timeline-image">
+                                            <img src="{{ asset('storage/' . $foto->arquivo) }}" alt="Anexo">
                                         </a>
                                         @endforeach
                                     </div>

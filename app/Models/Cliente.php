@@ -14,6 +14,10 @@ use App\Models\NotaFiscal;
 
 class Cliente extends Model
 {
+    public function atendimentos()
+    {
+        return $this->hasMany(\App\Models\Atendimento::class);
+    }
     use SoftDeletes;
 
     /**

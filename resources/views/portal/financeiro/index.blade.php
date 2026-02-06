@@ -1,9 +1,17 @@
 <x-app-layout>
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            💰 Meu Financeiro — {{ $cliente->nome_fantasia ?? $cliente->nome }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                💰 Meu Financeiro — {{ $cliente->nome_fantasia ?? $cliente->nome }}
+            </h2>
+            <a href="{{ route('portal.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Voltar
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-8 bg-gray-50 min-h-screen">

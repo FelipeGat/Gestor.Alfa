@@ -354,12 +354,11 @@
                                     <form method="POST"
                                         action="{{ route('portal-funcionario.andamentos.fotos.store', $andamento) }}"
                                         enctype="multipart/form-data"
-                                        style="margin-top: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                                        id="fotos-inicio-form"
+                                        style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; align-items: flex-start;">
                                         @csrf
-                                        <input type="file" name="fotos[]" multiple accept="image/*"
-                                            style="font-size: 0.75rem; color: #6b7280;">
-                                        <button type="submit" class="btn btn-primary"
-                                            style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.75rem;">Anexar</button>
+                                        <input type="file" name="fotos[]" id="foto-captura" accept="image/*" capture="environment" style="font-size: 0.75rem; color: #6b7280;" required>
+                                        <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.75rem;">Iniciar Atendimento</button>
                                     </form>
                                     @endif
 
@@ -368,8 +367,8 @@
                                     <div class="photo-grid">
                                         @foreach($andamento->fotos as $foto)
                                         <div class="photo-item">
-                                            <a href="{{ asset($foto->arquivo) }}" target="_blank">
-                                                <img src="{{ asset($foto->arquivo) }}" alt="Anexo">
+                                            <a href="{{ asset('storage/' . $foto->arquivo) }}" target="_blank">
+                                                <img src="{{ asset('storage/' . $foto->arquivo) }}" alt="Anexo">
                                             </a>
                                             @if($atendimento->status_atual !== 'finalizacao' &&
                                             $atendimento->status_atual !== 'concluido')

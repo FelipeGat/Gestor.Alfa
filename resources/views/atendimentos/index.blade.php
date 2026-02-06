@@ -2,96 +2,192 @@
 
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
+    @vite('resources/css/financeiro/contasareceber.css')
+    @vite('resources/css/financeiro/index.css')
+    <style>
+        .filters-card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .quick-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        /* Estilo para quando NENHUMA prioridade específica está selecionada (Padrão: Todas) */
+        .btn-prioridade-alta { border-color: #fee2e2; color: #dc2626; }
+        .btn-prioridade-alta.active { background: #dc2626; color: #fff; border-color: #dc2626; }
+        
+        .btn-prioridade-media { border-color: #ffedd5; color: #f59e42; }
+        .btn-prioridade-media.active { background: #f59e42; color: #fff; border-color: #f59e42; }
+        
+        .btn-prioridade-baixa { border-color: #dcfce7; color: #16a34a; }
+        .btn-prioridade-baixa.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+
+        /* Ajuste fino da tabela para não vazar */
+        .table-tight th, .table-tight td {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            white-space: nowrap;
+        }
+        .truncate-text {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
     @endpush
 
     {{-- ================= HEADER ================= --}}
     <x-slot name="header">
-        <h1 class="page-title">📋 Atendimentos</h1>
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </div>
+            <h2 class="font-bold text-2xl text-gray-800 leading-tight">Atendimentos</h2>
+        </div>
     </x-slot>
 
     {{-- ================= CONTEÚDO ================= --}}
-    <div class="page-wrapper">
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {{-- ================= FILTROS ================= --}}
-        <div class="filters-card">
-            <form method="GET" id="filterForm">
-                <div class="filters-grid">
-                    {{-- BUSCA --}}
-                    <div class="filter-group">
-                        <label for="search">Buscar</label>
-                        <input type="text" id="search" name="search" value="{{ request('search') }}"
-                            placeholder="Cliente ou solicitante">
+            {{-- ================= FILTROS ================= --}}
+            <div class="filters-card">
+                <form method="GET" id="filterForm">
+                    {{-- PRIMEIRA LINHA: BUSCA, EMPRESA, STATUS, TÉCNICO --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="filter-group relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                            <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
+                                placeholder="Cliente, solicitante..."
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="filter-group" style="max-width: 170px; min-width: 120px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                                <select name="empresa_id" onchange="this.form.submit()" class="px-2 py-2 border border-gray-300 rounded-lg text-sm w-full" style="min-width: 100px; max-width: 160px;">
+                                    <option value="">Todas</option>
+                                    @foreach($empresas as $empresa)
+                                    <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
+                                        {{ $empresa->nome_fantasia }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="filter-group" style="max-width: 170px; min-width: 120px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="status" onchange="this.form.submit()" class="px-2 py-2 border border-gray-300 rounded-lg text-sm w-full" style="min-width: 100px; max-width: 160px;">
+                                    <option value="">Todos</option>
+                                    @foreach([
+                                        'orcamento' => 'Orçamento',
+                                        'aberto' => 'Aberto',
+                                        'em_atendimento' => 'Em Atendimento',
+                                        'pendente_cliente' => 'Pendente Cliente',
+                                        'pendente_fornecedor' => 'Pendente Fornecedor',
+                                        'garantia' => 'Garantia',
+                                        'finalizacao' => 'Finalização',
+                                        'concluido' => 'Concluído'
+                                    ] as $value => $label)
+                                        <option value="{{ $value }}" @selected(request('status')===$value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Técnico</label>
+                            <select name="tecnico_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="">Todos os Técnicos</option>
+                                @foreach($funcionarios as $funcionario)
+                                <option value="{{ $funcionario->id }}" {{ request('tecnico_id') == $funcionario->id ? 'selected' : '' }}>
+                                    {{ Str::limit($funcionario->nome, 14, '.') }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
-                    {{-- STATUS --}}
-                    <div class="filter-group">
-                        <label for="status">Status</label>
-                        <select id="status" name="status">
-                            <option value="">Todos</option>
-                            @foreach([
-                            'orcamento' => 'Orçamento',
-                            'aberto' => 'Aberto',
-                            'em_atendimento' => 'Em Atendimento',
-                            'pendente_cliente' => 'Pendente Cliente',
-                            'pendente_fornecedor' => 'Pendente Fornecedor',
-                            'garantia' => 'Garantia',
-                            'finalizacao' => 'Finalização',
-                            'concluido' => 'Concluído'
-                            ] as $value => $label)
-                            <option value="{{ $value }}" @selected(request('status')===$value)>
-                                {{ $label }}
-                            </option>
-                            @endforeach
-                        </select>
+                    {{-- SEGUNDA LINHA: NAVEGAÇÃO RÁPIDA E PRIORIDADE --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4 items-end">
+                        <div class="filter-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Navegação Rápida</label>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                @php
+                                    $hoje = \Carbon\Carbon::today();
+                                    $ontem = \Carbon\Carbon::yesterday();
+                                    $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                                    $mesAnterior = $dataAtual->copy()->subMonth();
+                                    $proximoMes = $dataAtual->copy()->addMonth();
+                                    $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                                    $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                                @endphp
+
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
+                                    class="quick-filter-btn {{ request('data_inicio') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : '' }}">Ontem</a>
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $hoje->format('Y-m-d'), 'data_fim' => $hoje->format('Y-m-d')])) }}"
+                                    class="quick-filter-btn {{ request('data_inicio') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : '' }}">Hoje</a>
+
+                                <div class="flex items-center gap-1 ml-1">
+                                    <a href="{{ route('atendimentos.index', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'data_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
+                                        class="p-2 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></a>
+                                    <div class="text-base font-bold text-gray-700 bg-white px-8 py-2 rounded-lg border border-gray-300 shadow-sm" style="min-width:180px;text-align:center;">{{ $mesAtualNome }}</div>
+                                    <a href="{{ route('atendimentos.index', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'data_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
+                                        class="p-2 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 lg:text-right">Prioridade</label>
+                            <div class="flex flex-wrap gap-2 lg:justify-end">
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'alta'])) }}"
+                                    class="quick-filter-btn btn-prioridade-alta {{ request('prioridade') === 'alta' ? 'active' : '' }}">Alta</a>
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'media'])) }}"
+                                    class="quick-filter-btn btn-prioridade-media {{ request('prioridade') === 'media' ? 'active' : '' }}">Média</a>
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'baixa'])) }}"
+                                    class="quick-filter-btn btn-prioridade-baixa {{ request('prioridade') === 'baixa' ? 'active' : '' }}">Baixa</a>
+                                @if(request('prioridade'))
+                                    <a href="{{ route('atendimentos.index', request()->except('prioridade')) }}" class="inline-flex items-center px-2 py-1 border border-gray-300 text-gray-400 rounded-lg text-xs ml-2 bg-white hover:bg-gray-50 transition">Limpar</a>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- PRIORIDADE --}}
-                    <div class="filter-group">
-                        <label for="prioridade">Prioridade</label>
-                        <select id="prioridade" name="prioridade">
-                            <option value="">Todas</option>
-                            <option value="alta" @selected(request('prioridade')==='alta' )>Alta</option>
-                            <option value="media" @selected(request('prioridade')==='media' )>Média</option>
-                            <option value="baixa" @selected(request('prioridade')==='baixa' )>Baixa</option>
-                        </select>
+                    <div class="flex items-center justify-between mt-8 pt-4 border-t border-gray-100">
+                        <div class="flex gap-2">
+                            <button type="submit" class="inline-flex items-center px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm text-sm">
+                                Filtrar
+                            </button>
+                            <a href="{{ route('atendimentos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition text-sm">
+                                Limpar
+                            </a>
+                        </div>
+                        
+                        <a href="{{ route('atendimentos.create') }}" class="inline-flex items-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                            Novo Atendimento
+                        </a>
                     </div>
+                </form>
+            </div>
 
-                    {{-- PERÍODO --}}
-                    <div class="filter-group">
-                        <label for="periodo">Período</label>
-                        <select id="periodo" name="periodo">
-                            <option value="dia" @selected(request('periodo')==='dia' )>Hoje</option>
-                            <option value="semana" @selected(request('periodo')==='semana' )>Semana</option>
-                            <option value="mes" @selected(request('periodo', 'mes' )==='mes' )>Mês</option>
-                            <option value="ano" @selected(request('periodo')==='ano' )>Ano</option>
-                        </select>
-
-                    </div>
-                </div>
-
-                <div class="filters-actions">
-                    <button type="submit" class="btn btn-primary">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Filtrar
-                    </button>
-
-                    <a href="{{ route('atendimentos.create') }}" class="btn btn-success">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Novo Atendimento
-                    </a>
-                </div>
-            </form>
-        </div>
-
-        {{-- ================= TABELA (DESKTOP) ================= --}}
+            {{-- ================= TABELA (DESKTOP) ================= --}}
         @if($atendimentos->count() > 0)
         <div class="table-card">
             <div class="table-wrapper">
@@ -327,67 +423,29 @@
                 @endif
             </div>
         </div>
-
-        @else
-        {{-- ================= ESTADO VAZIO ================= --}}
-        <div class="empty-state">
-            <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 class="empty-state-title">Nenhum atendimento registrado</h3>
-            <p class="empty-state-text">Nenhum atendimento foi encontrado com os filtros aplicados.</p>
-            <a href="{{ route('atendimentos.create') }}" class="btn btn-success">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                        clip-rule="evenodd" />
-                </svg>
-                Criar Novo Atendimento
-            </a>
+            <div class="mt-4">{{ $atendimentos->links() }}</div>
+            @else
+            <div class="bg-white rounded-xl p-12 text-center border border-dashed border-gray-300 text-gray-500">Nenhum atendimento encontrado.</div>
+            @endif
         </div>
-        @endif
-
     </div>
 
-    {{-- ================= SCRIPTS ================= --}}
+    @push('scripts')
     <script>
-    /* ========================= EDIÇÃO INLINE ========================= */
-    document.querySelectorAll('.campo-editavel').forEach(el => {
-        el.addEventListener('change', async function() {
-            const id = this.dataset.id;
-            const campo = this.dataset.campo;
-            const valor = this.value;
-
-            try {
-                const response = await fetch(`/atendimentos/${id}/atualizar-campo`, {
-                    method: 'PATCH',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector(
-                                'meta[name="csrf-token"]')
-                            .content,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        campo: campo,
-                        valor: valor
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    console.error('Erro:', data.message);
-                    alert(data.message || 'Erro ao atualizar');
-                    location.reload();
-                }
-            } catch (error) {
-                console.error('Erro de comunicação:', error);
-                alert('Erro de comunicação');
-                location.reload();
-            }
+        document.querySelectorAll('.campo-editavel').forEach(select => {
+            select.addEventListener('change', function() {
+                const id = this.dataset.id;
+                const campo = this.dataset.campo;
+                const valor = this.value;
+                fetch(`{{ url('atendimentos') }}/${id}/update-field`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ campo, valor })
+                })
+                .then(response => response.json())
+                .then(data => { if(data.success) { this.classList.add('border-green-500'); setTimeout(() => this.classList.remove('border-green-500'), 1000); } });
+            });
         });
-    });
     </script>
-
+    @endpush
 </x-app-layout>

@@ -14,6 +14,24 @@ use Carbon\Carbon;
 class PortalController extends Controller
 {
     /**
+     * Lista de Atendimentos do Cliente
+     */
+    public function atendimentos()
+    {
+        $user = Auth::user();
+        if (!$user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+        $clienteId = session('cliente_id_ativo');
+        if (!$clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+        $cliente = $user->clientes()->where('clientes.id', $clienteId)->firstOrFail();
+        // Busca todos os atendimentos do cliente
+        $atendimentos = $cliente->atendimentos()->orderByDesc('created_at')->get();
+        return view('portal.atendimentos', compact('cliente', 'atendimentos'));
+    }
+    /**
      * Dashboard do Portal do Cliente
      */
     public function index()
@@ -47,36 +65,32 @@ class PortalController extends Controller
             ->where('clientes.id', $clienteId)
             ->firstOrFail();
 
-        // 🔹 Boletos da unidade ativa
-        $boletos = $cliente->boletos()
-            ->with('cobranca')
-            ->orderByDesc('ano')
-            ->orderByDesc('mes')
-            ->get();
+        // Boletos
+        $boletos = $cliente->boletos()->with('cobranca')->get();
+        $totalBoletos = $boletos->count();
 
-        // 🔹 Localiza notas fiscais em disco
+        // Notas fiscais
         $pastaNotas = storage_path("app/boletos/cliente_{$cliente->id}");
-        $arquivosNotas = [];
+        $arquivosNotas = is_dir($pastaNotas) ? glob($pastaNotas . DIRECTORY_SEPARATOR . '*.pdf') : [];
+        $totalNotas = count($arquivosNotas);
 
-        if (is_dir($pastaNotas)) {
-            $arquivosNotas = glob($pastaNotas . DIRECTORY_SEPARATOR . '*.pdf');
-        }
+        // Atendimentos
+        $atendimentos = $cliente->atendimentos()->get();
+        $totalAtendimentosAbertos = $atendimentos->where('status_atual', 'aberto')->count();
+        $totalAtendimentosExecucao = $atendimentos->where('status_atual', 'execucao')->count();
+        $totalAtendimentosFinalizados = $atendimentos->where('status_atual', 'concluido')->count();
+        $totalBoletos = $boletos->count();
+        $totalNotas = count($arquivosNotas);
 
-        foreach ($boletos as $boleto) {
-            $mes = str_pad($boleto->data_vencimento->month, 2, '0', STR_PAD_LEFT);
-            $boleto->nota_fiscal = null;
-
-            foreach ($arquivosNotas as $arquivoCompleto) {
-                $nome = basename($arquivoCompleto);
-
-                if (str_starts_with($nome, $mes . '_')) {
-                    $boleto->nota_fiscal = $nome;
-                    break;
-                }
-            }
-        }
-
-        return view('portal.index', compact('cliente', 'boletos'));
+        return view('portal.index', compact(
+            'cliente',
+            'boletos',
+            'totalBoletos',
+            'totalNotas',
+            'totalAtendimentosAbertos',
+            'totalAtendimentosExecucao',
+            'totalAtendimentosFinalizados'
+        ));
     }
 
     public function financeiro(Request $request)

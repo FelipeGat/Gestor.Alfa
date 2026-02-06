@@ -28,9 +28,9 @@ class AtendimentoController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('nome_solicitante', 'like', "%{$search}%")
-                ->orWhereHas('cliente', function ($c) use ($search) {
-                    $c->where('nome', 'like', "%{$search}%");
-                });
+                    ->orWhereHas('cliente', function ($c) use ($search) {
+                        $c->where('nome', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -44,22 +44,36 @@ class AtendimentoController extends Controller
             $query->where('status_atual', $request->status);
         }
 
-        // 📅 PERÍODO
-        $periodo = $request->input('periodo', 'mes');
+        // EMPRESA
+        if ($request->filled('empresa_id')) {
+            $query->where('empresa_id', $request->empresa_id);
+        }
 
-        match ($periodo) {
-            'dia' => $query->whereDate('data_atendimento', today()),
+        // TÉCNICO
+        if ($request->filled('tecnico_id')) {
+            $query->where('funcionario_id', $request->tecnico_id);
+        }
 
-            'semana' => $query->whereBetween('data_atendimento', [
-                now()->startOfWeek(),
-                now()->endOfWeek(),
-            ]),
-
-            'ano' => $query->whereYear('data_atendimento', now()->year),
-
-            default => $query->whereMonth('data_atendimento', now()->month)
-                            ->whereYear('data_atendimento', now()->year),
-        };
+        // FILTRO DE PERÍODO PERSONALIZADO
+        if ($request->filled('data_inicio') && $request->filled('data_fim')) {
+            $query->whereBetween('data_atendimento', [
+                $request->data_inicio,
+                $request->data_fim
+            ]);
+        } else {
+            // 📅 PERÍODO PADRÃO
+            $periodo = $request->input('periodo', 'mes');
+            match ($periodo) {
+                'dia' => $query->whereDate('data_atendimento', today()),
+                'semana' => $query->whereBetween('data_atendimento', [
+                    now()->startOfWeek(),
+                    now()->endOfWeek(),
+                ]),
+                'ano' => $query->whereYear('data_atendimento', now()->year),
+                default => $query->whereMonth('data_atendimento', now()->month)
+                    ->whereYear('data_atendimento', now()->year),
+            };
+        }
 
         $atendimentos = $query
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
@@ -71,9 +85,12 @@ class AtendimentoController extends Controller
             ->orderBy('nome')
             ->get();
 
+        $empresas = Empresa::orderBy('nome_fantasia')->get();
+
         return view('atendimentos.index', compact(
             'atendimentos',
-            'funcionarios'
+            'funcionarios',
+            'empresas'
         ));
     }
 
@@ -216,5 +233,4 @@ class AtendimentoController extends Controller
             ->route('atendimentos.index')
             ->with('success', 'Atendimento excluído com sucesso!');
     }
-
 }

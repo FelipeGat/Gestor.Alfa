@@ -77,8 +77,14 @@ class ContasReceberController extends Controller
 
         // Filtro por Empresa
         if ($request->filled('empresa_id')) {
-            $query->whereHas('orcamento', function ($q) use ($request) {
-                $q->where('empresa_id', $request->input('empresa_id'));
+            $empresaId = $request->input('empresa_id');
+            $query->where(function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($sq) use ($empresaId) {
+                    $sq->where('empresa_id', $empresaId);
+                })
+                    ->orWhereHas('contaFixa', function ($sq) use ($empresaId) {
+                        $sq->where('empresa_id', $empresaId);
+                    });
             });
         }
 
@@ -183,9 +189,10 @@ class ContasReceberController extends Controller
             'data_vencimento_original' => 'nullable|date',
         ]);
 
+
+        $valorTotal = $request->has('valor_total') ? floatval($request->valor_total) : floatval($cobranca->valor);
         $valorPago = floatval($request->valor_pago);
         $jurosMulta = floatval($request->juros_multa ?? 0);
-        $valorTotal = floatval($cobranca->valor);
 
         // Validações de valor
         if ($valorPago <= 0) {
@@ -204,7 +211,7 @@ class ContasReceberController extends Controller
                 'status' => 'pago',
                 'pago_em' => $request->data_pagamento,
                 'data_pagamento' => $request->data_pagamento,
-                'valor' => $valorPago, // Atualiza o valor para o que foi efetivamente pago
+                'valor' => $valorTotal, // Salva o valor ajustado para este recebimento
                 'juros_multa' => $jurosMulta,
                 'conta_financeira_id' => $request->conta_financeira_id,
                 'forma_pagamento' => $request->forma_pagamento,
@@ -214,19 +221,18 @@ class ContasReceberController extends Controller
             $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
             if ($contaFinanceira) {
                 $contaFinanceira->increment('saldo', $valorPago);
+                // Registrar movimentação financeira (apenas UM lançamento por recebimento)
+                \App\Models\MovimentacaoFinanceira::create([
+                    'conta_origem_id' => null,
+                    'conta_destino_id' => $request->conta_financeira_id,
+                    'tipo' => 'entrada',
+                    'valor' => $valorPago,
+                    'saldo_resultante' => $contaFinanceira->saldo,
+                    'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
+                    'user_id' => $request->user() ? $request->user()->id : null,
+                    'data_movimentacao' => $request->data_pagamento,
+                ]);
             }
-
-            // Registrar movimentação financeira
-            \App\Models\MovimentacaoFinanceira::create([
-                'conta_origem_id' => null,
-                'conta_destino_id' => $request->conta_financeira_id,
-                'tipo' => 'ajuste_entrada',
-                'valor' => $valorPago,
-                'saldo_resultante' => $contaFinanceira ? $contaFinanceira->saldo : null,
-                'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
-                'user_id' => $request->user() ? $request->user()->id : null,
-                'data_movimentacao' => $request->data_pagamento,
-            ]);
 
             // Atualizar status do orçamento para 'concluido' quando todas as cobranças estiverem pagas
             if ($cobranca->orcamento_id) {
@@ -372,11 +378,13 @@ class ContasReceberController extends Controller
         $categorias = \App\Models\Categoria::where('ativo', true)->orderBy('nome')->get();
         $subcategorias = \App\Models\Subcategoria::where('ativo', true)->orderBy('nome')->get();
         $contasFiltro = \App\Models\Conta::where('ativo', true)->orderBy('nome')->get();
+        $empresas = \App\Models\Empresa::orderBy('nome_fantasia')->get();
 
         // ================= BUSCAR COBRANÇAS (ENTRADAS) =================
         $cobrancasQuery = Cobranca::with([
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
-            'orcamento:id,forma_pagamento',
+            'orcamento:id,empresa_id,forma_pagamento',
+            'contaFixa:id,empresa_id',
             'contaFinanceira:id,nome,tipo'
         ])
             ->where('status', 'pago')
@@ -387,16 +395,58 @@ class ContasReceberController extends Controller
             'centroCusto:id,nome',
             'conta:id,nome',
             'fornecedor:id,razao_social,nome_fantasia',
-            'contaFinanceira:id,nome,tipo'
+            'contaFinanceira:id,nome,tipo',
+            'orcamento:id,empresa_id',
+            'contaFixaPagar:id',
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
 
+        // Filtro por centro de custo
+        if ($request->filled('centro_custo_id')) {
+            $centroCustoId = $request->input('centro_custo_id');
+            $contasPagarQuery->where('centro_custo_id', $centroCustoId);
+        }
+
+        // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
+        $contasPagarQuery = \App\Models\ContaPagar::with([
+            'centroCusto:id,nome',
+            'conta:id,nome',
+            'fornecedor:id,razao_social,nome_fantasia',
+            'contaFinanceira:id,nome,tipo',
+            'orcamento:id,empresa_id',
+            'contaFixaPagar:id',
+        ])
+            ->where('status', 'pago')
+            ->whereNotNull('pago_em');
+
+        // Filtro por empresa para receitas e despesas
+        if ($request->filled('empresa_id')) {
+            $empresaId = $request->input('empresa_id');
+            $cobrancasQuery->where(function ($query) use ($empresaId) {
+                $query->whereHas('orcamento', function ($q) use ($empresaId) {
+                    $q->where('empresa_id', $empresaId);
+                })
+                    ->orWhereHas('contaFixa', function ($q) use ($empresaId) {
+                        $q->where('empresa_id', $empresaId);
+                    });
+            });
+            $contasPagarQuery->whereHas('orcamento', function ($q) use ($empresaId) {
+                $q->where('empresa_id', $empresaId);
+            });
+        }
+        // Filtro por centro de custo só para despesas
+        if ($request->filled('centro_custo_id')) {
+            $centroCustoId = $request->input('centro_custo_id');
+            $contasPagarQuery->where('centro_custo_id', $centroCustoId);
+        }
+
         // ================= FILTROS =================
         if ($request->filled('search')) {
             $search = '%' . $request->input('search') . '%';
+            $searchRaw = $request->input('search');
 
-            $cobrancasQuery->where(function ($q) use ($search) {
+            $cobrancasQuery->where(function ($q) use ($search, $searchRaw) {
                 $q->whereHas(
                     'cliente',
                     fn($sq) =>
@@ -404,16 +454,18 @@ class ContasReceberController extends Controller
                         ->orWhere('nome_fantasia', 'like', $search)
                         ->orWhere('razao_social', 'like', $search)
                 )
-                    ->orWhere('descricao', 'like', $search);
+                    ->orWhere('descricao', 'like', $search)
+                    ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$search]);
             });
 
-            $contasPagarQuery->where(function ($q) use ($search) {
+            $contasPagarQuery->where(function ($q) use ($search, $searchRaw) {
                 $q->where('descricao', 'like', $search)
                     ->orWhereHas('fornecedor', function ($sq) use ($search) {
                         $sq->where('razao_social', 'like', $search)
                             ->orWhere('nome_fantasia', 'like', $search);
                     })
-                    ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $search));
+                    ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $search))
+                    ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$search]);
             });
         }
 
@@ -461,6 +513,7 @@ class ContasReceberController extends Controller
             });
 
         // ================= COMBINAR E ORDENAR =================
+
         $cobrancas = $cobrancasQuery->get()->map(function ($item) {
             $item->tipo_movimentacao = 'entrada';
             $item->is_financeiro = false;
@@ -473,16 +526,21 @@ class ContasReceberController extends Controller
             return $item;
         });
 
-        // Filtro de tipo (entrada/saida)
-        $movimentacoes = $cobrancas
-            ->concat($contasPagar)
-            ->concat($movFinanceiras)
-            ->filter(function ($item) use ($request) {
-                if (!$request->filled('tipo_movimentacao')) {
-                    return true;
-                }
-                return $item->tipo_movimentacao === $request->input('tipo_movimentacao');
-            });
+        if ($request->filled('centro_custo_id')) {
+            // Se filtrar centro de custo, mostrar só despesas
+            $movimentacoes = $contasPagar;
+        } else {
+            // Caso contrário, mostrar tudo normalmente
+            $movimentacoes = $cobrancas
+                ->concat($contasPagar)
+                ->concat($movFinanceiras)
+                ->filter(function ($item) use ($request) {
+                    if (!$request->filled('tipo_movimentacao')) {
+                        return true;
+                    }
+                    return $item->tipo_movimentacao === $request->input('tipo_movimentacao');
+                });
+        }
 
         // Ordenação dinâmica
         $orderBy = $request->input('order_by', 'data');
@@ -513,6 +571,12 @@ class ContasReceberController extends Controller
         $totalEntradas = $cobrancas->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'entrada')->sum('valor');
         $totalSaidas = $contasPagar->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'saida')->sum('valor');
 
+        // ================= CONTADORES PARA FILTROS RÁPIDOS =================
+        $contadoresStatus = [
+            'recebido' => $cobrancas->count() + $movFinanceiras->where('tipo_movimentacao', 'entrada')->count(),
+            'pago'     => $contasPagar->count() + $movFinanceiras->where('tipo_movimentacao', 'saida')->count(),
+        ];
+
         return view('financeiro.movimentacao', compact(
             'movimentacoes',
             'totalEntradas',
@@ -520,7 +584,9 @@ class ContasReceberController extends Controller
             'centrosCusto',
             'categorias',
             'subcategorias',
-            'contasFiltro'
+            'contasFiltro',
+            'contadoresStatus',
+            'empresas'
         ));
     }
 

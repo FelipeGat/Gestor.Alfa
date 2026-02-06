@@ -30,55 +30,38 @@ class AtendimentoAndamentoFotoController extends Controller
         $user = Auth::user();
         $atendimento = $andamento->atendimento;
 
-        // Técnico só pode anexar no atendimento dele
+        // Técnico só pode anexar no atendimento dele e se não estiver finalizado/concluído
         if ($user->tipo === 'funcionario') {
-            abort_if(
-                $atendimento->funcionario_id !== $user->funcionario_id,
-                403,
-                'Acesso não autorizado.'
-            );
-
-            abort_if(
-                in_array($atendimento->status_atual, ['finalizacao', 'concluido']),
-                403,
-                'Não é possível anexar fotos neste status.'
-            );
+            // Permite visualizar fotos de qualquer andamento do atendimento ao qual está vinculado
+            // Só restringe status para anexar, não para visualizar
+            if ($request->isMethod('post')) {
+                abort_if(
+                    $atendimento->funcionario_id !== $user->funcionario_id,
+                    403,
+                    'Acesso não autorizado.'
+                );
+                abort_if(
+                    in_array($atendimento->status_atual, ['finalizacao', 'concluido']),
+                    403,
+                    'Não é possível anexar fotos neste status.'
+                );
+            }
         }
 
-        // Limite de fotos por andamento
-        $quantidadeAtual = $andamento->fotos()->count();
-        $novasFotos = count($request->file('fotos', []));
-
-        abort_if(
-            ($quantidadeAtual + $novasFotos) > 8,
-            422,
-            'Cada andamento pode conter no máximo 8 fotos.'
-        );
-
-        // Validação
+        // Validação: apenas 1 foto obrigatória
         $request->validate([
-            'fotos'   => ['required', 'array'],
+            'fotos'   => ['required', 'array', 'min:1', 'max:1'],
             'fotos.*' => ['image', 'max:2048'],
         ]);
 
-        $basePath = $this->uploadsBasePath();
-        $destino = $basePath . "/andamentos/atendimento_{$atendimento->id}";
-
-        if (!file_exists($destino)) {
-            mkdir($destino, 0755, true);
-        }
-
         foreach ($request->file('fotos') as $foto) {
-
-            $nomeArquivo = uniqid() . '.' . $foto->getClientOriginalExtension();
-
-            $foto->move($destino, $nomeArquivo);
-
-            // Caminho RELATIVO (usado pelo asset())
-            $path = "uploads/andamentos/atendimento_{$atendimento->id}/{$nomeArquivo}";
-
+            $extensao = $foto->getClientOriginalExtension();
+            $nomeArquivo = uniqid() . '_' . time() . '.' . $extensao;
+            $caminho = $foto->storeAs('atendimentos/fotos', $nomeArquivo, 'public');
+            // Remove prefixo 'public/' ou 'storage/' se houver
+            $caminho = preg_replace('#^(public/|storage/)#', '', $caminho);
             $andamento->fotos()->create([
-                'arquivo' => $path,
+                'arquivo' => $caminho,
             ]);
         }
 
@@ -97,14 +80,13 @@ class AtendimentoAndamentoFotoController extends Controller
         $andamento = $foto->andamento;
         $atendimento = $andamento->atendimento;
 
-        // Técnico só remove se for o responsável
+        // Técnico só remove se for o responsável e se não estiver finalizado/concluído
         if ($user->tipo === 'funcionario') {
             abort_if(
                 $atendimento->funcionario_id !== $user->funcionario_id,
                 403,
                 'Acesso não autorizado.'
             );
-
             abort_if(
                 in_array($atendimento->status_atual, ['finalizacao', 'concluido']),
                 403,
@@ -113,10 +95,8 @@ class AtendimentoAndamentoFotoController extends Controller
         }
 
         // Caminho físico correto do arquivo
-        $arquivoFisico = $this->uploadsBasePath() . '/' . $foto->arquivo;
-
-        if (file_exists($arquivoFisico)) {
-            unlink($arquivoFisico);
+        if (\Storage::disk('public')->exists($foto->arquivo)) {
+            \Storage::disk('public')->delete($foto->arquivo);
         }
 
         $foto->delete();

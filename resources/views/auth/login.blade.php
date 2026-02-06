@@ -226,10 +226,9 @@
                 enterIcon.classList.add('opacity-0');
                 buttonText.classList.add('opacity-0');
                 loadingSpinner.classList.remove('opacity-0');
+                
+                setTimeout(() => { form.submit(); }, 400);
 
-                setTimeout(() => {
-                    form.submit();
-                }, 400);
             }
         }
     </script>

@@ -188,9 +188,11 @@ class ContasPagarController extends Controller
             'data_vencimento_original' => 'nullable|date',
         ]);
 
+
+        // Usa o valor_total enviado pelo formulário, se existir, senão mantém o valor original
+        $valorTotal = $request->has('valor_total') ? floatval($request->valor_total) : floatval($conta->valor);
         $valorPago = floatval($request->valor_pago);
         $jurosMulta = floatval($request->juros_multa ?? 0);
-        $valorTotal = floatval($conta->valor);
 
         // Validações de valor
         if ($valorPago <= 0) {
@@ -204,12 +206,12 @@ class ContasPagarController extends Controller
         }
 
         DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
-            // Atualizar a conta atual com o valor pago
+            // Atualizar a conta atual com o valor pago e o valor total ajustado
             $conta->update([
                 'status'              => 'pago',
                 'pago_em'             => $request->data_pagamento,
                 'data_pagamento'      => $request->data_pagamento,
-                'valor'               => $valorPago, // Atualiza para o valor efetivamente pago
+                'valor'               => $valorTotal, // Salva o valor ajustado para este mês
                 'juros_multa'         => $jurosMulta,
                 'forma_pagamento'     => $request->forma_pagamento,
                 'conta_financeira_id' => $request->conta_financeira_id,
@@ -220,18 +222,18 @@ class ContasPagarController extends Controller
                 $contaBancaria = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
                 if ($contaBancaria) {
                     $contaBancaria->decrement('saldo', $valorPago);
+                    // Registrar movimentação financeira (apenas UM lançamento por pagamento)
+                    \App\Models\MovimentacaoFinanceira::create([
+                        'conta_origem_id' => $request->conta_financeira_id,
+                        'conta_destino_id' => null,
+                        'tipo' => 'saida',
+                        'valor' => $valorPago,
+                        'saldo_resultante' => $contaBancaria->saldo,
+                        'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id,
+                        'user_id' => $request->user() ? $request->user()->id : null,
+                        'data_movimentacao' => $request->data_pagamento,
+                    ]);
                 }
-                // Registrar movimentação financeira
-                \App\Models\MovimentacaoFinanceira::create([
-                    'conta_origem_id' => $request->conta_financeira_id,
-                    'conta_destino_id' => null,
-                    'tipo' => 'ajuste_saida',
-                    'valor' => $valorPago,
-                    'saldo_resultante' => $contaBancaria ? $contaBancaria->saldo : null,
-                    'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id,
-                    'user_id' => $request->user() ? $request->user()->id : null,
-                    'data_movimentacao' => $request->data_pagamento,
-                ]);
             }
 
             // Se houver valor restante, criar nova conta

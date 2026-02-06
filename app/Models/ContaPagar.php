@@ -33,6 +33,22 @@ class ContaPagar extends Model
         'observacoes',
         'orcamento_id',
     ];
+
+    /**
+     * Accessor para empresa relacionada via Orçamento ou Conta Financeira
+     */
+    public function getEmpresaRelacionadaAttribute()
+    {
+        // Se houver orçamento, prioriza empresa do orçamento
+        if ($this->orcamento && $this->orcamento->empresa) {
+            return $this->orcamento->empresa;
+        }
+        // Se houver conta financeira, retorna empresa da conta financeira
+        if ($this->contaFinanceira && $this->contaFinanceira->empresa) {
+            return $this->contaFinanceira->empresa;
+        }
+        return null;
+    }
     public function orcamento()
     {
         return $this->belongsTo(Orcamento::class);

@@ -105,7 +105,7 @@
 
 <body>
     @php
-    $empresa = $cobranca->orcamento->empresa;
+    $empresa = $cobranca->orcamento->empresa ?? $cobranca->contaFixa->empresa ?? null;
     @endphp
 
     <div class="container">

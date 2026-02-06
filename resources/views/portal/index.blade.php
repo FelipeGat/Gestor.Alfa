@@ -102,7 +102,7 @@
                 </a>
 
                 <!-- Card Atendimentos -->
-                <a href="{{ route('portal.index') }}"
+                <a href="{{ route('portal.atendimentos') }}"
                     class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
               hover:border-green-500 hover:shadow-2xl transition-all duration-300
               transform hover:scale-105 cursor-pointer">
@@ -164,7 +164,7 @@
                             </svg>
                         </div>
                         <p class="text-4xl font-bold text-blue-600 mb-1">
-                            {{ rand(15, 45) }}
+                            {{ $totalBoletos + $totalNotas }}
                         </p>
                         <p class="text-xs text-gray-600">
                             Documentos anexados no portal
@@ -180,7 +180,7 @@
                             </svg>
                         </div>
                         <p class="text-4xl font-bold text-yellow-600 mb-1">
-                            {{ rand(2, 8) }}
+                            {{ $totalAtendimentosAbertos }}
                         </p>
                         <p class="text-xs text-gray-600">
                             Aguardando ação
@@ -196,7 +196,7 @@
                             </svg>
                         </div>
                         <p class="text-4xl font-bold text-orange-600 mb-1">
-                            {{ rand(3, 12) }}
+                            {{ $totalAtendimentosExecucao }}
                         </p>
                         <p class="text-xs text-gray-600">
                             Sendo processados
@@ -212,7 +212,7 @@
                             </svg>
                         </div>
                         <p class="text-4xl font-bold text-green-600 mb-1">
-                            {{ rand(25, 60) }}
+                            {{ $totalAtendimentosFinalizados }}
                         </p>
                         <p class="text-xs text-gray-600">
                             Concluídos com sucesso

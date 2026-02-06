@@ -122,6 +122,23 @@ class GeradorCobrancaOrcamento
 
             $ultimaData = $dataCarbon;
         }
+
+        // Validação da soma das parcelas
+        $valoresCustomizados = $this->dados['valores_parcelas'] ?? [];
+        if (!empty($valoresCustomizados)) {
+            $somaParcelas = array_sum(array_map('floatval', $valoresCustomizados));
+            $valorTotal = (float) $this->orcamento->valor_total;
+            // Aceita diferença de até 10 centavos usando bccomp
+            if (bccomp((string)$somaParcelas, (string)($valorTotal + 0.10), 2) === 1) {
+                throw ValidationException::withMessages([
+                    'parcelas' => 'A soma das Parcelas (R$ ' . number_format($somaParcelas, 2, ',', '.') . ') ultrapassa o valor total da Cobranca (R$ ' . number_format($valorTotal, 2, ',', '.') . ')',
+                ]);
+            } elseif (bccomp((string)$somaParcelas, (string)($valorTotal - 0.10), 2) === -1) {
+                throw ValidationException::withMessages([
+                    'parcelas' => 'A soma das Parcelas (R$ ' . number_format($somaParcelas, 2, ',', '.') . ') é inferior ao valor total da Cobranca (R$ ' . number_format($valorTotal, 2, ',', '.') . ')',
+                ]);
+            }
+        }
     }
 
     /*

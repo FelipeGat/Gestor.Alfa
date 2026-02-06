@@ -28,6 +28,7 @@ class DashboardComercialController extends Controller
         $empresaId    = $request->get('empresa_id');
         $statusFiltro = $request->get('status');
         $filtroRapido = $request->get('filtro_rapido', 'mes');
+        $origemFiltro = $request->get('origem', 'todos');
 
         // Processar filtro de data
         $inicio = null;
@@ -70,6 +71,12 @@ class DashboardComercialController extends Controller
         if ($empresaId) {
             $queryBase->where('empresa_id', $empresaId);
         }
+        // Filtro de origem: contrato = tem atendimento_id, avulso = atendimento_id null
+        if ($origemFiltro === 'contrato') {
+            $queryBase->whereNotNull('atendimento_id');
+        } elseif ($origemFiltro === 'avulso') {
+            $queryBase->whereNull('atendimento_id');
+        }
 
         // Executar uma única query para todas as contagens por status
         $statusCount = (clone $queryBase)
@@ -92,6 +99,13 @@ class DashboardComercialController extends Controller
         )
             ->when($empresaId, function ($query) use ($empresaId) {
                 $query->where('empresa_id', $empresaId);
+            })
+            // Filtro de origem também para os cards de empresa
+            ->when($origemFiltro === 'contrato', function ($query) {
+                $query->whereNotNull('atendimento_id');
+            })
+            ->when($origemFiltro === 'avulso', function ($query) {
+                $query->whereNull('atendimento_id');
             })
             ->groupBy('empresa_id')
             ->with(['empresa:id,nome_fantasia'])
@@ -130,7 +144,8 @@ class DashboardComercialController extends Controller
             'statusFiltro',
             'filtroRapido',
             'inicio',
-            'fim'
+            'fim',
+            'origemFiltro'
         ));
     }
 
@@ -143,6 +158,7 @@ class DashboardComercialController extends Controller
             $empresaId = $request->get('empresa_id');
             $status = $request->get('status');
             $filtroRapido = $request->get('filtro_rapido', 'mes');
+            $origemFiltro = $request->get('origem', 'todos');
 
             // Log para debug
             Log::info('getOrcamentos chamado', [
@@ -190,6 +206,8 @@ class DashboardComercialController extends Controller
                 ->whereBetween('created_at', [$inicio, $fim])
                 ->when($empresaId, fn($q) => $q->where('empresa_id', $empresaId))
                 ->when($status, fn($q) => $q->where('status', $status))
+                ->when($origemFiltro === 'contrato', fn($q) => $q->whereNotNull('atendimento_id'))
+                ->when($origemFiltro === 'avulso', fn($q) => $q->whereNull('atendimento_id'))
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -245,6 +263,7 @@ class DashboardComercialController extends Controller
             $empresaId = $request->get('empresa_id');
             $status = $request->get('status');
             $filtroRapido = $request->get('filtro_rapido', 'mes');
+            $origemFiltro = $request->get('origem', 'todos');
 
             // Processar filtro de data
             $inicio = null;
@@ -286,6 +305,8 @@ class DashboardComercialController extends Controller
                 ->whereBetween('created_at', [$inicio, $fim])
                 ->when($empresaId, fn($q) => $q->where('empresa_id', $empresaId))
                 ->when($status, fn($q) => $q->where('status', $status))
+                ->when($origemFiltro === 'contrato', fn($q) => $q->whereNotNull('atendimento_id'))
+                ->when($origemFiltro === 'avulso', fn($q) => $q->whereNull('atendimento_id'))
                 ->orderBy('created_at', 'desc')
                 ->get();
 

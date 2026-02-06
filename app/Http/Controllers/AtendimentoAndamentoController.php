@@ -12,12 +12,24 @@ class AtendimentoAndamentoController extends Controller
     {
         $request->validate([
             'descricao' => 'required|string|min:5',
+            'fotos.*' => 'nullable|image|max:5120', // até 5MB por foto
         ]);
 
-        $atendimento->andamentos()->create([
+        $andamento = $atendimento->andamentos()->create([
             'user_id'   => Auth::id(),
             'descricao' => $request->descricao,
         ]);
+
+        // Salvar fotos, se houver
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->store('atendimentos/fotos', 'public');
+                $publicPath = 'storage/' . ltrim(str_replace('public/', '', $path), '/');
+                $andamento->fotos()->create([
+                    'arquivo' => $publicPath,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('atendimentos.edit', $atendimento)

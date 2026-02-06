@@ -152,6 +152,7 @@
                                     <th class="text-left">CLIENTE</th>
                                     <th class="text-center">STATUS</th>
                                     <th class="text-right">VALOR</th>
+                                    <th class="text-center">AGENDAR</th>
                                     <th class="text-center">AÇÕES</th>
                                 </tr>
                             </thead>
@@ -174,6 +175,51 @@
                                     </td>
                                     <td class="text-right font-bold text-gray-900">
                                         R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{-- Campo para agendar cobrança --}}
+                                        <div class="flex flex-col items-center gap-1">
+                                            @if(empty($orcamento->data_agendamento))
+                                                <button type="button" class="btn btn-xs btn-outline-primary" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">Agendar</button>
+                                                <form method="POST" action="{{ route('financeiro.agendar-cobranca', $orcamento->id) }}" id="form-agendar-{{ $orcamento->id }}" style="display:none; margin-top:4px;" class="flex items-center gap-2">
+                                                    @csrf
+                                                    <input type="date" name="data_agendamento" min="{{ now()->toDateString() }}" class="rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-2 py-1 text-sm w-36" required>
+                                                    <button type="submit" class="btn btn-xs btn-success">Salvar</button>
+                                                    <button type="button" class="btn btn-xs btn-secondary" onclick="fecharCalendarioAgendamento({{ $orcamento->id }})">Cancelar</button>
+                                                </form>
+                                            @else
+                                                <div class="flex items-center gap-2 mt-1">
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-semibold">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                        Agendado para {{ \Carbon\Carbon::parse($orcamento->data_agendamento)->format('d/m/Y') }}
+                                                    </span>
+                                                    <form method="POST" action="{{ route('financeiro.cancelar-agendamento', $orcamento->id) }}" onsubmit="return confirm('Deseja cancelar o agendamento?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-xs btn-danger" title="Cancelar agendamento">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </script>
+                                    <script>
+                                    function abrirCalendarioAgendamento(id) {
+                                        document.getElementById('form-agendar-' + id).style.display = 'flex';
+                                        event.target.style.display = 'none';
+                                    }
+                                    function fecharCalendarioAgendamento(id) {
+                                        document.getElementById('form-agendar-' + id).style.display = 'none';
+                                        // Reexibe o botão Agendar
+                                        const btns = document.querySelectorAll('[onclick^="abrirCalendarioAgendamento"]');
+                                        btns.forEach(btn => {
+                                            if (btn.getAttribute('onclick').includes(id)) {
+                                                btn.style.display = '';
+                                            }
+                                        });
+                                    }
+                                    </script>
                                     </td>
                                     <td class="text-center">
                                         <div class="flex items-center justify-center gap-2">

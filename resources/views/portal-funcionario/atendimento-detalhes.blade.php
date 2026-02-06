@@ -619,12 +619,12 @@
     <!-- Modal Iniciar -->
     <div id="modalIniciar" class="modal">
         <div class="modal-content">
-            <div class="modal-header">📸 Enviar 3 Fotos Iniciais</div>
+            <div class="modal-header">📸 Enviar Foto Inicial</div>
             <form action="{{ route('portal-funcionario.atendimento.iniciar', $atendimento) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
-                    <label class="form-label">Selecione 3 Fotos</label>
-                    <input type="file" name="fotos[]" accept="image/*" capture="environment" multiple required class="form-input" onchange="previewFotos(this, 'previewIniciar')">
+                    <label class="form-label">Selecione 1 Foto</label>
+                    <input type="file" name="fotos[]" accept="image/*" capture="environment" required class="form-input" onchange="previewFotos(this, 'previewIniciar')">
                     <div id="previewIniciar" class="foto-preview"></div>
                 </div>
                 <button type="submit" class="btn-action btn-iniciar">Iniciar</button>
@@ -688,8 +688,8 @@
                     <textarea name="observacao" rows="3" class="form-textarea" placeholder="Descreva o que foi feito..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Enviar 3 Fotos Finais</label>
-                    <input type="file" name="fotos[]" accept="image/*" capture="environment" multiple required class="form-input" onchange="previewFotos(this, 'previewFinalizar')">
+                    <label class="form-label">Enviar 1 Foto Final</label>
+                    <input type="file" name="fotos[]" accept="image/*" capture="environment" required class="form-input" onchange="previewFotos(this, 'previewFinalizar')">
                     <div id="previewFinalizar" class="foto-preview"></div>
                 </div>
                 <button type="submit" class="btn-action btn-finalizar">Finalizar</button>

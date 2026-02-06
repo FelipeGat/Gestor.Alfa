@@ -32,14 +32,14 @@ class AuthenticatedSessionController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Comercial tem dashboard prÃ³prio
+        // Redirecionamento para Comercial
         if ($user->tipo === 'comercial') {
             return redirect()->route('dashboard.comercial');
         }
 
-        // Admin / Administrativo
+        // Redirecionamento para Admin/Administrativo
         if ($user->isAdminPanel()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('financeiro.dashboard');
         }
 
         // Cliente
@@ -47,7 +47,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('portal.index');
         }
 
-        // FuncionÃ¡rio
+        // Funcion¨¢rio
         return redirect()->route('portal-funcionario.index');
     }
 
