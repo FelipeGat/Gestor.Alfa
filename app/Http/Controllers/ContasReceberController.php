@@ -512,13 +512,18 @@ class ContasReceberController extends Controller
                 return $item;
             });
 
-        // ================= COMBINAR E ORDENAR =================
 
-        $cobrancas = $cobrancasQuery->get()->map(function ($item) {
-            $item->tipo_movimentacao = 'entrada';
-            $item->is_financeiro = false;
-            return $item;
-        });
+        // ================= COMBINAR E ORDENAR =================
+        // Entradas: apenas movimentações financeiras de recebimento (tipo entrada, observação 'Recebimento de cobrança')
+        $movFinanceirasEntradas = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
+            ->where('tipo', 'entrada')
+            ->where('observacao', 'like', 'Recebimento de cobrança ID%')
+            ->get()
+            ->map(function ($item) {
+                $item->tipo_movimentacao = 'entrada';
+                $item->is_financeiro = true;
+                return $item;
+            });
 
         $contasPagar = $contasPagarQuery->get()->map(function ($item) {
             $item->tipo_movimentacao = 'saida';
@@ -526,14 +531,16 @@ class ContasReceberController extends Controller
             return $item;
         });
 
+        $movFinanceirasSaidas = $movFinanceiras;
+
         if ($request->filled('centro_custo_id')) {
             // Se filtrar centro de custo, mostrar só despesas
-            $movimentacoes = $contasPagar;
+            $movimentacoes = $contasPagar->concat($movFinanceirasSaidas);
         } else {
-            // Caso contrário, mostrar tudo normalmente
-            $movimentacoes = $cobrancas
+            // Caso contrário, mostrar entradas e saídas corretamente
+            $movimentacoes = $movFinanceirasEntradas
                 ->concat($contasPagar)
-                ->concat($movFinanceiras)
+                ->concat($movFinanceirasSaidas)
                 ->filter(function ($item) use ($request) {
                     if (!$request->filled('tipo_movimentacao')) {
                         return true;
@@ -568,13 +575,13 @@ class ContasReceberController extends Controller
         );
 
         // ================= KPIs =================
-        $totalEntradas = $cobrancas->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'entrada')->sum('valor');
+        $totalEntradas = $movFinanceirasEntradas->sum('valor') + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->sum('valor');
         $totalSaidas = $contasPagar->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'saida')->sum('valor');
 
         // ================= CONTADORES PARA FILTROS RÁPIDOS =================
         $contadoresStatus = [
-            'recebido' => $cobrancas->count() + $movFinanceiras->where('tipo_movimentacao', 'entrada')->count(),
-            'pago'     => $contasPagar->count() + $movFinanceiras->where('tipo_movimentacao', 'saida')->count(),
+            'recebido' => $movFinanceirasEntradas->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->count(),
+            'pago'     => $contasPagar->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'saida')->count(),
         ];
 
         return view('financeiro.movimentacao', compact(

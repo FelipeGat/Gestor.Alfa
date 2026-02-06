@@ -310,12 +310,38 @@
                                 @php $totalPagina = 0; @endphp
 
                                 @forelse($movimentacoes as $mov)
+
                                 @php
-                                $isEntrada = $mov->tipo_movimentacao === 'entrada';
-                                $totalPagina += $isEntrada ? $mov->valor : -$mov->valor;
+                                    $isEntrada = $mov->tipo_movimentacao === 'entrada';
+                                    $totalPagina += $isEntrada ? $mov->valor : -$mov->valor;
+                                    $descricaoMov = $mov->descricao ?? '-';
+                                    $clienteMov = null;
+                                    $contaPagar = null;
+                                    $fornecedorMov = null;
+                                    $contaMov = null;
+                                    $formaPagtoMov = null;
+                                    $empresaMov = null;
+                                    // Corrige descrição e cliente para movimentações financeiras de recebimento
+                                    if ($isEntrada && isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
+                                        $cobranca = \App\Models\Cobranca::with(['cliente', 'orcamento'])->find($matches[1]);
+                                        if ($cobranca) {
+                                            $descricaoMov = $cobranca->descricao ?? ($cobranca->orcamento ? $cobranca->orcamento->descricao : '-');
+                                            $clienteMov = $cobranca->cliente;
+                                        }
+                                    }
+                                    // Detecta se é ajuste de saída de conta a pagar
+                                    if(isset($mov->observacao) && preg_match('/Pagamento de conta a pagar ID (\d+)/', $mov->observacao, $matches)) {
+                                        $contaPagar = \App\Models\ContaPagar::with(['fornecedor', 'conta', 'contaFinanceira', 'orcamento'])->find($matches[1]);
+                                        if($contaPagar) {
+                                            $descricaoMov = $contaPagar->descricao;
+                                            $fornecedorMov = $contaPagar->fornecedor;
+                                            $contaMov = $contaPagar->conta;
+                                            $formaPagtoMov = $contaPagar->forma_pagamento;
+                                            $empresaMov = $contaPagar->orcamento && $contaPagar->orcamento->empresa ? $contaPagar->orcamento->empresa : null;
+                                        }
+                                    }
                                 @endphp
                                 <tr class="{{ $isEntrada ? 'bg-green-50' : 'bg-red-50' }}">
-
                                     {{-- TIPO --}}
                                     <td>
                                         <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $isEntrada ? 'bg-green-600' : 'bg-red-600' }} text-white">
@@ -335,61 +361,33 @@
                                             </div>
                                         @endif
                                     </td>
-
                                     {{-- DATA --}}
                                     <td>
                                         {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m/Y') }}
                                     </td>
-
                                     {{-- DESCRIÇÃO --}}
                                     <td>
-                                        @php
-                                            $contaPagar = null;
-                                            $descricaoMov = $mov->descricao ?? '-';
-                                            $fornecedorMov = null;
-                                            $contaMov = null;
-                                            $formaPagtoMov = null;
-                                            $empresaMov = null;
-                                            // Detecta se é ajuste de saída de conta a pagar
-                                            if(isset($mov->observacao) && preg_match('/Pagamento de conta a pagar ID (\d+)/', $mov->observacao, $matches)) {
-                                                $contaPagar = \App\Models\ContaPagar::with(['fornecedor', 'conta', 'contaFinanceira', 'orcamento'])->find($matches[1]);
-                                                if($contaPagar) {
-                                                    $descricaoMov = $contaPagar->descricao;
-                                                    $fornecedorMov = $contaPagar->fornecedor;
-                                                    $contaMov = $contaPagar->conta;
-                                                    $formaPagtoMov = $contaPagar->forma_pagamento;
-                                                    $empresaMov = $contaPagar->orcamento && $contaPagar->orcamento->empresa ? $contaPagar->orcamento->empresa : null;
-                                                }
-                                            }
-                                        @endphp
                                         {{ $descricaoMov ?? '-' }}
                                         @if(isset($mov->observacao) && $mov->observacao)
-                                            <div class="text-xs text-blue-700 font-semibold mt-1">
-                                                {{ $mov->observacao }}
-                                            </div>
-                                        @endif
-                                        @if($isEntrada && $mov->orcamento_id)
-                                            <div class="text-xs text-gray-500">
-                                                Origem: Orçamento #{{ $mov->orcamento_id }}
-                                            </div>
-                                        @elseif(!$isEntrada && $contaMov)
-                                            <div class="text-xs text-gray-500">
-                                                {{ $contaMov->nome ?? 'Conta não informada' }}
-                                            </div>
+                                            @php
+                                                // Remove exibição da observação se for 'Recebimento de cobrança ID ...'
+                                                $obs = $mov->observacao;
+                                            @endphp
+                                            @if(!preg_match('/^Recebimento de cobrança ID \d+$/', $obs))
+                                                <div class="text-xs text-blue-700 font-semibold mt-1">
+                                                    {{ $obs }}
+                                                </div>
+                                            @endif
                                         @endif
                                     </td>
-
                                     {{-- CLIENTE/FORNECEDOR --}}
                                     <td>
-                                        @if($isEntrada)
-                                            @php
-                                                $cliente = $mov->cliente ?? null;
-                                            @endphp
-                                            {{ $cliente?->nome_fantasia ?? $cliente?->nome ?? $cliente?->razao_social ?? '—' }}
-                                        @elseif($contaPagar && $fornecedorMov)
-                                            {{ $fornecedorMov->nome_fantasia ?? $fornecedorMov->razao_social ?? '—' }}
-                                        @else
+                                        @if($isEntrada && $clienteMov)
+                                            {{ $clienteMov->nome_fantasia ?? $clienteMov->nome ?? $clienteMov->razao_social ?? '—' }}
+                                        @elseif(!$isEntrada && isset($mov->fornecedor))
                                             {{ $mov->fornecedor?->nome_fantasia ?? $mov->fornecedor?->razao_social ?? '—' }}
+                                        @else
+                                            —
                                         @endif
                                     </td>
 
