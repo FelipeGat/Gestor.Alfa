@@ -32,7 +32,9 @@
         <form
             method="POST"
             :action="`{{ url('/financeiro/orcamentos') }}/${$store.modalCobranca.orcamento?.id}/gerar-cobranca`"
-            @submit.prevent="validarEEnviar($event)">
+            @submit.prevent="validarEEnviar($event)"
+            x-data="{}"
+            >
             @csrf
 
             {{-- CAMPOS FIXOS --}}
@@ -48,6 +50,22 @@
 
             {{-- ================= BODY ================= --}}
             <div class="modal-cobranca-body">
+                <!-- Feedback para pré-cliente -->
+                <template x-if="$store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id">
+                    <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded shadow flex flex-col items-start gap-3">
+                        <div class="flex items-center gap-2 text-yellow-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+                            <span class="font-semibold">Não é possível gerar uma cobrança para um pré-cliente.</span>
+                        </div>
+                        <div class="text-sm text-yellow-900">Converta este pré-cliente em cliente para continuar.</div>
+                        <a :href="`/pre-clientes/${$store.modalCobranca.orcamento.pre_cliente_id}/edit`" target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded transition shadow pointer-events-auto relative z-20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Converter para Cliente
+                        </a>
+                        
+                    </div>
+                </template>
 
                 <div class="modal-grid">
                     {{-- CLIENTE --}}
@@ -161,7 +179,10 @@
                     Cancelar
                 </button>
 
-                <button type="submit" class="modal-btn modal-btn-success">
+                <button
+                    type="submit"
+                    class="modal-btn modal-btn-success"
+                    :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}">
                     Salvar Cobrança
                 </button>
             </div>

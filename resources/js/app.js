@@ -141,6 +141,10 @@ Alpine.data('gerarCobranca', () => ({
     },
 
     validarEEnviar(event) {
+        if (this.$store.modalCobranca.orcamento?.pre_cliente_id) {
+            alert('Converta o pré-cliente em cliente para continuar.');
+            return;
+        }
         const valorTotal = parseFloat(this.$store.modalCobranca.orcamento?.valor_total || 0);
         // Só valida soma se for parcelado
         if (["boleto", "credito", "faturado"].includes(this.forma)) {
@@ -184,6 +188,11 @@ document.addEventListener('click', function (e) {
     try {
         var orc = btn.getAttribute('data-orc');
         var obj = orc ? JSON.parse(orc) : null;
+
+        // Garantir que pre_cliente_id está presente e é coerente
+        if (obj && typeof obj.pre_cliente_id === 'undefined') {
+            obj.pre_cliente_id = null;
+        }
 
         function callStore() {
             try {
