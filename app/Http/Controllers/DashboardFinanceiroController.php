@@ -30,9 +30,9 @@ class DashboardFinanceiroController extends Controller
                 break;
             case 'semana':
                 $inicio = now()->startOfWeek();
-                $fim = now()->endOfWeek();
-                break;
-            case 'mes':
+            case 'dia':
+                $inicio = now()->startOfDay();
+                $fim = now()->endOfDay();
                 $inicio = now()->startOfMonth();
                 $fim = now()->endOfMonth();
                 break;
@@ -64,12 +64,7 @@ class DashboardFinanceiroController extends Controller
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->when(
                 $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
+                fn($q) => $q->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
             )
             ->with(['orcamento.empresa', 'cliente', 'contaFixa.empresa'])
             ->get()
@@ -93,6 +88,13 @@ class DashboardFinanceiroController extends Controller
                     'valor' => $item->valor,
                 ];
             })->toArray();
+
+        // Buscar todos os lançamentos pagos no período, agrupando por centro_custo_id
+        $contasPagarAll = \App\Models\ContaPagar::query()
+            ->where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->with(['conta.subcategoria.categoria'])
+            ->get();
 
         // Lançamentos de Despesa Realizada
         $lancamentosDespesa = ContaPagar::where('status', 'pago')
@@ -478,87 +480,80 @@ class DashboardFinanceiroController extends Controller
 
         $saldoSituacao = $pago - $atrasado;
 
-        // Gráficos de Gastos por Categoria (TOP 5 por centro de custo)
-        $centros = [
-            'Geral' => 1,
-            'Delta' => 2,
-            'GW'    => 3,
-            'Invest' => 4,
-        ];
-
+        // Gráficos de Gastos por Categoria (fiel aos lançamentos reais)
+        // Buscar todos os centros de custo existentes
+        $centrosCusto = \App\Models\CentroCusto::where('nome', '!=', 'Alfa')->orderBy('id')->get();
         $dadosCentros = [];
-        foreach ($centros as $nome => $centroId) {
-            // Categorias
-            $categorias = ContaPagar::query()
-                ->selectRaw('categorias.id as categoria_id, categorias.nome as categoria_nome, SUM(contas_pagar.valor) as total')
-                ->join('contas', 'contas.id', '=', 'contas_pagar.conta_id')
-                ->join('subcategorias', 'subcategorias.id', '=', 'contas.subcategoria_id')
-                ->join('categorias', 'categorias.id', '=', 'subcategorias.categoria_id')
-                ->where('contas_pagar.centro_custo_id', $centroId)
-                ->where('contas_pagar.status', 'pago')
-                ->whereBetween('contas_pagar.data_pagamento', [$inicio, $fim])
-                ->groupBy('categorias.id', 'categorias.nome')
-                ->orderByDesc('total')
-                ->limit(5)
-                ->get();
+        // Buscar todos os lançamentos pagos no período, agrupando por centro_custo_id
+        $contasPagarAll = \App\Models\ContaPagar::query()
+            ->where('status', 'pago')
+            ->whereBetween('pago_em', [$inicio, $fim])
+            ->with(['conta.subcategoria.categoria'])
+            ->get();
 
-            // Subcategorias agrupadas por categoria
-            $subcategoriasPorCategoria = [];
-            foreach ($categorias as $cat) {
-                $subcategorias = ContaPagar::query()
-                    ->selectRaw('subcategorias.id as subcategoria_id, subcategorias.nome as subcategoria_nome, SUM(contas_pagar.valor) as total')
-                    ->join('contas', 'contas.id', '=', 'contas_pagar.conta_id')
-                    ->join('subcategorias', 'subcategorias.id', '=', 'contas.subcategoria_id')
-                    ->where('contas_pagar.centro_custo_id', $centroId)
-                    ->where('contas_pagar.status', 'pago')
-                    ->whereBetween('contas_pagar.data_pagamento', [$inicio, $fim])
-                    ->where('subcategorias.categoria_id', $cat->categoria_id)
-                    ->groupBy('subcategorias.id', 'subcategorias.nome')
-                    ->orderByDesc('total')
-                    ->get();
-                $subcategoriasPorCategoria[$cat->categoria_nome] = $subcategorias->map(function ($s) {
-                    return [
-                        'id' => $s->subcategoria_id,
-                        'nome' => $s->subcategoria_nome,
-                        'total' => (float) $s->total,
-                    ];
-                })->toArray();
-            }
+        foreach ($centrosCusto as $centro) {
+            $contasPagar = $contasPagarAll->where('centro_custo_id', $centro->id);
 
-            // Contas agrupadas por subcategoria
-            $contasPorSubcategoria = [];
-            foreach ($subcategoriasPorCategoria as $catNome => $subs) {
-                foreach ($subs as $sub) {
-                    $contas = ContaPagar::query()
-                        ->selectRaw('contas.id as conta_id, contas.nome as conta_nome, SUM(contas_pagar.valor) as total')
-                        ->join('contas', 'contas.id', '=', 'contas_pagar.conta_id')
-                        ->where('contas_pagar.centro_custo_id', $centroId)
-                        ->where('contas_pagar.status', 'pago')
-                        ->whereBetween('contas_pagar.data_pagamento', [$inicio, $fim])
-                        ->where('contas.subcategoria_id', $sub['id'])
-                        ->groupBy('contas.id', 'contas.nome')
-                        ->orderByDesc('total')
-                        ->get();
-                    $contasPorSubcategoria[$catNome][$sub['nome']] = $contas->map(function ($c) {
-                        return [
-                            'id' => $c->conta_id,
-                            'nome' => $c->conta_nome,
-                            'total' => (float) $c->total,
+            $categoriasArr = [];
+            $subcategoriasArr = [];
+            $contasArr = [];
+
+            foreach ($contasPagar as $item) {
+                $conta = $item->conta;
+                $sub = $conta ? $conta->subcategoria : null;
+                $categoria = $sub ? $sub->categoria : null;
+
+                // Categoria
+                if ($categoria && $categoria->id) {
+                    if (!isset($categoriasArr[$categoria->id])) {
+                        $categoriasArr[$categoria->id] = [
+                            'id' => $categoria->id,
+                            'nome' => $categoria->nome,
+                            'total' => 0,
                         ];
-                    })->toArray();
+                    }
+                    $categoriasArr[$categoria->id]['total'] += (float)$item->valor;
+                }
+                // Subcategoria
+                if ($sub && $sub->id) {
+                    if (!isset($subcategoriasArr[$sub->id])) {
+                        $subcategoriasArr[$sub->id] = [
+                            'id' => $sub->id,
+                            'nome' => $sub->nome,
+                            'total' => 0,
+                        ];
+                    }
+                    $subcategoriasArr[$sub->id]['total'] += (float)$item->valor;
+                }
+                // Conta
+                if ($conta && $conta->id) {
+                    if (!isset($contasArr[$conta->id])) {
+                        $contasArr[$conta->id] = [
+                            'id' => $conta->id,
+                            'nome' => $conta->nome,
+                            'total' => 0,
+                        ];
+                    }
+                    $contasArr[$conta->id]['total'] += (float)$item->valor;
                 }
             }
 
-            $dadosCentros[$nome] = [
-                'categorias' => $categorias->map(function ($c) {
-                    return [
-                        'id' => $c->categoria_id,
-                        'nome' => $c->categoria_nome,
-                        'total' => (float) $c->total,
-                    ];
-                })->toArray(),
-                'subcategorias' => $subcategoriasPorCategoria,
-                'contas' => $contasPorSubcategoria,
+            // Reindexar para arrays simples
+            $categoriasArr = array_values($categoriasArr);
+            $subcategoriasArr = array_values($subcategoriasArr);
+            $contasArr = array_values($contasArr);
+
+            // Exibir nome do centro de custo no gráfico
+            $nomeCentro = $centro->nome;
+            if ($centro->id == 1) $nomeCentro = 'DESPESAS GERAIS';
+            elseif ($centro->id == 2) $nomeCentro = 'INVEST';
+            elseif ($centro->id == 3) $nomeCentro = 'DELTA';
+            elseif ($centro->id == 4) $nomeCentro = 'GW';
+
+            $dadosCentros[$nomeCentro] = [
+                'categorias' => $categoriasArr,
+                'subcategorias' => $subcategoriasArr,
+                'contas' => $contasArr,
             ];
         }
 
