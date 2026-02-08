@@ -714,12 +714,102 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Gráficos de pizza por centro de custo com navegação de níveis
-                const dadosCentros = @json($dadosCentros);
-                const cores = [
-                    '#2563eb', '#f59e42', '#10b981', '#f43f5e', '#a21caf',
-                    '#eab308', '#0ea5e9', '#f472b6', '#64748b', '#22d3ee'
-                ];
+                                                                // Função para normalizar strings (lowercase, sem acento, trim)
+                                                                function normalizeString(str) {
+                                                                    if (!str) return '';
+                                                                    return str
+                                                                        .toLowerCase()
+                                                                        .normalize('NFD')
+                                                                        .replace(/\p{Diacritic}/gu, '')
+                                                                        .trim();
+                                                                }
+                                // Gráficos de pizza por centro de custo com navegação de níveis
+                                const dadosCentros = @json($dadosCentros);
+
+                                // Mapas de cores por nível
+                                const colorMapCategorias = {
+                                    'Despesas Fixas': '#2563EB',      // Azul
+                                    'Despesas Variáveis': '#F59E0B',  // Laranja
+                                };
+                                // Função para normalizar strings (lowercase, sem acento, trim)
+                                function normalizeString(str) {
+                                    if (!str) return '';
+                                    return str
+                                        .toLowerCase()
+                                        .normalize('NFD')
+                                        .replace(/\p{Diacritic}/gu, '')
+                                        .trim();
+                                }
+
+                                // Paleta de cores padrão
+                                const palette = [
+                                    '#2563EB', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#EF4444', '#14B8A6', '#6366F1', '#0EA5E9', '#F472B6', '#64748B', '#22D3EE', '#A21CAF', '#EAB308', '#F43F5E', '#9333EA'
+                                ];
+
+                                // Geração dinâmica dos mapas de cor
+                                const colorMapSubcategorias = {};
+                                const colorMapContas = {};
+
+                                // Coletar todas as combinações de subcategoria e conta dos dadosCentros
+                                let subcatKeys = [];
+                                let contaKeys = [];
+                                Object.values(dadosCentros).forEach(dados => {
+                                    (dados.subcategorias || []).forEach(s => {
+                                        const key = `${normalizeString(s.categoria)}::${normalizeString(s.nome)}`;
+                                        if (!subcatKeys.includes(key)) subcatKeys.push(key);
+                                    });
+                                    (dados.contas || []).forEach(c => {
+                                        const key = `${normalizeString(c.subcategoria)}::${normalizeString(c.nome)}`;
+                                        if (!contaKeys.includes(key)) contaKeys.push(key);
+                                    });
+                                });
+
+                                // Atribuir cores da paleta para cada combinação
+                                subcatKeys.forEach((key, idx) => {
+                                    colorMapSubcategorias[key] = palette[idx % palette.length];
+                                });
+                                contaKeys.forEach((key, idx) => {
+                                    colorMapContas[key] = palette[idx % palette.length];
+                                });
+                                // Cor neutra fallback
+                                const fallbackColor = '#CBD5E1';
+
+                                // Função utilitária para obter cor por nome e nível
+                                function getColorByLabel(label, nivel) {
+                                    if (nivel === 'categoria') return colorMapCategorias[label] || fallbackColor;
+                                    if (nivel === 'subcategoria') return colorMapSubcategorias[label] || fallbackColor;
+                                    if (nivel === 'conta') return colorMapContas[label] || fallbackColor;
+                                    return fallbackColor;
+                                }
+                                // Função utilitária para array de cores por labels e nível
+                                function getColorsByLabels(labels, nivel) {
+                                    // Categoria: label é string
+                                    if (nivel === 'categoria') {
+                                        return labels.map(label => getColorByLabel(label, nivel));
+                                    }
+                                    // Subcategoria: label é objeto {nome, categoria}
+                                    if (nivel === 'subcategoria') {
+                                        return labels.map(obj => {
+                                            if (typeof obj === 'object' && obj.categoria && obj.nome) {
+                                                const key = `${obj.categoria}::${obj.nome}`;
+                                                return getColorByLabel(key, nivel);
+                                            }
+                                            return fallbackColor;
+                                        });
+                                    }
+                                    // Conta: label é objeto {nome, subcategoria}
+                                    if (nivel === 'conta') {
+                                        return labels.map(obj => {
+                                            if (typeof obj === 'object' && obj.subcategoria && obj.nome) {
+                                                const key = `${obj.subcategoria}::${obj.nome}`;
+                                                return getColorByLabel(key, nivel);
+                                            }
+                                            return fallbackColor;
+                                        });
+                                    }
+                                    return labels.map(() => fallbackColor);
+                                }
+                                // ...existing code...
                 // Estado de nível por centro: categoria, subcategoria, conta
                 const niveis = ['categoria', 'subcategoria', 'conta'];
                 const estadoNivel = {};
@@ -742,23 +832,43 @@
                             return {
                                 labels: (dados.subcategorias || []).map(s => s.nome),
                                 data: (dados.subcategorias || []).map(s => s.total),
+                                meta: dados.subcategorias || []
                             };
                         } else if (nivel === 'conta') {
                             return {
                                 labels: (dados.contas || []).map(c => c.nome),
                                 data: (dados.contas || []).map(c => c.total),
+                                meta: dados.contas || []
                             };
                         }
-                        return {labels: [], data: []};
+                        return {labels: [], data: [], meta: []};
                     }
 
                     function updateChart() {
                         const nivel = niveis[estadoNivel[centro]];
                         const chartData = getChartData();
+                        let backgroundColors = [];
+                        if (nivel === 'subcategoria') {
+                            backgroundColors = (chartData.meta || []).map(s => {
+                                const key = `${normalizeString(s.categoria)}::${normalizeString(s.nome)}`;
+                                const exists = !!colorMapSubcategorias[key];
+                                console.log('Subcategoria:', s.categoria, s.nome, '-> chave:', key, 'existe:', exists);
+                                return colorMapSubcategorias[key] || fallbackColor;
+                            });
+                        } else if (nivel === 'conta') {
+                            backgroundColors = (chartData.meta || []).map(c => {
+                                const key = `${normalizeString(c.subcategoria)}::${normalizeString(c.nome)}`;
+                                const exists = !!colorMapContas[key];
+                                console.log('Conta:', c.subcategoria, c.nome, '-> chave:', key, 'existe:', exists);
+                                return colorMapContas[key] || fallbackColor;
+                            });
+                        } else {
+                            backgroundColors = getColorsByLabels(chartData.labels, nivel);
+                        }
                         if (charts[centro]) {
                             charts[centro].data.labels = chartData.labels;
                             charts[centro].data.datasets[0].data = chartData.data;
-                            charts[centro].data.datasets[0].backgroundColor = cores.slice(0, chartData.labels.length);
+                            charts[centro].data.datasets[0].backgroundColor = backgroundColors;
                             charts[centro].update();
                         } else {
                             charts[centro] = new Chart(ctx, {
@@ -767,7 +877,7 @@
                                     labels: chartData.labels,
                                     datasets: [{
                                         data: chartData.data,
-                                        backgroundColor: cores.slice(0, chartData.labels.length),
+                                        backgroundColor: backgroundColors,
                                     }]
                                 },
                                 options: {
