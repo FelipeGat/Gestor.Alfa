@@ -727,7 +727,7 @@
 
                 Object.entries(dadosCentros).forEach(([centro, dados]) => {
                     const centroSlug = centro.toLowerCase().replace(/ /g, '-');
-                    estadoNivel[centro] = 0; // 0: categoria, 1: subcategoria, 2: conta
+                    estadoNivel[centro] = 1; // 0: categoria, 1: subcategoria, 2: conta (padrão: subcategoria)
                     const ctx = document.getElementById('grafico-categoria-' + centroSlug);
                     if (!ctx) return;
 
@@ -739,23 +739,14 @@
                                 data: (dados.categorias || []).map(c => c.total),
                             };
                         } else if (nivel === 'subcategoria') {
-                            const cat = (dados.categorias || [])[0];
-                            if (!cat) return {labels: [], data: []};
-                            const subs = (dados.subcategorias && dados.subcategorias[cat.nome]) || [];
                             return {
-                                labels: subs.map(s => s.nome),
-                                data: subs.map(s => s.total),
+                                labels: (dados.subcategorias || []).map(s => s.nome),
+                                data: (dados.subcategorias || []).map(s => s.total),
                             };
                         } else if (nivel === 'conta') {
-                            const cat = (dados.categorias || [])[0];
-                            if (!cat) return {labels: [], data: []};
-                            const subs = (dados.subcategorias && dados.subcategorias[cat.nome]) || [];
-                            const sub = subs[0];
-                            if (!sub) return {labels: [], data: []};
-                            const contas = (dados.contas && dados.contas[cat.nome] && dados.contas[cat.nome][sub.nome]) || [];
                             return {
-                                labels: contas.map(c => c.nome),
-                                data: contas.map(c => c.total),
+                                labels: (dados.contas || []).map(c => c.nome),
+                                data: (dados.contas || []).map(c => c.total),
                             };
                         }
                         return {labels: [], data: []};
@@ -817,7 +808,6 @@
                         updateChart();
                     };
 
-                    // Botões de nível
                     // Botões de nível: aplicar destaque visual
                     function updateBotoesNivel() {
                         document.querySelectorAll('.btn-nivel-categoria').forEach(btn => {
