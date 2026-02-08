@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\ContaPagar;
+use App\Models\Subcategoria;
+use App\Models\Conta;
 
 
 class ContasPagarController extends Controller

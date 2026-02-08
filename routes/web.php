@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -66,6 +65,12 @@ Route::middleware(['auth'])->prefix('api')->group(function () {
     Route::get('/clientes', [ClienteController::class, 'apiList']);
     Route::get('/contas-financeiras/{empresa_id}', [ContasFinanceirasController::class, 'apiListByEmpresa']);
     Route::get('/orcamentos-por-cliente/{cliente_id}', [\App\Http\Controllers\Api\FinanceiroOrcamentoController::class, 'orcamentosPorCliente']);
+});
+
+// API para buscar subcategorias e contas (fora de qualquer grupo prefixado, compatível com frontend)
+Route::middleware(['auth', 'financeiro'])->group(function () {
+    Route::get('/financeiro/api/subcategorias/{categoriaId}', [\App\Http\Controllers\ContasPagarController::class, 'getSubcategorias']);
+    Route::get('/financeiro/api/contas/{subcategoriaId}', [\App\Http\Controllers\ContasPagarController::class, 'getContas']);
 });
 
 /*
@@ -442,13 +447,6 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         Route::patch('/contas-fixas-pagar/{contaFixa}/ativar', [ContasPagarController::class, 'ativarContaFixa'])
             ->name('contasapagar.ativarContaFixa');
-
-        // API para buscar subcategorias e contas
-        Route::get('/api/subcategorias/{categoriaId}', [ContasPagarController::class, 'getSubcategorias'])
-            ->name('api.subcategorias');
-
-        Route::get('/api/contas/{subcategoriaId}', [ContasPagarController::class, 'getContas'])
-            ->name('api.contas');
 
         // Ajuste Manual, Transferência e Injeção de Receita
         Route::post('/contas-financeiras/ajuste-manual', [FinanceiroController::class, 'ajusteManual'])
