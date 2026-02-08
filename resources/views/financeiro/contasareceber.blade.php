@@ -378,11 +378,50 @@
 
             {{-- ================= TABELA ================= --}}
             @if($cobrancas->count())
-            <div class="table-card">
+            <div x-data='{
+                selecionadas: [],
+                valores: @json($cobrancas->map(function($c){ return ["id" => (int)$c->id, "valor" => (float)$c->valor]; })),
+                toggleAll(source) {
+                    if (source.checked) {
+                        this.selecionadas = @json($cobrancas->pluck("id"));
+                    } else {
+                        this.selecionadas = [];
+                    }
+                },
+                getValorSelecionado() {
+                    let total = 0;
+                    this.valores.forEach(c => {
+                        if (this.selecionadas.map(Number).includes(Number(c.id))) {
+                            total += parseFloat(c.valor) || 0;
+                        }
+                    });
+                    return total;
+                }
+            }' class="table-card">
+                <div class="flex justify-end mb-2">
+                    <template x-if="selecionadas.length >= 2">
+                        <button
+                            type="button"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+                            x-on:click="$dispatch('confirmar-baixa', {
+                                action: '{{ route('financeiro.contasareceber.baixa-multipla') }}',
+                                empresaId: null,
+                                cobrancaIds: selecionadas
+                            })">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Receber Selecionadas
+                        </button>
+                    </template>
+                </div>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
+                                </th>
                                 <th>Vencimento</th>
                                 <th>Empresa</th>
                                 <th>Cliente</th>
@@ -401,17 +440,18 @@
                             $statusClass = $cobranca->status_financeiro;
                             $venceHoje = $cobranca->status !== 'pago' && $cobranca->data_vencimento->isToday();
                             $vencido = $cobranca->status !== 'pago' && $cobranca->data_vencimento->isPast() && !$venceHoje;
-
-                            // Definir classe da linha
                             $linhaClass = '';
                             if ($venceHoje) {
-                            $linhaClass = 'bg-green-50 border-l-4 border-green-400';
-                            $statusClass = 'vence-hoje';
+                                $linhaClass = 'bg-green-50 border-l-4 border-green-400';
+                                $statusClass = 'vence-hoje';
                             } elseif ($vencido) {
-                            $linhaClass = 'bg-red-50 border-l-4 border-red-400';
+                                $linhaClass = 'bg-red-50 border-l-4 border-red-400';
                             }
                             @endphp
-                            <tr class="{{ $linhaClass }}">
+                            <tr class="{{ $linhaClass }}" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
+                                <td>
+                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
+                                </td>
                                 <td data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
                                 </td>
@@ -544,7 +584,17 @@
                     </div>
                     <div class="footer-total">
                         <span class="label">Total Geral (Filtrado):</span>
-                        <span class="value">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                        <span class="value">
+                            <template x-if="selecionadas.length > 0">
+                                <span>
+                                    <span x-text="selecionadas.length"></span> selecionadas —
+                                    R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                                </span>
+                            </template>
+                            <template x-if="selecionadas.length === 0">
+                                <span>R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                            </template>
+                        </span>
                     </div>
                 </div>
             </div>
