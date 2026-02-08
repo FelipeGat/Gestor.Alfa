@@ -226,11 +226,14 @@
                                             @if($orcamento->status === 'financeiro')
                                             @php
                                             $__orcData = [
-                                            'id' => $orcamento->id,
-                                            'numero_orcamento' => $orcamento->numero_orcamento,
-                                            'valor_total' => $orcamento->valor_total,
-                                            'cliente' => ['nome_fantasia' => $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? 'N/A'],
-                                            'forma_pagamento' => $orcamento->forma_pagamento,
+                                                'id' => $orcamento->id,
+                                                'numero_orcamento' => $orcamento->numero_orcamento,
+                                                'valor_total' => $orcamento->valor_total,
+                                                'cliente' => [
+                                                    'nome_fantasia' => $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? null
+                                                ],
+                                                'pre_cliente_id' => $orcamento->pre_cliente_id ?? null,
+                                                'forma_pagamento' => $orcamento->forma_pagamento,
                                             ];
                                             @endphp
                                             <button type="button" class="btn btn-primary btn-sm" data-role="gerar-cobranca" data-orc='@json($__orcData)'>
