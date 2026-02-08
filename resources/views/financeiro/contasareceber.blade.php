@@ -182,6 +182,7 @@
                             @php
                                 $hoje = \Carbon\Carbon::today();
                                 $ontem = \Carbon\Carbon::yesterday();
+                                $amanha = \Carbon\Carbon::tomorrow();
                                 $dataAtual = request('vencimento_inicio')
                                     ? \Carbon\Carbon::parse(request('vencimento_inicio'))
                                     : \Carbon\Carbon::now();
@@ -200,8 +201,7 @@
                                 'vencimento_fim' => $ontem->format('Y-m-d')
                             ])) }}"
                                 class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
-                                >
+                                    {{ request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
                                 Ontem
                             </a>
                             <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
@@ -209,11 +209,17 @@
                                 'vencimento_fim' => $hoje->format('Y-m-d')
                             ])) }}"
                                 class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
-                                >
+                                    {{ request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
                                 Hoje
                             </a>
-
+                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
+                                'vencimento_inicio' => $amanha->format('Y-m-d'),
+                                'vencimento_fim' => $amanha->format('Y-m-d')
+                            ])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('vencimento_inicio') == $amanha->format('Y-m-d') && request('vencimento_fim') == $amanha->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Amanhã
+                            </a>
                             <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
                                 'vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'),
                                 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')
@@ -224,11 +230,9 @@
                                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-
                             <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
                                 {{ $mesAtualNome }}
                             </div>
-
                             <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
                                 'vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'),
                                 'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')
@@ -409,7 +413,6 @@
                             @endphp
                             <tr class="{{ $linhaClass }}">
                                 <td data-label="Vencimento">
-                                    <span class="status-indicator {{ $statusClass }}"></span>
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
                                 </td>
                                 <td data-label="Empresa">
@@ -418,7 +421,7 @@
                                 <td data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
                                 </td>
-                                <td data-label="CNPJ/CPF">
+                                <td data-label="CNPJ/CPF" class="whitespace-nowrap">
                                     {{ $cobranca->cliente?->cpf_cnpj_formatado ?? '—' }}
                                 </td>
                                 <td data-label="Descrição">
@@ -429,7 +432,7 @@
                                         {{ ucfirst($cobranca->tipo) }}
                                     </span>
                                 </td>
-                                <td data-label="Valor" class="text-right font-semibold">
+                                <td data-label="Valor" class="text-right font-semibold whitespace-nowrap">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
                                 <td data-label="Ações">
