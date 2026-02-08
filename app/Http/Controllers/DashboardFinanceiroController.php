@@ -569,17 +569,33 @@ class DashboardFinanceiroController extends Controller
         $quantidadeDespesas = (clone $despesasPagas)->count();
         $ticketMedioDespesas = $quantidadeDespesas > 0 ? round($totalDespesasRealizadas / $quantidadeDespesas, 2) : 0;
 
-        // 3) Custo fixo x variável
-        $custoFixo = ContaPagar::where('status', 'pago')
-            ->where('tipo', 'FIXA')
+        // 3) Custo fixo x variável (corrigido: usar categoria, não tipo)
+        $despesasPagas = ContaPagar::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->sum('valor');
-        $custoVariavel = ContaPagar::where('status', 'pago')
-            ->where('tipo', 'VARIAVEL')
-            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
-            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->sum('valor');
+            ->with('conta.subcategoria.categoria')
+            ->get();
+
+        $custoFixo = $despesasPagas->filter(function ($item) {
+            return $item->conta
+                && $item->conta->subcategoria
+                && $item->conta->subcategoria->categoria
+                && str_contains(
+                    strtolower($item->conta->subcategoria->categoria->nome),
+                    'fix'
+                );
+        })->sum('valor');
+
+        $custoVariavel = $despesasPagas->filter(function ($item) {
+            return $item->conta
+                && $item->conta->subcategoria
+                && $item->conta->subcategoria->categoria
+                && str_contains(
+                    strtolower($item->conta->subcategoria->categoria->nome),
+                    'vari'
+                );
+        })->sum('valor');
+
         $totalCustos = $custoFixo + $custoVariavel;
         $percentualFixo = $totalCustos > 0 ? round(($custoFixo / $totalCustos) * 100, 1) : 0;
         $percentualVariavel = $totalCustos > 0 ? round(($custoVariavel / $totalCustos) * 100, 1) : 0;
