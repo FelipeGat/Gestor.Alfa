@@ -410,11 +410,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
             {{-- TABELA --}}
             @if($contas->count())
-            <div class="table-card">
+            <div x-data='{
+                selecionadas: [],
+                valores: @json($contas->map(function($c){ return ["id" => (int)$c->id, "valor" => (float)$c->valor]; })),
+                toggleAll(source) {
+                    if (source.checked) {
+                        this.selecionadas = @json($contas->pluck("id"));
+                    } else {
+                        this.selecionadas = [];
+                    }
+                },
+                getValorSelecionado() {
+                    let total = 0;
+                    this.valores.forEach(c => {
+                        if (this.selecionadas.map(Number).includes(Number(c.id))) {
+                            total += parseFloat(c.valor) || 0;
+                        }
+                    });
+                    return total;
+                }
+            }' class="table-card">
+                <div class="flex justify-end mb-2">
+                    <template x-if="selecionadas.length >= 2">
+                        <button
+                            type="button"
+                            class="inline-flex items-center px-4 py-2 bg-red-200 hover:bg-red-300 text-red-700 font-semibold rounded-lg shadow transition"
+                            x-on:click="$dispatch('confirmar-pagamento-multiplo', {
+                                contaPagarIds: selecionadas
+                            })">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Pagar Selecionadas
+                        </button>
+                    </template>
+                </div>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
+                                </th>
                                 <th>Vencimento</th>
                                 <th>Fornecedor</th>
                                 <th>Centro de Custo</th>
@@ -434,6 +471,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             $linhaClass = $venceHoje ? 'bg-orange-50 border-l-4 border-orange-400' : ($vencido ? 'bg-red-50 border-l-4 border-red-400' : '');
                             @endphp
                             <tr class="{{ $linhaClass }}">
+                                <td>
+                                    <input type="checkbox" :value="{{ $conta->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
+                                </td>
                                 <td data-label="Vencimento">{{ $conta->data_vencimento->format('d/m/Y') }}</td>
                                 <td data-label="Fornecedor" class="whitespace-nowrap">
                                     {{ $conta->fornecedor ? ($conta->fornecedor->razao_social ?: $conta->fornecedor->nome_fantasia ?: '-') : '-' }}
@@ -459,7 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </svg>
                                         </button>
                                         @endif
-
                                         {{-- Botão Anexos --}}
                                         <button type="button" x-data class="btn action-btn btn-icon bg-gray-600 hover:bg-gray-700 text-white transition-transform duration-200 hover:scale-150 relative"
                                             title="Gerenciar Anexos (NF/Boleto)"
@@ -473,9 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </span>
                                             @endif
                                         </button>
-
                                         @if($conta->status !== 'pago')
-                                        {{-- Botão Editar --}}
                                         <button type="button" x-data class="btn action-btn btn-icon bg-blue-600 hover:bg-blue-700 text-white transition-transform duration-200 hover:scale-150"
                                             title="Editar {{ $conta->conta_fixa_pagar_id ? 'Despesa Fixa' : 'Conta' }}"
                                             @click="$dispatch('{{ $conta->conta_fixa_pagar_id ? 'editar-conta-fixa-pagar' : 'editar-conta-pagar' }}', { {{ $conta->conta_fixa_pagar_id ? 'contaFixaId' : 'contaId' }}: {{ $conta->conta_fixa_pagar_id ?? $conta->id }} })">
@@ -484,8 +521,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </svg>
                                         </button>
                                         @endif
-
-                                        {{-- Botão Excluir --}}
                                         <button type="button" x-data class="btn action-btn btn-icon bg-red-400 hover:bg-red-500 text-white transition-transform duration-200 hover:scale-150"
                                             title="Excluir Conta"
                                             @click="$dispatch('excluir-conta-pagar', { contaId: {{ $conta->id }}, tipo: '{{ $conta->tipo }}', contaFixaId: {{ $conta->conta_fixa_pagar_id ?? 'null' }} })">
@@ -508,7 +543,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="footer-total">
                         <span class="label">Total Geral (Filtrado):</span>
-                        <span class="value">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                        <span class="value">
+                            <template x-if="selecionadas.length > 0">
+                                <span>
+                                    <span x-text="selecionadas.length"></span> selecionadas —
+                                    R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                                </span>
+                            </template>
+                            <template x-if="selecionadas.length === 0">
+                                <span>R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                            </template>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -528,5 +573,6 @@ document.addEventListener('DOMContentLoaded', function() {
     @include('financeiro.partials.modal-confirmar-pagamento')
     @include('financeiro.partials.modal-excluir-conta-pagar')
     @include('financeiro.partials.modal-anexos-pagar')
+    @include('financeiro.partials.modal-confirmar-pagamento-multiplo')
 
 </x-app-layout>

@@ -319,6 +319,11 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             [ContasReceberController::class, 'pagar']
         )->name('contasareceber.pagar');
 
+        Route::patch(
+            '/contas-a-receber/baixa-multipla',
+            [ContasReceberController::class, 'pagarMultiplas']
+        )->name('contasareceber.baixa-multipla');
+
         Route::delete(
             '/contas-a-receber/{cobranca}',
             [ContasReceberController::class, 'destroy']
@@ -393,6 +398,12 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         Route::patch('/contas-a-pagar/{conta}/pagar', [ContasPagarController::class, 'marcarComoPago'])
             ->name('contasapagar.pagar');
+
+        // Baixa múltipla de contas a pagar
+        Route::patch(
+            '/contas-a-pagar/baixa-multipla',
+            [ContasPagarController::class, 'pagarMultiplas']
+        )->name('contasapagar.baixa-multipla');
 
         Route::patch('/contas-a-pagar/{conta}/estornar', [ContasPagarController::class, 'estornar'])
             ->name('contasapagar.estornar');

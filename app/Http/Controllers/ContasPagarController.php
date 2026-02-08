@@ -2,155 +2,184 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContaPagar;
-use App\Models\ContaPagarAnexo;
-use App\Models\ContaFixaPagar;
-use App\Models\CentroCusto;
-use App\Models\Categoria;
-use App\Models\Subcategoria;
-use App\Models\Conta;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\ContaPagar;
+
 
 class ContasPagarController extends Controller
 {
+
+    /**
+     * Exibe a listagem principal das contas a pagar
+     */
     public function index(Request $request)
     {
-        /** @var User $user */
-        $user = Auth::user();
 
-        abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
-            403,
-            'Acesso não autorizado'
-        );
+        // Monta a query base
+        $query = ContaPagar::with(['fornecedor', 'centroCusto', 'conta']);
 
-        // ================= QUERY BASE =================
-        $query = ContaPagar::with([
-            'centroCusto:id,nome,tipo',
-            'conta.subcategoria.categoria:id,nome,tipo'
-        ])
-            ->select('contas_pagar.*')
-            ->where('status', '!=', 'pago'); // Excluir contas pagas (vão para Movimentação)
-
-        // ================= FILTROS =================
-
-        // Filtro de Busca
+        // Filtro de busca geral
         if ($request->filled('search')) {
             $searchTerm = '%' . $request->input('search') . '%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('descricao', 'like', $searchTerm)
-                    ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $searchTerm));
+                    ->orWhereHas('fornecedor', function ($sq) use ($searchTerm) {
+                        $sq->where('razao_social', 'like', $searchTerm)
+                            ->orWhere('nome_fantasia', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('centroCusto', function ($sq) use ($searchTerm) {
+                        $sq->where('nome', 'like', $searchTerm);
+                    });
             });
         }
 
-        // Filtro de Período (sempre obrigatório nos filtros)
-        $vencimentoInicio = $request->input('vencimento_inicio') ?? Carbon::now()->startOfMonth()->format('Y-m-d');
-        $vencimentoFim = $request->input('vencimento_fim') ?? Carbon::now()->endOfMonth()->format('Y-m-d');
-
-        // Sempre aplicar filtro de período, mesmo se outros filtros estiverem ativos
-        $query->where('data_vencimento', '>=', $vencimentoInicio)
-            ->where('data_vencimento', '<=', $vencimentoFim);
-
-        // Filtro por Centro de Custo
-        // Filtro por Conta
-        if ($request->filled('conta_id')) {
-            $query->where('conta_id', $request->input('conta_id'));
-        }
+        // Filtro por centro de custo
         if ($request->filled('centro_custo_id')) {
             $query->where('centro_custo_id', $request->input('centro_custo_id'));
         }
 
-        // Filtro por Tipo
-        if ($request->filled('tipo')) {
-            $query->where('tipo', $request->input('tipo'));
-        }
-
-        // Clone para contadores
-        $queryParaContadores = clone $query;
-
-        // Filtro de Status
-        if ($request->filled('status') && is_array($request->input('status')) && !empty($request->input('status')[0])) {
-            $query->where(function ($q) use ($request) {
-                foreach ($request->input('status') as $status) {
-                    if ($status === 'em_aberto') {
-                        $q->orWhere(function ($sub) {
-                            $sub->where('status', 'em_aberto')->whereDate('data_vencimento', '>=', today());
-                        });
-                    } elseif ($status === 'vencido') {
-                        $q->orWhere(function ($sub) {
-                            $sub->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today());
-                        });
-                    } elseif ($status === 'pago') {
-                        $q->orWhere('status', 'pago');
-                    }
-                }
+        // Filtro por categoria
+        if ($request->filled('categoria_id')) {
+            $query->whereHas('conta', function ($q) use ($request) {
+                $q->where('categoria_id', $request->input('categoria_id'));
             });
         }
 
-        // ================= KPIS =================
-        $kpisQueryBase = ContaPagar::query();
-
-        if ($vencimentoInicio) {
-            $kpisQueryBase->where('data_vencimento', '>=', $vencimentoInicio);
-        }
-        if ($vencimentoFim) {
-            $kpisQueryBase->where('data_vencimento', '<=', $vencimentoFim);
+        // Filtro por subcategoria
+        if ($request->filled('subcategoria_id')) {
+            $query->whereHas('conta', function ($q) use ($request) {
+                $q->where('subcategoria_id', $request->input('subcategoria_id'));
+            });
         }
 
-        $kpis = [
-            'a_pagar'    => (clone $kpisQueryBase)->where('status', 'em_aberto')->whereDate('data_vencimento', '>=', today())->sum('valor'),
-            'pago'       => (clone $kpisQueryBase)->where('status', 'pago')->sum('valor'),
-            'vencido'    => (clone $kpisQueryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
-            'vence_hoje' => (clone $kpisQueryBase)->where('status', 'em_aberto')->whereDate('data_vencimento', today())->sum('valor'),
-        ];
+        // Filtro por conta
+        if ($request->filled('conta_id')) {
+            $query->where('conta_id', $request->input('conta_id'));
+        }
 
-        $totalGeralFiltrado = (clone $kpisQueryBase)->sum('valor');
+        // Filtro por período de vencimento
+        $vencimentoInicio = $request->input('vencimento_inicio') ?? now()->startOfMonth()->format('Y-m-d');
+        $vencimentoFim = $request->input('vencimento_fim') ?? now()->endOfMonth()->format('Y-m-d');
+        $query->whereDate('data_vencimento', '>=', $vencimentoInicio)
+            ->whereDate('data_vencimento', '<=', $vencimentoFim);
 
-        // ================= CONTADORES =================
-        $contadoresStatus = [
-            'em_aberto' => (clone $queryParaContadores)->where('status', 'em_aberto')->whereDate('data_vencimento', '>=', today())->count(),
-            'vencido'   => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
-            'pago'      => (clone $queryParaContadores)->where('status', 'pago')->count(),
-        ];
+        // Filtro por status
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if (is_array($status)) {
+                $query->where(function ($q) use ($status) {
+                    foreach ($status as $s) {
+                        if ($s === 'vencido') {
+                            $q->orWhere(function ($sq) {
+                                $sq->where('status', '!=', 'pago')
+                                    ->whereDate('data_vencimento', '<', now()->toDateString());
+                            });
+                        } else {
+                            $q->orWhere('status', $s);
+                        }
+                    }
+                });
+            } else {
+                $query->where('status', $status);
+            }
+        } else {
+            // Se não houver filtro de status, mostrar apenas contas não pagas
+            $query->where('status', '!=', 'pago');
+        }
 
-        $contadoresTipo = [
-            'avulsa' => (clone $queryParaContadores)->where('tipo', 'avulsa')->count(),
-            'fixa'   => (clone $queryParaContadores)->where('tipo', 'fixa')->count(),
-        ];
-
-        // ================= PAGINAÇÃO =================
-        $contas = $query
-            ->orderBy('data_vencimento', 'asc')
-            ->orderBy('created_at', 'desc')
+        $contas = $query->orderBy('data_vencimento', 'asc')
             ->paginate(15)
-            ->withQueryString();
+            ->appends($request->except('page'));
 
-        // Dados para filtros
-        $centrosCusto = CentroCusto::where('ativo', true)->orderBy('nome')->get();
-        $empresas = \App\Models\Empresa::orderBy('razao_social')->get();
+        // KPIs financeiros
+        $kpis = [
+            'a_pagar' => ContaPagar::where('status', 'em_aberto')->whereDate('data_vencimento', '>=', now()->startOfMonth())->sum('valor'),
+            'pago' => ContaPagar::where('status', 'pago')->whereDate('data_vencimento', '>=', now()->startOfMonth())->sum('valor'),
+            'vencido' => ContaPagar::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', now()->toDateString())->sum('valor'),
+            'vence_hoje' => ContaPagar::where('status', 'em_aberto')->whereDate('data_vencimento', now()->toDateString())->sum('valor'),
+        ];
+
+        // Total geral filtrado (soma dos valores das contas exibidas na página)
+        $totalGeralFiltrado = $contas->sum('valor');
+
+        $centrosCusto = \App\Models\CentroCusto::where('ativo', true)->orderBy('nome')->get();
+
         $categorias = \App\Models\Categoria::orderBy('nome')->get();
+
         $subcategorias = \App\Models\Subcategoria::orderBy('nome')->get();
 
+        $contasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get();
+
         $contasFiltro = \App\Models\Conta::orderBy('nome')->get();
-        return view('financeiro.contasapagar', compact(
-            'contas',
-            'kpis',
-            'totalGeralFiltrado',
-            'contadoresStatus',
-            'contadoresTipo',
-            'vencimentoInicio',
-            'vencimentoFim',
-            'centrosCusto',
-            'categorias',
-            'subcategorias',
-            'contasFiltro'
-        ));
+
+        // Contadores de status
+        $contadoresStatus = [
+            'em_aberto' => ContaPagar::where('status', 'em_aberto')->count(),
+            'vencido' => ContaPagar::where('status', '!=', 'pago')->where('data_vencimento', '<', now()->toDateString())->count(),
+            'pago' => ContaPagar::where('status', 'pago')->count(),
+        ];
+
+        // Adicione outras variáveis conforme necessário para a view
+        return view('financeiro.contasapagar', compact('contas', 'centrosCusto', 'categorias', 'subcategorias', 'contasFiltro', 'contadoresStatus', 'kpis', 'totalGeralFiltrado', 'contasFinanceiras'));
     }
+    /**
+     * Baixa múltipla de contas a pagar
+     */
+    public function pagarMultiplas(Request $request)
+    {
+        $ids = $request->input('conta_ids');
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true);
+        }
+        if (!is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Nenhuma conta selecionada.');
+        }
+
+        $request->validate([
+            'conta_financeira_id' => 'required|exists:contas_financeiras,id',
+            'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
+            'data_pagamento' => 'required|date',
+        ]);
+
+        DB::transaction(function () use ($ids, $request) {
+            foreach ($ids as $id) {
+                $conta = \App\Models\ContaPagar::find($id);
+                if (!$conta || $conta->status === 'pago') {
+                    continue;
+                }
+                $conta->status = 'pago';
+                $conta->pago_em = $request->data_pagamento;
+                $conta->data_pagamento = $request->data_pagamento;
+                $conta->conta_financeira_id = $request->conta_financeira_id;
+                $conta->forma_pagamento = $request->forma_pagamento;
+                $conta->user_id = $request->user() ? $request->user()->id : null;
+                $conta->save();
+
+                // Atualizar saldo da conta financeira e registrar movimentação
+                $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+                if ($contaFinanceira) {
+                    $contaFinanceira->decrement('saldo', $conta->valor);
+                    \App\Models\MovimentacaoFinanceira::create([
+                        'conta_origem_id' => $request->conta_financeira_id,
+                        'conta_destino_id' => null,
+                        'tipo' => 'saida',
+                        'valor' => $conta->valor,
+                        'saldo_resultante' => $contaFinanceira->saldo,
+                        'observacao' => 'Pagamento de conta ID ' . $conta->id,
+                        'user_id' => $request->user() ? $request->user()->id : null,
+                        'data_movimentacao' => $request->data_pagamento,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('financeiro.contasapagar')->with('success', 'Contas pagas com sucesso!');
+    }
+
+    // Os métodos do controller devem estar aqui dentro, sem código solto fora de métodos.
 
     /**
      * MARCAR COMO PAGO
@@ -178,13 +207,13 @@ class ContasPagarController extends Controller
         }
 
         $request->validate([
-            'forma_pagamento'     => 'required|string|max:50',
+            'forma_pagamento' => 'required|string|max:50',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
-            'valor_pago'          => 'required|numeric|min:0.01',
-            'juros_multa'         => 'nullable|numeric|min:0',
-            'data_pagamento'      => 'required|date',
-            'criar_nova_conta'    => 'nullable|boolean',
-            'valor_restante'      => 'nullable|numeric|min:0',
+            'valor_pago' => 'required|numeric|min:0.01',
+            'juros_multa' => 'nullable|numeric|min:0',
+            'data_pagamento' => 'required|date',
+            'criar_nova_conta' => 'nullable|boolean',
+            'valor_restante' => 'nullable|numeric|min:0',
             'data_vencimento_original' => 'nullable|date',
         ]);
 
@@ -203,14 +232,14 @@ class ContasPagarController extends Controller
         DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a conta atual com o valor pago e o valor total ajustado
             $conta->update([
-                'status'              => 'pago',
-                'pago_em'             => $request->data_pagamento,
-                'data_pagamento'      => $request->data_pagamento,
-                'valor'               => $valorTotal, // Salva o valor ajustado para este mês
-                'juros_multa'         => $jurosMulta,
-                'forma_pagamento'     => $request->forma_pagamento,
+                'status' => 'pago',
+                'pago_em' => $request->data_pagamento,
+                'data_pagamento' => $request->data_pagamento,
+                'valor' => $valorTotal, // Salva o valor ajustado para este mês
+                'juros_multa' => $jurosMulta,
+                'forma_pagamento' => $request->forma_pagamento,
                 'conta_financeira_id' => $request->conta_financeira_id,
-                'user_id'             => $request->user() ? $request->user()->id : null,
+                'user_id' => $request->user() ? $request->user()->id : null,
             ]);
 
             // Atualizar saldo da conta bancária se informada (DESPESA = DIMINUI O SALDO)
@@ -244,16 +273,16 @@ class ContasPagarController extends Controller
 
                 // Criar nova conta com o valor restante
                 ContaPagar::create([
-                    'centro_custo_id'     => $conta->centro_custo_id,
-                    'conta_id'            => $conta->conta_id,
-                    'fornecedor_id'       => $conta->fornecedor_id,
+                    'centro_custo_id' => $conta->centro_custo_id,
+                    'conta_id' => $conta->conta_id,
+                    'fornecedor_id' => $conta->fornecedor_id,
                     'conta_fixa_pagar_id' => $conta->conta_fixa_pagar_id,
-                    'descricao'           => $conta->descricao . ' (Restante)',
-                    'valor'               => $valorRestante,
-                    'data_vencimento'     => $request->data_vencimento_original ?? $conta->data_vencimento,
-                    'status'              => 'em_aberto',
-                    'tipo'                => $conta->tipo,
-                    'user_id'             => $request->user() ? $request->user()->id : null,
+                    'descricao' => $conta->descricao . ' (Restante)',
+                    'valor' => $valorRestante,
+                    'data_vencimento' => $request->data_vencimento_original ?? $conta->data_vencimento,
+                    'status' => 'em_aberto',
+                    'tipo' => $conta->tipo,
+                    'user_id' => $request->user() ? $request->user()->id : null,
                 ]);
             }
         });
@@ -323,31 +352,31 @@ class ContasPagarController extends Controller
         );
 
         $request->validate([
-            'centro_custo_id'     => 'required|exists:centros_custo,id',
-            'conta_id'            => 'required|exists:contas,id',
-            'descricao'           => 'required|string|max:255',
-            'valor'               => 'required|numeric|min:0.01|max:999999.99',
-            'data_vencimento'     => 'required|date',
-            'observacoes'         => 'nullable|string|max:1000',
-            'fornecedor_id'       => 'nullable|exists:fornecedores,id',
-            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
+            'centro_custo_id' => 'required|exists:centros_custo,id',
+            'conta_id' => 'required|exists:contas,id',
+            'descricao' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0.01|max:999999.99',
+            'data_vencimento' => 'required|date',
+            'observacoes' => 'nullable|string|max:1000',
+            'fornecedor_id' => 'nullable|exists:fornecedores,id',
+            'forma_pagamento' => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
-            'orcamento_id'        => 'nullable|exists:orcamentos,id',
+            'orcamento_id' => 'nullable|exists:orcamentos,id',
         ]);
 
         ContaPagar::create([
-            'centro_custo_id'     => $request->centro_custo_id,
-            'conta_id'            => $request->conta_id,
-            'descricao'           => $request->descricao,
-            'valor'               => $request->valor,
-            'data_vencimento'     => $request->data_vencimento,
-            'observacoes'         => $request->observacoes,
-            'fornecedor_id'       => $request->fornecedor_id,
-            'forma_pagamento'     => $request->forma_pagamento,
+            'centro_custo_id' => $request->centro_custo_id,
+            'conta_id' => $request->conta_id,
+            'descricao' => $request->descricao,
+            'valor' => $request->valor,
+            'data_vencimento' => $request->data_vencimento,
+            'observacoes' => $request->observacoes,
+            'fornecedor_id' => $request->fornecedor_id,
+            'forma_pagamento' => $request->forma_pagamento,
             'conta_financeira_id' => $request->conta_financeira_id,
-            'orcamento_id'        => $request->orcamento_id,
-            'status'              => 'em_aberto',
-            'tipo'                => 'avulsa',
+            'orcamento_id' => $request->orcamento_id,
+            'status' => 'em_aberto',
+            'tipo' => 'avulsa',
         ]);
 
         return back()->with('success', 'Conta a pagar criada com sucesso!');
@@ -385,24 +414,24 @@ class ContasPagarController extends Controller
         );
 
         $request->validate([
-            'centro_custo_id'     => 'required|exists:centros_custo,id',
-            'conta_id'            => 'required|exists:contas,id',
-            'descricao'           => 'required|string|max:255',
-            'valor'               => 'required|numeric|min:0.01|max:999999.99',
-            'data_vencimento'     => 'required|date',
-            'observacoes'         => 'nullable|string|max:1000',
-            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
+            'centro_custo_id' => 'required|exists:centros_custo,id',
+            'conta_id' => 'required|exists:contas,id',
+            'descricao' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0.01|max:999999.99',
+            'data_vencimento' => 'required|date',
+            'observacoes' => 'nullable|string|max:1000',
+            'forma_pagamento' => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
         ]);
 
         $conta->update([
-            'centro_custo_id'     => $request->centro_custo_id,
-            'conta_id'            => $request->conta_id,
-            'descricao'           => $request->descricao,
-            'valor'               => $request->valor,
-            'data_vencimento'     => $request->data_vencimento,
-            'observacoes'         => $request->observacoes,
-            'forma_pagamento'     => $request->forma_pagamento,
+            'centro_custo_id' => $request->centro_custo_id,
+            'conta_id' => $request->conta_id,
+            'descricao' => $request->descricao,
+            'valor' => $request->valor,
+            'data_vencimento' => $request->data_vencimento,
+            'observacoes' => $request->observacoes,
+            'forma_pagamento' => $request->forma_pagamento,
             'conta_financeira_id' => $request->conta_financeira_id,
         ]);
 
@@ -460,33 +489,33 @@ class ContasPagarController extends Controller
         );
 
         $request->validate([
-            'centro_custo_id'     => 'required|exists:centros_custo,id',
-            'conta_id'            => 'required|exists:contas,id',
-            'descricao'           => 'required|string|max:255',
-            'valor'               => 'required|numeric|min:0.01|max:999999.99',
-            'fornecedor_id'       => 'nullable|exists:fornecedores,id',
-            'periodicidade'       => 'required|in:SEMANAL,QUINZENAL,MENSAL,TRIMESTRAL,SEMESTRAL,ANUAL',
-            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,DEBITO_AUTOMATICO',
-            'data_inicial'        => 'required|date',
-            'data_fim'            => 'nullable|date|after:data_inicial',
+            'centro_custo_id' => 'required|exists:centros_custo,id',
+            'conta_id' => 'required|exists:contas,id',
+            'descricao' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0.01|max:999999.99',
+            'fornecedor_id' => 'nullable|exists:fornecedores,id',
+            'periodicidade' => 'required|in:SEMANAL,QUINZENAL,MENSAL,TRIMESTRAL,SEMESTRAL,ANUAL',
+            'forma_pagamento' => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,DEBITO_AUTOMATICO',
+            'data_inicial' => 'required|date',
+            'data_fim' => 'nullable|date|after:data_inicial',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
         ]);
 
         DB::beginTransaction();
         try {
             $contaFixa = ContaFixaPagar::create([
-                'centro_custo_id'     => $request->centro_custo_id,
-                'conta_id'            => $request->conta_id,
-                'descricao'           => $request->descricao,
-                'valor'               => $request->valor,
-                'dia_vencimento'      => Carbon::parse($request->data_inicial)->day,
-                'fornecedor_id'       => $request->fornecedor_id,
-                'periodicidade'       => $request->periodicidade,
-                'forma_pagamento'     => $request->forma_pagamento,
-                'data_inicial'        => $request->data_inicial,
-                'data_fim'            => $request->data_fim,
+                'centro_custo_id' => $request->centro_custo_id,
+                'conta_id' => $request->conta_id,
+                'descricao' => $request->descricao,
+                'valor' => $request->valor,
+                'dia_vencimento' => Carbon::parse($request->data_inicial)->day,
+                'fornecedor_id' => $request->fornecedor_id,
+                'periodicidade' => $request->periodicidade,
+                'forma_pagamento' => $request->forma_pagamento,
+                'data_inicial' => $request->data_inicial,
+                'data_fim' => $request->data_fim,
                 'conta_financeira_id' => $request->conta_financeira_id,
-                'ativo'               => true,
+                'ativo' => true,
             ]);
 
             // Gerar contas a pagar com base na periodicidade
@@ -500,12 +529,12 @@ class ContasPagarController extends Controller
             // Para periodicidade MENSAL, gerar 12 parcelas
             // Para outras, gerar proporcionalmente
             $maxParcelas = match ($request->periodicidade) {
-                'SEMANAL' => 52,      // 1 ano de semanas
-                'QUINZENAL' => 24,    // 1 ano quinzenal
-                'MENSAL' => 12,       // 1 ano
-                'TRIMESTRAL' => 4,    // 1 ano
-                'SEMESTRAL' => 2,     // 1 ano
-                'ANUAL' => 1,         // 1 parcela
+                'SEMANAL' => 52, // 1 ano de semanas
+                'QUINZENAL' => 24, // 1 ano quinzenal
+                'MENSAL' => 12, // 1 ano
+                'TRIMESTRAL' => 4, // 1 ano
+                'SEMESTRAL' => 2, // 1 ano
+                'ANUAL' => 1, // 1 parcela
                 default => 12
             };
 
@@ -527,17 +556,17 @@ class ContasPagarController extends Controller
                 }
 
                 ContaPagar::create([
-                    'centro_custo_id'      => $contaFixa->centro_custo_id,
-                    'conta_id'             => $contaFixa->conta_id,
-                    'conta_fixa_pagar_id'  => $contaFixa->id,
-                    'fornecedor_id'        => $contaFixa->fornecedor_id,
-                    'descricao'            => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('d/m/Y'),
-                    'valor'                => $contaFixa->valor,
-                    'data_vencimento'      => $dataVencimentoAjustada->format('Y-m-d'),
-                    'forma_pagamento'      => $contaFixa->forma_pagamento,
-                    'conta_financeira_id'  => $contaFixa->conta_financeira_id,
-                    'status'               => 'em_aberto',
-                    'tipo'                 => 'fixa',
+                    'centro_custo_id' => $contaFixa->centro_custo_id,
+                    'conta_id' => $contaFixa->conta_id,
+                    'conta_fixa_pagar_id' => $contaFixa->id,
+                    'fornecedor_id' => $contaFixa->fornecedor_id,
+                    'descricao' => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('d/m/Y'),
+                    'valor' => $contaFixa->valor,
+                    'data_vencimento' => $dataVencimentoAjustada->format('Y-m-d'),
+                    'forma_pagamento' => $contaFixa->forma_pagamento,
+                    'conta_financeira_id' => $contaFixa->conta_financeira_id,
+                    'status' => 'em_aberto',
+                    'tipo' => 'fixa',
                 ]);
 
                 $parcelasGeradas++;
@@ -642,31 +671,31 @@ class ContasPagarController extends Controller
         );
 
         $request->validate([
-            'centro_custo_id'     => 'required|exists:centros_custo,id',
-            'conta_id'            => 'required|exists:contas,id',
-            'descricao'           => 'required|string|max:255',
-            'valor'               => 'required|numeric|min:0.01|max:999999.99',
-            'fornecedor_id'       => 'nullable|exists:fornecedores,id',
-            'periodicidade'       => 'required|in:SEMANAL,QUINZENAL,MENSAL,TRIMESTRAL,SEMESTRAL,ANUAL',
-            'forma_pagamento'     => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,DEBITO_AUTOMATICO',
-            'data_inicial'        => 'required|date',
-            'data_fim'            => 'nullable|date|after:data_inicial',
+            'centro_custo_id' => 'required|exists:centros_custo,id',
+            'conta_id' => 'required|exists:contas,id',
+            'descricao' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0.01|max:999999.99',
+            'fornecedor_id' => 'nullable|exists:fornecedores,id',
+            'periodicidade' => 'required|in:SEMANAL,QUINZENAL,MENSAL,TRIMESTRAL,SEMESTRAL,ANUAL',
+            'forma_pagamento' => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,DEBITO_AUTOMATICO',
+            'data_inicial' => 'required|date',
+            'data_fim' => 'nullable|date|after:data_inicial',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
         ]);
 
         DB::transaction(function () use ($request, $contaFixa) {
             // Atualizar a conta fixa
             $contaFixa->update([
-                'centro_custo_id'     => $request->centro_custo_id,
-                'conta_id'            => $request->conta_id,
-                'descricao'           => $request->descricao,
-                'valor'               => $request->valor,
-                'dia_vencimento'      => Carbon::parse($request->data_inicial)->day,
-                'fornecedor_id'       => $request->fornecedor_id,
-                'periodicidade'       => $request->periodicidade,
-                'forma_pagamento'     => $request->forma_pagamento,
-                'data_inicial'        => $request->data_inicial,
-                'data_fim'            => $request->data_fim,
+                'centro_custo_id' => $request->centro_custo_id,
+                'conta_id' => $request->conta_id,
+                'descricao' => $request->descricao,
+                'valor' => $request->valor,
+                'dia_vencimento' => Carbon::parse($request->data_inicial)->day,
+                'fornecedor_id' => $request->fornecedor_id,
+                'periodicidade' => $request->periodicidade,
+                'forma_pagamento' => $request->forma_pagamento,
+                'data_inicial' => $request->data_inicial,
+                'data_fim' => $request->data_fim,
                 'conta_financeira_id' => $request->conta_financeira_id,
             ]);
 
@@ -729,13 +758,13 @@ class ContasPagarController extends Controller
                         break;
                 }
                 $parcela->update([
-                    'centro_custo_id'     => $request->centro_custo_id,
-                    'conta_id'            => $request->conta_id,
-                    'fornecedor_id'       => $request->fornecedor_id,
-                    'valor'               => $request->valor,
-                    'forma_pagamento'     => $request->forma_pagamento,
+                    'centro_custo_id' => $request->centro_custo_id,
+                    'conta_id' => $request->conta_id,
+                    'fornecedor_id' => $request->fornecedor_id,
+                    'valor' => $request->valor,
+                    'forma_pagamento' => $request->forma_pagamento,
                     'conta_financeira_id' => $request->conta_financeira_id,
-                    'data_vencimento'     => $dataVencimentoAjustada ? $dataVencimentoAjustada->format('Y-m-d') : $parcela->data_vencimento,
+                    'data_vencimento' => $dataVencimentoAjustada ? $dataVencimentoAjustada->format('Y-m-d') : $parcela->data_vencimento,
                 ]);
             }
         });
@@ -809,7 +838,7 @@ class ContasPagarController extends Controller
         return response()->json($contas);
     }
 
-    // ================= ANEXOS =================
+                                                                    // ================= ANEXOS =================
 
     /**
      * Listar anexos de uma conta a pagar

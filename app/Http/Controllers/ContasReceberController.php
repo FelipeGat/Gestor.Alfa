@@ -13,6 +13,60 @@ use Carbon\Carbon;
 
 class ContasReceberController extends Controller
 {
+
+    /**
+     * Baixa múltipla de cobranças
+     */
+    public function pagarMultiplas(Request $request)
+    {
+        $ids = $request->input('cobranca_ids');
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true);
+        }
+        if (!is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Nenhuma cobrança selecionada.');
+        }
+
+        $request->validate([
+            'conta_financeira_id' => 'required|exists:contas_financeiras,id',
+            'forma_pagamento' => 'required|in:pix,dinheiro,transferencia,cartao_credito,cartao_debito,boleto',
+            'data_pagamento' => 'required|date',
+        ]);
+
+        DB::transaction(function () use ($ids, $request) {
+            foreach ($ids as $id) {
+                $cobranca = Cobranca::find($id);
+                if (!$cobranca || $cobranca->status === 'pago') {
+                    continue;
+                }
+                $cobranca->status = 'pago';
+                $cobranca->pago_em = $request->data_pagamento;
+                $cobranca->data_pagamento = $request->data_pagamento;
+                $cobranca->conta_financeira_id = $request->conta_financeira_id;
+                $cobranca->forma_pagamento = $request->forma_pagamento;
+                $cobranca->user_id = $request->user() ? $request->user()->id : null;
+                $cobranca->save();
+
+                // Atualizar saldo da conta financeira e registrar movimentação
+                $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+                if ($contaFinanceira) {
+                    $contaFinanceira->increment('saldo', $cobranca->valor);
+                    \App\Models\MovimentacaoFinanceira::create([
+                        'conta_origem_id' => null,
+                        'conta_destino_id' => $request->conta_financeira_id,
+                        'tipo' => 'entrada',
+                        'valor' => $cobranca->valor,
+                        'saldo_resultante' => $contaFinanceira->saldo,
+                        'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
+                        'user_id' => $request->user() ? $request->user()->id : null,
+                        'data_movimentacao' => $request->data_pagamento,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('financeiro.contasareceber')->with('success', 'Cobranças baixadas com sucesso!');
+    }
     public function index(Request $request)
     {
         // ================= PREPARAÇÃO DA QUERY BASE =================

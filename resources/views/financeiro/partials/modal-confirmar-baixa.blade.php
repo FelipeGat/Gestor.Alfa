@@ -10,6 +10,7 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         action: '',
         empresaId: null,
         cobrancaId: null,
+        cobrancaIds: [], // array para múltiplas cobranças
         contaFinanceiraId: '',
         formaPagamento: '',
         valorTotal: 0,
@@ -19,23 +20,22 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         dataVencimento: '',
         contasDisponiveis: [],
         todasContas: @js($todasContasFinanceiras),
-        
+        modoMultiplo() {
+            return this.cobrancaIds && this.cobrancaIds.length > 1;
+        },
         getValorRestante() {
             const restante = this.valorTotal - this.valorPago;
             return restante > 0 ? restante.toFixed(2) : '0.00';
         },
-        
         getValorTotalComJuros() {
             return (parseFloat(this.valorTotal) + parseFloat(this.jurosMulta || 0)).toFixed(2);
         },
-        
         formatarMoeda(valor) {
             return parseFloat(valor || 0).toLocaleString('pt-BR', { 
                 minimumFractionDigits: 2, 
                 maximumFractionDigits: 2 
             });
         },
-        
         validarValorPago() {
             const totalComJuros = parseFloat(this.getValorTotalComJuros());
             if (this.valorPago > totalComJuros) {
@@ -46,7 +46,6 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                 this.valorPago = 0;
             }
         },
-        
         validarJurosMulta() {
             if (this.jurosMulta < 0) {
                 this.jurosMulta = 0;
@@ -57,17 +56,14 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
         open = true;
         action = $event.detail.action;
         empresaId = $event.detail.empresaId;
-        cobrancaId = $event.detail.cobrancaId;
+        cobrancaId = $event.detail.cobrancaId || null;
+        cobrancaIds = $event.detail.cobrancaIds || [];
         valorTotal = parseFloat($event.detail.valorTotal || 0);
         valorPago = valorTotal;
         jurosMulta = 0;
         dataPagamento = new Date().toISOString().split('T')[0];
         dataVencimento = $event.detail.dataVencimento || '';
-        
-        // Filtrar contas pela empresa
         contasDisponiveis = empresaId ? todasContas.filter(c => c.empresa_id == empresaId) : todasContas;
-        
-        // Resetar seleção
         contaFinanceiraId = '';
         formaPagamento = '';
     "
@@ -76,15 +72,27 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            Confirmar Baixa
+            <span x-show="!modoMultiplo()">Confirmar Baixa</span>
+            <span x-show="modoMultiplo()">Confirmar baixa de <span x-text="cobrancaIds.length"></span> cobranças selecionadas</span>
         </h3>
 
         <p class="text-gray-600 mb-4 leading-relaxed">
-            Preencha os dados para confirmar o <strong>recebimento</strong> desta cobrança:
+            <span x-show="!modoMultiplo()">
+                Preencha os dados para confirmar o <strong>recebimento</strong> desta cobrança:
+            </span>
+            <span x-show="modoMultiplo()">
+                Preencha os dados para confirmar o <strong>recebimento</strong> das cobranças selecionadas:
+            </span>
         </p>
 
         <form :action="action" method="POST">
             @csrf
+            <template x-if="modoMultiplo()">
+                <input type="hidden" name="cobranca_ids" :value="JSON.stringify(cobrancaIds)">
+            </template>
+            <template x-if="!modoMultiplo()">
+                <input type="hidden" name="cobranca_id" :value="cobrancaId">
+            </template>
             @method('PATCH')
 
             <div class="mb-4">
@@ -138,8 +146,7 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                 </select>
             </div>
 
-            {{-- VALORES --}}
-            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200" x-show="!modoMultiplo()">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         💰 Valor Total da Cobrança
@@ -207,10 +214,9 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                 </div>
             </div>
 
-            {{-- CAMPOS OCULTOS PARA BAIXA PARCIAL --}}
-            <input type="hidden" name="criar_nova_cobranca" :value="parseFloat(getValorRestante()) > 0 ? '1' : '0'">
-            <input type="hidden" name="valor_restante" :value="getValorRestante()">
-            <input type="hidden" name="data_vencimento_original" :value="dataVencimento">
+            <input type="hidden" name="criar_nova_cobranca" :value="parseFloat(getValorRestante()) > 0 ? '1' : '0'" x-show="!modoMultiplo()">
+            <input type="hidden" name="valor_restante" :value="getValorRestante()" x-show="!modoMultiplo()">
+            <input type="hidden" name="data_vencimento_original" :value="dataVencimento" x-show="!modoMultiplo()">
 
             <div class="flex gap-3">
                 <button
