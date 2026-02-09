@@ -13,7 +13,7 @@
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/FelipeGat/Gestor.Alfa.git
+git clone https://github.com/rossini06/gestor_alfa.git
 cd Gestor.Alfa
 ```
 
