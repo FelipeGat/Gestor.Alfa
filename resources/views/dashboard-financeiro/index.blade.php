@@ -141,6 +141,35 @@
 
                 <div class="h-96">
                     <canvas id="chartFinanceiroMensal"></canvas>
+                    <script>
+                        window.financeiroMensalLabels = @json($labels);
+                        window.financeiroMensalData = [
+                            {
+                                label: 'Receita Prevista',
+                                data: @json($previsto),
+                                backgroundColor: '#60A5FA',
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Receita Recebida',
+                                data: @json($recebido),
+                                backgroundColor: '#1E3A8A',
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Despesa Prevista',
+                                data: @json($despesaPrevista),
+                                backgroundColor: '#F87171',
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Despesa Paga',
+                                data: @json($despesaPaga),
+                                backgroundColor: '#B91C1C',
+                                borderRadius: 6,
+                            }
+                        ];
+                    </script>
                 </div>
             </div>
             <div>
@@ -1005,12 +1034,31 @@
                     },
                     plugins: {
                         tooltip: {
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
+                                title: function(context) {
+                                    return context[0].label.toUpperCase();
+                                },
                                 label: function(context) {
-                                    return context.dataset.label + ': R$ ' +
-                                        context.raw.toLocaleString('pt-BR', {
-                                            minimumFractionDigits: 2
-                                        });
+                                    const valor = context.raw || 0;
+                                    return `${context.dataset.label}: R$ ${valor.toLocaleString('pt-BR', {
+                                        minimumFractionDigits: 2
+                                    })}`;
+                                },
+                                footer: function(context) {
+                                    let totalReceita = 0;
+                                    context.forEach(item => {
+                                        if (
+                                            item.dataset.label === 'Receita Prevista' ||
+                                            item.dataset.label === 'Receita Recebida'
+                                        ) {
+                                            totalReceita += item.raw || 0;
+                                        }
+                                    });
+                                    return `Total Receita: R$ ${totalReceita.toLocaleString('pt-BR', {
+                                        minimumFractionDigits: 2
+                                    })}`;
                                 }
                             }
                         }
