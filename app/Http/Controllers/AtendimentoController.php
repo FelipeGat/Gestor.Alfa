@@ -10,6 +10,7 @@ use App\Models\Assunto;
 use App\Models\AtendimentoStatusHistorico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AtendimentoController extends Controller
 {
@@ -126,12 +127,22 @@ class AtendimentoController extends Controller
             'status_inicial'   => 'required|in:orcamento,aberto,garantia',
         ]);
 
-        $ultimoNumero = Atendimento::max('numero_atendimento') ?? 0;
-
         $statusInicial = $request->status_inicial;
 
+        // Gerar número de atendimento de forma segura contra condições de corrida
+        $numeroAtendimento = DB::transaction(function () {
+            // Bloqueia a linha com "lock for update" para evitar concorrência
+            $ultimoRegistro = DB::table('atendimentos')
+                ->lockForUpdate()
+                ->orderBy('numero_atendimento', 'desc')
+                ->first(['numero_atendimento']);
+            
+            $ultimoNumero = $ultimoRegistro ? $ultimoRegistro->numero_atendimento : 0;
+            return $ultimoNumero + 1;
+        });
+
         $atendimento = Atendimento::create([
-            'numero_atendimento'   => $ultimoNumero + 1,
+            'numero_atendimento'   => $numeroAtendimento,
             'cliente_id'           => $request->cliente_id,
             'nome_solicitante'     => $request->nome_solicitante,
             'telefone_solicitante' => $request->telefone_solicitante,

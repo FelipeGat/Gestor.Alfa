@@ -70,10 +70,9 @@
                     <div class="p-6 sm:p-8">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div class="col-span-1">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Tipo de Pessoa <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Tipo de Pessoa</label>
                                 <select name="tipo_pessoa" x-model="tipoPessoa"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                                     <option value="PF">Pessoa Física</option>
                                     <option value="PJ">Pessoa Jurídica</option>
                                 </select>
@@ -86,8 +85,7 @@
                                     x-model="cpfCnpj"
                                     :maxlength="tipoPessoa === 'PJ' ? 18 : 14"
                                     :placeholder="tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
@@ -123,29 +121,26 @@
                     <div class="p-6 sm:p-8">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div class="col-span-1">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">CEP <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">CEP</label>
                                 <input type="text"
                                     name="cep"
                                     x-model="cep"
                                     @blur="buscarCep()"
                                     maxlength="9"
                                     placeholder="00000-000"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Logradouro <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Logradouro</label>
                                 <input type="text" name="logradouro" x-model="logradouro"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Número <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Número</label>
                                 <input type="text" name="numero" x-model="numero"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
@@ -155,24 +150,21 @@
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Bairro <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Bairro</label>
                                 <input type="text" name="bairro" x-model="bairro"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Cidade <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Cidade</label>
                                 <input type="text" name="cidade" x-model="cidade"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                             </div>
 
                             <div class="col-span-1 sm:col-span-2">
-                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Estado <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Estado</label>
                                 <select name="estado" x-model="estado"
-                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all"
-                                    required>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2.5 text-sm transition-all">
                                     <option value="">Selecione</option>
                                     <option value="AC">Acre</option>
                                     <option value="AL">Alagoas</option>

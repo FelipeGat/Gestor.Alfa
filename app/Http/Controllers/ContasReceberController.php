@@ -1076,9 +1076,29 @@ class ContasReceberController extends Controller
 
                 // Gerar nome único para o arquivo
                 $nomeArquivo = time() . '_' . uniqid() . '_' . $nomeOriginalSanitizado;
+                
+                // Garantir que o diretório exista
+                $diretorio = storage_path('app/public/cobrancas/anexos');
+                if (!is_dir($diretorio)) {
+                    if (!mkdir($diretorio, 0755, true) && !is_dir($diretorio)) {
+                        throw new \Exception('Falha ao criar diretório: ' . $diretorio);
+                    }
+                }
 
-                // Salvar arquivo em storage/app/public/cobrancas/anexos
-                $caminho = $arquivo->storeAs('cobrancas/anexos', $nomeArquivo, 'public');
+                // Criar arquivo no diretório público (copiar direto do arquivo temporário)
+                $publicPath = storage_path('app/public/cobrancas/anexos/' . $nomeArquivo);
+
+                // Ler conteúdo do arquivo de upload e salvar
+                $conteudo = file_get_contents($arquivo->getPathname());
+
+                if (file_put_contents($publicPath, $conteudo) === false) {
+                    throw new \Exception('Falha ao salvar arquivo: ' . $nomeOriginal);
+                }
+
+                // Garantir permissões corretas
+                chmod($publicPath, 0644);
+                
+                $caminho = 'cobrancas/anexos/' . $nomeArquivo;
 
                 // Criar registro no banco
                 $anexo = CobrancaAnexo::create([
@@ -1151,10 +1171,14 @@ class ContasReceberController extends Controller
 
         abort_if(!$isFinanceiro && !$isClienteProprietario, 403, 'Acesso não autorizado');
 
+        if (empty($anexo->caminho)) {
+            abort(404, 'Arquivo não disponível (upload incompleto ou arquivo perdido)');
+        }
+
         $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
 
         if (!file_exists($caminhoCompleto)) {
-            abort(404, 'Arquivo não encontrado');
+            abort(404, 'Arquivo não encontrado no servidor: ' . $anexo->nome_original);
         }
 
         return response()->download($caminhoCompleto, $anexo->nome_original);

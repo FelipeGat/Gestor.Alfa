@@ -740,7 +740,7 @@
             }
         });
     </script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="{{ asset('js/vendor/chart.js') }}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                                                                 // Função para normalizar strings (lowercase, sem acento, trim)
@@ -976,7 +976,7 @@
                 });
             });
         </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('js/vendor/chart.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

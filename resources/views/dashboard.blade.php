@@ -454,7 +454,7 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('js/vendor/chart.js') }}"></script>
     <script>
         // Funções auxiliares para mostrar estados de erro/vazio
         const mostrarVazio = (containerId, mensagem = 'Sem dados para o filtro atual.') => {

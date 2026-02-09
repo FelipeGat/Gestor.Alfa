@@ -20,8 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (app()->environment('production')) {
-            URL::forceScheme('https');
-        }
+        // SSL disabled - uncomment when SSL is configured
+        // if (app()->environment('production')) {
+        //     URL::forceScheme('https');
+        // }
     }
 }

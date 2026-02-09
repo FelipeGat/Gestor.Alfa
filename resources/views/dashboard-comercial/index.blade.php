@@ -714,7 +714,7 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('js/vendor/chart.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Recupera os dados do elemento HTML (Evita erro de sintaxe no editor)

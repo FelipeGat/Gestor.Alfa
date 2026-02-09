@@ -236,7 +236,7 @@
 
                 {{-- SCRIPTS DOS GRÁFICOS --}}
                 @push('scripts')
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="{{ asset('js/vendor/chart.js') }}"></script>
 
                 <script>
                     Chart.defaults.font.family = "'Inter', 'ui-sans-serif', 'system-ui'";

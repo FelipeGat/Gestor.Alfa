@@ -40,8 +40,8 @@ class FornecedorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tipo_pessoa' => 'required|in:PF,PJ',
-            'cpf_cnpj' => 'required|string|max:18',
+            'tipo_pessoa' => 'nullable|in:PF,PJ',
+            'cpf_cnpj' => 'nullable|string|max:18',
             'razao_social' => 'required|string|max:255',
             'nome_fantasia' => 'nullable|string|max:255',
             'cep' => 'nullable|string|max:9',
@@ -53,7 +53,7 @@ class FornecedorController extends Controller
             'complemento' => 'nullable|string|max:255',
             'observacoes' => 'nullable|string',
             'contatos' => 'nullable|array',
-            'contatos.*.nome' => 'required|string|max:255',
+            'contatos.*.nome' => 'nullable|string|max:255',
             'contatos.*.cargo' => 'nullable|string|max:100',
             'contatos.*.email' => 'nullable|email|max:255',
             'contatos.*.telefone' => 'nullable|string|max:20',
@@ -112,8 +112,8 @@ class FornecedorController extends Controller
     public function update(Request $request, Fornecedor $fornecedor)
     {
         $request->validate([
-            'tipo_pessoa' => 'required|in:PF,PJ',
-            'cpf_cnpj' => 'required|string|max:18',
+            'tipo_pessoa' => 'nullable|in:PF,PJ',
+            'cpf_cnpj' => 'nullable|string|max:18',
             'razao_social' => 'required|string|max:255',
             'nome_fantasia' => 'nullable|string|max:255',
             'cep' => 'nullable|string|max:9',
@@ -126,7 +126,7 @@ class FornecedorController extends Controller
             'observacoes' => 'nullable|string',
             'ativo' => 'required|boolean',
             'contatos' => 'nullable|array',
-            'contatos.*.nome' => 'required|string|max:255',
+            'contatos.*.nome' => 'nullable|string|max:255',
             'contatos.*.cargo' => 'nullable|string|max:100',
             'contatos.*.email' => 'nullable|email|max:255',
             'contatos.*.telefone' => 'nullable|string|max:20',

@@ -1,0 +1,146 @@
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: gestor_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-available:/etc/nginx/sites-available
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./data/uploads:/var/www/storage/app/public
+      - ./public:/var/www/public
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - php-fpm
+    networks:
+      - gestor-network
+    restart: unless-stopped
+
+  # PHP-FPM for Laravel
+  php-fpm:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: gestor_php
+    volumes:
+      - .:/var/www
+      - ./data/uploads:/var/www/storage/app/public
+      - ./logs/php:/var/log/php
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=gestor_alfa
+      - DB_USERNAME=gestor_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
+      - PHP_UPLOAD_TMP_DIR=/var/www/storage/app/public/cobrancas/anexos/tmp
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - gestor-network
+    restart: unless-stopped
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: gestor_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=gestor_alfa
+      - MYSQL_USER=gestor_user
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./nginx/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./banco-gestao/cobranca.sql:/docker-entrypoint-initdb.d/cobranca.sql
+      - ./logs/mysql:/var/log/mysql
+    networks:
+      - gestor-network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: gestor_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+      - ./nginx/redis/redis.conf:/etc/redis/redis.conf
+    networks:
+      - gestor-network
+    restart: unless-stopped
+    command: redis-server /etc/redis/redis.conf
+
+  # Laravel Queue Worker
+  queue-worker:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: gestor_queue
+    volumes:
+      - .:/var/www
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=gestor_alfa
+      - DB_USERNAME=gestor_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - gestor-network
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: gestor_phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=gestor_user
+      - PMA_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - gestor-network
+    restart: unless-stopped
+
+networks:
+  gestor-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
