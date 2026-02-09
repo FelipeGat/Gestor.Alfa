@@ -465,15 +465,15 @@
                         </span>
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
-                                <span class="text-xs text-gray-500">Atrasado</span>
-                                <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_atrasado')">
-                                    R$ {{ number_format($atrasado, 2, ',', '.') }}
+                                <span class="text-xs text-gray-500">Receitas Atrasadas</span>
+                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_pago')">
+                                    R$ {{ number_format($pago, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
-                                <span class="text-xs text-gray-500">Pago</span>
-                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_pago')">
-                                    R$ {{ number_format($pago, 2, ',', '.') }}
+                                <span class="text-xs text-gray-500">Despesas Atrasadas</span>
+                                <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_atrasado')">
+                                    R$ {{ number_format($atrasado, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
@@ -636,11 +636,11 @@
                 totalColor = 'text-red-600';
             } else if (tipo === 'situacao_atrasado') {
                 lista = lancamentosAtrasado;
-                titulo = 'Lançamentos Atrasados';
+                titulo = 'Despesas Atrasadas';
                 totalColor = 'text-red-600';
             } else if (tipo === 'situacao_pago') {
                 lista = lancamentosPago;
-                titulo = 'Lançamentos Pagos';
+                titulo = 'Receitas Atrasadas';
                 totalColor = 'text-green-600';
             } else if (tipo === 'situacao_diferenca') {
                 lista = lancamentosDiferenca;

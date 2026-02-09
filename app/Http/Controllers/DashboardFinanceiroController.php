@@ -123,6 +123,36 @@ class DashboardFinanceiroController extends Controller
             })->toArray();
 
         // Lançamentos Previsto - A Receber
+        // Lançamentos Previsto - A Pagar
+        $lancamentosPrevistoPagar = ContaPagar::where('status', 'em_aberto')
+            ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($oq) use ($empresaId) {
+                    $oq->where('empresa_id', $empresaId);
+                });
+            })
+            ->with(['orcamento.centroCusto', 'fornecedor', 'centroCusto'])
+            ->get()
+            ->map(function ($item) {
+                $centroCusto = null;
+                if ($item->orcamento && $item->orcamento->centroCusto) {
+                    $centroCusto = $item->orcamento->centroCusto->nome;
+                } elseif ($item->centroCusto) {
+                    $centroCusto = $item->centroCusto->nome;
+                }
+                $cliente = $item->fornecedor ? $item->fornecedor->nome_fantasia ?? $item->fornecedor->razao_social : null;
+                $cnpjcpf = $item->fornecedor ? $item->fornecedor->cpf_cnpj : null;
+                return [
+                    'data' => optional($item->data_vencimento)->format('d/m/Y'),
+                    'centro_custo' => $centroCusto,
+                    'cliente' => $cliente,
+                    'cnpjcpf' => $cnpjcpf,
+                    'descricao' => $item->descricao,
+                    'tipo' => $item->tipo,
+                    'valor' => $item->valor,
+                ];
+            })->toArray();
         // Previsto - A Receber: todos status exceto pago, no período (igual ao card)
         $lancamentosPrevistoReceber = Cobranca::where('status', '!=', 'pago')
             ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
@@ -158,64 +188,22 @@ class DashboardFinanceiroController extends Controller
                 ];
             })->toArray();
 
-        // Lançamentos Previsto - A Pagar
-        // Previsto - A Pagar: em_aberto e atrasado, no período
-        $lancamentosPrevistoPagar = ContaPagar::whereIn('status', ['em_aberto', 'atrasado'])
-            ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
-            ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
-            ->with(['orcamento.centroCusto', 'fornecedor', 'centroCusto'])
-            ->get()
-            ->map(function ($item) {
-                $centroCusto = null;
-                if ($item->orcamento && $item->orcamento->centroCusto) {
-                    $centroCusto = $item->orcamento->centroCusto->nome;
-                } elseif ($item->centroCusto) {
-                    $centroCusto = $item->centroCusto->nome;
-                }
-                $cliente = $item->fornecedor ? $item->fornecedor->nome_fantasia ?? $item->fornecedor->razao_social : null;
-                $cnpjcpf = $item->fornecedor ? $item->fornecedor->cpf_cnpj : null;
-                return [
-                    'data' => optional($item->data_vencimento)->format('d/m/Y'),
-                    'centro_custo' => $centroCusto,
-                    'cliente' => $cliente,
-                    'cnpjcpf' => $cnpjcpf,
-                    'descricao' => $item->descricao,
-                    'tipo' => $item->tipo,
-                    'valor' => $item->valor,
-                ];
-            })->toArray();
-
         // Lançamentos Situação - Atrasado
-        // Situação - Atrasado: todos status exceto pago, vencidos antes do início
-        $lancamentosAtrasado = Cobranca::whereIn('status', ['em_aberto', 'atrasado', 'parcial'])
-            ->whereDate('data_vencimento', '<', $inicio->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
-            ->with(['orcamento.empresa', 'cliente', 'contaFixa.empresa'])
+        // Situação - Despesas Atrasadas: contas vencidas e não pagas, igual ao card
+        $baseSituacao = ContaPagar::query()
+            ->whereIn('status', ['em_aberto', 'atrasado']);
+
+        $lancamentosAtrasado = (clone $baseSituacao)
+            ->whereDate('data_vencimento', '<', now()->toDateString())
+            ->with(['fornecedor', 'centroCusto'])
             ->get()
             ->map(function ($item) {
-                $empresa = null;
-                if ($item->tipo === 'contrato' && $item->contaFixa && $item->contaFixa->empresa) {
-                    $empresa = $item->contaFixa->empresa->nome_fantasia ?? $item->contaFixa->empresa->razao_social;
-                } elseif ($item->orcamento && $item->orcamento->empresa) {
-                    $empresa = $item->orcamento->empresa->nome_fantasia ?? $item->orcamento->empresa->razao_social;
-                }
-                $cliente = $item->cliente ? $item->cliente->nome_fantasia ?? $item->cliente->razao_social ?? $item->cliente->nome : null;
-                $cnpjcpf = $item->cliente ? $item->cliente->cpf_cnpj_formatado : null;
                 return [
                     'data' => optional($item->data_vencimento)->format('d/m/Y'),
-                    'empresa' => $empresa,
-                    'cliente' => $cliente,
-                    'cnpjcpf' => $cnpjcpf,
+                    'centro_custo' => optional($item->centroCusto)->nome,
+                    'cliente' => optional($item->fornecedor)->nome_fantasia ?? $item->fornecedor->razao_social ?? '-',
                     'descricao' => $item->descricao,
-                    'tipo' => $item->tipo,
+                    'tipo' => 'Despesa',
                     'valor' => $item->valor,
                 ];
             })->toArray();
