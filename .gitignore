@@ -51,3 +51,9 @@ Thumbs.db
 /auth.json
 Homestead.json
 Homestead.yaml
+
+/banco-gestao
+/cobranca.sql
+/data
+/logs
+*.sql
