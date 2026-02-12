@@ -453,7 +453,7 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</td>
-                            <td style="text-align: right; font-size: 20px; font-weight: bold; color: ${corTotal}; white-space: nowrap;">R$ ${totalValor}</td>
+                            <td style="width: 1%; text-align: right; font-size: 20px; font-weight: bold; color: ${corTotal}; white-space: nowrap;">R$&nbsp;${totalValor}</td>
                         </tr>
                     </table>
                 </div>
