@@ -80,6 +80,7 @@ class RelatorioFinanceiroController extends Controller
         $queryReceber = Cobranca::with([
             'cliente',
             'orcamento.empresa',
+            'orcamento.centroCusto',
             'contaFixa.empresa',
         ])
             ->when($empresaId, function ($q) use ($empresaId) {
@@ -89,6 +90,11 @@ class RelatorioFinanceiroController extends Controller
                     })->orWhereHas('contaFixa', function ($cq) use ($empresaId) {
                         $cq->where('empresa_id', $empresaId);
                     });
+                });
+            })
+            ->when($centroCustoId, function ($q) use ($centroCustoId) {
+                $q->whereHas('orcamento', function ($oq) use ($centroCustoId) {
+                    $oq->where('centro_custo_id', $centroCustoId);
                 });
             })
             ->when($clienteId, fn($q) => $q->where('cliente_id', $clienteId))

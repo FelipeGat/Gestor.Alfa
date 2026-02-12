@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class ContasReceberController extends Controller
@@ -264,7 +265,8 @@ class ContasReceberController extends Controller
         // Corrige lógica: valor pago pode ser igual ao valor total ou ao valor total + juros/multa
         $valorTotalComJuros = $valorTotal + $jurosMulta;
 
-        if ($valorPago < $valorTotal) {
+        // Permitir valor pago menor que o total apenas se for gerar nova cobrança com restante
+        if ($valorPago < $valorTotal && (!$request->criar_nova_cobranca || $request->valor_restante <= 0)) {
             return back()->with('error', 'O valor pago não pode ser menor que o valor da cobrança.');
         }
         if ($valorPago > $valorTotalComJuros) {
@@ -1077,28 +1079,21 @@ class ContasReceberController extends Controller
                 // Gerar nome único para o arquivo
                 $nomeArquivo = time() . '_' . uniqid() . '_' . $nomeOriginalSanitizado;
                 
-                // Garantir que o diretório exista
-                $diretorio = storage_path('app/public/cobrancas/anexos');
-                if (!is_dir($diretorio)) {
-                    if (!mkdir($diretorio, 0755, true) && !is_dir($diretorio)) {
-                        throw new \Exception('Falha ao criar diretório: ' . $diretorio);
-                    }
+                // Garantir que o diretório exista no disco público
+                $diretorio = 'cobrancas/anexos';
+                if (!Storage::disk('public')->exists($diretorio)) {
+                    Storage::disk('public')->makeDirectory($diretorio);
                 }
 
-                // Criar arquivo no diretório público (copiar direto do arquivo temporário)
-                $publicPath = storage_path('app/public/cobrancas/anexos/' . $nomeArquivo);
-
-                // Ler conteúdo do arquivo de upload e salvar
+                // Salvar arquivo usando o Storage facade
                 $conteudo = file_get_contents($arquivo->getPathname());
+                $caminhoCompleto = $diretorio . '/' . $nomeArquivo;
 
-                if (file_put_contents($publicPath, $conteudo) === false) {
+                if (!Storage::disk('public')->put($caminhoCompleto, $conteudo)) {
                     throw new \Exception('Falha ao salvar arquivo: ' . $nomeOriginal);
                 }
-
-                // Garantir permissões corretas
-                chmod($publicPath, 0644);
                 
-                $caminho = 'cobrancas/anexos/' . $nomeArquivo;
+                $caminho = $caminhoCompleto;
 
                 // Criar registro no banco
                 $anexo = CobrancaAnexo::create([

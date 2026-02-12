@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\ContaPagar;
 use App\Models\Subcategoria;
 use App\Models\Conta;
+use App\Models\ContaFixaPagar;
 
 
 class ContasPagarController extends Controller
