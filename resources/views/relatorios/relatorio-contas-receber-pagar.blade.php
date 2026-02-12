@@ -388,20 +388,18 @@
         var dataInicio = '{{ \Carbon\Carbon::parse($dataInicio)->format("d/m/Y") }}';
         var dataFim = '{{ \Carbon\Carbon::parse($dataFim)->format("d/m/Y") }}';
         
-        // Pegar o total
-        var totalTexto = '';
-        if (tipo === 'receber') {
-            totalTexto = 'Total a Receber: R$ {{ number_format($totalReceber, 2, ",", ".") }}';
-        } else {
-            totalTexto = 'Total a Pagar: R$ {{ number_format($totalPagar, 2, ",", ".") }}';
-        }
-        
         // Criar uma nova janela para impressão
         var printWindow = window.open('', '_blank', 'width=900,height=700');
         
         // Clonar a tabela para não afetar a original
         var tabelaOriginal = secao.querySelector('table');
         var tabelaClone = tabelaOriginal.cloneNode(true);
+        
+        // Remover o tfoot (total mal formatado e resultado)
+        var tfoot = tabelaClone.querySelector('tfoot');
+        if (tfoot) {
+            tfoot.remove();
+        }
         
         // Remover classes Tailwind que podem causar problemas na impressão
         tabelaClone.className = '';
@@ -424,6 +422,11 @@
             td.style.borderBottom = '1px solid #eee';
         });
         
+        // Pegar o valor total e definir cor
+        var totalValor = tipo === 'receber' ? '{{ number_format($totalReceber, 2, ",", ".") }}' : '{{ number_format($totalPagar, 2, ",", ".") }}';
+        var totalLabel = tipo === 'receber' ? 'Total a Receber' : 'Total a Pagar';
+        var corTotal = tipo === 'receber' ? '#059669' : '#dc2626';
+        
         // Escrever o HTML da nova janela
         printWindow.document.write(`
             <!DOCTYPE html>
@@ -440,14 +443,15 @@
             </head>
             <body style="font-family: Arial, sans-serif; margin: 20px; color: #333;">
                 <h1 style="font-size: 24px; margin-bottom: 5px; color: #000;">${titulo}</h1>
-                <p style="font-size: 14px; color: #666; margin-bottom: 10px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                <p style="font-size: 14px; color: #666; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
                     Período: ${dataInicio} a ${dataFim}
                 </p>
-                <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: ${tipo === 'receber' ? '#059669' : '#dc2626'};">
-                    ${totalTexto}
-                </p>
-                <div style="margin-top: 20px;">
+                <div>
                     ${tabelaClone.outerHTML}
+                </div>
+                <div style="margin-top: 30px; padding: 15px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
+                    <span style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 10px;">${totalLabel}</span>
+                    <span style="font-size: 20px; font-weight: bold; color: ${corTotal};">R$ ${totalValor}</span>
                 </div>
                 <div class="no-print" style="margin-top: 30px; text-align: center;">
                     <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
