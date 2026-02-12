@@ -449,9 +449,13 @@
                 <div>
                     ${tabelaClone.outerHTML}
                 </div>
-                <div style="margin-top: 30px; padding: 15px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
-                    <span style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 10px;">${totalLabel}</span>
-                    <span style="font-size: 20px; font-weight: bold; color: ${corTotal}; white-space: nowrap;">R$ ${totalValor}</span>
+                <div style="margin-top: 30px; padding: 15px; background-color: #f9fafb; border-top: 2px solid #e5e7eb;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</td>
+                            <td style="text-align: right; font-size: 20px; font-weight: bold; color: ${corTotal}; white-space: nowrap;">R$ ${totalValor}</td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="no-print" style="margin-top: 30px; text-align: center;">
                     <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
