@@ -1,16 +1,17 @@
 <x-app-layout>
     @push('styles')
     @vite('resources/css/financeiro/index.css')
+    @endpush
+
     <style>
         @media print {
-            .print\:hidden { display: none !important; }
-            .print-section-receber { display: block !important; page-break-after: always; }
-            .print-section-pagar { display: block !important; }
-            .print-hide-receber { display: none !important; }
-            .print-hide-pagar { display: none !important; }
+            /* Ocultar elementos que não devem aparecer na impressão da página principal */
+            .print\:hidden, .filters-card, .pagination-container, 
+            header, footer, nav, .btn, a[href] {
+                display: none !important;
+            }
         }
     </style>
-    @endpush
 
     <x-slot name="header">
         <div class="flex items-center justify-between w-full">
@@ -221,12 +222,16 @@
             </div>
 
             <div id="section-contas-receber" class="section-card mb-6 print-section-receber">
+                <div class="print-title-receber mb-6 pb-4 border-b-2 border-gray-300">
+                    <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Receber</h1>
+                    <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+                </div>
                 <div class="flex justify-between items-center pt-2 pr-4 mb-4 pb-3 border-b border-gray-100 print:hidden">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Receber</h3>
                     </div>
-                    <button onclick="imprimirSecao('receber')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                    <button type="button" onclick="imprimirSecao(event, 'receber')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
                         🖨️
                     </button>
                 </div>
@@ -287,12 +292,16 @@
             </div>
 
             <div id="section-contas-pagar" class="section-card print-section-pagar">
+                <div class="print-title-pagar mb-6 pb-4 border-b-2 border-gray-300">
+                    <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Pagar</h1>
+                    <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+                </div>
                 <div class="flex justify-between items-center pt-2 pr-4 mb-4 pb-3 border-b border-gray-100 print:hidden">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-6 bg-red-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Pagar</h3>
                     </div>
-                    <button onclick="imprimirSecao('pagar')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                    <button type="button" onclick="imprimirSecao(event, 'pagar')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
                         🖨️
                     </button>
                 </div>
@@ -366,19 +375,90 @@
     </div>
 
     <script>
-    function imprimirSecao(tipo) {
-        document.querySelectorAll('.print-section-receber, .print-section-pagar, .print-hide-receiver, .print-hide-pagar')
-            .forEach(el => el.classList.remove('print-section-receber', 'print-section-pagar', 'print-hide-receber', 'print-hide-pagar'));
-        
-        if (tipo === 'receber') {
-            document.getElementById('section-contas-receber').classList.add('print-section-receber');
-            document.getElementById('section-contas-pagar').classList.add('print-hide-pagar');
-        } else {
-            document.getElementById('section-contas-pagar').classList.add('print-section-pagar');
-            document.getElementById('section-contas-receber').classList.add('print-hide-receber');
+    function imprimirSecao(event, tipo) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
         }
         
-        window.print();
+        // Pegar o conteúdo da seção desejada
+        var secaoId = tipo === 'receber' ? 'section-contas-receber' : 'section-contas-pagar';
+        var secao = document.getElementById(secaoId);
+        var titulo = tipo === 'receber' ? 'Relatório - Contas a Receber' : 'Relatório - Contas a Pagar';
+        var dataInicio = '{{ \Carbon\Carbon::parse($dataInicio)->format("d/m/Y") }}';
+        var dataFim = '{{ \Carbon\Carbon::parse($dataFim)->format("d/m/Y") }}';
+        
+        // Pegar o total
+        var totalTexto = '';
+        if (tipo === 'receber') {
+            totalTexto = 'Total a Receber: R$ {{ number_format($totalReceber, 2, ",", ".") }}';
+        } else {
+            totalTexto = 'Total a Pagar: R$ {{ number_format($totalPagar, 2, ",", ".") }}';
+        }
+        
+        // Criar uma nova janela para impressão
+        var printWindow = window.open('', '_blank', 'width=900,height=700');
+        
+        // Clonar a tabela para não afetar a original
+        var tabelaOriginal = secao.querySelector('table');
+        var tabelaClone = tabelaOriginal.cloneNode(true);
+        
+        // Remover classes Tailwind que podem causar problemas na impressão
+        tabelaClone.className = '';
+        tabelaClone.style.width = '100%';
+        tabelaClone.style.borderCollapse = 'collapse';
+        
+        // Aplicar estilos inline nas células
+        var ths = tabelaClone.querySelectorAll('th');
+        ths.forEach(function(th) {
+            th.style.backgroundColor = '#f5f5f5';
+            th.style.padding = '10px';
+            th.style.textAlign = 'left';
+            th.style.borderBottom = '2px solid #ddd';
+            th.style.fontWeight = 'bold';
+        });
+        
+        var tds = tabelaClone.querySelectorAll('td');
+        tds.forEach(function(td) {
+            td.style.padding = '8px 10px';
+            td.style.borderBottom = '1px solid #eee';
+        });
+        
+        // Escrever o HTML da nova janela
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${titulo}</title>
+                <meta charset="UTF-8">
+                <style>
+                    @media print {
+                        body { margin: 20px; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body style="font-family: Arial, sans-serif; margin: 20px; color: #333;">
+                <h1 style="font-size: 24px; margin-bottom: 5px; color: #000;">${titulo}</h1>
+                <p style="font-size: 14px; color: #666; margin-bottom: 10px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                    Período: ${dataInicio} a ${dataFim}
+                </p>
+                <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: ${tipo === 'receber' ? '#059669' : '#dc2626'};">
+                    ${totalTexto}
+                </p>
+                <div style="margin-top: 20px;">
+                    ${tabelaClone.outerHTML}
+                </div>
+                <div class="no-print" style="margin-top: 30px; text-align: center;">
+                    <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
+                    <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">Fechar</button>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.focus();
     }
     </script>
 </x-app-layout>
