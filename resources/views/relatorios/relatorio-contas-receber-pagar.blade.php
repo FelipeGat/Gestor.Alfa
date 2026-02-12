@@ -389,7 +389,7 @@
         var dataFim = '{{ \Carbon\Carbon::parse($dataFim)->format("d/m/Y") }}';
         
         // Criar uma nova janela para impressão
-        var printWindow = window.open('', '_blank', 'width=900,height=700');
+        var printWindow = window.open('', '_blank', 'width=800,height=600');
         
         // Clonar a tabela para não afetar a original
         var tabelaOriginal = secao.querySelector('table');
@@ -410,16 +410,18 @@
         var ths = tabelaClone.querySelectorAll('th');
         ths.forEach(function(th) {
             th.style.backgroundColor = '#f5f5f5';
-            th.style.padding = '10px';
+            th.style.padding = '6px 8px';
             th.style.textAlign = 'left';
-            th.style.borderBottom = '2px solid #ddd';
+            th.style.borderBottom = '1px solid #ddd';
             th.style.fontWeight = 'bold';
+            th.style.fontSize = '11px';
         });
         
         var tds = tabelaClone.querySelectorAll('td');
         tds.forEach(function(td) {
-            td.style.padding = '8px 10px';
+            td.style.padding = '5px 8px';
             td.style.borderBottom = '1px solid #eee';
+            td.style.fontSize = '11px';
         });
         
         // Pegar o valor total e definir cor
@@ -435,27 +437,31 @@
                 <title>${titulo}</title>
                 <meta charset="UTF-8">
                 <style>
+                    @page {
+                        size: A4;
+                        margin: 15mm;
+                    }
                     @media print {
-                        body { margin: 20px; }
+                        body { margin: 0; padding: 15mm; }
                         .no-print { display: none; }
+                        table { page-break-inside: auto; }
+                        tr { page-break-inside: avoid; page-break-after: auto; }
+                        thead { display: table-header-group; }
+                        tfoot { display: table-footer-group; }
                     }
                 </style>
             </head>
-            <body style="font-family: Arial, sans-serif; margin: 20px; color: #333;">
-                <h1 style="font-size: 24px; margin-bottom: 5px; color: #000;">${titulo}</h1>
-                <p style="font-size: 14px; color: #666; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+            <body style="font-family: Arial, sans-serif; margin: 0; padding: 15mm; color: #333; font-size: 11px;">
+                <h1 style="font-size: 18px; margin-bottom: 5px; color: #000;">${titulo}</h1>
+                <p style="font-size: 11px; color: #666; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
                     Período: ${dataInicio} a ${dataFim}
                 </p>
                 <div>
                     ${tabelaClone.outerHTML}
                 </div>
-                <div style="margin-top: 30px; padding: 15px; background-color: #f9fafb; border-top: 2px solid #e5e7eb;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</td>
-                            <td style="width: 1%; text-align: right; font-size: 20px; font-weight: bold; color: ${corTotal}; white-space: nowrap;">R$&nbsp;${totalValor}</td>
-                        </tr>
-                    </table>
+                <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
+                    <span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</span>
+                    <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">R$&nbsp;${totalValor}</span>
                 </div>
                 <div class="no-print" style="margin-top: 30px; text-align: center;">
                     <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
