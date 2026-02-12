@@ -1,63 +1,412 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🏢 Gestor Alfa
 
-## Gestor Alfa
+### Sistema de Gestão Empresarial Completo
 
-Sistema de gestão empresarial desenvolvido em Laravel 12 com Docker.
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
-## Sobre o Laravel
+</div>
 
-O Laravel é um framework de aplicações web com uma sintaxe expressiva e elegante. Acreditamos que o desenvolvimento deve ser uma experiência agradável e criativa para ser verdadeiramente gratificante. O Laravel torna o desenvolvimento mais fácil, automatizando tarefas comuns usadas em muitos projetos web, como:
+---
 
-- [Motor de roteamento simples e rápido](https://laravel.com/docs/routing).
-- [Recipiente de injeção de dependência poderoso](https://laravel.com/docs/container).
-- Múltiplos back-ends para sessão ([session](https://laravel.com/docs/session)) e cache ([cache](https://laravel.com/docs/cache)).
-- [ORM de banco de dados expressivo e intuitivo](https://laravel.com/docs/eloquent).
-- [Migrações de banco de dados agnósticas](https://laravel.com/docs/migrations).
-- [Processamento robusto de jobs em segundo plano](https://laravel.com/docs/queues).
-- [Transmissão de eventos em tempo real](https://laravel.com/docs/broadcasting).
+## 📋 Índice
 
-O Laravel é acessível, poderoso e fornece as ferramentas necessárias para aplicações robustas.
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Instalação](#instalação)
+- [Comandos Úteis](#comandos-úteis)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Contribuição](#contribuição)
+- [Licença](#licença)
 
-## Aprendendo Laravel
+---
 
-O Laravel possui a maior e mais completa biblioteca de documentação e tutoriais em vídeo de todos os frameworks de aplicações web modernos, facilitando o início com o framework. Você também pode conferir o [Laravel Learn](https://laravel.com/learn), onde você será guiado na construção de uma aplicação Laravel moderna.
+## 🎯 Sobre o Projeto
 
-Se você não gosta de ler, [Laracasts](https://laracasts.com) pode ajudar. Laracasts contém milhares de tutoriais em vídeo sobre diversos tópicos, incluindo Laravel, PHP moderno, testes unitários e JavaScript. Melhore suas habilidades mergulhando em nossa biblioteca de vídeos abrangente.
+O **Gestor Alfa** é um sistema de gestão empresarial completo desenvolvido em Laravel 12, projetado para atender pequenas e médias empresas com controle financeiro, gestão de clientes, fornecedores, orçamentos e atendimentos.
 
-## Patrocinadores do Laravel
+O sistema oferece dashboards especializados por departamento (Administrativo, Comercial, Técnico e Financeiro), permitindo uma visão 360° da operação do negócio.
 
-Gostaríamos de agradecer aos seguintes patrocinadores pelo financiamento do desenvolvimento do Laravel. Se você estiver interessado em se tornar um patrocinador, visite o [Programa de Parceiros do Laravel](https://partners.laravel.com).
+### ✨ Principais Características
 
-### Parceiros Premium
+- **Multi-departamentos**: Dashboards específicos para cada área
+- **Controle Financeiro**: Contas a pagar e receber com classificação detalhada
+- **Gestão Comercial**: Clientes, orçamentos e cobranças integrados
+- **Portal do Funcionário**: Acesso centralizado para colaboradores
+- **Relatórios PDF**: Geração de documentos com DOMPDF
+- **Infraestrutura Docker**: Deploy simplificado com containers
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contribuindo
+## 🚀 Funcionalidades
 
-Obrigado por considerar contribuir com o framework Laravel! O guia de contribuição pode ser encontrado na [documentação do Laravel](https://laravel.com/docs/contributions).
+### 💰 Módulo Financeiro
 
-## Código de Conduta
+- **Contas a Pagar**
+  - Cadastro de despesas fixas e variáveis
+  - Classificação por centros de custo, categorias e subcategorias
+  - Controle de fornecedores e contatos
+  - Agendamento de pagamentos
+  - Dashboard financeiro com indicadores
 
-Para garantir que a comunidade Laravel seja acolhedora para todos, por favor revise e cumpra o [Código de Conduta](https://laravel.com/docs/contributions#code-of-conduct).
+- **Contas a Receber**
+  - Gestão de receitas e cobranças
+  - Integração com sistema de boletos
+  - Controle de inadimplência
 
-## Vulnerabilidades de Segurança
+### 👥 Gestão de Pessoas
 
-Se você descobrir uma vulnerabilidade de segurança no Laravel, por favor envie um e-mail para Taylor Otwell através de [taylor@laravel.com](mailto:taylor@laravel.com). Todas as vulnerabilidades de segurança serão tratadas prontamente.
+- **Clientes**
+  - Cadastro completo (PF/PJ)
+  - Histórico de atendimentos
+  - Controle de orçamentos
 
-## Licença
+- **Fornecedores**
+  - Cadastro com dados fiscais
+  - Múltiplos contatos
+  - Classificação por categoria
 
-O framework Laravel é um software de código aberto licenciado sob a [licença MIT](https://opensource.org/licenses/MIT).
+- **Funcionários**
+  - Portal do funcionário
+  - Controle de acesso por perfil
+
+### 📊 Dashboards
+
+- **Dashboard Administrativo**: Visão geral da empresa
+- **Dashboard Comercial**: Vendas, orçamentos e metas
+- **Dashboard Técnico**: Ordens de serviço e atendimentos
+- **Dashboard Financeiro**: Fluxo de caixa e indicadores
+
+### 📋 Gestão Operacional
+
+- **Atendimentos**: Controle de chamados e suporte
+- **Orçamentos**: Emissão e acompanhamento
+- **Itens Comerciais**: Catálogo de produtos/serviços
+
+---
+
+## 🛠 Tecnologias
+
+### Backend
+- **Laravel 12** - Framework PHP moderno e elegante
+- **PHP 8.3** - Última versão estável
+- **Laravel Breeze** - Sistema de autenticação
+- **DOMPDF** - Geração de PDFs
+
+### Frontend
+- **TailwindCSS 3** - Framework CSS utilitário
+- **AlpineJS** - Framework JavaScript leve
+- **Vite** - Build tool moderno
+- **Laravel Blade** - Template engine
+
+### Banco de Dados & Cache
+- **MySQL 8.0** - Banco de dados relacional
+- **Redis 7** - Cache e sessões
+
+### Infraestrutura
+- **Docker** - Containerização
+- **Docker Compose** - Orquestração
+- **Nginx** - Servidor web
+- **PHP-FPM** - Processamento PHP
+
+### Testes & Qualidade
+- **Pest PHP** - Framework de testes
+- **Laravel Pint** - Linter e formatador de código
+
+---
+
+## 🏗 Arquitetura
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Nginx (80/443)                       │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      PHP-FPM (Laravel)                      │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+       ┌───────────────┼───────────────┐
+       ▼               ▼               ▼
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│ MySQL 8.0   │ │ Redis 7     │ │ Queue Worker│
+│ (Port 3306) │ │ (Port 6379) │ │             │
+└─────────────┘ └─────────────┘ └─────────────┘
+```
+
+### Containers Docker
+
+| Container | Imagem | Porta | Descrição |
+|-----------|--------|-------|-----------|
+| nginx | nginx:alpine | 80, 443 | Proxy reverso e servidor web |
+| php-fpm | PHP 8.3 + Laravel | - | Processamento PHP |
+| mysql | MySQL 8.0 | 3306 | Banco de dados |
+| redis | Redis 7 | 6379 | Cache e filas |
+| queue-worker | PHP 8.3 | - | Processamento de jobs |
+| phpmyadmin | latest | 8080 | Administração do BD |
+
+---
+
+## 📦 Instalação
+
+### Pré-requisitos
+
+- Docker >= 20.10
+- Docker Compose >= 2.0
+- Git
+- Node.js >= 18 (para build dos assets)
+
+### Passo a Passo
+
+#### 1. Clone o Repositório
+
+```bash
+git clone https://github.com/FelipeGat/Gestor.Alfa.git
+cd Gestor.Alfa
+```
+
+#### 2. Configure as Variáveis de Ambiente
+
+```bash
+# Copie o arquivo de exemplo
+cp .env.example .env
+
+# Configure o arquivo .env com suas credenciais
+# Edite DB_PASSWORD e MYSQL_ROOT_PASSWORD
+```
+
+#### 3. Inicie os Containers
+
+```bash
+docker compose up -d --build
+```
+
+#### 4. Instale as Dependências
+
+```bash
+# Dependências PHP
+docker compose exec php-fpm composer install
+
+# Dependências Node.js
+npm install
+npm run build
+```
+
+#### 5. Configure o Banco de Dados
+
+```bash
+# Gere a chave da aplicação
+docker compose exec php-fpm php artisan key:generate
+
+# Execute as migrações e seeders
+docker compose exec php-fpm php artisan migrate --seed
+```
+
+#### 6. Acesse a Aplicação
+
+| Serviço | URL |
+|---------|-----|
+| Aplicação | http://localhost:8080 |
+| phpMyAdmin | http://localhost:8081 |
+
+---
+
+## 💻 Comandos Úteis
+
+### Docker
+
+```bash
+# Iniciar containers
+docker compose up -d
+
+# Parar containers
+docker compose down
+
+# Ver logs em tempo real
+docker compose logs -f
+
+# Rebuild completo
+docker compose up -d --build --force-recreate
+
+# Acessar terminal do PHP
+docker compose exec php-fpm bash
+
+# Acessar MySQL
+docker compose exec mysql mysql -u gestor_user -p gestor_alfa
+```
+
+### Artisan (Laravel)
+
+```bash
+# Limpar caches
+docker compose exec php-fpm php artisan config:clear
+docker compose exec php-fpm php artisan cache:clear
+docker compose exec php-fpm php artisan route:clear
+docker compose exec php-fpm php artisan view:clear
+
+# Executar migrações
+docker compose exec php-fpm php artisan migrate
+
+# Executar seeders
+docker compose exec php-fpm php artisan db:seed
+
+# Criar controller
+docker compose exec php-fpm php artisan make:controller NomeController
+
+# Criar model com migration
+docker compose exec php-fpm php artisan make:model NomeModel -m
+```
+
+### Desenvolvimento Frontend
+
+```bash
+# Modo desenvolvimento com hot reload
+npm run dev
+
+# Build para produção
+npm run build
+```
+
+### Testes
+
+```bash
+# Executar todos os testes
+docker compose exec php-fpm php artisan test
+
+# Ou usando Pest
+docker compose exec php-fpm ./vendor/bin/pest
+```
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+Gestor.Alfa/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/      # Controladores da aplicação
+│   │   │   ├── Auth/         # Autenticação (Breeze)
+│   │   │   ├── ContasPagarController.php
+│   │   │   ├── ContasReceberController.php
+│   │   │   ├── DashboardFinanceiroController.php
+│   │   │   └── ...
+│   │   └── Middleware/       # Middlewares
+│   ├── Models/               # Modelos Eloquent
+│   └── Providers/            # Service Providers
+├── bootstrap/                # Bootstrap da aplicação
+├── config/                   # Arquivos de configuração
+├── database/
+│   ├── factories/            # Factories para testes
+│   ├── migrations/           # Migrações do banco
+│   └── seeders/              # Seeders para dados iniciais
+├── nginx/                    # Configuração Nginx
+├── php/                      # Dockerfile PHP
+├── public/                   # Arquivos públicos
+├── resources/
+│   ├── css/                  # Estilos Tailwind
+│   ├── js/                   # Scripts AlpineJS
+│   └── views/                # Templates Blade
+├── routes/
+│   ├── web.php               # Rotas web
+│   └── api.php               # Rotas API
+├── storage/                  # Logs, cache, uploads
+├── tests/                    # Testes Pest/PHPUnit
+├── docker-compose.yml        # Configuração Docker
+└── composer.json             # Dependências PHP
+```
+
+### Principais Controllers
+
+| Controller | Descrição |
+|------------|-----------|
+| `DashboardAdmController` | Dashboard administrativo |
+| `DashboardComercialController` | Dashboard comercial |
+| `DashboardFinanceiroController` | Dashboard financeiro |
+| `ContasPagarController` | Gestão de contas a pagar |
+| `ContasReceberController` | Gestão de contas a receber |
+| `FornecedorController` | Cadastro de fornecedores |
+| `ClienteController` | Gestão de clientes |
+| `OrcamentoController` | Emissão de orçamentos |
+| `PortalFuncionarioController` | Portal do funcionário |
+
+---
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Siga estas diretrizes:
+
+1. **Fork** o projeto
+2. Crie uma **branch** para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. **Commit** suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. **Push** para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um **Pull Request**
+
+### Padrões de Código
+
+- Siga o padrão PSR-12
+- Execute o linter antes de commitar:
+  ```bash
+  docker compose exec php-fpm ./vendor/bin/pint
+  ```
+- Escreva testes para novas funcionalidades
+- Mantenha a cobertura de testes acima de 80%
+
+---
+
+## 🐛 Solução de Problemas
+
+### Erro 419 (CSRF) no Login
+
+```bash
+docker compose exec php-fpm php artisan config:clear
+docker compose exec php-fpm php artisan cache:clear
+```
+
+### Porta já em Uso
+
+```bash
+# Verificar processos na porta
+sudo lsof -i :8080
+
+# Parar container usando a porta
+docker compose down
+```
+
+### Permissões de Arquivos
+
+```bash
+docker compose exec php-fpm chown -R www-data:www-data /var/www/storage
+docker compose exec php-fpm chmod -R 775 /var/www/storage
+```
+
+---
+
+## 📝 Licença
+
+Este projeto é licenciado sob a [Licença MIT](LICENSE).
+
+---
+
+## 📧 Contato
+
+Para dúvidas, sugestões ou suporte, entre em contato:
+
+- **Email**: [seu-email@exemplo.com]
+- **GitHub Issues**: [https://github.com/FelipeGat/Gestor.Alfa/issues](https://github.com/FelipeGat/Gestor.Alfa/issues)
+
+---
+
+<div align="center">
+
+Desenvolvido com ❤️ usando Laravel
+
+</div>
