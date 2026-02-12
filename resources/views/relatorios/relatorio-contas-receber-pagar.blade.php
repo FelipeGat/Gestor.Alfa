@@ -4,6 +4,10 @@
     <style>
         @media print {
             .print\:hidden { display: none !important; }
+            .print-section-receber { display: block !important; page-break-after: always; }
+            .print-section-pagar { display: block !important; }
+            .print-hide-receber { display: none !important; }
+            .print-hide-pagar { display: none !important; }
         }
     </style>
     @endpush
@@ -121,10 +125,15 @@
                 </form>
             </div>
 
-            <div class="section-card mb-6">
-                <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                    <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
-                    <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Receber</h3>
+            <div id="section-contas-receber" class="section-card mb-6 print-section-receber">
+                <div class="flex justify-between items-center pt-2 pr-4 mb-4 pb-3 border-b border-gray-100 print:hidden">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+                        <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Receber</h3>
+                    </div>
+                    <button onclick="imprimirSecao('receber')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                        🖨️
+                    </button>
                 </div>
 
                 <div class="table-wrapper">
@@ -182,10 +191,15 @@
                 </div>
             </div>
 
-            <div class="section-card">
-                <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                    <div class="w-2 h-6 bg-red-500 rounded-full"></div>
-                    <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Pagar</h3>
+            <div id="section-contas-pagar" class="section-card print-section-pagar">
+                <div class="flex justify-between items-center pt-2 pr-4 mb-4 pb-3 border-b border-gray-100 print:hidden">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-6 bg-red-500 rounded-full"></div>
+                        <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Pagar</h3>
+                    </div>
+                    <button onclick="imprimirSecao('pagar')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                        🖨️
+                    </button>
                 </div>
 
                 <div class="table-wrapper">
@@ -255,4 +269,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+    function imprimirSecao(tipo) {
+        document.querySelectorAll('.print-section-receber, .print-section-pagar, .print-hide-receiver, .print-hide-pagar')
+            .forEach(el => el.classList.remove('print-section-receber', 'print-section-pagar', 'print-hide-receber', 'print-hide-pagar'));
+        
+        if (tipo === 'receber') {
+            document.getElementById('section-contas-receber').classList.add('print-section-receber');
+            document.getElementById('section-contas-pagar').classList.add('print-hide-pagar');
+        } else {
+            document.getElementById('section-contas-pagar').classList.add('print-section-pagar');
+            document.getElementById('section-contas-receber').classList.add('print-hide-receber');
+        }
+        
+        window.print();
+    }
+    </script>
 </x-app-layout>
