@@ -135,12 +135,37 @@ services:
       - gestor-network
     restart: unless-stopped
 
-networks:
-  gestor-network:
-    driver: bridge
+  # Backup Service
+  backup:
+    image: rclone/rclone:latest
+    container_name: gestor_backup
+    volumes:
+      - ./backups:/backups:rw
+      - ./scripts/backup:/scripts:ro
+      - ./data/mysql:/var/lib/mysql:ro
+      - ~/.config/rclone:/config/rclone:ro
+    environment:
+      - DB_CONTAINER=gestor_php
+      - BACKUP_DIR=/backups
+      - DRIVE_REMOTE=google_drive
+      - DRIVE_FOLDER=GestorAlfa/Backups
+      - BACKUP_RETENTION_LOCAL_HOURS=24
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DB_HOST=mysql
+    networks:
+      - gestor-network
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["sh /scripts/scheduler.sh"]
+    profiles:
+      - backup
 
 volumes:
   mysql-data:
     driver: local
   redis-data:
     driver: local
+
+networks:
+  gestor-network:
+    driver: bridge
