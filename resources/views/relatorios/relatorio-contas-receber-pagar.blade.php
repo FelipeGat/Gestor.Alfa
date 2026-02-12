@@ -42,9 +42,114 @@
 
             <div class="section-card filters-card mb-6 print:hidden">
                 <form method="GET" class="filter-form">
-                    <div class="filter-grid mb-4">
+
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 mb-4">
                         <div class="filter-group">
-                            <label class="filter-label">Empresa</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
+                            <div class="w-full" style="max-width: 700px;">
+                                <div class="flex items-center gap-2 flex-wrap">
+                            @php
+                                $hoje = \Carbon\Carbon::today();
+                                $ontem = \Carbon\Carbon::yesterday();
+                            @endphp
+                            <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Ontem
+                            </a>
+                            <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $hoje->format('Y-m-d'), 'data_fim' => $hoje->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $hoje->format('Y-m-d') && request('data_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
+                                >
+                                Hoje
+                            </a>
+                            @php
+                            $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                            $mesAnterior = $dataAtual->copy()->subMonth();
+                            $proximoMes = $dataAtual->copy()->addMonth();
+                            $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                            @endphp
+
+                            <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'data_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+
+                            <div class="flex-1 text-center font-bold text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
+                                {{ $mesAtualNome }}
+                            </div>
+
+                            <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'data_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                            </div>
+                            <details class="mt-2" id="periodoPersonalizadoDetails">
+                                <summary id="periodoPersonalizadoSummary" class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                                    🗓️ Período Personalizado
+                                </summary>
+                                @php
+                                    $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                                    $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                                    $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+                                    $dataInicio = request('data_inicio') ?? $inicioPadrao;
+                                    $dataFim = request('data_fim') ?? $fimPadrao;
+                                @endphp
+                                <div id="periodoPersonalizadoContent" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Data Inicial</label>
+                                        <input type="date" name="data_inicio" id="data_inicio_relatorio" value="{{ $dataInicio }}"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Data Final</label>
+                                        <input type="date" name="data_fim" id="data_fim_relatorio" value="{{ $dataFim }}"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                    </div>
+                                </div>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const details = document.getElementById('periodoPersonalizadoDetails');
+                                        const summary = document.getElementById('periodoPersonalizadoSummary');
+                                        if (details && summary) {
+                                            summary.addEventListener('click', function (e) {
+                                                if (!details.open) {
+                                                    e.preventDefault();
+                                                    details.open = true;
+                                                }
+                                            });
+                                        }
+                                        const dataInicio = document.getElementById('data_inicio_relatorio');
+                                        const dataFim = document.getElementById('data_fim_relatorio');
+                                        if (dataInicio && dataFim) {
+                                            dataInicio.addEventListener('change', function () {
+                                                if (dataInicio.value) {
+                                                    const data = new Date(dataInicio.value);
+                                                    data.setDate(data.getDate() + 1);
+                                                    const nextDay = data.toISOString().slice(0, 10);
+                                                    dataFim.value = nextDay;
+                                                }
+                                            });
+                                        }
+                                    });
+                                </script>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="mb-6"></div>
+
+                    <div class="bg-white rounded-lg p-4 border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filtros</label>
+                        <div class="filter-grid mb-0">
+                            <div class="filter-group">
+                                <label class="filter-label">Empresa</label>
                             <select name="empresa_id" class="filter-select">
                                 <option value="">Todas as Empresas</option>
                                 @foreach($empresas as $empresa)
@@ -92,16 +197,6 @@
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label">Inicio</label>
-                            <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="filter-input" />
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label">Fim</label>
-                            <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="filter-input" />
-                        </div>
-
-                        <div class="filter-group">
                             <label class="filter-label">Status</label>
                             <select name="status" class="filter-select">
                                 <option value="">Todos os Status</option>
@@ -114,7 +209,7 @@
                         </div>
                     </div>
 
-                    <div class="filter-actions justify-end">
+                    <div class="filter-actions justify-end mt-4">
                         <button type="submit" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
