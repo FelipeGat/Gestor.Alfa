@@ -96,6 +96,18 @@
                             <label class="filter-label">Fim</label>
                             <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="filter-input" />
                         </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">Status</label>
+                            <select name="status" class="filter-select">
+                                <option value="">Todos os Status</option>
+                                <option value="pago" {{ request('status') == 'pago' ? 'selected' : '' }}>Pago</option>
+                                <option value="vence_hoje" {{ request('status') == 'vence_hoje' ? 'selected' : '' }}>Vence Hoje</option>
+                                <option value="a_vencer" {{ request('status') == 'a_vencer' ? 'selected' : '' }}>A Vencer</option>
+                                <option value="vencido" {{ request('status') == 'vencido' ? 'selected' : '' }}>Vencido</option>
+                                <option value="em_aberto" {{ request('status') == 'em_aberto' ? 'selected' : '' }}>Em Aberto</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="filter-actions justify-end">
@@ -120,7 +132,6 @@
                         <thead>
                             <tr>
                                 <th class="text-left">Empresa</th>
-                                <th class="text-left">Centro</th>
                                 <th class="text-left">Cliente</th>
                                 <th class="text-left">Vencimento</th>
                                 <th class="text-right">Valor</th>
@@ -132,9 +143,6 @@
                                 <tr>
                                     <td class="text-left">
                                         {{ $conta->empresaRelacionada?->nome_fantasia ?? $conta->empresaRelacionada?->razao_social ?? '-' }}
-                                    </td>
-                                    <td class="text-left">
-                                        {{ $conta->orcamento?->centroCusto?->nome ?? '-' }}
                                     </td>
                                     <td class="text-left">
                                         {{ $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-' }}
@@ -151,7 +159,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-sm text-gray-500 py-6">
+                                    <td colspan="5" class="text-center text-sm text-gray-500 py-6">
                                         Nenhuma conta a receber encontrada com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -159,7 +167,7 @@
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             <tr>
-                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</td>
+                                <td colspan="3" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</td>
                                 <td class="px-4 py-4 text-right text-base font-black text-emerald-700">
                                     R$ {{ number_format($totalReceber, 2, ',', '.') }}
                                 </td>
