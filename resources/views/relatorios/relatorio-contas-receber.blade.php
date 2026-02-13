@@ -251,6 +251,14 @@
                             @endforelse
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                            @foreach($totalizadoresPorEmpresa as $total)
+                            <tr>
+                                <td colspan="5" class="px-4 py-4 text-right">
+                                    <span class="text-xs font-black text-gray-500 uppercase tracking-widest">{{ $total['nome'] }}</span>
+                                    <span class="text-base font-black text-emerald-700 ml-4">R$ {{ number_format($total['total'], 2, ',', '.') }}</span>
+                                </td>
+                            </tr>
+                            @endforeach
                             <tr>
                                 <td colspan="5" class="px-4 py-4 text-right">
                                     <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</span>
@@ -348,6 +356,16 @@
             
             var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
             
+            var totalizadoresHtml = '';
+            if (data.totalizadores_por_empresa && data.totalizadores_por_empresa.length > 0) {
+                data.totalizadores_por_empresa.forEach(function(item) {
+                    totalizadoresHtml += '<div style="text-align: right; padding: 6px 0;">';
+                    totalizadoresHtml += '<span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">' + item.nome + '</span>';
+                    totalizadoresHtml += '<span style="font-size: 13px; font-weight: bold; color: #059669; margin-left: 10px;">' + item.total_formatado + '</span>';
+                    totalizadoresHtml += '</div>';
+                });
+            }
+            
             var printWindow = window.open('', '_blank', 'width=800,height=600');
             
             printWindow.document.write(`
@@ -379,6 +397,7 @@
                     <div>
                         ${tableHtml}
                     </div>
+                    ${totalizadoresHtml}
                     <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
                         <span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</span>
                         <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">${totalValor}</span>

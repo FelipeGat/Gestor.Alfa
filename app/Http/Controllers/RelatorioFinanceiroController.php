@@ -435,6 +435,21 @@ class RelatorioFinanceiroController extends Controller
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
+        $totalizadoresPorEmpresa = (clone $queryReceber)
+            ->get()
+            ->groupBy(function ($conta) {
+                $empresa = $conta->empresaRelacionada;
+                return $empresa ? ($empresa->nome_fantasia ?? $empresa->razao_social ?? 'Sem Empresa') : 'Sem Empresa';
+            })
+            ->map(function ($grouped, $nomeEmpresa) {
+                return [
+                    'nome' => $nomeEmpresa,
+                    'total' => $grouped->sum('valor'),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
         if ($request->get('per_page') === 'all') {
             $contasReceber = $queryReceber
                 ->orderBy('data_vencimento', 'asc')
@@ -457,6 +472,7 @@ class RelatorioFinanceiroController extends Controller
         return view('relatorios.relatorio-contas-receber', compact(
             'contasReceber',
             'totalReceber',
+            'totalizadoresPorEmpresa',
             'dataInicio',
             'dataFim',
             'empresas',
@@ -539,6 +555,22 @@ class RelatorioFinanceiroController extends Controller
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
+        $totalizadoresPorEmpresa = (clone $queryReceber)
+            ->get()
+            ->groupBy(function ($conta) {
+                $empresa = $conta->empresaRelacionada;
+                return $empresa ? ($empresa->nome_fantasia ?? $empresa->razao_social ?? 'Sem Empresa') : 'Sem Empresa';
+            })
+            ->map(function ($grouped, $nomeEmpresa) {
+                return [
+                    'nome' => $nomeEmpresa,
+                    'total' => $grouped->sum('valor'),
+                    'total_formatado' => 'R$ ' . number_format($grouped->sum('valor'), 2, ',', '.'),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
         $contasReceber = $queryReceber
             ->orderBy('data_vencimento', 'asc')
             ->orderBy('created_at', 'desc')
@@ -560,6 +592,7 @@ class RelatorioFinanceiroController extends Controller
             'contas_receber' => $contasReceberFormatadas,
             'total_receber' => $totalReceber,
             'total_receber_formatado' => 'R$ ' . number_format($totalReceber, 2, ',', '.'),
+            'totalizadores_por_empresa' => $totalizadoresPorEmpresa,
             'data_inicio' => $dataInicio,
             'data_fim' => $dataFim,
             'data_inicio_formatada' => \Carbon\Carbon::parse($dataInicio)->format('d/m/Y'),
