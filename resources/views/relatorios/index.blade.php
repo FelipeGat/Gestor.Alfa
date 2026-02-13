@@ -36,19 +36,33 @@
                         <div class="text-xs text-gray-500">Cenário, risco e decisão executiva em tempo real</div>
                     </div>
                 </a>
-                <!-- Relatório: Contas a Receber e a Pagar -->
-                <a href="{{ route('relatorios.contas-receber-pagar') }}" class="group block bg-white shadow rounded-xl p-6 hover:shadow-lg transition border border-gray-100">
+                <!-- Relatório: Contas a Receber -->
+                <a href="{{ route('relatorios.contas-receber') }}" class="group block bg-white shadow rounded-xl p-6 hover:shadow-lg transition border border-gray-100">
                     <div class="flex items-center justify-center mb-4">
                         <div class="p-3 bg-emerald-100 rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2a3 3 0 006 0v-2c0-1.657-1.343-3-3-3zm0 0V6a2 2 0 10-4 0" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                             </svg>
                         </div>
                     </div>
                     <div class="text-center">
-                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-emerald-700 transition">Contas a Receber e a Pagar</div>
-                        <div class="text-xs text-gray-500">Fluxo consolidado com filtros por periodo e centro</div>
+                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-emerald-700 transition">Contas a Receber</div>
+                        <div class="text-xs text-gray-500">Relatório de contas a receber com filtros por periodo e cliente</div>
+                    </div>
+                </a>
+
+                <!-- Relatório: Contas a Pagar -->
+                <a href="{{ route('relatorios.contas-pagar') }}" class="group block bg-white shadow rounded-xl p-6 hover:shadow-lg transition border border-gray-100">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="p-3 bg-red-100 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-red-700 transition">Contas a Pagar</div>
+                        <div class="text-xs text-gray-500">Relatório de contas a pagar com filtros por periodo e fornecedor</div>
                     </div>
                 </a>
                 <!-- Adicione outros ícones de relatórios aqui -->

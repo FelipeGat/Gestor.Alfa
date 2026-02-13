@@ -18,10 +18,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('relatorios.index');
     Route::get('/relatorios/custos-orcamentos', [RelatorioCustosOrcamentosController::class, 'index'])->name('relatorios.custos-orcamentos');
     Route::get('relatorios/custos-gerencial', [\App\Http\Controllers\Relatorios\RelatorioCustoGerencialController::class, 'index'])->name('relatorios.custos-gerencial');
-    Route::get('/relatorios/contas-receber-pagar', [RelatorioFinanceiroController::class, 'contasReceberPagar'])
-        ->name('relatorios.contas-receber-pagar');
-    Route::get('/relatorios/contas-receber-pagar/json', [RelatorioFinanceiroController::class, 'contasReceberPagarJson'])
-        ->name('relatorios.contas-receber-pagar.json');
+    Route::get('/relatorios/contas-receber', [RelatorioFinanceiroController::class, 'contasReceber'])
+        ->name('relatorios.contas-receber');
+    Route::get('/relatorios/contas-receber/json', [RelatorioFinanceiroController::class, 'contasReceberJson'])
+        ->name('relatorios.contas-receber.json');
+    Route::get('/relatorios/contas-pagar', [RelatorioFinanceiroController::class, 'contasPagar'])
+        ->name('relatorios.contas-pagar');
+    Route::get('/relatorios/contas-pagar/json', [RelatorioFinanceiroController::class, 'contasPagarJson'])
+        ->name('relatorios.contas-pagar.json');
 });
 
 use App\Http\Controllers\ProfileController;
