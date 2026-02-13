@@ -289,6 +289,9 @@
             <summary class="font-medium text-gray-700">Relatórios</summary>
             <div class="pl-4 space-y-1">
                 <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')">Custos x Orçamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.custos-gerencial')">Gerencial de Custos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.contas-receber')">Contas a Receber</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.contas-pagar')">Contas a Pagar</x-responsive-nav-link>
             </div>
         </details>
         @endif
