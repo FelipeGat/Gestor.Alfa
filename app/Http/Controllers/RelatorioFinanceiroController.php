@@ -636,6 +636,22 @@ class RelatorioFinanceiroController extends Controller
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
+        $totalizadoresPorCentro = (clone $queryPagar)
+            ->select('centro_custo_id')
+            ->selectRaw('SUM(valor) as total')
+            ->with('centroCusto')
+            ->groupBy('centro_custo_id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'centro_custo_id' => $item->centro_custo_id,
+                    'nome' => $item->centroCusto?->nome ?? 'Sem Centro',
+                    'total' => $item->total,
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
         if ($request->get('per_page') === 'all') {
             $contasPagar = $queryPagar
                 ->orderBy('data_vencimento', 'asc')
@@ -658,6 +674,7 @@ class RelatorioFinanceiroController extends Controller
         return view('relatorios.relatorio-contas-pagar', compact(
             'contasPagar',
             'totalPagar',
+            'totalizadoresPorCentro',
             'dataInicio',
             'dataFim',
             'empresas',
@@ -736,6 +753,23 @@ class RelatorioFinanceiroController extends Controller
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
+        $totalizadoresPorCentro = (clone $queryPagar)
+            ->select('centro_custo_id')
+            ->selectRaw('SUM(valor) as total')
+            ->with('centroCusto')
+            ->groupBy('centro_custo_id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'centro_custo_id' => $item->centro_custo_id,
+                    'nome' => $item->centroCusto?->nome ?? 'Sem Centro',
+                    'total' => $item->total,
+                    'total_formatado' => 'R$ ' . number_format($item->total, 2, ',', '.'),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
         $contasPagar = $queryPagar
             ->orderBy('data_vencimento', 'asc')
             ->orderBy('created_at', 'desc')
@@ -758,6 +792,7 @@ class RelatorioFinanceiroController extends Controller
             'contas_pagar' => $contasPagarFormatadas,
             'total_pagar' => $totalPagar,
             'total_pagar_formatado' => 'R$ ' . number_format($totalPagar, 2, ',', '.'),
+            'totalizadores_por_centro' => $totalizadoresPorCentro,
             'data_inicio' => $dataInicio,
             'data_fim' => $dataFim,
             'data_inicio_formatada' => \Carbon\Carbon::parse($dataInicio)->format('d/m/Y'),

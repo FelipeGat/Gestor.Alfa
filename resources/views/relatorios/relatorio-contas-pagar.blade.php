@@ -255,6 +255,13 @@
                             @endforelse
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                            @foreach($totalizadoresPorCentro as $totalizador)
+                            <tr>
+                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">{{ $totalizador['nome'] }}</td>
+                                <td class="px-4 py-4 text-right text-base font-black text-blue-600">R$ {{ number_format($totalizador['total'], 2, ',', '.') }}</td>
+                                <td></td>
+                            </tr>
+                            @endforeach
                             <tr>
                                 <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</td>
                                 <td class="px-4 py-4 text-right text-base font-black text-red-600">
@@ -328,6 +335,17 @@
             var totalValor = data.total_pagar_formatado;
             var corTotal = '#dc2626';
             
+            var totalizadoresPorCentro = data.totalizadores_por_centro || [];
+            var totalizadoresHtml = '';
+            if (totalizadoresPorCentro.length > 0) {
+                totalizadoresPorCentro.forEach(function(centro) {
+                    totalizadoresHtml += '<div style="text-align: right; padding: 6px 0;">';
+                    totalizadoresHtml += '<span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">' + centro.nome + '</span>';
+                    totalizadoresHtml += '<span style="font-size: 13px; font-weight: bold; color: #2563eb; margin-left: 10px;">' + centro.total_formatado + '</span>';
+                    totalizadoresHtml += '</div>';
+                });
+            }
+            
             var tableRows = '';
             if (contas.length === 0) {
                 tableRows = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
@@ -354,6 +372,16 @@
             tableHeader += '</tr></thead>';
             
             var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
+            
+            var totalsHtml = '';
+            if (totalizadoresHtml) {
+                totalsHtml += totalizadoresHtml;
+                totalsHtml += '<div style="border-top: 1px solid #e5e7eb; margin: 8px 0;"></div>';
+            }
+            totalsHtml += '<div style="text-align: right;">';
+            totalsHtml += '<span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">' + totalLabel + '</span>';
+            totalsHtml += '<span style="font-size: 13px; font-weight: bold; color: ' + corTotal + '; margin-left: 10px;">' + totalValor + '</span>';
+            totalsHtml += '</div>';
             
             var printWindow = window.open('', '_blank', 'width=800,height=600');
             
@@ -386,9 +414,8 @@
                     <div>
                         ${tableHtml}
                     </div>
-                    <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
-                        <span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</span>
-                        <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">${totalValor}</span>
+                    <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb;">
+                        ${totalsHtml}
                     </div>
                     <div class="no-print" style="margin-top: 30px; text-align: center;">
                         <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 6px; font-weight: bold;">Imprimir</button>
