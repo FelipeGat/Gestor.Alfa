@@ -257,17 +257,17 @@
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             @foreach($totalizadoresPorCentro as $totalizador)
                             <tr>
-                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">{{ $totalizador['nome'] }}</td>
-                                <td class="px-4 py-4 text-right text-base font-black text-blue-600">R$ {{ number_format($totalizador['total'], 2, ',', '.') }}</td>
-                                <td></td>
+                                <td colspan="6" class="px-4 py-4 text-right">
+                                    <span class="text-xs font-black text-gray-500 uppercase tracking-widest">{{ $totalizador['nome'] }}</span>
+                                    <span class="text-base font-black text-blue-600 ml-4">R$ {{ number_format($totalizador['total'], 2, ',', '.') }}</span>
+                                </td>
                             </tr>
                             @endforeach
                             <tr>
-                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</td>
-                                <td class="px-4 py-4 text-right text-base font-black text-red-600">
-                                    R$ {{ number_format($totalPagar, 2, ',', '.') }}
+                                <td colspan="6" class="px-4 py-4 text-right">
+                                    <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</span>
+                                    <span class="text-base font-black text-red-600 ml-4">R$ {{ number_format($totalPagar, 2, ',', '.') }}</span>
                                 </td>
-                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
