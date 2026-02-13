@@ -356,13 +356,6 @@
                                 </td>
                                 <td></td>
                             </tr>
-                            <tr>
-                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Resultado (Receber - Pagar)</td>
-                                <td class="px-4 py-4 text-right text-base font-black {{ $resultado >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
-                                    R$ {{ number_format($resultado, 2, ',', '.') }}
-                                </td>
-                                <td></td>
-                            </tr>
                         </tfoot>
                     </table>
                 </div>
