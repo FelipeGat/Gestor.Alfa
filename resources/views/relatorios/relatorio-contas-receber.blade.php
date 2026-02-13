@@ -252,11 +252,10 @@
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             <tr>
-                                <td colspan="3" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</td>
-                                <td class="px-4 py-4 text-right text-base font-black text-emerald-700">
-                                    R$ {{ number_format($totalReceber, 2, ',', '.') }}
+                                <td colspan="5" class="px-4 py-4 text-right">
+                                    <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</span>
+                                    <span class="text-base font-black text-emerald-700 ml-4">R$ {{ number_format($totalReceber, 2, ',', '.') }}</span>
                                 </td>
-                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
