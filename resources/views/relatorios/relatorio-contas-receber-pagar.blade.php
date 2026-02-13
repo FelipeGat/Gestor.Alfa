@@ -374,98 +374,162 @@
             event.stopPropagation();
         }
         
-        // Pegar o conteúdo da seção desejada
-        var secaoId = tipo === 'receber' ? 'section-contas-receber' : 'section-contas-pagar';
-        var secao = document.getElementById(secaoId);
-        var titulo = tipo === 'receber' ? 'Relatório - Contas a Receber' : 'Relatório - Contas a Pagar';
-        var dataInicio = '{{ \Carbon\Carbon::parse($dataInicio)->format("d/m/Y") }}';
-        var dataFim = '{{ \Carbon\Carbon::parse($dataFim)->format("d/m/Y") }}';
-        
-        // Criar uma nova janela para impressão
-        var printWindow = window.open('', '_blank', 'width=800,height=600');
-        
-        // Clonar a tabela para não afetar a original
-        var tabelaOriginal = secao.querySelector('table');
-        var tabelaClone = tabelaOriginal.cloneNode(true);
-        
-        // Remover o tfoot (total mal formatado e resultado)
-        var tfoot = tabelaClone.querySelector('tfoot');
-        if (tfoot) {
-            tfoot.remove();
+        // Desabilitar o botão e mostrar indicador de carregamento
+        var btn = event ? event.target : null;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Carregando...';
         }
         
-        // Remover classes Tailwind que podem causar problemas na impressão
-        tabelaClone.className = '';
-        tabelaClone.style.width = '100%';
-        tabelaClone.style.borderCollapse = 'collapse';
-        
-        // Aplicar estilos inline nas células
-        var ths = tabelaClone.querySelectorAll('th');
-        ths.forEach(function(th) {
-            th.style.backgroundColor = '#f5f5f5';
-            th.style.padding = '6px 8px';
-            th.style.textAlign = 'left';
-            th.style.borderBottom = '1px solid #ddd';
-            th.style.fontWeight = 'bold';
-            th.style.fontSize = '11px';
+        // Pegar os parâmetros atuais da URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var params = {};
+        urlParams.forEach(function(value, key) {
+            params[key] = value;
         });
         
-        var tds = tabelaClone.querySelectorAll('td');
-        tds.forEach(function(td) {
-            td.style.padding = '5px 8px';
-            td.style.borderBottom = '1px solid #eee';
-            td.style.fontSize = '11px';
+        // Fazer requisição AJAX para buscar todos os dados
+        var url = '{{ route("relatorios.contas-receber-pagar.json") }}' + '?' + urlParams.toString();
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Erro na requisição: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            // Montar a tabela HTML com todos os dados
+            var titulo = tipo === 'receber' ? 'Relatório - Contas a Receber' : 'Relatório - Contas a Pagar';
+            var dataInicio = data.data_inicio_formatada;
+            var dataFim = data.data_fim_formatada;
+            
+            var contas = tipo === 'receber' ? data.contas_receber : data.contas_pagar;
+            var totalLabel = tipo === 'receber' ? 'Total a Receber' : 'Total a Pagar';
+            var totalValor = tipo === 'receber' ? data.total_receber_formatado : data.total_pagar_formatado;
+            var corTotal = tipo === 'receber' ? '#059669' : '#dc2626';
+            
+            // Criar as linhas da tabela
+            var tableRows = '';
+            if (contas.length === 0) {
+                var colspan = tipo === 'receber' ? '5' : '6';
+                tableRows = '<tr><td colspan="' + colspan + '" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
+            } else {
+                contas.forEach(function(conta) {
+                    if (tipo === 'receber') {
+                        tableRows += '<tr>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669;">' + conta.valor_formatado + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '</tr>';
+                    } else {
+                        tableRows += '<tr>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.centro_custo || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.fornecedor || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #dc2626;">' + conta.valor_formatado + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '</tr>';
+                    }
+                });
+            }
+            
+            // Criar o cabeçalho da tabela
+            var tableHeader = '';
+            if (tipo === 'receber') {
+                tableHeader = '<thead><tr>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Cliente</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
+                tableHeader += '</tr></thead>';
+            } else {
+                tableHeader = '<thead><tr>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Fornecedor</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
+                tableHeader += '</tr></thead>';
+            }
+            
+            var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
+            
+            // Criar uma nova janela para impressão
+            var printWindow = window.open('', '_blank', 'width=800,height=600');
+            
+            // Escrever o HTML da nova janela
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${titulo}</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 15mm;
+                        }
+                        @media print {
+                            body { margin: 0; padding: 15mm; }
+                            .no-print { display: none; }
+                            table { page-break-inside: auto; }
+                            tr { page-break-inside: avoid; page-break-after: auto; }
+                            thead { display: table-header-group; }
+                            tfoot { display: table-footer-group; }
+                        }
+                    </style>
+                </head>
+                <body style="font-family: Arial, sans-serif; margin: 0; padding: 15mm; color: #333; font-size: 11px;">
+                    <h1 style="font-size: 18px; margin-bottom: 5px; color: #000;">${titulo}</h1>
+                    <p style="font-size: 11px; color: #666; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                        Período: ${dataInicio} a ${dataFim}
+                    </p>
+                    <div>
+                        ${tableHtml}
+                    </div>
+                    <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
+                        <span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</span>
+                        <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">${totalValor}</span>
+                    </div>
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">🖨️ Imprimir</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">✕ Fechar</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            
+            // Reabilitar o botão
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '🖨️';
+            }
+        })
+        .catch(function(error) {
+            console.error('Erro ao carregar dados para impressão:', error);
+            alert('Erro ao carregar dados para impressão. Tente novamente.');
+            
+            // Reabilitar o botão
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '🖨️';
+            }
         });
-        
-        // Pegar o valor total e definir cor
-        var totalValor = tipo === 'receber' ? '{{ number_format($totalReceber, 2, ",", ".") }}' : '{{ number_format($totalPagar, 2, ",", ".") }}';
-        var totalLabel = tipo === 'receber' ? 'Total a Receber' : 'Total a Pagar';
-        var corTotal = tipo === 'receber' ? '#059669' : '#dc2626';
-        
-        // Escrever o HTML da nova janela
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>${titulo}</title>
-                <meta charset="UTF-8">
-                <style>
-                    @page {
-                        size: A4;
-                        margin: 15mm;
-                    }
-                    @media print {
-                        body { margin: 0; padding: 15mm; }
-                        .no-print { display: none; }
-                        table { page-break-inside: auto; }
-                        tr { page-break-inside: avoid; page-break-after: auto; }
-                        thead { display: table-header-group; }
-                        tfoot { display: table-footer-group; }
-                    }
-                </style>
-            </head>
-            <body style="font-family: Arial, sans-serif; margin: 0; padding: 15mm; color: #333; font-size: 11px;">
-                <h1 style="font-size: 18px; margin-bottom: 5px; color: #000;">${titulo}</h1>
-                <p style="font-size: 11px; color: #666; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
-                    Período: ${dataInicio} a ${dataFim}
-                </p>
-                <div>
-                    ${tabelaClone.outerHTML}
-                </div>
-                <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb; text-align: right;">
-                    <span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${totalLabel}</span>
-                    <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">R$&nbsp;${totalValor}</span>
-                </div>
-                <div class="no-print" style="margin-top: 30px; text-align: center;">
-                    <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
-                    <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">Fechar</button>
-                </div>
-            </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-        printWindow.focus();
     }
     </script>
 </x-app-layout>

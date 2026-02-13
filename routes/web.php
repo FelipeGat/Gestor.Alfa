@@ -20,6 +20,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('relatorios/custos-gerencial', [\App\Http\Controllers\Relatorios\RelatorioCustoGerencialController::class, 'index'])->name('relatorios.custos-gerencial');
     Route::get('/relatorios/contas-receber-pagar', [RelatorioFinanceiroController::class, 'contasReceberPagar'])
         ->name('relatorios.contas-receber-pagar');
+    Route::get('/relatorios/contas-receber-pagar/json', [RelatorioFinanceiroController::class, 'contasReceberPagarJson'])
+        ->name('relatorios.contas-receber-pagar.json');
 });
 
 use App\Http\Controllers\ProfileController;
