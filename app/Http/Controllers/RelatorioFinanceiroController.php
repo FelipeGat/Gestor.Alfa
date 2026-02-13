@@ -108,11 +108,18 @@ class RelatorioFinanceiroController extends Controller
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
-        $contasReceber = $queryReceber
-            ->orderBy('data_vencimento', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15, ['*'], 'receber_page')
-            ->withQueryString();
+        if ($request->get('per_page') === 'all') {
+            $contasReceber = $queryReceber
+                ->orderBy('data_vencimento', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $contasReceber = $queryReceber
+                ->orderBy('data_vencimento', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(15, ['*'], 'receber_page')
+                ->withQueryString();
+        }
 
         $queryPagar = ContaPagar::with([
             'fornecedor',
@@ -141,13 +148,21 @@ class RelatorioFinanceiroController extends Controller
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
-        $contasPagar = $queryPagar
-            ->orderBy('data_vencimento', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15, ['*'], 'pagar_page')
-            ->withQueryString();
+        if ($request->get('per_page') === 'all') {
+            $contasPagar = $queryPagar
+                ->orderBy('data_vencimento', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $contasPagar = $queryPagar
+                ->orderBy('data_vencimento', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(15, ['*'], 'pagar_page')
+                ->withQueryString();
+        }
 
         $resultado = $totalReceber - $totalPagar;
+        $impressao = $request->get('impressao') == '1';
 
         $empresas = Empresa::orderBy('nome_fantasia')->orderBy('razao_social')->get();
         $centrosCusto = CentroCusto::orderBy('nome')->get();
@@ -165,7 +180,8 @@ class RelatorioFinanceiroController extends Controller
             'empresas',
             'centrosCusto',
             'clientes',
-            'fornecedores'
+            'fornecedores',
+            'impressao'
         ));
     }
 }

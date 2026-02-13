@@ -231,9 +231,9 @@
                         <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Receber</h3>
                     </div>
-                    <button type="button" onclick="imprimirSecao(event, 'receber')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                    <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->all(), ['per_page' => 'all', 'impressao' => '1'])) }}" target="_blank" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir todas as páginas">
                         🖨️
-                    </button>
+                    </a>
                 </div>
 
                 <div class="table-wrapper">
@@ -286,9 +286,11 @@
                     </table>
                 </div>
 
+                @if(!$impressao)
                 <div class="pagination-container p-4">
                     {{ $contasReceber->links() }}
                 </div>
+                @endif
             </div>
 
             <div id="section-contas-pagar" class="section-card print-section-pagar">
@@ -301,9 +303,9 @@
                         <div class="w-2 h-6 bg-red-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Pagar</h3>
                     </div>
-                    <button type="button" onclick="imprimirSecao(event, 'pagar')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
+                    <a href="{{ route('relatorios.contas-receber-pagar', array_merge(request()->all(), ['per_page' => 'all', 'impressao' => '1'])) }}" target="_blank" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir todas as páginas">
                         🖨️
-                    </button>
+                    </a>
                 </div>
 
                 <div class="table-wrapper">
@@ -360,12 +362,25 @@
                     </table>
                 </div>
 
+                @if(!$impressao)
                 <div class="pagination-container p-4">
                     {{ $contasPagar->links() }}
                 </div>
+                @endif
             </div>
         </div>
     </div>
+
+    @if($impressao)
+    <script>
+        // Auto-imprimir quando estiver no modo de impressão
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+    @endif
 
     <script>
     function imprimirSecao(event, tipo) {
