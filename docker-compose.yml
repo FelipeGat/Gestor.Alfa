@@ -137,13 +137,14 @@ services:
 
   # Backup Service
   backup:
-    image: rclone/rclone:latest
+    image: docker:cli
     container_name: gestor_backup
     volumes:
       - ./backups:/backups:rw
-      - ./scripts/backup:/scripts:ro
+      - ./scripts/backup:/scripts:rw
       - ./data/mysql:/var/lib/mysql:ro
       - ~/.config/rclone:/config/rclone:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DB_CONTAINER=gestor_php
       - BACKUP_DIR=/backups
@@ -156,7 +157,7 @@ services:
       - gestor-network
     restart: unless-stopped
     entrypoint: ["/bin/sh", "-c"]
-    command: ["sh /scripts/scheduler.sh"]
+    command: ["apk add --no-cache rclone && sh /scripts/scheduler.sh"]
     profiles:
       - backup
 
