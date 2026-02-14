@@ -2,6 +2,8 @@
 # health-check.sh - Verifica saúde do MySQL e backups
 # Executar via cron: */10 * * * * /root/Gestor.Alfa/scripts/monitoring/health-check.sh
 
+export TZ="America/Sao_Paulo"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 

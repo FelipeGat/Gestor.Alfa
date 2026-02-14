@@ -2,6 +2,8 @@
 # alert-telegram.sh - Envia notificações para o Telegram
 #用法: ./alert-telegram.sh "mensagem" [severidade]
 
+export TZ="America/Sao_Paulo"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -36,11 +38,11 @@ send_telegram() {
         *) emoji="📢" ;;
     esac
     
-    local full_message="${emoji} *Gestor Alfa - $severity*
+    local full_message="${emoji} *Gestor Alfa - $severidade*
 
 $message
 
-⏰ $(date '+%d/%m/%Y às %H:%M:%S')"
+⏰ $(date '+%d/%m/%Y às %H:%M:%S') (Brasília)"
     
     local url="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
     
