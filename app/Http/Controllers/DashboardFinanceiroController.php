@@ -438,17 +438,14 @@ class DashboardFinanceiroController extends Controller
          * SITUAÇÃO (dentro do período filtrado)
          */
         // Atrasados = contas vencidas antes do período que ainda não foram pagas
-        $atrasado = Cobranca::where('status', '!=', 'pago')
-            ->whereDate('data_vencimento', '<', $inicio)
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+        $atrasado = ContaPagar::query()
+            ->whereIn('status', ['em_aberto', 'atrasado'])
+            ->whereDate('data_vencimento', '<', now()->toDateString())
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', function ($oq) use ($empresaId) {
+                    $oq->where('empresa_id', $empresaId);
+                });
+            })
             ->sum('valor');
 
         // Pago = cobranças pagas dentro do período filtrado
