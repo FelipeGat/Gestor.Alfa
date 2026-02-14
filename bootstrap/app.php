@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard.comercial' => \App\Http\Middleware\DashboardComercialMiddleware::class,
             'dashboard.admin' => \App\Http\Middleware\DashboardAdminMiddleware::class,
             'financeiro' => \App\Http\Middleware\FinanceiroMiddleware::class,
+            'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+        
+        $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
