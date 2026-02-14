@@ -654,6 +654,8 @@ class RelatorioFinanceiroController extends Controller
                         $oq->where('empresa_id', $empresaId);
                     })->orWhereHas('contaFinanceira', function ($cq) use ($empresaId) {
                         $cq->where('empresa_id', $empresaId);
+                    })->orWhereHas('centroCusto', function ($ccq) use ($empresaId) {
+                        $ccq->where('empresa_id', $empresaId);
                     });
                 });
             })
@@ -664,8 +666,8 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
@@ -771,6 +773,8 @@ class RelatorioFinanceiroController extends Controller
                         $oq->where('empresa_id', $empresaId);
                     })->orWhereHas('contaFinanceira', function ($cq) use ($empresaId) {
                         $cq->where('empresa_id', $empresaId);
+                    })->orWhereHas('centroCusto', function ($ccq) use ($empresaId) {
+                        $ccq->where('empresa_id', $empresaId);
                     });
                 });
             })
@@ -781,8 +785,8 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
