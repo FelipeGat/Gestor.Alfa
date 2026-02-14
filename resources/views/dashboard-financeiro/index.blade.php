@@ -370,91 +370,7 @@
                                     </div>
                                     <span id="modal-total" class="text-base font-semibold text-gray-700"></span>
                                 </div>
-                                    <style>
-                                    @media print {
-                                        /* Esconde tudo que não é o modal ou seus pais */
-                                        body * { visibility: hidden !important; }
-                                        #modal-lancamentos, #modal-lancamentos * { visibility: visible !important; }
-                                        
-                                        /* Posicionamento do modal no topo absoluto */
-                                        #modal-lancamentos { 
-                                            position: fixed !important; 
-                                            left: 0 !important; 
-                                            top: 0 !important; 
-                                            width: 100% !important; 
-                                            height: auto !important;
-                                            margin: 0 !important; 
-                                            padding: 0 !important; 
-                                            background: white !important; 
-                                            z-index: 9999 !important;
-                                            overflow: visible !important;
-                                            opacity: 1 !important;
-                                            transform: none !important;
-                                        }
-                                        
-                                        #modal-lancamentos .bg-white { 
-                                            box-shadow: none !important; 
-                                            padding: 0 !important; 
-                                            margin: 0 !important;
-                                            width: 100% !important;
-                                            max-width: none !important;
-                                        }
 
-                                        .print\:hidden { display: none !important; }
-
-                                        /* Remove scroll e trava de altura */
-                                        #modal-lancamentos .max-h-80 { 
-                                            max-height: none !important; 
-                                            overflow: visible !important; 
-                                        }
-
-                                        /* Estilização da Tabela de Relatório */
-                                        #modal-lancamentos table { 
-                                            width: 100% !important; 
-                                            border-collapse: collapse !important; 
-                                            margin-top: 10px !important;
-                                            table-layout: auto !important;
-                                        }
-                                        #modal-lancamentos th { 
-                                            background-color: #f8fafc !important; 
-                                            color: #1e293b !important;
-                                            border: 1px solid #cbd5e1 !important; 
-                                            padding: 8px 6px !important;
-                                            text-transform: uppercase;
-                                            font-size: 9px;
-                                        }
-                                        #modal-lancamentos td { 
-                                            border: 1px solid #e2e8f0 !important; 
-                                            padding: 6px !important;
-                                            font-size: 9px;
-                                            color: #334155 !important;
-                                        }
-                                        
-                                        /* Forçar cores na impressão */
-                                        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                                        
-                                        /* Configuração de página para remover cabeçalhos/rodapés do navegador se possível */
-                                        @page { margin: 1cm; }
-                                    }
-                                    </style>
-                                    <script>
-                                    function imprimirModalLancamentos() {
-                                        window.print();
-                                    }
-                                    </script>
-                                <div id="modal-print-header" class="hidden print:flex flex-col mb-6 border-b-2 border-gray-800 pb-4">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight" id="print-header-titulo"></h1>
-                                            <p class="text-xs text-gray-500 font-medium" id="print-header-data"></p>
-                                        </div>
-                                        <div class="text-right flex flex-col items-end">
-                                            <span class="text-[10px] text-gray-400 uppercase font-bold">Valor Total do Relatório</span>
-                                            <div id="print-header-total" class="text-xl font-bold"></div>
-                                            <span class="text-[10px] text-gray-400 mt-1 italic">Relatório Gerencial de Lançamentos</span>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div id="modal-lista-lancamentos" class="max-h-80 overflow-y-auto text-sm">
                                     <!-- Conteúdo preenchido via JS -->
                                 </div>
@@ -640,12 +556,13 @@
         const lancamentosAtrasado = @json($lancamentosAtrasado ?? []);
         const lancamentosPago = @json($lancamentosPago ?? []);
         const lancamentosDiferenca = @json($lancamentosDiferenca ?? []);
+        let currentTipoLancamento = '';
+
         function mostrarLancamentos(tipo) {
+            currentTipoLancamento = tipo;
             let lista = [];
             let titulo = '';
             let totalColor = '';
-            const dataAtual = new Date().toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            document.getElementById('print-header-data').innerText = `Gerado em: ${dataAtual}`;
 
             if (tipo === 'receita') {
                 lista = lancamentosReceita;
@@ -681,9 +598,6 @@
             let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
             
             document.getElementById('modal-titulo').innerText = titulo;
-            document.getElementById('print-header-titulo').innerText = titulo;
-            document.getElementById('print-header-total').innerHTML = totalFormatado;
-            document.getElementById('print-header-total').className = `text-xl font-bold ${totalColor}`;
             document.getElementById('modal-total').innerHTML = `<span class='${totalColor}'>${totalFormatado}</span>`;
             const container = document.getElementById('modal-lista-lancamentos');
             if (lista.length === 0) {
@@ -732,6 +646,127 @@
         function fecharModalLancamentos() {
             document.getElementById('modal-lancamentos').classList.add('hidden');
         }
+
+        function getTipoInfo(tipo) {
+            const info = {
+                'receita': { lista: lancamentosReceita, titulo: 'Lançamentos de Receita', cor: '#16a34a' },
+                'despesa': { lista: lancamentosDespesa, titulo: 'Lançamentos de Despesa', cor: '#dc2626' },
+                'previsto_receber': { lista: lancamentosPrevistoReceber, titulo: 'Lançamentos a Receber', cor: '#16a34a' },
+                'previsto_pagar': { lista: lancamentosPrevistoPagar, titulo: 'Lançamentos a Pagar', cor: '#dc2626' },
+                'situacao_atrasado': { lista: lancamentosAtrasado, titulo: 'Despesas Atrasadas', cor: '#dc2626' },
+                'situacao_pago': { lista: lancamentosPago, titulo: 'Receitas Atrasadas', cor: '#16a34a' },
+                'situacao_diferenca': { lista: lancamentosDiferenca, titulo: 'Lançamentos Diferença', cor: '#2563eb' }
+            };
+            return info[tipo] || { lista: [], titulo: 'Lançamentos', cor: '#333' };
+        }
+
+        function imprimirModalLancamentos() {
+            const tipo = currentTipoLancamento || 'receita';
+            const tipoInfo = getTipoInfo(tipo);
+            const lista = tipoInfo.lista;
+            const titulo = tipoInfo.titulo;
+            const corTotal = tipoInfo.cor;
+
+            const dataAtual = new Date().toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            let total = lista.reduce((acc, l) => acc + (parseFloat(l.valor) || 0), 0);
+            let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            let thExtra = '';
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
+            } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
+                thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro de Custo</th>';
+            }
+
+            let thCnpj = '';
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                thCnpj = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">CNPJ/CPF</th>';
+            }
+
+            let tableHeader = '<thead><tr>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Pagamento</th>';
+            tableHeader += thExtra;
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Cliente/Fornecedor</th>';
+            tableHeader += thCnpj;
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Tipo</th>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
+            tableHeader += '</tr></thead>';
+
+            let tableRows = '';
+            if (lista.length === 0) {
+                tableRows = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #666;">Nenhum lançamento encontrado.</td></tr>';
+            } else {
+                lista.forEach(function(l) {
+                    let valorFormatado = 'R$ ' + (parseFloat(l.valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    tableRows += '<tr>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.data || '-') + '</td>';
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.empresa || '-') + '</td>';
+                    } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.centro_custo || '-') + '</td>';
+                    }
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cliente || '-') + '</td>';
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cnpjcpf || '-') + '</td>';
+                    }
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.descricao || '-') + '</td>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.tipo || '-') + '</td>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: ' + corTotal + '; white-space: nowrap;">' + valorFormatado + '</td>';
+                    tableRows += '</tr>';
+                });
+            }
+
+            let tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
+
+            let totalsHtml = '<div style="text-align: right; margin-top: 20px; padding: 10px; background-color: #f9fafb; border-top: 2px solid #e5e7eb;">';
+            totalsHtml += '<span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Total</span>';
+            totalsHtml += '<span style="font-size: 13px; font-weight: bold; color: ' + corTotal + '; margin-left: 10px;">' + totalFormatado + '</span>';
+            totalsHtml += '</div>';
+
+            let printWindow = window.open('', '_blank', 'width=800,height=600');
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${titulo}</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 15mm;
+                        }
+                        @media print {
+                            body { margin: 0; padding: 15mm; }
+                            .no-print { display: none; }
+                            table { page-break-inside: auto; }
+                            tr { page-break-inside: avoid; page-break-after: auto; }
+                            thead { display: table-header-group; }
+                            tfoot { display: table-footer-group; }
+                        }
+                    </style>
+                </head>
+                <body style="font-family: Arial, sans-serif; margin: 0; padding: 15mm; color: #333; font-size: 11px;">
+                    <h1 style="font-size: 18px; margin-bottom: 5px; color: #000;">${titulo}</h1>
+                    <p style="font-size: 11px; color: #666; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                        Gerado em: ${dataAtual}
+                    </p>
+                    <div>
+                        ${tableHtml}
+                    </div>
+                    ${totalsHtml}
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 6px; font-weight: bold;">Imprimir</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; margin-left: 10px; background: #e5e7eb; color: #374151; border: none; border-radius: 6px; font-weight: bold;">Fechar</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
         // Fechar modal ao clicar fora
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('modal-lancamentos');
