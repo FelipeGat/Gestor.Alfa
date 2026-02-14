@@ -38,9 +38,14 @@ check_mysql_online() {
     
     if docker exec gestor_mysql mysqladmin ping -h localhost -uroot -p"$MYSQL_ROOT_PASSWORD" --silent 2>/dev/null; then
         log "MySQL está online"
+        
+        local last_status=$(cat "$LAST_STATUS_FILE" 2>/dev/null)
+        if [ "$last_status" = "MYSQL_OFFLINE" ]; then
+            send_alert "✅ MySQL está novamente ONLINE! (Problema resolvido)" "INFO"
+        fi
         return 0
     else
-        send_alert "MySQL está OFFLINE ou inacessível!" "CRITICAL"
+        send_alert "🚨 MySQL está OFFLINE ou inacessível!" "CRITICAL"
         echo "MYSQL_OFFLINE" > "$LAST_STATUS_FILE"
         return 1
     fi
@@ -166,6 +171,7 @@ main() {
     elif ! check_backup_integrity; then
         status="CORRUPT_BACKUP"
     else
+        status="OK"
         check_disk_space
     fi
     
