@@ -10,10 +10,17 @@ use App\Models\ContaPagar;
 use App\Models\Subcategoria;
 use App\Models\Conta;
 use App\Models\ContaFixaPagar;
+use App\Services\Financeiro\ContaPagarService;
 
 
 class ContasPagarController extends Controller
 {
+    protected $service;
+
+    public function __construct(ContaPagarService $service)
+    {
+        $this->service = $service;
+    }
 
     /**
      * Exibe a listagem principal das contas a pagar
@@ -97,13 +104,9 @@ class ContasPagarController extends Controller
             ->paginate(15)
             ->appends($request->except('page'));
 
-        // KPIs financeiros
-        $kpis = [
-            'a_pagar' => ContaPagar::where('status', 'em_aberto')->whereDate('data_vencimento', '>=', now()->startOfMonth())->sum('valor'),
-            'pago' => ContaPagar::where('status', 'pago')->whereDate('data_vencimento', '>=', now()->startOfMonth())->sum('valor'),
-            'vencido' => ContaPagar::where('status', '!=', 'pago')->whereDate('data_vencimento', '<', now()->toDateString())->sum('valor'),
-            'vence_hoje' => ContaPagar::where('status', 'em_aberto')->whereDate('data_vencimento', now()->toDateString())->sum('valor'),
-        ];
+        // KPIs - usando service
+        $kpis = $this->service->calcularKPIs();
+        $contadoresStatus = $this->service->contarPorStatus();
 
         // Total geral filtrado (soma dos valores das contas exibidas na página)
         $totalGeralFiltrado = $contas->sum('valor');
@@ -117,13 +120,6 @@ class ContasPagarController extends Controller
         $contasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get();
 
         $contasFiltro = \App\Models\Conta::orderBy('nome')->get();
-
-        // Contadores de status
-        $contadoresStatus = [
-            'em_aberto' => ContaPagar::where('status', 'em_aberto')->count(),
-            'vencido' => ContaPagar::where('status', '!=', 'pago')->where('data_vencimento', '<', now()->toDateString())->count(),
-            'pago' => ContaPagar::where('status', 'pago')->count(),
-        ];
 
         // Adicione outras variáveis conforme necessário para a view
         return view('financeiro.contasapagar', compact('contas', 'centrosCusto', 'categorias', 'subcategorias', 'contasFiltro', 'contadoresStatus', 'kpis', 'totalGeralFiltrado', 'contasFinanceiras'));
@@ -147,37 +143,11 @@ class ContasPagarController extends Controller
             'data_pagamento' => 'required|date',
         ]);
 
-        DB::transaction(function () use ($ids, $request) {
-            foreach ($ids as $id) {
-                $conta = \App\Models\ContaPagar::find($id);
-                if (!$conta || $conta->status === 'pago') {
-                    continue;
-                }
-                $conta->status = 'pago';
-                $conta->pago_em = $request->data_pagamento;
-                $conta->data_pagamento = $request->data_pagamento;
-                $conta->conta_financeira_id = $request->conta_financeira_id;
-                $conta->forma_pagamento = $request->forma_pagamento;
-                $conta->user_id = $request->user() ? $request->user()->id : null;
-                $conta->save();
-
-                // Atualizar saldo da conta financeira e registrar movimentação
-                $contaFinanceira = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
-                if ($contaFinanceira) {
-                    $contaFinanceira->decrement('saldo', $conta->valor);
-                    \App\Models\MovimentacaoFinanceira::create([
-                        'conta_origem_id' => $request->conta_financeira_id,
-                        'conta_destino_id' => null,
-                        'tipo' => 'saida',
-                        'valor' => $conta->valor,
-                        'saldo_resultante' => $contaFinanceira->saldo,
-                        'observacao' => 'Pagamento de conta ID ' . $conta->id,
-                        'user_id' => $request->user() ? $request->user()->id : null,
-                        'data_movimentacao' => $request->data_pagamento,
-                    ]);
-                }
-            }
-        });
+        $this->service->pagar($ids, [
+            'conta_financeira_id' => $request->conta_financeira_id,
+            'forma_pagamento' => $request->forma_pagamento,
+            'data_pagamento' => $request->data_pagamento,
+        ]);
 
         return redirect()->route('financeiro.contasapagar')->with('success', 'Contas pagas com sucesso!');
     }
@@ -367,7 +337,7 @@ class ContasPagarController extends Controller
             'orcamento_id' => 'nullable|exists:orcamentos,id',
         ]);
 
-        ContaPagar::create([
+        $this->service->criar([
             'centro_custo_id' => $request->centro_custo_id,
             'conta_id' => $request->conta_id,
             'descricao' => $request->descricao,
@@ -427,7 +397,7 @@ class ContasPagarController extends Controller
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
         ]);
 
-        $conta->update([
+        $this->service->atualizar($conta->id, [
             'centro_custo_id' => $request->centro_custo_id,
             'conta_id' => $request->conta_id,
             'descricao' => $request->descricao,
@@ -454,15 +424,12 @@ class ContasPagarController extends Controller
             403
         );
 
-        // Não permitir excluir conta paga
         if ($conta->status === 'pago') {
             return back()->withErrors(['error' => 'Não é possível excluir uma conta já paga.']);
         }
 
-        // Se for conta fixa e tem parâmetro delete_future
         if ($conta->tipo === 'fixa' && $request->has('delete_future')) {
             if ($request->delete_future === 'all') {
-                // Deletar essa e todas as próximas não pagas da mesma conta fixa
                 ContaPagar::where('conta_fixa_pagar_id', $conta->conta_fixa_pagar_id)
                     ->where('status', '!=', 'pago')
                     ->where('data_vencimento', '>=', $conta->data_vencimento)
@@ -472,8 +439,7 @@ class ContasPagarController extends Controller
             }
         }
 
-        // Deletar apenas essa conta
-        $conta->delete();
+        $this->service->excluir($conta->id);
 
         return back()->with('success', 'Conta a pagar excluída com sucesso!');
     }
