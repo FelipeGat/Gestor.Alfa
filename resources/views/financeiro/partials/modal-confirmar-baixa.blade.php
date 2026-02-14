@@ -69,8 +69,10 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
     "
     x-show="open"
     x-cloak
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+    class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-[100dvh] px-4 py-4">
+        <div x-show="open" class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="open = false"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">
             <span x-show="!modoMultiplo()">Confirmar Baixa</span>
             <span x-show="modoMultiplo()">Confirmar baixa de <span x-text="cobrancaIds.length"></span> cobranças selecionadas</span>
@@ -233,5 +235,6 @@ $todasContasFinanceiras = \App\Models\ContaFinanceira::where('ativo', true)
                 </button>
             </div>
         </form>
+    </div>
     </div>
 </div>

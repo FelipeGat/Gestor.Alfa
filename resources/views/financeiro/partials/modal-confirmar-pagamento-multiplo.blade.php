@@ -1,8 +1,10 @@
 <div x-data="{ open: false, contaPagarIds: [], action: '' }"
      x-on:confirmar-pagamento-multiplo.window="open = true; contaPagarIds = $event.detail.contaPagarIds; action = '{{ route('financeiro.contasapagar.baixa-multipla') }}'"
      x-show="open"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+     class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-[100dvh] px-4 py-4">
+        <div x-show="open" class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="open = false"></div>
+        <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 class="text-xl font-bold mb-4">Confirmar pagamento de <span x-text="contaPagarIds.length"></span> contas selecionadas</h2>
         <form :action="action" method="POST">
             @csrf
@@ -35,5 +37,6 @@
                 <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg">Confirmar Pagamento</button>
             </div>
         </form>
+    </div>
     </div>
 </div>
