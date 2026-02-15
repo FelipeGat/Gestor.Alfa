@@ -1170,13 +1170,12 @@ class ContasReceberController extends Controller
             abort(404, 'Arquivo não disponível (upload incompleto ou arquivo perdido)');
         }
 
-        $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
-
-        if (!file_exists($caminhoCompleto)) {
+        // Usar o disco 'public' configurado para data/uploads
+        if (!Storage::disk('public')->exists($anexo->caminho)) {
             abort(404, 'Arquivo não encontrado no servidor: ' . $anexo->nome_original);
         }
 
-        return response()->download($caminhoCompleto, $anexo->nome_original);
+        return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
     }
 
     /**
