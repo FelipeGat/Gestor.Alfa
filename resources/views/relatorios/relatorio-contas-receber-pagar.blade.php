@@ -231,9 +231,9 @@
                         <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Receber</h3>
                     </div>
-                    <button type="button" onclick="imprimirSecao(event, 'receber')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
-                        🖨️
-                    </button>
+                    <button type="button" onclick="imprimirSecao(event, 'receber')" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" /></svg>
+                        </button>
                 </div>
 
                 <div class="table-wrapper">
@@ -301,9 +301,9 @@
                         <div class="w-2 h-6 bg-red-500 rounded-full"></div>
                         <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Contas a Pagar</h3>
                     </div>
-                    <button type="button" onclick="imprimirSecao(event, 'pagar')" class="ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm font-semibold print:hidden" title="Imprimir">
-                        🖨️
-                    </button>
+                    <button type="button" onclick="imprimirSecao(event, 'pagar')" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" /></svg>
+                        </button>
                 </div>
 
                 <div class="table-wrapper">

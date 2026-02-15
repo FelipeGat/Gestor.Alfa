@@ -242,8 +242,8 @@
                                             @else
                                             <span class="text-xs text-gray-400">Gerada</span>
                                             @endif
-                                            <a href="{{ route('orcamentos.imprimir', $orcamento->id) }}" target="_blank" class="btn btn-secondary btn-sm" title="Imprimir Orçamento">
-                                                🖨️
+                                            <a href="{{ route('orcamentos.imprimir', $orcamento->id) }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95" title="Imprimir Orçamento">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" /></svg>
                                             </a>
                                         </div>
                                     </td>
