@@ -10,6 +10,8 @@ class ContaPagar extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'contas_pagar';
+
     protected $fillable = [
         'centro_custo_id',
         'fornecedor_id',
