@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\ContaPagar;
 use App\Models\ContaPagarAnexo;
@@ -931,14 +932,31 @@ class ContasPagarController extends Controller
     public function downloadAnexo(ContaPagarAnexo $anexo)
     {
         try {
-            $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
-
-            if (!file_exists($caminhoCompleto)) {
-                abort(404, 'Arquivo não encontrado');
+            \Log::info('Download anexo iniciado', [
+                'anexo_id' => $anexo->id,
+                'caminho' => $anexo->caminho,
+                'nome_original' => $anexo->nome_original
+            ]);
+            
+            // Usar o disco 'public' configurado para data/uploads
+            if (!Storage::disk('public')->exists($anexo->caminho)) {
+                \Log::error('Arquivo não encontrado no storage', [
+                    'caminho' => $anexo->caminho,
+                    'anexo_id' => $anexo->id
+                ]);
+                abort(404, 'Arquivo não encontrado no servidor');
             }
 
-            return response()->download($caminhoCompleto, $anexo->nome_original);
+            \Log::info('Arquivo encontrado, iniciando download', [
+                'caminho' => $anexo->caminho
+            ]);
+
+            return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
         } catch (\Exception $e) {
+            \Log::error('Erro ao fazer download do anexo', [
+                'anexo_id' => $anexo->id ?? null,
+                'erro' => $e->getMessage()
+            ]);
             abort(500, 'Erro ao fazer download do anexo: ' . $e->getMessage());
         }
     }
