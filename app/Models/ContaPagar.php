@@ -10,17 +10,6 @@ class ContaPagar extends Model
 {
     use SoftDeletes;
 
-    /**
-     * Usuário responsável pelo pagamento
-     */
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-    use SoftDeletes;
-
-    protected $table = 'contas_pagar';
-
     protected $fillable = [
         'centro_custo_id',
         'fornecedor_id',
