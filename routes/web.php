@@ -347,7 +347,7 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::post(
             '/contas-fixas',
             [ContasReceberController::class, 'storeContaFixa']
-        )->name('contas-fixas.store');
+        )->middleware('rate.forms')->name('contas-fixas.store');
 
         Route::get(
             '/contas-fixas/{contaFixa}',
@@ -357,26 +357,26 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::put(
             '/contas-fixas/{contaFixa}',
             [ContasReceberController::class, 'updateContaFixa']
-        )->name('contas-fixas.update');
+        )->middleware('rate.forms')->name('contas-fixas.update');
 
 
         // Agendar cobrança de orçamento
         Route::post(
             '/agendar-cobranca/{orcamento}',
             [FinanceiroController::class, 'agendarCobranca']
-        )->name('agendar-cobranca');
+        )->middleware('rate.forms')->name('agendar-cobranca');
 
         // Pipeline do orçamento
         Route::post(
             '/orcamentos/{orcamento}/gerar-cobranca',
             [FinanceiroController::class, 'gerarCobranca']
-        )->name('orcamentos.gerar-cobranca');
+        )->middleware('rate.forms')->name('orcamentos.gerar-cobranca');
 
         // Anexos de Cobrança
         Route::post(
             '/cobrancas/{cobranca}/anexos',
             [ContasReceberController::class, 'uploadAnexo']
-        )->name('cobrancas.anexos.upload');
+        )->middleware('rate.uploads')->name('cobrancas.anexos.upload');
 
         Route::get(
             '/cobrancas/{cobranca}/anexos',
@@ -402,27 +402,32 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->name('contasapagar');
 
         Route::post('/contas-a-pagar', [ContasPagarController::class, 'store'])
+            ->middleware('rate.forms')
             ->name('contasapagar.store');
 
         Route::get('/contas-a-pagar/{conta}', [ContasPagarController::class, 'show'])
             ->name('contasapagar.show');
 
         Route::put('/contas-a-pagar/{conta}', [ContasPagarController::class, 'update'])
+            ->middleware('rate.forms')
             ->name('contasapagar.update');
 
         Route::patch('/contas-a-pagar/{conta}/pagar', [ContasPagarController::class, 'marcarComoPago'])
+            ->middleware('rate.forms')
             ->name('contasapagar.pagar');
 
         // Baixa múltipla de contas a pagar
         Route::patch(
             '/contas-a-pagar/baixa-multipla',
             [ContasPagarController::class, 'pagarMultiplas']
-        )->name('contasapagar.baixa-multipla');
+        )->middleware('rate.forms')->name('contasapagar.baixa-multipla');
 
         Route::patch('/contas-a-pagar/{conta}/estornar', [ContasPagarController::class, 'estornar'])
+            ->middleware('rate.forms')
             ->name('contasapagar.estornar');
 
         Route::delete('/contas-a-pagar/{conta}', [ContasPagarController::class, 'destroy'])
+            ->middleware('rate.forms')
             ->name('contasapagar.destroy');
 
         // Anexos de Contas a Pagar
@@ -430,6 +435,7 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->name('financeiro.contas-pagar.anexos.index');
 
         Route::post('/contas-pagar/{conta}/anexos', [ContasPagarController::class, 'storeAnexo'])
+            ->middleware('rate.uploads')
             ->name('financeiro.contas-pagar.anexos.store');
 
         Route::delete('/contas-pagar/anexos/{anexo}', [ContasPagarController::class, 'destroyAnexo'])
@@ -440,6 +446,7 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         // Contas Fixas a Pagar
         Route::post('/contas-fixas-pagar', [ContasPagarController::class, 'storeContaFixa'])
+            ->middleware('rate.forms')
             ->name('contasapagar.storeContaFixa');
 
         Route::get('/contas-fixas-pagar', [ContasPagarController::class, 'contasFixas'])
@@ -449,12 +456,15 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->name('contasapagar.showContaFixa');
 
         Route::put('/contas-fixas-pagar/{contaFixa}', [ContasPagarController::class, 'updateContaFixa'])
+            ->middleware('rate.forms')
             ->name('contasapagar.updateContaFixa');
 
         Route::patch('/contas-fixas-pagar/{contaFixa}/desativar', [ContasPagarController::class, 'desativarContaFixa'])
+            ->middleware('rate.forms')
             ->name('contasapagar.desativarContaFixa');
 
         Route::patch('/contas-fixas-pagar/{contaFixa}/ativar', [ContasPagarController::class, 'ativarContaFixa'])
+            ->middleware('rate.forms')
             ->name('contasapagar.ativarContaFixa');
 
         // Ajuste Manual, Transferência e Injeção de Receita

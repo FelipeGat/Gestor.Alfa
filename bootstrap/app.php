@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard.admin' => \App\Http\Middleware\DashboardAdminMiddleware::class,
             'financeiro' => \App\Http\Middleware\FinanceiroMiddleware::class,
             'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+            'rate.uploads' => \App\Http\Middleware\RateLimitUploads::class,
+            'rate.api' => \App\Http\Middleware\RateLimitApi::class,
+            'rate.forms' => \App\Http\Middleware\RateLimitForms::class,
         ]);
         
         $middleware->web(append: [
