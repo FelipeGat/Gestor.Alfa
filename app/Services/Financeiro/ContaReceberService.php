@@ -7,6 +7,7 @@ use App\Models\ContaFinanceira;
 use App\Models\MovimentacaoFinanceira;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ContaReceberService
@@ -75,35 +76,45 @@ class ContaReceberService
 
     public function calcularKPIs(array $filtros = []): array
     {
-        return [
-            'a_receber' => Cobranca::where('status', 'em_aberto')
-                ->whereDate('data_vencimento', '>=', now()->startOfMonth())
-                ->sum('valor'),
-            'recebido' => Cobranca::where('status', 'pago')
-                ->whereDate('data_vencimento', '>=', now()->startOfMonth())
-                ->sum('valor'),
-            'vencido' => Cobranca::where('status', '!=', 'pago')
-                ->whereDate('data_vencimento', '<', now()->toDateString())
-                ->sum('valor'),
-            'recebe_hoje' => Cobranca::where('status', 'em_aberto')
-                ->whereDate('data_vencimento', now()->toDateString())
-                ->sum('valor'),
-        ];
+        $cacheKey = 'contas_receber_kpis_' . date('Y-m-d');
+        
+        return Cache::remember($cacheKey, 300, function () {
+            return [
+                'a_receber' => Cobranca::where('status', 'em_aberto')
+                    ->whereDate('data_vencimento', '>=', now()->startOfMonth())
+                    ->sum('valor'),
+                'recebido' => Cobranca::where('status', 'pago')
+                    ->whereDate('data_vencimento', '>=', now()->startOfMonth())
+                    ->sum('valor'),
+                'vencido' => Cobranca::where('status', '!=', 'pago')
+                    ->whereDate('data_vencimento', '<', now()->toDateString())
+                    ->sum('valor'),
+                'recebe_hoje' => Cobranca::where('status', 'em_aberto')
+                    ->whereDate('data_vencimento', now()->toDateString())
+                    ->sum('valor'),
+            ];
+        });
     }
 
     public function contarPorStatus(): array
     {
-        return [
-            'em_aberto' => Cobranca::where('status', 'em_aberto')->count(),
-            'vencido' => Cobranca::where('status', '!=', 'pago')
-                ->where('data_vencimento', '<', now()->toDateString())->count(),
-            'pago' => Cobranca::where('status', 'pago')->count(),
-        ];
+        $cacheKey = 'contas_receber_contadores_' . date('Y-m-d');
+        
+        return Cache::remember($cacheKey, 300, function () {
+            return [
+                'em_aberto' => Cobranca::where('status', 'em_aberto')->count(),
+                'vencido' => Cobranca::where('status', '!=', 'pago')
+                    ->where('data_vencimento', '<', now()->toDateString())->count(),
+                'pago' => Cobranca::where('status', 'pago')->count(),
+            ];
+        });
     }
 
     public function receber(array $cobrancaIds, array $dadosRecebimento): void
     {
-        DB::transaction(function () use ($cobrancaIds, $dadosRecebimento) {
+        $recebimentosRealizados = false;
+        
+        DB::transaction(function () use ($cobrancaIds, $dadosRecebimento, &$recebimentosRealizados) {
             foreach ($cobrancaIds as $id) {
                 $cobranca = Cobranca::find($id);
                 if (!$cobranca || $cobranca->status === 'pago') {
@@ -117,6 +128,8 @@ class ContaReceberService
                     'forma_pagamento' => $dadosRecebimento['forma_pagamento'],
                     'user_id' => Auth::id(),
                 ]);
+                
+                $recebimentosRealizados = true;
 
                 if ($dadosRecebimento['conta_financeira_id']) {
                     $contaFinanceira = ContaFinanceira::find($dadosRecebimento['conta_financeira_id']);
@@ -137,6 +150,10 @@ class ContaReceberService
                 }
             }
         });
+        
+        if ($recebimentosRealizados) {
+            $this->limparCache();
+        }
     }
 
     public function receberUma(Cobranca $cobranca, array $dados): void
@@ -168,6 +185,8 @@ class ContaReceberService
                 }
             }
         });
+        
+        $this->limparCache();
     }
 
     public function estornar(Cobranca $cobranca): void
@@ -201,12 +220,18 @@ class ContaReceberService
                 }
             }
         });
+        
+        $this->limparCache();
     }
 
     public function excluir(int $id): bool
     {
         $cobranca = Cobranca::find($id);
-        return $cobranca ? $cobranca->delete() : false;
+        if ($cobranca && $cobranca->delete()) {
+            $this->limparCache();
+            return true;
+        }
+        return false;
     }
 
     public function buscarPorId(int $id): ?Cobranca
@@ -216,7 +241,9 @@ class ContaReceberService
 
     public function criar(array $data): Cobranca
     {
-        return Cobranca::create($data);
+        $cobranca = Cobranca::create($data);
+        $this->limparCache();
+        return $cobranca;
     }
 
     public function atualizar(int $id, array $data): ?Cobranca
@@ -224,7 +251,15 @@ class ContaReceberService
         $cobranca = Cobranca::find($id);
         if ($cobranca) {
             $cobranca->update($data);
+            $this->limparCache();
         }
         return $cobranca;
+    }
+
+    private function limparCache(): void
+    {
+        $hoje = date('Y-m-d');
+        Cache::forget('contas_receber_kpis_' . $hoje);
+        Cache::forget('contas_receber_contadores_' . $hoje);
     }
 }

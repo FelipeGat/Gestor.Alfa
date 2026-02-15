@@ -7,6 +7,7 @@ use App\Models\ContaFinanceira;
 use App\Models\MovimentacaoFinanceira;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ContaPagarService
@@ -86,38 +87,45 @@ class ContaPagarService
 
     public function calcularKPIs(array $filtros = []): array
     {
-        $vencimentoInicio = $filtros['vencimento_inicio'] ?? now()->startOfMonth()->format('Y-m-d');
-        $vencimentoFim = $filtros['vencimento_fim'] ?? now()->endOfMonth()->format('Y-m-d');
-
-        return [
-            'a_pagar' => ContaPagar::where('status', 'em_aberto')
-                ->whereDate('data_vencimento', '>=', now()->startOfMonth())
-                ->sum('valor'),
-            'pago' => ContaPagar::where('status', 'pago')
-                ->whereDate('data_vencimento', '>=', now()->startOfMonth())
-                ->sum('valor'),
-            'vencido' => ContaPagar::where('status', '!=', 'pago')
-                ->whereDate('data_vencimento', '<', now()->toDateString())
-                ->sum('valor'),
-            'vence_hoje' => ContaPagar::where('status', 'em_aberto')
-                ->whereDate('data_vencimento', now()->toDateString())
-                ->sum('valor'),
-        ];
+        $cacheKey = 'contas_pagar_kpis_' . date('Y-m-d');
+        
+        return Cache::remember($cacheKey, 300, function () {
+            return [
+                'a_pagar' => ContaPagar::where('status', 'em_aberto')
+                    ->whereDate('data_vencimento', '>=', now()->startOfMonth())
+                    ->sum('valor'),
+                'pago' => ContaPagar::where('status', 'pago')
+                    ->whereDate('data_vencimento', '>=', now()->startOfMonth())
+                    ->sum('valor'),
+                'vencido' => ContaPagar::where('status', '!=', 'pago')
+                    ->whereDate('data_vencimento', '<', now()->toDateString())
+                    ->sum('valor'),
+                'vence_hoje' => ContaPagar::where('status', 'em_aberto')
+                    ->whereDate('data_vencimento', now()->toDateString())
+                    ->sum('valor'),
+            ];
+        });
     }
 
     public function contarPorStatus(): array
     {
-        return [
-            'em_aberto' => ContaPagar::where('status', 'em_aberto')->count(),
-            'vencido' => ContaPagar::where('status', '!=', 'pago')
-                ->where('data_vencimento', '<', now()->toDateString())->count(),
-            'pago' => ContaPagar::where('status', 'pago')->count(),
-        ];
+        $cacheKey = 'contas_pagar_contadores_' . date('Y-m-d');
+        
+        return Cache::remember($cacheKey, 300, function () {
+            return [
+                'em_aberto' => ContaPagar::where('status', 'em_aberto')->count(),
+                'vencido' => ContaPagar::where('status', '!=', 'pago')
+                    ->where('data_vencimento', '<', now()->toDateString())->count(),
+                'pago' => ContaPagar::where('status', 'pago')->count(),
+            ];
+        });
     }
 
     public function criar(array $data): ContaPagar
     {
-        return ContaPagar::create($data);
+        $conta = ContaPagar::create($data);
+        $this->limparCache();
+        return $conta;
     }
 
     public function atualizar(int $id, array $data): ?ContaPagar
@@ -125,6 +133,7 @@ class ContaPagarService
         $conta = ContaPagar::find($id);
         if ($conta) {
             $conta->update($data);
+            $this->limparCache();
         }
         return $conta;
     }
@@ -132,7 +141,11 @@ class ContaPagarService
     public function excluir(int $id): bool
     {
         $conta = ContaPagar::find($id);
-        return $conta ? $conta->delete() : false;
+        if ($conta && $conta->delete()) {
+            $this->limparCache();
+            return true;
+        }
+        return false;
     }
 
     public function buscarPorId(int $id): ?ContaPagar
@@ -142,7 +155,9 @@ class ContaPagarService
 
     public function pagar(array $contaIds, array $dadosPagamento): void
     {
-        DB::transaction(function () use ($contaIds, $dadosPagamento) {
+        $pagamentosRealizados = false;
+        
+        DB::transaction(function () use ($contaIds, $dadosPagamento, &$pagamentosRealizados) {
             foreach ($contaIds as $id) {
                 $conta = ContaPagar::find($id);
                 if (!$conta || $conta->status === 'pago') {
@@ -157,6 +172,8 @@ class ContaPagarService
                     'forma_pagamento' => $dadosPagamento['forma_pagamento'],
                     'user_id' => Auth::id(),
                 ]);
+                
+                $pagamentosRealizados = true;
 
                 if ($dadosPagamento['conta_financeira_id']) {
                     $contaFinanceira = ContaFinanceira::find($dadosPagamento['conta_financeira_id']);
@@ -177,6 +194,10 @@ class ContaPagarService
                 }
             }
         });
+        
+        if ($pagamentosRealizados) {
+            $this->limparCache();
+        }
     }
 
     public function marcarComoPago(ContaPagar $conta, array $dados): void
@@ -226,5 +247,12 @@ class ContaPagarService
             }
         }
         return true;
+    }
+
+    private function limparCache(): void
+    {
+        $hoje = date('Y-m-d');
+        Cache::forget('contas_pagar_kpis_' . $hoje);
+        Cache::forget('contas_pagar_contadores_' . $hoje);
     }
 }
