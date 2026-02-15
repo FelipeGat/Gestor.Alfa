@@ -155,6 +155,95 @@ O sistema oferece dashboards especializados por departamento (Administrativo, Co
 
 ---
 
+## 🏗️ Clean Architecture
+
+O projeto implementa **Clean Architecture** para manter o código organizado, testável e de fácil manutenção:
+
+### Estrutura de Camadas
+
+```
+app/
+├── Http/
+│   └── Controllers/          # 🎯 Apenas entrada HTTP (thin controllers)
+│       └── Responsabilidade: Receber request, chamar Service, retornar response
+├── Services/                 # 🧠 Lógica de negócio (regras do domínio)
+│   ├── Financeiro/
+│   │   ├── ContaPagarService.php      # Regras de contas a pagar
+│   │   └── ContaReceberService.php    # Regras de contas a receber
+│   └── Comercial/
+│       └── OrcamentoService.php       # Regras de orçamentos
+├── Repositories/             # 💾 Acesso a dados
+│   ├── Interfaces/          # Contratos (abstrações)
+│   └── Eloquent/            # Implementações concretas
+└── Providers/
+    └── RepositoryServiceProvider.php  # Injeção de dependência
+```
+
+### Benefícios
+
+| Benefício | Descrição |
+|-----------|-----------|
+| **Separação de responsabilidades** | Controllers não têm lógica de negócio |
+| **Testabilidade** | Services podem ser testados isoladamente |
+| **Reutilização** | Mesmo Service usado em diferentes Controllers |
+| **Manutenibilidade** | Mudanças em uma camada não afetam as outras |
+
+### Fluxo de uma Requisição
+
+```
+Request → Controller → Service → Repository → Model → Database
+                ↓
+Response ← View/JSON ← Service ← Repository ← Model
+```
+
+### Exemplo de Uso
+
+**Controller (magro):**
+```php
+class ContasPagarController extends Controller
+{
+    protected $service;
+
+    public function __construct(ContaPagarService $service)
+    {
+        $this->service = $service;
+    }
+
+    public function index(Request $request)
+    {
+        $contas = $this->service->listar($request->all());
+        $kpis = $this->service->calcularKPIs();
+        return view('financeiro.contasapagar', compact('contas', 'kpis'));
+    }
+}
+```
+
+**Service (lógica de negócio):**
+```php
+class ContaPagarService
+{
+    public function calcularKPIs(): array
+    {
+        return Cache::remember('kpis', 300, function () {
+            return [
+                'a_pagar' => ContaPagar::where('status', 'em_aberto')->sum('valor'),
+                'pago' => ContaPagar::where('status', 'pago')->sum('valor'),
+            ];
+        });
+    }
+}
+```
+
+### Services Disponíveis
+
+| Service | Módulo | Status | Testes |
+|---------|--------|--------|--------|
+| `ContaPagarService` | Financeiro | ✅ Implementado | ✅ 16 testes |
+| `ContaReceberService` | Financeiro | ✅ Implementado | ✅ 19 testes |
+| `OrcamentoService` | Comercial | ✅ Implementado | ⏭️ Em breve |
+
+---
+
 ## 📦 Instalação
 
 ### Pré-requisitos
@@ -281,9 +370,54 @@ npm run build
 # Executar todos os testes
 docker compose exec php-fpm php artisan test
 
-# Ou usando Pest
+# Executar testes de um arquivo específico
+docker compose exec php-fpm php artisan test tests/Unit/Services/Financeiro/ContaPagarServiceTest.php
+docker compose exec php-fpm php artisan test tests/Unit/Services/Financeiro/ContaReceberServiceTest.php
+
+# Executar testes com cobertura
+docker compose exec php-fpm php artisan test --coverage
+
+# Ou usando Pest (se instalado)
 docker compose exec php-fpm ./vendor/bin/pest
 ```
+
+#### Estrutura de Testes
+
+O projeto utiliza **PHPUnit** para testes unitários e de integração:
+
+```
+tests/
+├── Unit/                     # Testes unitários
+│   └── Services/            # Testes dos Services (Clean Architecture)
+│       └── Financeiro/
+│           ├── ContaPagarServiceTest.php
+│           └── ContaReceberServiceTest.php
+├── Feature/                 # Testes de integração
+│   └── Auth/               # Testes de autenticação
+└── TestCase.php            # Classe base dos testes
+```
+
+#### Testes dos Services (Clean Architecture)
+
+Os testes dos Services garantem que a lógica de negócio funciona corretamente:
+
+- **ContaPagarServiceTest**: 16 testes cobrindo cálculos de KPIs, cache, CRUD e pagamentos
+- **ContaReceberServiceTest**: 19 testes cobrindo cálculos de KPIs, cache, CRUD, recebimentos e estornos
+
+**O que é testado:**
+- ✅ Cálculos matemáticos (KPIs, totais)
+- ✅ Funcionalidade do cache (salvar e invalidar)
+- ✅ Operações CRUD completas
+- ✅ Transações financeiras (pagamentos, recebimentos, estornos)
+- ✅ Tratamento de erros (IDs inexistentes)
+
+**Factories disponíveis:**
+- `ContaPagarFactory` - Gera contas a pagar para testes
+- `ContaReceberFactory` - Gera cobranças para testes
+- `FornecedorFactory` - Gera fornecedores
+- `ClienteFactory` - Gera clientes
+- `CentroCustoFactory` - Gera centros de custo
+- `ContaFinanceiraFactory` - Gera contas financeiras
 
 ---
 
