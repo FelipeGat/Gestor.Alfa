@@ -1,15 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-
-
 use App\Http\Controllers\RelatorioCustosOrcamentosController;
 use App\Http\Controllers\RelatorioFinanceiroController;
-use App\Http\Controllers\Relatorios\RelatorioCustoGerencialController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 
 // Relatórios
 Route::middleware(['auth'])->group(function () {
@@ -28,31 +25,30 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.contas-pagar.json');
 });
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AssuntoController;
+use App\Http\Controllers\AtendimentoAndamentoFotoController;
+use App\Http\Controllers\AtendimentoController;
+use App\Http\Controllers\BoletoController;
+use App\Http\Controllers\BuscaClienteController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CobrancaController;
-use App\Http\Controllers\PortalController;
-use App\Http\Controllers\BoletoController;
+use App\Http\Controllers\ContasFinanceirasController;
+use App\Http\Controllers\ContasPagarController;
+use App\Http\Controllers\ContasReceberController;
 use App\Http\Controllers\DashboardAdmController;
 use App\Http\Controllers\DashboardComercialController;
 use App\Http\Controllers\DashboardFinanceiroController;
 use App\Http\Controllers\EmpresaController;
-use App\Http\Controllers\FuncionarioController;
-use App\Http\Controllers\AssuntoController;
-use App\Http\Controllers\AtendimentoController;
-use App\Http\Controllers\PortalFuncionarioController;
-use App\Http\Controllers\AtendimentoAndamentoFotoController;
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\OrcamentoController;
-use App\Http\Controllers\PreClienteController;
-use App\Http\Controllers\BuscaClienteController;
-use App\Http\Controllers\ItemComercialController;
-use App\Http\Controllers\ContasReceberController;
-use App\Http\Controllers\ContasPagarController;
-use App\Http\Controllers\ContasFinanceirasController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\FornecedorController;
-
+use App\Http\Controllers\FuncionarioController;
+use App\Http\Controllers\ItemComercialController;
+use App\Http\Controllers\OrcamentoController;
+use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalFuncionarioController;
+use App\Http\Controllers\PreClienteController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -163,7 +159,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     Route::resource('itemcomercial', ItemComercialController::class)
         ->parameters([
-            'itemcomercial' => 'item_comercial'
+            'itemcomercial' => 'item_comercial',
         ])
         ->except(['show'])
         ->middleware(['dashboard.comercial']);
@@ -213,12 +209,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::resource('usuarios', UsuarioController::class)
         ->middleware('dashboard.comercial');
 
-
     Route::get(
         '/orcamentos/gerar-numero/{empresa}',
         [\App\Http\Controllers\OrcamentoController::class, 'gerarNumero']
     )->middleware('dashboard.comercial');
-
 
     Route::patch(
         '/atendimentos/{atendimento}/atualizar-campo',
@@ -230,19 +224,16 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         [\App\Http\Controllers\AtendimentoAndamentoController::class, 'store']
     )->name('atendimentos.andamentos.store');
 
-
     Route::post(
         '/atendimentos/{atendimento}/atualizar-status',
         [\App\Http\Controllers\AtendimentoStatusController::class, 'update']
     )->name('atendimentos.status.update');
-
 
     // Upload de fotos
     Route::post(
         '/andamentos/{andamento}/fotos',
         [AtendimentoAndamentoFotoController::class, 'store']
     )->name('andamentos.fotos.store');
-
 
     // Upload de boletos
     Route::post(
@@ -327,7 +318,6 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::delete('/contas-financeiras/{contaFinanceira}', [ContasFinanceirasController::class, 'destroy'])
             ->name('contas-financeiras.destroy');
 
-
         Route::patch(
             '/contas-a-receber/{cobranca}/pagar',
             [ContasReceberController::class, 'pagar']
@@ -358,7 +348,6 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             '/contas-fixas/{contaFixa}',
             [ContasReceberController::class, 'updateContaFixa']
         )->middleware('rate.forms')->name('contas-fixas.update');
-
 
         // Agendar cobrança de orçamento
         Route::post(
@@ -483,7 +472,7 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     */
 Route::middleware(['auth'])->group(function () {
     Route::resource('fornecedores', FornecedorController::class)->parameters([
-        'fornecedores' => 'fornecedor'
+        'fornecedores' => 'fornecedor',
     ]);
     Route::get('/fornecedores/api/buscar-cnpj', [FornecedorController::class, 'buscarPorCnpj'])
         ->name('fornecedores.buscarCnpj');
@@ -571,7 +560,6 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         Route::delete('/andamentos/fotos/{foto}', [AtendimentoAndamentoFotoController::class, 'destroy'])->name('andamentos.fotos.destroy');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | PERFIL (todos logados)
@@ -590,13 +578,10 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 });
 
-
 Route::get(
     '/empresas/{empresa}/assuntos',
     [EmpresaController::class, 'assuntos']
 );
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -612,7 +597,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/primeiro-acesso', function (Request $request) {
 
         $request->validate([
-            'password' => 'required|min:6|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/',
+            ],
+        ], [
+            'password.regex' => 'A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, uma minúscula e um número.',
+            'password.min' => 'A senha deve ter pelo menos 8 caracteres.',
         ]);
 
         /** @var \App\Models\User $user */
@@ -635,43 +629,45 @@ Route::middleware('auth')->group(function () {
     })->name('password.first.store');
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API – Consulta CNPJ (Proxy ReceitaWS)
 |--------------------------------------------------------------------------
 */
-Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
+Route::middleware(['throttle:10,1'])->group(function () {
 
-    $cnpj = preg_replace('/\D/', '', $cnpj);
+    Route::get('/api/cnpj/{cnpj}', function ($cnpj) {
 
-    if (strlen($cnpj) !== 14) {
-        return response()->json([
-            'status' => 'ERROR',
-            'message' => 'CNPJ inválido'
-        ], 400);
-    }
+        $cnpj = preg_replace('/\D/', '', $cnpj);
 
-    try {
+        if (strlen($cnpj) !== 14) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'CNPJ inválido',
+            ], 400);
+        }
 
-        $cacheKey = "cnpj_{$cnpj}";
+        try {
 
-        $data = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($cnpj) {
+            $cacheKey = "cnpj_{$cnpj}";
 
-            /** @var \Illuminate\Http\Client\Response $response */
-            $response = Http::timeout(15)
-                ->get("https://www.receitaws.com.br/v1/cnpj/{$cnpj}");
+            $data = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($cnpj) {
 
-            return $response->json();
-        });
+                /** @var \Illuminate\Http\Client\Response $response */
+                $response = Http::timeout(15)
+                    ->get("https://www.receitaws.com.br/v1/cnpj/{$cnpj}");
 
-        return response()->json($data);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'ERROR',
-            'message' => 'Erro ao consultar Receita Federal'
-        ], 500);
-    }
+                return $response->json();
+            });
+
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'Erro ao consultar Receita Federal',
+            ], 500);
+        }
+    });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
