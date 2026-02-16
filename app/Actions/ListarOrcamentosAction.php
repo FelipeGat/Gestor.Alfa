@@ -56,6 +56,12 @@ class ListarOrcamentosAction
         $ordenacao = $filtros['ordenacao'] ?? 'created_at';
         $direcao = $filtros['direcao'] ?? 'desc';
 
+        $allowedColumns = ['id', 'numero_orcamento', 'valor_total', 'status', 'created_at', 'updated_at'];
+
+        if (! in_array($ordenacao, $allowedColumns)) {
+            $ordenacao = 'created_at';
+        }
+
         return $query->orderBy($ordenacao, $direcao)->paginate($filtros['por_pagina'] ?? 15);
     }
 }

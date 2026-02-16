@@ -84,7 +84,7 @@ class OrcamentoApiController extends Controller
 
             return response()->json([
                 'message' => 'Orçamento atualizado com sucesso',
-                'data' => new OrcamentoResource($orcamento->fresh(['empresa', 'cliente', 'itens'])),
+                'data' => new OrcamentoResource($orcamento->fresh()),
             ]);
         } catch (DomainException $e) {
             return response()->json([
