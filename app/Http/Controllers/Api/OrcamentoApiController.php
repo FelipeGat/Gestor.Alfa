@@ -23,26 +23,17 @@ class OrcamentoApiController extends Controller
 {
     public function index(Request $request, ListarOrcamentosAction $action): JsonResponse
     {
-        try {
-            $orcamentos = $action->execute($request->all());
+        $orcamentos = $action->execute($request->all());
 
-            return response()->json([
-                'data' => OrcamentoResource::collection($orcamentos),
-                'meta' => [
-                    'current_page' => $orcamentos->currentPage(),
-                    'last_page' => $orcamentos->lastPage(),
-                    'per_page' => $orcamentos->perPage(),
-                    'total' => $orcamentos->total(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro ao listar orçamentos',
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-        }
+        return response()->json([
+            'data' => OrcamentoResource::collection($orcamentos),
+            'meta' => [
+                'current_page' => $orcamentos->currentPage(),
+                'last_page' => $orcamentos->lastPage(),
+                'per_page' => $orcamentos->perPage(),
+                'total' => $orcamentos->total(),
+            ],
+        ]);
     }
 
     public function store(CriarOrcamentoRequest $request, CriarOrcamentoAction $action): JsonResponse
