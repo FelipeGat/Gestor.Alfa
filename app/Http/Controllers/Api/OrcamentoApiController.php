@@ -7,7 +7,6 @@ use App\Actions\CriarOrcamentoAction;
 use App\Actions\DTO\AtualizarOrcamentoDTO;
 use App\Actions\DTO\CriarOrcamentoDTO;
 use App\Actions\ExcluirOrcamentoAction;
-use App\Actions\ListarOrcamentosAction;
 use App\Domain\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AtualizarOrcamentoRequest;
@@ -21,19 +20,44 @@ use Illuminate\Support\Facades\Auth;
 
 class OrcamentoApiController extends Controller
 {
-    public function index(Request $request, ListarOrcamentosAction $action): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $orcamentos = $action->execute($request->all());
+        try {
+            $query = Orcamento::query();
 
-        return response()->json([
-            'data' => OrcamentoResource::collection($orcamentos),
-            'meta' => [
-                'current_page' => $orcamentos->currentPage(),
-                'last_page' => $orcamentos->lastPage(),
-                'per_page' => $orcamentos->perPage(),
-                'total' => $orcamentos->total(),
-            ],
-        ]);
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('empresa_id')) {
+                $query->where('empresa_id', $request->empresa_id);
+            }
+
+            if ($request->filled('search')) {
+                $search = '%'.$request->search.'%';
+                $query->where(function ($q) use ($search) {
+                    $q->where('numero_orcamento', 'like', $search)
+                        ->orWhere('descricao', 'like', $search);
+                });
+            }
+
+            $orcamentos = $query->orderByDesc('created_at')->paginate(15);
+
+            return response()->json([
+                'data' => OrcamentoResource::collection($orcamentos),
+                'meta' => [
+                    'current_page' => $orcamentos->currentPage(),
+                    'last_page' => $orcamentos->lastPage(),
+                    'per_page' => $orcamentos->perPage(),
+                    'total' => $orcamentos->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao listar orçamentos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function store(CriarOrcamentoRequest $request, CriarOrcamentoAction $action): JsonResponse
