@@ -32,11 +32,6 @@ class ExcluirOrcamentoAction
                 throw new BusinessRuleException('Orçamento possui cobranças associadas e não pode ser excluído');
             }
 
-            $temMovimentacoes = $orcamento->movimentacoes()->exists();
-            if ($temMovimentacoes) {
-                throw new BusinessRuleException('Orçamento possui movimentações financeiras e não pode ser excluído');
-            }
-
             $orcamento->itens()->delete();
             $orcamento->delete();
 

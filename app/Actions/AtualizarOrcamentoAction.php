@@ -19,7 +19,9 @@ class AtualizarOrcamentoAction
                 throw new BusinessRuleException('Orçamento não encontrado');
             }
 
-            if (! $orcamento->podeSerEditado()) {
+            $statusPermitidosEdicao = ['rascunho', 'enviado', 'rejeitado'];
+
+            if (! in_array($orcamento->status, $statusPermitidosEdicao)) {
                 throw new BusinessRuleException('Orçamento não pode ser editado no status atual');
             }
 
