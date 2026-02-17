@@ -444,6 +444,7 @@
                                 type="checkbox"
                                 name="usuarios_portal[]"
                                 value="{{ $usuario->id }}"
+                                class="rounded-full border-gray-300"
                                 @checked(in_array($usuario->id, $usuariosVinculados))
                             >
 
