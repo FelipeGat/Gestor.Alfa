@@ -34,39 +34,42 @@
                 {{-- ============ GESTÃO ============ --}}
                 @if($isAdmin || $isComercial || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
                         Gestão
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
 
-                    <div x-show="openMenu" @click.outside="openMenu = false"
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('dashboard')" class="block px-4 py-2">
+                        <x-nav-link :href="route('dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Dashboard Operacional
                         </x-nav-link>
                         @endif
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('dashboard.tecnico')" class="block px-4 py-2">
+                        <x-nav-link :href="route('dashboard.tecnico')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Dashboard Técnico
                         </x-nav-link>
                         @endif
 
                         @if($isAdmin || $isComercial)
-                        <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
+                        <x-nav-link :href="route('dashboard.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Dashboard Comercial
                         </x-nav-link>
                         @endif
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('financeiro.dashboard')" class="block px-4 py-2">
+                        <x-nav-link :href="route('financeiro.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Dashboard Financeiro
-                        </x-nav-link><br>
+                        </x-nav-link>
                         @endif
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('atendimentos.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('atendimentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Atendimentos
                         </x-nav-link>
                         @endif
@@ -77,35 +80,69 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isAdmin || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <a href="{{ route('financeiro.dashboard') }}" class="font-medium text-gray-700 hover:text-gray-900">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
                         Financeiro
-                    </a>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+
+                        <x-nav-link :href="route('financeiro.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Dashboard Financeiro
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('financeiro.contas-financeiras.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Bancos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('financeiro.cobrar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Cobrar
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('financeiro.contasareceber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Receber
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('financeiro.contasapagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Pagar
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('financeiro.contas-financeiras.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Extrato
+                        </x-nav-link>
+                    </div>
                 </div>
                 @endif
 
                 {{-- ============ COMERCIAL ============ --}}
                 @if($isAdmin || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
                         Comercial
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
 
-                    <div x-show="openMenu" @click.outside="openMenu = false"
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
-                        <x-nav-link :href="route('dashboard.comercial')" class="block px-4 py-2">
+                        <x-nav-link :href="route('dashboard.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Dashboard Comercial
                         </x-nav-link>
 
-                        <x-nav-link :href="route('orcamentos.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('orcamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Orçamentos
                         </x-nav-link>
 
-                        <x-nav-link :href="route('itemcomercial.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('itemcomercial.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Produtos / Serviços
                         </x-nav-link>
 
-                        <x-nav-link :href="route('pre-clientes.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('pre-clientes.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Pré-Clientes
                         </x-nav-link>
                     </div>
@@ -115,38 +152,41 @@
                 {{-- ============ CADASTROS ============ --}}
                 @if($isAdmin || $isFinanceiro || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-medium text-gray-700">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
                         Cadastros
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
 
-                    <div x-show="openMenu" @click.outside="openMenu = false"
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50">
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('empresas.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('empresas.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Empresas
-                        </x-nav-link><br>
+                        </x-nav-link>
 
-                        <x-nav-link :href="route('funcionarios.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('funcionarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Funcionários
-                        </x-nav-link><br>
+                        </x-nav-link>
 
-                        <x-nav-link :href="route('usuarios.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('usuarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Usuários
-                        </x-nav-link><br>
+                        </x-nav-link>
                         @endif
 
-                        <x-nav-link :href="route('clientes.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('clientes.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Clientes
-                        </x-nav-link><br>
+                        </x-nav-link>
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('fornecedores.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('fornecedores.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Fornecedores
-                        </x-nav-link><br>
+                        </x-nav-link>
                         @endif
 
-                        <x-nav-link :href="route('assuntos.index')" class="block px-4 py-2">
+                        <x-nav-link :href="route('assuntos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Assuntos
                         </x-nav-link>
                     </div>
@@ -155,9 +195,34 @@
 
                 {{-- ============ RELATÓRIOS ============ --}}
                 @if($isAdmin)
-                <x-nav-link :href="route('relatorios.index')" class="font-medium text-gray-700">
-                    Relatórios
-                </x-nav-link>
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                        Relatórios
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+
+                        <x-nav-link :href="route('relatorios.custos-orcamentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Custos x Orçamentos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('relatorios.custos-gerencial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Gerencial de Custos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('relatorios.contas-receber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Contas a Receber
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('relatorios.contas-pagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Contas a Pagar
+                        </x-nav-link>
+                    </div>
+                </div>
                 @endif
 
 
@@ -167,7 +232,7 @@
             <div class="hidden sm:flex sm:items-center sm:ml-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500">
+                        <button class="inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-500">
                             {{ $user ? $user->name : 'Visitante' }}
                         </button>
                     </x-slot>
@@ -219,7 +284,7 @@
         {{-- Gestão --}}
         @if($isAdmin || $isComercial || $isFinanceiro)
         <details>
-            <summary class="font-medium text-gray-700">Gestão</summary>
+            <summary class="font-semibold text-gray-700">Gestão</summary>
             <div class="pl-4 space-y-1">
                 @if($isAdmin)
                 <x-responsive-nav-link :href="route('dashboard')">Dashboard Operacional</x-responsive-nav-link>
@@ -243,7 +308,7 @@
         {{-- Financeiro --}}
         @if($isAdmin || $isFinanceiro)
         <details>
-            <summary class="font-medium text-gray-700">Financeiro</summary>
+            <summary class="font-semibold text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
                 <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
@@ -254,7 +319,7 @@
         {{-- Comercial --}}
         @if($isAdmin || $isComercial)
         <details>
-            <summary class="font-medium text-gray-700">Comercial</summary>
+            <summary class="font-semibold text-gray-700">Comercial</summary>
             <div class="pl-4 space-y-1">
                 <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('orcamentos.index')">Orçamentos</x-responsive-nav-link>
@@ -267,7 +332,7 @@
         {{-- Cadastros --}}
         @if($isAdmin || $isFinanceiro || $isComercial)
         <details>
-            <summary class="font-medium text-gray-700">Cadastros</summary>
+            <summary class="font-semibold text-gray-700">Cadastros</summary>
             <div class="pl-4 space-y-1">
                 @if($isAdmin)
                 <x-responsive-nav-link :href="route('empresas.index')">Empresas</x-responsive-nav-link>
@@ -286,7 +351,7 @@
         {{-- Relatórios --}}
         @if($isAdmin)
         <details>
-            <summary class="font-medium text-gray-700">Relatórios</summary>
+            <summary class="font-semibold text-gray-700">Relatórios</summary>
             <div class="pl-4 space-y-1">
                 <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')">Custos x Orçamentos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('relatorios.custos-gerencial')">Gerencial de Custos</x-responsive-nav-link>
