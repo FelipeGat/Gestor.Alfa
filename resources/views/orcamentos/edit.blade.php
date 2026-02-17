@@ -8,7 +8,7 @@
     @endpush
 
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between w-full">
             <h2 class="font-bold text-2xl text-gray-800 leading-tight flex items-center gap-2">
                 <span class="p-2 bg-blue-100 text-blue-600 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,16 +17,23 @@
                 </span>
                 Editar Orçamento #{{ $orcamento->numero_orcamento }}
             </h2>
-            <div class="text-sm text-gray-500 font-medium">{{ now()->format('d/m/Y') }}</div>
+
+            <div class="flex items-center gap-3">
+                <div class="text-sm text-gray-500 font-medium">{{ now()->format('d/m/Y') }}</div>
+                <a href="{{ route('orcamentos.index') }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
+                    title="Voltar para Orçamentos">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Voltar</span>
+                </a>
+            </div>
         </div>
     </x-slot>
 
     <div class="py-10 bg-gray-50 min-h-screen">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div class="mb-4">
-                <x-back-button />
-            </div>
 
             @if ($errors->any())
             <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
@@ -142,7 +149,7 @@
                         {{-- Serviços --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-full"></span> Serviços</h4>
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-lg"></span> Serviços</h4>
                                 <button type="button" id="btn-add-servico" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">➕ Adicionar Serviço</button>
                             </div>
                             <div class="relative hidden mb-4" id="busca-servico-wrapper">
@@ -168,7 +175,7 @@
                         {{-- Produtos --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-full"></span> Materiais e Produtos</h4>
+                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-lg"></span> Materiais e Produtos</h4>
                                 <button type="button" id="btn-add-produto" class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">➕ Adicionar Produto</button>
                             </div>
                             <div class="relative hidden mb-4" id="busca-produto-wrapper">
@@ -239,7 +246,7 @@
                                     </svg>
                                     Taxas e Impostos
                                 </h3>
-                                <button type="button" id="btn-add-taxa" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-purple-200 transition">
+                                <button type="button" id="btn-add-taxa" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-purple-200 transition">
                                     ➕ Adicionar Taxa
                                 </button>
                             </div>

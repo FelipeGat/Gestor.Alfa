@@ -5,16 +5,23 @@
     @endpush
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ✏️ Editar Conta Bancária
-        </h2>
+        <div class="flex items-center justify-between w-full">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                ✏️ Editar Conta Bancária
+            </h2>
+
+            <a href="{{ route('financeiro.contas-financeiras.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
+                title="Voltar para Contas Bancárias">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-8 max-w-4xl mx-auto px-4">
-
-        <div class="mb-4">
-            <x-back-button />
-        </div>
 
         <form method="POST"
             action="{{ route('financeiro.contas-financeiras.update', $contaFinanceira) }}"
