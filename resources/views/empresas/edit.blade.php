@@ -116,15 +116,13 @@
                     </h3>
 
                     <div class="max-w-xs">
-                        <input type="hidden" name="ativo" value="0">
-
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="ativo" value="1" class="rounded-full text-blue-600"
-                                {{ old('ativo', $empresa->ativo) ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-700">
-                                Empresa ativa
-                            </span>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situação da Empresa
                         </label>
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            <option value="1" @selected(old('ativo', $empresa->ativo)==1)>Ativa</option>
+                            <option value="0" @selected(old('ativo', $empresa->ativo)==0)>Inativa</option>
+                        </select>
                     </div>
                 </div>
 
