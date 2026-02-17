@@ -84,7 +84,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         @foreach($perfis as $perfil)
                         <label class="flex items-center gap-2">
-                            <input type="checkbox" name="perfis[]" value="{{ $perfil->id }}" class="rounded border-gray-300"
+                            <input type="checkbox" name="perfis[]" value="{{ $perfil->id }}" class="rounded-full border-gray-300"
                                 @checked($usuario->perfis->contains($perfil->id))>
                             <span class="text-sm text-gray-700">{{ $perfil->nome }}</span>
                         </label>
@@ -102,7 +102,7 @@
                         @foreach($empresas as $empresa)
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="empresas[]" value="{{ $empresa->id }}"
-                                class="rounded border-gray-300" @checked($usuario->empresas->contains($empresa->id))>
+                                class="rounded-full border-gray-300" @checked($usuario->empresas->contains($empresa->id))>
                             <span class="text-sm text-gray-700">
                                 {{ $empresa->nome_fantasia ?? $empresa->nome }}
                             </span>

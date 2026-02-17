@@ -119,7 +119,7 @@
                         <input type="hidden" name="ativo" value="0">
 
                         <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="ativo" value="1" class="rounded text-blue-600"
+                            <input type="checkbox" name="ativo" value="1" class="rounded-full text-blue-600"
                                 {{ old('ativo', $empresa->ativo) ? 'checked' : '' }}>
                             <span class="text-sm text-gray-700">
                                 Empresa ativa

@@ -228,7 +228,7 @@
                                     <div class="col-span-1 sm:col-span-3 flex items-center mt-2">
                                         <label class="inline-flex items-center cursor-pointer">
                                             <input type="checkbox" :name="'contatos['+index+'][principal]'" value="1" x-model="contato.principal"
-                                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-5 h-5">
+                                                class="rounded-full border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5">
                                             <span class="ml-2 text-sm font-semibold text-gray-700">Contato Principal</span>
                                         </label>
                                     </div>
@@ -255,7 +255,7 @@
                     <div class="flex items-center">
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="ativo" value="1" x-model="ativo"
-                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-6 h-6" id="fornecedor-ativo">
+                                class="rounded-full border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-6 h-6" id="fornecedor-ativo">
                             <span class="ml-3 text-sm font-bold text-gray-700 uppercase tracking-wider">Fornecedor Ativo</span>
                         </label>
                     </div>

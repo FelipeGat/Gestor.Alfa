@@ -83,7 +83,7 @@
                         @foreach($perfis as $perfil)
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="perfis[]" value="{{ $perfil->id }}"
-                                class="rounded border-gray-300">
+                                class="rounded-full border-gray-300">
                             <span class="text-sm text-gray-700">{{ $perfil->nome }}</span>
                         </label>
                         @endforeach
@@ -100,7 +100,7 @@
                         @foreach($empresas as $empresa)
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="empresas[]" value="{{ $empresa->id }}"
-                                class="rounded border-gray-300">
+                                class="rounded-full border-gray-300">
                             <span class="text-sm text-gray-700">
                                 {{ $empresa->nome_fantasia ?? $empresa->nome }}
                             </span>
