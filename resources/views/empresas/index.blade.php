@@ -157,7 +157,7 @@
                                     </span>
                                 </td>
 
-                                <td style="text-align: center;">
+                                <td class="px-4 py-3">
                                     <div class="table-actions">
                                         <a href="{{ route('empresas.edit', $empresa) }}" class="btn btn-sm btn-edit"
                                             style="padding: 0.5rem; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;">
