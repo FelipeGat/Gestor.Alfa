@@ -369,13 +369,13 @@
                                 <label class="block text-sm font-medium text-gray-700">Emails <span
                                         class="text-red-500">*</span></label>
                                 <button type="button" onclick="addEmail()"
-                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
                                             clip-rule="evenodd" />
                                     </svg>
-                                    Adicionar email
+                                    Adicionar
                                 </button>
                             </div>
                             <div id="emails" class="space-y-3">
@@ -397,13 +397,13 @@
                             <div class="flex items-center justify-between mb-3">
                                 <label class="block text-sm font-medium text-gray-700">Telefones</label>
                                 <button type="button" onclick="addTelefone()"
-                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
                                             clip-rule="evenodd" />
                                     </svg>
-                                    Adicionar telefone
+                                    Adicionar
                                 </button>
                             </div>
                             <div id="telefones" class="space-y-3">
