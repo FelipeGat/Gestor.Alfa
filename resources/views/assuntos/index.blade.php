@@ -72,7 +72,7 @@
             </form>
 
             @if(auth()->user()->canPermissao('assuntos','incluir'))
-            <div class="flex justify-start" style="margin-bottom: -1rem;">
+            <div class="flex justify-start" style="margin-bottom: 1rem;">
                 <a href="{{ route('assuntos.create') }}" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
                     <svg fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
