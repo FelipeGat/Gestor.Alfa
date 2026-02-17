@@ -54,7 +54,7 @@
                             <option value="ativo" @selected(request('status')=='ativo' )>Ativo</option>
                             <option value="inativo" @selected(request('status')=='inativo' )>Inativo</option>
                         </select>
-                    </div><br>
+                    </div>
 
                     {{-- AÇÕES --}}
                     <div class="flex items-end lg:col-span-3 justify-end">
