@@ -20,7 +20,7 @@
 
                     <div class="flex flex-col lg:col-span-6">
                         <label class="text-sm font-medium text-gray-700 mb-2">
-                            🔍 Pesquisar Empresa
+                            Pesquisar Empresa
                         </label>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Razão social ou nome fantasia" class="border border-gray-300 rounded-lg px-3 py-2 text-sm
@@ -37,30 +37,33 @@
                             <option value="ativo" @selected(request('status')=='ativo' )>Ativa</option>
                             <option value="inativo" @selected(request('status')=='inativo' )>Inativa</option>
                         </select>
-                    </div><br>
+                    </div>
 
-                    <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
-                        <button type="submit" class="btn btn-primary">
+                    <div class="flex items-end lg:col-span-2">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
-                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
                                     clip-rule="evenodd" />
                             </svg>
                             Filtrar
                         </button>
-
-                        @if(auth()->user()->canPermissao('clientes', 'incluir'))
-                        <a href="{{ route('empresas.create') }}" class="btn btn-success">
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Empresa
-                        </a>
-                        @endif
                     </div>
+
                 </div>
+
+                @if(auth()->user()->canPermissao('clientes', 'incluir'))
+                <div class="flex justify-start mt-4">
+                    <a href="{{ route('empresas.create') }}" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Adicionar
+                    </a>
+                </div>
+                @endif
             </form>
 
             {{-- ================= RESUMO (GRID EXPLÍCITO) ================= --}}
