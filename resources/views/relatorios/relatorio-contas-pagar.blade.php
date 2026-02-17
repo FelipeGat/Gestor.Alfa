@@ -209,10 +209,17 @@
                 </form>
             </div>
 
-            <div class="section-card mb-6 print-section">
-                <div class="Print-title mb-6 pb-4 border-b-2 border-gray-300">
-                    <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Pagar</h1>
-                    <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+            <div class="section-card mb-6 print-section mt-10">
+                <div class="Print-title mb-6 pb-4 border-b-2 border-gray-300 flex items-start justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Pagar</h1>
+                        <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+                    </div>
+                    <button onclick="imprimirRelatorio(event)" class="inline-flex items-center justify-center h-10 w-10 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir Relatório">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="table-wrapper">
                     <table class="table">
@@ -278,16 +285,6 @@
                 <div class="pagination-container p-4">
                     {{ $contasPagar->links() }}
                 </div>
-            </div>
-
-            {{-- BOTÃO IMPRIMIR --}}
-            <div class="mt-8 flex justify-end print:hidden">
-                <button onclick="imprimirRelatorio(event)" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
-                    </svg>
-                    Imprimir Relatório
-                </button>
             </div>
         </div>
     </div>
@@ -420,8 +417,8 @@
                         ${totalsHtml}
                     </div>
                     <div class="no-print" style="margin-top: 30px; text-align: center;">
-                        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 6px; font-weight: bold;">Imprimir</button>
-                        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; margin-left: 10px; background: #e5e7eb; color: #374151; border: none; border-radius: 6px; font-weight: bold;">Fechar</button>
+                        <button onclick="window.print()" style="padding: 10px 20px; width: 120px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 9999px; font-weight: bold;">Imprimir</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; width: 120px; font-size: 14px; cursor: pointer; margin-left: 10px; background: #e5e7eb; color: #374151; border: none; border-radius: 9999px; font-weight: bold;">Fechar</button>
                     </div>
                 </body>
                 </html>
