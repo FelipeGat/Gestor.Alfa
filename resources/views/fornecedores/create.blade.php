@@ -248,7 +248,7 @@
                     <div class="flex items-center">
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="ativo" value="1" checked
-                                class="rounded text-blue-600 border-gray-300 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5" id="fornecedor-ativo">
+                                class="rounded-full text-blue-600 border-gray-300 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5" id="fornecedor-ativo">
                             <span class="ml-3 text-sm font-medium text-gray-700">Fornecedor Ativo</span>
                         </label>
                     </div>
