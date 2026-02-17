@@ -139,12 +139,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-sm">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-full text-xs font-semibold
-                                            {{ $funcionario->ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}"
-                                        style="padding-top: 0.5rem; padding-bottom: 0.5rem; min-width: 90px; justify-content: center;">
-                                        {{ $funcionario->ativo ? '✓ Ativo' : '✗ Inativo' }}
-                                    </span>
+                                    <x-status-badge :ativo="$funcionario->ativo" />
                                 </td>
 
                                 <td class="px-4 py-3">
