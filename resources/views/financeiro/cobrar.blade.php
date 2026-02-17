@@ -122,8 +122,8 @@
 
                     {{-- Grupo de Botões (Direita) --}}
                     <div class="filters-actions">
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
-                        <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary">Limpar</a>
+                        <x-primary-button>Filtrar</x-primary-button>
+                        <x-secondary-button href="{{ route('financeiro.contasareceber') }}">Limpar</x-secondary-button>
                     </div>
 
                 </div>
