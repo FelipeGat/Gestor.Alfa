@@ -179,6 +179,19 @@
                     </h3>
 
                     <div class="space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Contato</label>
+                                <input type="text" name="nome_contato" value="{{ old('nome_contato') }}"
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                                <input type="text" name="cargo_contato" value="{{ old('cargo_contato') }}"
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            </div>
+                        </div>
+
                         <div>
                             <div class="flex items-center justify-between mb-3">
                                 <label class="block text-sm font-medium text-gray-700">Emails</label>
@@ -225,19 +238,6 @@
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Contato</label>
-                                <input type="text" name="nome_contato" value="{{ old('nome_contato') }}"
-                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                                <input type="text" name="cargo_contato" value="{{ old('cargo_contato') }}"
-                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                             </div>
                         </div>
                     </div>
