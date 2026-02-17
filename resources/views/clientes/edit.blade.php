@@ -39,7 +39,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="email" name="emails[]" class="w-full sm:flex-1 rounded-md border px-3 py-2" required>
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="email_principal" class="rounded text-blue-600"> Principal
+                        <input type="radio" name="email_principal" class="rounded-full text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -51,7 +51,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="text" name="telefones[]" class="telefone w-full sm:flex-1 rounded-md border px-3 py-2">
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="telefone_principal" class="rounded text-blue-600"> Principal
+                        <input type="radio" name="telefone_principal" class="rounded-full text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -377,7 +377,7 @@
                                         placeholder="seu.email@exemplo.com" required>
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="email_principal" value="{{ $i }}"
-                                            {{ $email->principal ? 'checked' : '' }} class="rounded text-blue-600">
+                                            {{ $email->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -405,7 +405,7 @@
                                         placeholder="(00) 0000-0000">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="telefone_principal" value="{{ $i }}"
-                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded text-blue-600">
+                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
