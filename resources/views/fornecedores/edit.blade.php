@@ -210,12 +210,12 @@
                             </span>
                             Contatos
                         </h3>
-                        <button type="button" @click="adicionarContato()" class="btn btn-sm btn-success">
+                        <x-small-success-button type="button" @click="adicionarContato()">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                             </svg>
                             Adicionar Contato
-                        </button>
+                        </x-small-success-button>
                     </div>
 
                     <div class="p-6 sm:p-8">
@@ -279,17 +279,16 @@
                     </div>
                 </div>
 
-                {{-- BOTÕES DE AÇÃO --}}
-                <div class="flex flex-col sm:flex-row gap-4 justify-end pt-4">
-                    <a href="{{ route('fornecedores.index') }}" class="btn btn-cancelar px-8 py-3 justify-center">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
+                            bg-white shadow rounded-lg p-6 sm:p-8">
+
+                    <x-secondary-button href="{{ route('fornecedores.index') }}">
                         Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-success px-8 py-3 justify-center shadow-lg shadow-green-100">
-                        <svg fill="currentColor" viewBox="0 0 20 20" class="w-5 h-5">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
+                    </x-secondary-button>
+
+                    <x-primary-button>
                         Atualizar Fornecedor
-                    </button>
+                    </x-primary-button>
                 </div>
             </form>
         </div>
