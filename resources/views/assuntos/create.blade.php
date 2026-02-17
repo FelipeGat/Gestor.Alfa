@@ -90,18 +90,6 @@
                             </select>
                         </div>
 
-                        {{-- STATUS --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Status
-                            </label>
-                            <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                           focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                <option value="1" @selected(old('ativo',1)==1)>Ativo</option>
-                                <option value="0" @selected(old('ativo')===0)>Inativo</option>
-                            </select>
-                        </div>
-
                     </div>
                 </div>
 
@@ -143,6 +131,23 @@
                                           focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                         </div>
 
+                    </div>
+                </div>
+
+                {{-- SEÇÃO: STATUS --}}
+                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Status
+                    </h3>
+
+                    <div class="max-w-xs">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situação do Assunto
+                        </label>
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            <option value="1" @selected(old('ativo',1)==1)>Ativo</option>
+                            <option value="0" @selected(old('ativo')===0)>Inativo</option>
+                        </select>
                     </div>
                 </div>
 

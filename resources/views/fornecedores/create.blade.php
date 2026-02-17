@@ -245,12 +245,18 @@
 
                 {{-- SEÇÃO 4: STATUS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
-                    <div class="flex items-center">
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="ativo" value="1" checked
-                                class="rounded-full text-blue-600 border-gray-300 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5" id="fornecedor-ativo">
-                            <span class="ml-3 text-sm font-medium text-gray-700">Fornecedor Ativo</span>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Status
+                    </h3>
+
+                    <div class="max-w-xs">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situação do Fornecedor
                         </label>
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            <option value="1" selected>Ativo</option>
+                            <option value="0">Inativo</option>
+                        </select>
                     </div>
                 </div>
 
