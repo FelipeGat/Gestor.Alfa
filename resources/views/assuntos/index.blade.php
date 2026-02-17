@@ -57,7 +57,7 @@
                     </div>
 
                     {{-- AÇÕES --}}
-                    <div class="flex items-end lg:col-span-3 justify-end">
+                    <div class="flex items-end lg:col-span-3">
                         <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
