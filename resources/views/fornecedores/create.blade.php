@@ -189,8 +189,8 @@
 
                     <template x-for="(contato, index) in contatos" :key="index">
                         <div class="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-                                <div class="col-span-1 sm:col-span-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="col-span-1">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
                                     <input type="text" :name="'contatos['+index+'][nome]'" x-model="contato.nome"
                                         class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
@@ -200,7 +200,7 @@
                                     <input type="text" :name="'contatos['+index+'][cargo]'" x-model="contato.cargo"
                                         class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                                 </div>
-                                <div class="col-span-1 sm:col-span-2">
+                                <div class="col-span-1">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <input type="email" :name="'contatos['+index+'][email]'" x-model="contato.email"
                                         class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
@@ -211,7 +211,7 @@
                                         class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                                 </div>
 
-                                <div class="col-span-1 sm:col-span-3 flex items-center mt-2">
+                                <div class="col-span-1 flex items-center mt-2">
                                     <label class="inline-flex items-center cursor-pointer">
                                         <input type="checkbox" :name="'contatos['+index+'][principal]'" value="1" x-model="contato.principal"
                                             class="rounded-full text-blue-600 border-gray-300 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5">
@@ -219,7 +219,7 @@
                                     </label>
                                 </div>
 
-                                <div class="col-span-1 sm:col-span-3 flex items-center justify-end mt-2">
+                                <div class="col-span-1 flex items-center justify-end mt-2">
                                     <button type="button" @click="removerContato(index)"
                                         class="text-red-500 hover:text-red-700 text-sm font-medium"
                                         x-show="contatos.length > 1">
