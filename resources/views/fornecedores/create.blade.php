@@ -174,61 +174,60 @@
 
                 {{-- SEÇÃO 3: CONTATOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-semibold text-gray-900">
-                            Contatos
-                        </h3>
-                        <button type="button" @click="adicionarContato()" 
-                            class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
-                            <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
-                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                            </svg>
-                            Adicionar
-                        </button>
-                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Contatos
+                    </h3>
 
-                    <template x-for="(contato, index) in contatos" :key="index">
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                                    <input type="text" :name="'contatos['+index+'][nome]'" x-model="contato.nome"
-                                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                </div>
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                                    <input type="text" :name="'contatos['+index+'][cargo]'" x-model="contato.cargo"
-                                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                </div>
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <input type="email" :name="'contatos['+index+'][email]'" x-model="contato.email"
-                                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                </div>
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                                    <input type="text" :name="'contatos['+index+'][telefone]'" x-model="contato.telefone"
-                                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                </div>
-
-                                <div class="col-span-1 flex items-center mt-2">
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" :name="'contatos['+index+'][principal]'" value="1" x-model="contato.principal"
-                                            class="rounded-full text-blue-600 border-gray-300 shadow-sm focus:border-blue-300 focus:ring-blue-500 w-5 h-5">
-                                        <span class="ml-2 text-sm text-gray-700">Principal</span>
-                                    </label>
-                                </div>
-
-                                <div class="col-span-1 flex items-center justify-end mt-2">
-                                    <button type="button" @click="removerContato(index)"
-                                        class="text-red-500 hover:text-red-700 text-sm font-medium"
-                                        x-show="contatos.length > 1">
-                                        Remover
-                                    </button>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Emails</label>
+                                <button type="button" @click="adicionarEmail()"
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                    </svg>
+                                    Adicionar
+                                </button>
+                            </div>
+                            <div id="emails" class="space-y-3">
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <input type="email" name="emails[]"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        placeholder="seu.email@exemplo.com">
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <input type="radio" name="email_principal" value="1" class="rounded-full text-blue-600">
+                                        <span class="text-sm text-gray-600">Principal</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </template>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Telefones</label>
+                                <button type="button" @click="adicionarTelefone()"
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                    </svg>
+                                    Adicionar
+                                </button>
+                            </div>
+                            <div id="telefones" class="space-y-3">
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <input type="text" name="telefones[]"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        placeholder="(00) 0000-0000">
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <input type="radio" name="telefone_principal" value="1" class="rounded-full text-blue-600">
+                                        <span class="text-sm text-gray-600">Principal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- SEÇÃO 4: STATUS --}}
@@ -275,6 +274,47 @@
 
     @push('scripts')
     <script>
+        function addEmail() {
+            document.getElementById('emails').insertAdjacentHTML(
+                'beforeend',
+                `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                    <input type="radio" name="email_principal" value="1" class="rounded-full text-blue-600">
+                    <span class="text-sm text-gray-600">Principal</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                    Remover
+                </button>
+            </div>`
+            );
+        }
+
+        function addTelefone() {
+            document.getElementById('telefones').insertAdjacentHTML(
+                'beforeend',
+                `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="(00) 0000-0000">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                    <input type="radio" name="telefone_principal" value="1" class="rounded-full text-blue-600">
+                    <span class="text-sm text-gray-600">Principal</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                    Remover
+                </button>
+            </div>`
+            );
+        }
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('telefone')) {
+                let v = e.target.value.replace(/\D/g, '');
+                e.target.value = v.length <= 10 ?
+                    v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
+                    v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
+            }
+        });
+
         function fornecedorForm() {
             return {
                 tipoPessoa: 'PJ',
@@ -286,13 +326,6 @@
                 bairro: '',
                 cidade: '',
                 estado: '',
-                contatos: [{
-                    nome: '',
-                    cargo: '',
-                    email: '',
-                    telefone: '',
-                    principal: true
-                }],
 
                 buscarPorCnpj() {
                     if (!this.cpfCnpj) return;
@@ -325,22 +358,6 @@
                             }
                         })
                         .catch(err => console.error('Erro ao buscar CEP:', err));
-                },
-
-                adicionarContato() {
-                    this.contatos.push({
-                        nome: '',
-                        cargo: '',
-                        email: '',
-                        telefone: '',
-                        principal: false
-                    });
-                },
-
-                removerContato(index) {
-                    if (this.contatos.length > 1) {
-                        this.contatos.splice(index, 1);
-                    }
                 }
             }
         }
