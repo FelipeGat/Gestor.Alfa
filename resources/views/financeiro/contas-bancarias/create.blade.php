@@ -12,6 +12,10 @@
 
     <div class="py-8 max-w-4xl mx-auto px-4">
 
+        <div class="mb-4">
+            <x-back-button />
+        </div>
+
         <form method="POST"
             action="{{ route('financeiro.contas-financeiras.store') }}"
             class="form-card">

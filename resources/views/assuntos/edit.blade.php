@@ -13,6 +13,10 @@
     <div class="py-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            <div class="mb-4">
+                <x-back-button />
+            </div>
+
             {{-- HEADER DO FORMULÁRIO --}}
             <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
                 <h1 class="text-2xl font-bold text-black">Editar Assunto</h1>

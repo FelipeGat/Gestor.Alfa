@@ -24,6 +24,10 @@
     <div class="py-10 bg-gray-50 min-h-screen">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            <div class="mb-4">
+                <x-back-button />
+            </div>
+
             {{-- ================= ERROS ================= --}}
             @if ($errors->any())
             <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
