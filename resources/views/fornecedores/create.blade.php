@@ -4,18 +4,26 @@
     @endpush
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Novo Fornecedor
-        </h2>
+        <div class="flex items-center justify-between w-full">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Novo Fornecedor
+            </h2>
+
+            <a href="{{ route('fornecedores.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
+                title="Voltar para Fornecedores">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-8" x-data="fornecedorForm()">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- HEADER DO FORMULÁRIO --}}
-            <div class="mb-4">
-                <x-back-button />
-            </div>
 
             <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
                 <h1 class="text-2xl font-bold text-black">Cadastro de Fornecedor</h1>
@@ -212,7 +220,7 @@
                                         class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                                         placeholder="seu.email@exemplo.com">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <input type="radio" name="email_principal" value="1" class="rounded-full text-blue-600">
+                                        <input type="radio" name="email_principal" value="1" class="rounded-lg text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -236,7 +244,7 @@
                                         class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                                         placeholder="(00) 0000-0000">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <input type="radio" name="telefone_principal" value="1" class="rounded-full text-blue-600">
+                                        <input type="radio" name="telefone_principal" value="1" class="rounded-lg text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -302,7 +310,7 @@
                 `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
                 <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                 <div class="flex items-center gap-2 whitespace-nowrap">
-                    <input type="radio" name="email_principal" value="1" class="rounded-full text-blue-600">
+                    <input type="radio" name="email_principal" value="1" class="rounded-lg text-blue-600">
                     <span class="text-sm text-gray-600">Principal</span>
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">
@@ -318,7 +326,7 @@
                 `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
                 <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="(00) 0000-0000">
                 <div class="flex items-center gap-2 whitespace-nowrap">
-                    <input type="radio" name="telefone_principal" value="1" class="rounded-full text-blue-600">
+                    <input type="radio" name="telefone_principal" value="1" class="rounded-lg text-blue-600">
                     <span class="text-sm text-gray-600">Principal</span>
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm font-medium">

@@ -155,11 +155,7 @@
 
                                 {{-- Status --}}
                                 <td class="px-4 py-3 text-sm whitespace-nowrap">
-                                    <span class="inline-flex items-center px-3 rounded-full text-xs font-semibold
-                                {{ $fornecedor->ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}"
-                                        style="padding-top: 0.5rem; padding-bottom: 0.5rem; min-width: 90px; justify-content: center;">
-                                        {{ $fornecedor->ativo ? '✓ Ativo' : '✗ Inativo' }}
-                                    </span>
+                                    <x-status-badge :ativo="$fornecedor->ativo" />
                                 </td>
 
                                 {{-- Ações --}}

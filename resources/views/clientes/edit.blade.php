@@ -6,9 +6,20 @@
 
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Editar Cliente
-        </h2>
+        <div class="flex items-center justify-between w-full">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Editar Cliente
+            </h2>
+
+            <a href="{{ route('clientes.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
+                title="Voltar para Clientes">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </a>
+        </div>
     </x-slot>
 
     {{-- ================= ESTILO SPINNER ================= --}}
@@ -39,7 +50,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="email" name="emails[]" class="w-full sm:flex-1 rounded-md border px-3 py-2" required>
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="email_principal" class="rounded-full text-blue-600"> Principal
+                        <input type="radio" name="email_principal" class="rounded-lg text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -51,7 +62,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="text" name="telefones[]" class="telefone w-full sm:flex-1 rounded-md border px-3 py-2">
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="telefone_principal" class="rounded-full text-blue-600"> Principal
+                        <input type="radio" name="telefone_principal" class="rounded-lg text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -268,6 +279,7 @@
             </div>
 
             {{-- ERROS --}}
+
             @if ($errors->any())
             <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
                 <div class="flex items-start">
@@ -381,7 +393,7 @@
                                         placeholder="seu.email@exemplo.com" required>
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="email_principal" value="{{ $i }}"
-                                            {{ $email->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
+                                            {{ $email->principal ? 'checked' : '' }} class="rounded-lg text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -409,7 +421,7 @@
                                         placeholder="(00) 0000-0000">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="telefone_principal" value="{{ $i }}"
-                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
+                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded-lg text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -448,7 +460,7 @@
                                 type="checkbox"
                                 name="usuarios_portal[]"
                                 value="{{ $usuario->id }}"
-                                class="rounded-full border-gray-300"
+                                class="rounded-lg border-gray-300"
                                 @checked(in_array($usuario->id, $usuariosVinculados))
                             >
 

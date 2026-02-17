@@ -24,7 +24,7 @@
 
             {{-- BOTÃO VOLTAR --}}
             <a href="{{ route('financeiro.dashboard') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group print:hidden"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group print:hidden"
                 title="Voltar para Dashboard Financeiro">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -103,6 +103,14 @@
                 </div>
 
                 {{-- KPIs (Cards de Resumo) --}}
+                <div class="flex justify-end mb-4">
+                    <button onclick="window.print()" class="inline-flex items-center justify-center h-10 w-10 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir Relatório">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
+                        </svg>
+                    </button>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                     {{-- Valor Orçado --}}
                     <div class="bg-white shadow rounded-xl flex flex-col items-center justify-center p-6 border-l-4 border-l-indigo-500">
@@ -153,7 +161,12 @@
                         </div>
                         <div class="h-[300px] flex flex-col items-center justify-center">
                             <canvas id="graficoCustosCategoria"></canvas>
-                            <button id="btn-voltar-drilldown" class="mt-4 px-4 py-1 bg-gray-200 text-gray-700 rounded font-semibold text-xs hidden">Voltar</button>
+                            <button id="btn-voltar-drilldown" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group hidden cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                <span>Voltar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -222,16 +235,6 @@
                             </tfoot>
                         </table>
                     </div>
-                </div>
-
-                {{-- BOTÃO IMPRIMIR --}}
-                <div class="mt-8 flex justify-end print:hidden">
-                    <button onclick="window.print()" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
-                        </svg>
-                        Imprimir Relatório
-                    </button>
                 </div>
 
                 {{-- SCRIPTS DOS GRÁFICOS --}}

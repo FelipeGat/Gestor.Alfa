@@ -26,7 +26,7 @@
             </div>
 
             <a href="{{ route('relatorios.index') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-emerald-600 transition-all shadow-sm group print:hidden"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group print:hidden"
                 title="Voltar para Relatórios">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -197,20 +197,29 @@
                     </div>
 
                     <div class="filter-actions justify-end mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd"
+                                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                                    clip-rule="evenodd" />
                             </svg>
-                            Filtrar Relatório
+                            Filtrar
                         </button>
                     </div>
                 </form>
             </div>
 
-            <div class="section-card mb-6 print-section">
-                <div class="Print-title mb-6 pb-4 border-b-2 border-gray-300">
-                    <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Receber</h1>
-                    <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+            <div class="section-card mb-6 print-section mt-10">
+                <div class="Print-title mb-6 pb-4 border-b-2 border-gray-300 flex items-start justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Receber</h1>
+                        <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
+                    </div>
+                    <button onclick="imprimirRelatorio(event)" class="inline-flex items-center justify-center h-10 w-10 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir Relatório">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="table-wrapper">
                     <table class="table">
@@ -272,16 +281,6 @@
                 <div class="pagination-container p-4">
                     {{ $contasReceber->links() }}
                 </div>
-            </div>
-
-            {{-- BOTÃO IMPRIMIR --}}
-            <div class="mt-8 flex justify-end print:hidden">
-                <button onclick="imprimirRelatorio(event)" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
-                    </svg>
-                    Imprimir Relatório
-                </button>
             </div>
         </div>
     </div>
@@ -403,8 +402,8 @@
                         <span style="font-size: 13px; font-weight: bold; color: ${corTotal}; margin-left: 10px;">${totalValor}</span>
                     </div>
                     <div class="no-print" style="margin-top: 30px; text-align: center;">
-                        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 6px; font-weight: bold;">Imprimir</button>
-                        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; margin-left: 10px; background: #e5e7eb; color: #374151; border: none; border-radius: 6px; font-weight: bold;">Fechar</button>
+                        <button onclick="window.print()" style="padding: 10px 20px; width: 120px; font-size: 14px; cursor: pointer; background: #1f2937; color: white; border: none; border-radius: 9999px; font-weight: bold;">Imprimir</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; width: 120px; font-size: 14px; cursor: pointer; margin-left: 10px; background: #e5e7eb; color: #374151; border: none; border-radius: 9999px; font-weight: bold;">Fechar</button>
                     </div>
                 </body>
                 </html>

@@ -5,17 +5,24 @@
     @endpush
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Novo Usuário
-        </h2>
+        <div class="flex items-center justify-between w-full">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Novo Usuário
+            </h2>
+
+            <a href="{{ route('usuarios.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
+                title="Voltar para Usuários">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div class="mb-4">
-                <x-back-button />
-            </div>
 
             {{-- HEADER DO FORMULÁRIO --}}
             <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
@@ -87,7 +94,7 @@
                         @foreach($perfis as $perfil)
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="perfis[]" value="{{ $perfil->id }}"
-                                class="rounded-full border-gray-300">
+                                class="rounded-lg border-gray-300">
                             <span class="text-sm text-gray-700">{{ $perfil->nome }}</span>
                         </label>
                         @endforeach
@@ -104,7 +111,7 @@
                         @foreach($empresas as $empresa)
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="empresas[]" value="{{ $empresa->id }}"
-                                class="rounded-full border-gray-300">
+                                class="rounded-lg border-gray-300">
                             <span class="text-sm text-gray-700">
                                 {{ $empresa->nome_fantasia ?? $empresa->nome }}
                             </span>
