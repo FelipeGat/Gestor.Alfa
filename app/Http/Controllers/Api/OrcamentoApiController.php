@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\AtualizarOrcamentoAction;
 use App\Actions\CriarOrcamentoAction;
+use App\Actions\DTO\AtualizarOrcamentoDTO;
 use App\Actions\DTO\CriarOrcamentoDTO;
+use App\Actions\ExcluirOrcamentoAction;
+use App\Actions\ListarOrcamentosAction;
 use App\Domain\Exceptions\DomainException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AtualizarOrcamentoRequest;
 use App\Http\Requests\CriarOrcamentoRequest;
 use App\Models\Orcamento;
 use App\Resources\CobrancaResource;
@@ -16,27 +21,9 @@ use Illuminate\Support\Facades\Auth;
 
 class OrcamentoApiController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, ListarOrcamentosAction $action): JsonResponse
     {
-        $query = Orcamento::with(['empresa', 'cliente', 'preCliente', 'itens']);
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('empresa_id')) {
-            $query->where('empresa_id', $request->empresa_id);
-        }
-
-        if ($request->filled('search')) {
-            $search = '%'.$request->search.'%';
-            $query->where(function ($q) use ($search) {
-                $q->where('numero_orcamento', 'like', $search)
-                    ->orWhere('descricao', 'like', $search);
-            });
-        }
-
-        $orcamentos = $query->orderByDesc('created_at')->paginate(15);
+        $orcamentos = $action->execute($request->all());
 
         return response()->json([
             'data' => OrcamentoResource::collection($orcamentos),
@@ -88,7 +75,50 @@ class OrcamentoApiController extends Controller
         ]);
     }
 
-    public function Cobrancas(int $orcamentoId): JsonResponse
+    public function update(AtualizarOrcamentoRequest $request, AtualizarOrcamentoAction $action, int $id): JsonResponse
+    {
+        try {
+            $dto = AtualizarOrcamentoDTO::fromArray($request->validated());
+
+            $orcamento = $action->execute($id, $dto, Auth::id());
+
+            return response()->json([
+                'message' => 'Orçamento atualizado com sucesso',
+                'data' => new OrcamentoResource($orcamento->fresh()),
+            ]);
+        } catch (DomainException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->getErrors(),
+            ], $e->getCode());
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function destroy(int $id, ExcluirOrcamentoAction $action): JsonResponse
+    {
+        try {
+            $action->execute($id, Auth::id());
+
+            return response()->json([
+                'message' => 'Orçamento excluído com sucesso',
+            ]);
+        } catch (DomainException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->getErrors(),
+            ], $e->getCode());
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function cobrancas(int $orcamentoId): JsonResponse
     {
         $orcamento = Orcamento::find($orcamentoId);
 

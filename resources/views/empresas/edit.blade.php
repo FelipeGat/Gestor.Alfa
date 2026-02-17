@@ -6,7 +6,7 @@
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ✏️ Editar Empresa
+            Editar Empresa
         </h2>
     </x-slot>
 
@@ -14,6 +14,10 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- HEADER --}}
+            <div class="mb-4">
+                <x-back-button />
+            </div>
+
             <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
                 <h1 class="text-2xl font-bold text-black">Editar Empresa</h1>
                 <p class="text-sm text-gray-600 mt-1">
@@ -40,7 +44,7 @@
                 {{-- SEÇÃO 1: DADOS DA EMPRESA --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        🏷️ Dados da Empresa
+                        Dados da Empresa
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -85,7 +89,7 @@
                 {{-- SEÇÃO 2: CONTATOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📧 Contatos
+                        Contatos
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -112,19 +116,17 @@
                 {{-- SEÇÃO 3: STATUS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        ⚙️ Status
+                        Status
                     </h3>
 
                     <div class="max-w-xs">
-                        <input type="hidden" name="ativo" value="0">
-
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="ativo" value="1" class="rounded text-blue-600"
-                                {{ old('ativo', $empresa->ativo) ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-700">
-                                Empresa ativa
-                            </span>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situação da Empresa
                         </label>
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            <option value="1" @selected(old('ativo', $empresa->ativo)==1)>Ativa</option>
+                            <option value="0" @selected(old('ativo', $empresa->ativo)==0)>Inativa</option>
+                        </select>
                     </div>
                 </div>
 
@@ -133,24 +135,26 @@
                             bg-white shadow rounded-lg p-6 sm:p-8">
 
                     <a href="{{ route('empresas.index') }}"
-                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center;">
 
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                                 clip-rule="evenodd" />
                         </svg>
 
                         Cancelar
                     </a>
 
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; border-radius: 9999px; min-width: 130px; justify-content: center;">
                         <svg fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                 clip-rule="evenodd" />
                         </svg>
-                        Atualizar Empresa
+                        Salvar
                     </button>
                 </div>
 

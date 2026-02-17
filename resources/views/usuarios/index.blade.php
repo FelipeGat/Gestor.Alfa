@@ -6,7 +6,7 @@
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            👤 Usuários do Sistema
+            Usuários do Sistema
         </h2>
     </x-slot>
 
@@ -21,7 +21,7 @@
 
                     <div class="flex flex-col lg:col-span-6">
                         <label class="text-sm font-medium text-gray-700 mb-2">
-                            🔍 Pesquisar Usuários
+                            Pesquisar Usuários
                         </label>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Nome ou E-mail"
                             class="border border-gray-300 rounded-lg px-3 py-2 text-sm
@@ -41,29 +41,18 @@
                                 Acesso</option>
                         </select>
                     </div>
-                    <br>
 
-                    <div class="flex gap-3 items-end flex-col lg:flex-row lg:col-span-3 justify-end">
-                        <button type="submit" class="btn btn-primary">
+                    <div class="flex items-end lg:col-span-2">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
-                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
                                     clip-rule="evenodd" />
                             </svg>
                             Filtrar
                         </button>
-
-                        @if(auth()->user()->canPermissao('clientes', 'incluir'))
-                        <a href="{{ route('usuarios.create') }}" class="btn btn-success">
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Usuário
-                        </a>
-                        @endif
                     </div>
+
                 </div>
             </form>
 
@@ -76,7 +65,7 @@
             }
             </style>
 
-            <div class="resumo-grid gap-4 mb-6" style="
+            <div class="resumo-grid gap-4" style="
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
                 <div class="bg-white p-6 shadow rounded-lg border-l-4 border-blue-600 w-full max-w-none">
@@ -101,18 +90,31 @@
                 </div>
             </div>
 
+            @if(auth()->user()->canPermissao('clientes', 'incluir'))
+            <div class="flex justify-start" style="margin-bottom: -1rem;">
+                <a href="{{ route('usuarios.create') }}" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Adicionar
+                </a>
+            </div>
+            @endif
+
             {{-- TABELA --}}
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
-                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Nome</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Tipo</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Perfis</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Status</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase">Ações</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Ações</th>
                             </tr>
 
                         </thead>
@@ -144,28 +146,30 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-sm">
-                                    @if($usuario->primeiro_acesso)
-                                    <span class="text-yellow-600 font-medium">Primeiro acesso</span>
-                                    @else
-                                    <span class="text-green-600 font-medium">Ativo</span>
-                                    @endif
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-full text-xs font-semibold
+                                            {{ !$usuario->primeiro_acesso ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}"
+                                        style="padding-top: 0.5rem; padding-bottom: 0.5rem; min-width: 90px; justify-content: center;">
+                                        {{ !$usuario->primeiro_acesso ? '✓ Ativo' : 'Primeiro acesso' }}
+                                    </span>
                                 </td>
 
-                                {{-- AÇÕES --}}
-                                <td class="px-4 py-3 text-sm text-center">
-                                    <a href="{{ route('usuarios.edit', $usuario) }}" class="btn btn-sm btn-edit">
-                                        <svg fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                        Editar
-                                    </a>
+                                <td class="px-4 py-3">
+                                    <div class="table-actions">
+                                        <a href="{{ route('usuarios.edit', $usuario) }}" class="btn btn-sm btn-edit"
+                                            style="padding: 0.5rem; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;">
+                                            <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                                <path
+                                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
 
                             @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
                                     Nenhum usuário encontrado.
                                 </td>
                             </tr>
@@ -174,7 +178,6 @@
                     </table>
                 </div>
             </div>
-            <br>
 
             {{-- ================= PAGINAÇÃO ================= --}}
             <div class="pagination-wrapper">
@@ -189,14 +192,12 @@
                 </div>
 
                 <div class="pagination-links">
-                    {{-- Link Anterior --}}
                     @if($usuarios->onFirstPage())
                     <span class="pagination-link disabled">← Anterior</span>
                     @else
                     <a href="{{ $usuarios->previousPageUrl() }}" class="pagination-link">← Anterior</a>
                     @endif
 
-                    {{-- Links de Página --}}
                     @foreach($usuarios->getUrlRange(1, $usuarios->lastPage()) as $page => $url)
                     @if($page == $usuarios->currentPage())
                     <span class="pagination-link active">{{ $page }}</span>
@@ -205,7 +206,6 @@
                     @endif
                     @endforeach
 
-                    {{-- Link Próximo --}}
                     @if($usuarios->hasMorePages())
                     <a href="{{ $usuarios->nextPageUrl() }}" class="pagination-link">Próximo →</a>
                     @else

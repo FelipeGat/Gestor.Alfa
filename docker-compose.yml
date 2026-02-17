@@ -31,8 +31,9 @@ services:
       - ./data/uploads:/var/www/storage/app/public
       - ./logs/php:/var/log/php
     environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -43,6 +44,8 @@ services:
       - REDIS_PORT=6379
       - CACHE_DRIVER=file
       - SESSION_DRIVER=file
+      - SESSION_DOMAIN=null
+      - SESSION_SECURE_COOKIE=false
       - QUEUE_CONNECTION=sync
       - PHP_UPLOAD_TMP_DIR=/var/www/storage/app/public/cobrancas/anexos/tmp
     depends_on:

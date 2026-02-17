@@ -6,6 +6,10 @@
     @endpush
 
     {{-- ================= CONTEÚDO ================= --}}
+    <div class="mb-4">
+        <x-back-button />
+    </div>
+
     <div class="form-wrapper">
         <div class="form-container">
 

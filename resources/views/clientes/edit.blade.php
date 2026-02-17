@@ -7,7 +7,7 @@
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ✏️ Editar Cliente
+            Editar Cliente
         </h2>
     </x-slot>
 
@@ -39,7 +39,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="email" name="emails[]" class="w-full sm:flex-1 rounded-md border px-3 py-2" required>
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="email_principal" class="rounded text-blue-600"> Principal
+                        <input type="radio" name="email_principal" class="rounded-full text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -51,7 +51,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-lg border">
                     <input type="text" name="telefones[]" class="telefone w-full sm:flex-1 rounded-md border px-3 py-2">
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="telefone_principal" class="rounded text-blue-600"> Principal
+                        <input type="radio" name="telefone_principal" class="rounded-full text-blue-600"> Principal
                     </label>
                     <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">Remover</button>
                 </div>
@@ -264,6 +264,10 @@
             </div>
 
             {{-- ERROS --}}
+            <div class="mb-4">
+                <x-back-button />
+            </div>
+
             @if ($errors->any())
             <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
                 <div class="flex items-start">
@@ -294,7 +298,7 @@
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📋 Dados Básicos
+                        Dados Básicos
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -351,7 +355,7 @@
                 {{-- SEÇÃO 2: CONTATOS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📧 Contatos
+                        Contatos
                     </h3>
 
                     <div class="space-y-6">
@@ -360,13 +364,12 @@
                                 <label class="block text-sm font-medium text-gray-700">Emails <span
                                         class="text-red-500">*</span></label>
                                 <button type="button" onclick="addEmail()"
-                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
-                                            clip-rule="evenodd" />
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
                                     </svg>
-                                    Adicionar email
+                                    Adicionar
                                 </button>
                             </div>
                             <div id="emails" class="space-y-3">
@@ -378,7 +381,7 @@
                                         placeholder="seu.email@exemplo.com" required>
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="email_principal" value="{{ $i }}"
-                                            {{ $email->principal ? 'checked' : '' }} class="rounded text-blue-600">
+                                            {{ $email->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -390,13 +393,11 @@
                             <div class="flex items-center justify-between mb-3">
                                 <label class="block text-sm font-medium text-gray-700">Telefones</label>
                                 <button type="button" onclick="addTelefone()"
-                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium transition">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
-                                            clip-rule="evenodd" />
+                                    class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                     </svg>
-                                    Adicionar telefone
+                                    Adicionar
                                 </button>
                             </div>
                             <div id="telefones" class="space-y-3">
@@ -408,7 +409,7 @@
                                         placeholder="(00) 0000-0000">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="telefone_principal" value="{{ $i }}"
-                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded text-blue-600">
+                                            {{ $telefone->principal ? 'checked' : '' }} class="rounded-full text-blue-600">
                                         <span class="text-sm text-gray-600">Principal</span>
                                     </div>
                                 </div>
@@ -447,6 +448,7 @@
                                 type="checkbox"
                                 name="usuarios_portal[]"
                                 value="{{ $usuario->id }}"
+                                class="rounded-full border-gray-300"
                                 @checked(in_array($usuario->id, $usuariosVinculados))
                             >
 
@@ -468,7 +470,7 @@
                 {{-- SEÇÃO 3: ENDEREÇO --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        🏠 Endereço
+                        Endereço
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -524,7 +526,7 @@
                 {{-- SEÇÃO 4: CONTRATO --}}
                 <div id="bloco-contrato" class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📑 Informações de Contrato
+                        Informações de Contrato
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -566,7 +568,7 @@
                 {{-- SEÇÃO 5: INSCRIÇÕES --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        🏛️ Inscrições
+                        Inscrições
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -588,7 +590,7 @@
                 {{-- SEÇÃO 6: OBSERVAÇÕES --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📝 Observações
+                        Observações
                     </h3>
                     <textarea name="observacoes" rows="4"
                         class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
@@ -598,7 +600,7 @@
                 {{-- SEÇÃO 7: STATUS --}}
                 <div class="bg-white shadow rounded-lg p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        ⚙️ Status
+                        Status
                     </h3>
 
                     <div>
@@ -616,24 +618,26 @@
                             bg-white shadow rounded-lg p-6 sm:p-8">
 
                     <a href="{{ route('clientes.index') }}"
-                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200">
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center;">
 
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                                 clip-rule="evenodd" />
                         </svg>
 
                         Cancelar
                     </a>
 
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; border-radius: 9999px; min-width: 130px; justify-content: center;">
                         <svg fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                 clip-rule="evenodd" />
                         </svg>
-                        Atualizar Cliente
+                        Salvar
                     </button>
                 </div>
 
