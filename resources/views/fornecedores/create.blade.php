@@ -55,8 +55,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pessoa</label>
                             <select name="tipo_pessoa" x-model="tipoPessoa"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
+                                <option value="PF" {{ old('tipo_pessoa') == 'PF' ? 'selected' : '' }}>Pessoa Física</option>
+                                <option value="PJ" {{ old('tipo_pessoa', 'PJ') == 'PJ' ? 'selected' : '' }}>Pessoa Jurídica</option>
                             </select>
                         </div>
 
@@ -65,11 +65,9 @@
                             <input type="text"
                                 name="cpf_cnpj"
                                 x-model="cpfCnpj"
-                                @blur="buscarPorCnpj()"
                                 :maxlength="tipoPessoa === 'PJ' ? 18 : 14"
                                 :placeholder="tipoPessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'"
                                 class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                            <small class="text-red-500 font-semibold mt-1 block" x-show="duplicado" x-text="msgDuplicado"></small>
                         </div>
 
                         <div class="col-span-1 sm:col-span-2">
@@ -253,9 +251,10 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Situação do Fornecedor
                         </label>
-                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                            <option value="1" selected>Ativo</option>
-                            <option value="0">Inativo</option>
+                        <select name="ativo" 
+                            class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            <option value="1" {{ old('ativo', 1) == 1 ? 'selected' : '' }}>Ativo</option>
+                            <option value="0" {{ old('ativo', 1) == 0 ? 'selected' : '' }}>Inativo</option>
                         </select>
                     </div>
                 </div>
@@ -338,29 +337,11 @@
             return {
                 tipoPessoa: 'PJ',
                 cpfCnpj: '',
-                duplicado: false,
-                msgDuplicado: '',
                 cep: '',
                 logradouro: '',
                 bairro: '',
                 cidade: '',
                 estado: '',
-
-                buscarPorCnpj() {
-                    if (!this.cpfCnpj) return;
-
-                    fetch(`/fornecedores/api/buscar-cnpj?cnpj=${this.cpfCnpj}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.exists) {
-                                this.duplicado = true;
-                                this.msgDuplicado = `Fornecedor já cadastrado: ${data.fornecedor.razao_social}`;
-                            } else {
-                                this.duplicado = false;
-                                this.msgDuplicado = '';
-                            }
-                        });
-                },
 
                 buscarCep() {
                     const cepLimpo = this.cep.replace(/\D/g, '');
