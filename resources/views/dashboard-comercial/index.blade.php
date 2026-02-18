@@ -7,40 +7,48 @@
         }
     </style>
     @endpush
-    <x-slot name="header">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                📈 Dashboard Comercial {{ $empresaId ? '- ' . ($empresas->find($empresaId)->nome_fantasia ?? 'Empresa') : '(Global)' }}
-            </h2>
-
-            <!-- FILTROS -->
-            <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap gap-3">
-                <select name="empresa_id" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="">Todas as Empresas</option>
-                    @foreach($empresas as $empresa)
-                    <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
-                        {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                    </option>
-                    @endforeach
-                </select>
-
-                <select name="status" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="">Todos os Status</option>
-                    @foreach($todosStatus as $st)
-                    <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
-                        {{ ucfirst($st) }}
-                    </option>
-                    @endforeach
-                </select>
-
-                @if($empresaId || $statusFiltro)
-                <a href="{{ url()->current() }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
-                    Limpar
-                </a>
-                @endif
-            </form>
-        </div>
+    <x-slot name="breadcrumb">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="text-gray-800 font-medium">Dashboard Comercial</span>
+        </nav>
     </x-slot>
+
+    <!-- FILTROS -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap gap-3">
+            <select name="empresa_id" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <option value="">Todas as Empresas</option>
+                @foreach($empresas as $empresa)
+                <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
+                    {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
+                </option>
+                @endforeach
+            </select>
+
+            <select name="status" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <option value="">Todos os Status</option>
+                @foreach($todosStatus as $st)
+                <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
+                    {{ ucfirst($st) }}
+                </option>
+                @endforeach
+            </select>
+
+            @if($empresaId || $statusFiltro)
+            <a href="{{ url()->current() }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                Limpar
+            </a>
+            @endif
+        </form>
+    </div>
 
     {{-- DADOS PARA O JS (Evita erro de sintaxe no editor) --}}
     <div id="dashboard-json-data"
@@ -49,7 +57,7 @@
         style="display: none;">
     </div>
 
-    <div class="py-8 bg-gray-50 min-h-screen" x-data="{
+    <div class="pb-8 pt-4 bg-gray-50 min-h-screen" x-data="{
         modalAberto: false,
         carregando: false,
         tituloModal: '',

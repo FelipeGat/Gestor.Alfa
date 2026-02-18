@@ -53,19 +53,22 @@
     @endpush
 
     {{-- ================= HEADER ================= --}}
-    <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    <x-slot name="breadcrumb">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-            </div>
-            <h2 class="font-bold text-2xl text-gray-800 leading-tight">Atendimentos</h2>
-        </div>
+            </a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="text-gray-800 font-medium">Atendimentos</span>
+        </nav>
     </x-slot>
 
     {{-- ================= CONTEÚDO ================= --}}
-    <div class="py-8">
+    <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= FILTROS ================= --}}
