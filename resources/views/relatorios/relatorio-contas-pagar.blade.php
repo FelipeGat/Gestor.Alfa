@@ -223,7 +223,7 @@
                                 <th class="text-left">Centro</th>
                                 <th class="text-left">Fornecedor</th>
                                 <th class="text-left">Vencimento</th>
-                                <th class="text-right">Valor</th>
+                                <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
                             </tr>
                         </thead>
@@ -242,7 +242,7 @@
                                     <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
-                                    <td class="text-right font-black text-red-600">
+                                    <td class="text-left font-black text-red-600">
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
                                     </td>
                                     <td class="text-left">
