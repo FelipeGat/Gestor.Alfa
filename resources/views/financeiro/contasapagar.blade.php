@@ -130,10 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let fornecedores = [];
 
     fornecedores = [
-        @foreach($contas as $conta)
-            @if($conta->fornecedor)
-                { id: {{ $conta->fornecedor->id }}, nome: @json($conta->fornecedor->razao_social ?: $conta->fornecedor->nome_fantasia ?: '-') },
-            @endif
+        @foreach($fornecedores as $fornecedor)
+            { id: {{ $fornecedor->id }}, nome: @json($fornecedor->razao_social ?: $fornecedor->nome_fantasia ?: '-') },
         @endforeach
     ];
 

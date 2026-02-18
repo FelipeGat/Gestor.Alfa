@@ -124,8 +124,13 @@ class ContasPagarController extends Controller
 
         $contasFiltro = \App\Models\Conta::orderBy('nome')->get();
 
+        // Buscar todos os fornecedores ativos para o autocomplete (não apenas das contas paginadas)
+        $fornecedores = \App\Models\Fornecedor::where('ativo', true)
+            ->orderBy('razao_social')
+            ->get(['id', 'razao_social', 'nome_fantasia']);
+
         // Adicione outras variáveis conforme necessário para a view
-        return view('financeiro.contasapagar', compact('contas', 'centrosCusto', 'categorias', 'subcategorias', 'contasFiltro', 'contadoresStatus', 'kpis', 'totalGeralFiltrado', 'contasFinanceiras'));
+        return view('financeiro.contasapagar', compact('contas', 'centrosCusto', 'categorias', 'subcategorias', 'contasFiltro', 'contadoresStatus', 'kpis', 'totalGeralFiltrado', 'contasFinanceiras', 'fornecedores'));
     }
     /**
      * Baixa múltipla de contas a pagar
