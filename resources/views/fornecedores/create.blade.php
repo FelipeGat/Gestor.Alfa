@@ -3,24 +3,25 @@
     @vite('resources/css/atendimentos/index.css')
     @endpush
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Novo Fornecedor
-            </h2>
-
-            <a href="{{ route('fornecedores.index') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group"
-                title="Voltar para Fornecedores">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    <x-slot name="breadcrumb">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span>Voltar</span>
             </a>
-        </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <a href="{{ route('fornecedores.index') }}" class="text-gray-500 hover:text-gray-700 transition">Fornecedores</a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="text-gray-800 font-medium">Novo Fornecedor</span>
+        </nav>
     </x-slot>
 
-    <div class="py-8" x-data="fornecedorForm()">
+    <div class="pb-8 pt-4" x-data="fornecedorForm()">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- HEADER DO FORMULÁRIO --}}
