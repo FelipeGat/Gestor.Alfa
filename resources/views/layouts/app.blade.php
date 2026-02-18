@@ -35,6 +35,13 @@
         </header>
         @endisset
 
+        <!-- Breadcrumb -->
+        @isset($breadcrumb)
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {{ $breadcrumb }}
+        </div>
+        @endisset
+
         <!-- Page Content -->
         <main>
             @hasSection('content')

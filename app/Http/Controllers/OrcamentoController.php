@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Orcamento;
-use App\Models\Empresa;
+use App\Models\Atendimento;
 use App\Models\Cliente;
+use App\Models\Empresa;
+use App\Models\ItemComercial;
+use App\Models\Orcamento;
+use App\Models\OrcamentoItem;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Atendimento;
 use Illuminate\Support\Facades\DB;
-use App\Models\ItemComercial;
-use App\Models\OrcamentoItem;
-use Carbon\Carbon;
-
-
 
 class OrcamentoController extends Controller
 {
@@ -24,7 +22,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -40,7 +38,7 @@ class OrcamentoController extends Controller
         $sort = $request->get('sort', 'created_at');
         $direction = $request->get('direction', 'desc');
 
-        if (!in_array($sort, $sortable)) {
+        if (! in_array($sort, $sortable)) {
             $sort = 'created_at';
         }
 
@@ -90,13 +88,23 @@ class OrcamentoController extends Controller
         }
 
         // ================= FILTRO POR STATUS (MÚLTIPLO) =================
-        if ($request->filled('status')) {
-            $query->whereIn('status', (array) $request->status);
+        $statusFilter = $request->input('status');
+        if ($statusFilter) {
+            $statusArray = is_array($statusFilter) ? $statusFilter : [$statusFilter];
+            $statusArray = array_filter($statusArray);
+            if (! empty($statusArray)) {
+                $query->whereIn('status', $statusArray);
+            }
         }
 
         // ================= FILTRO POR EMPRESA (MÚLTIPLA) =================
-        if ($request->filled('empresa_id')) {
-            $query->whereIn('empresa_id', (array) $request->empresa_id);
+        $empresaFilter = $request->input('empresa_id');
+        if ($empresaFilter) {
+            $empresaArray = is_array($empresaFilter) ? $empresaFilter : [$empresaFilter];
+            $empresaArray = array_filter($empresaArray);
+            if (! empty($empresaArray)) {
+                $query->whereIn('empresa_id', $empresaArray);
+            }
         }
 
         // ================= FILTRO POR PERÍODO =================
@@ -121,7 +129,7 @@ class OrcamentoController extends Controller
                 case 'semana':
                     $query->whereBetween('created_at', [
                         $hoje->startOfWeek(),
-                        $hoje->endOfWeek()
+                        $hoje->endOfWeek(),
                     ]);
                     break;
 
@@ -132,8 +140,8 @@ class OrcamentoController extends Controller
                 case 'intervalo':
                     if ($request->filled('data_inicio') && $request->filled('data_fim')) {
                         $query->whereBetween('created_at', [
-                            $request->data_inicio . ' 00:00:00',
-                            $request->data_fim . ' 23:59:59'
+                            $request->data_inicio.' 00:00:00',
+                            $request->data_fim.' 23:59:59',
                         ]);
                     }
                     break;
@@ -161,10 +169,25 @@ class OrcamentoController extends Controller
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
+        $statusList = [
+            'em_elaboracao' => 'Em Elaboração',
+            'aguardando_aprovacao' => 'Aguardando Aprovação',
+            'aprovado' => 'Aprovado',
+            'aguardando_pagamento' => 'Aguardando Pagamento',
+            'agendado' => 'Agendado',
+            'recusado' => 'Recusado',
+            'em_andamento' => 'Em Andamento',
+            'financeiro' => 'Financeiro',
+            'concluido' => 'Concluído',
+            'garantia' => 'Garantia',
+            'cancelado' => 'Cancelado',
+        ];
+
         return view('orcamentos.index', compact(
             'orcamentos',
             'atendimentosParaOrcamento',
-            'empresas'
+            'empresas',
+            'statusList'
         ));
     }
 
@@ -174,7 +197,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -189,7 +212,7 @@ class OrcamentoController extends Controller
             'itens.item',
             'taxasItens',
             'pagamentos',
-            'cobrancas'
+            'cobrancas',
         ]);
 
         return view('orcamentos.show', compact('orcamento'));
@@ -201,7 +224,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -229,26 +252,26 @@ class OrcamentoController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
+        abort_if(! $user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
 
         $request->validate([
-            'empresa_id'      => 'required|exists:empresas,id',
-            'descricao'       => 'required|string|max:255',
-            'validade'        => 'nullable|date|after_or_equal:today',
-            'cliente_tipo'    => 'required|in:cliente,pre_cliente',
-            'cliente_id'      => 'nullable|exists:clientes,id',
-            'pre_cliente_id'  => 'nullable|exists:pre_clientes,id',
-            'itens'           => 'required|array|min:1|max:50',
+            'empresa_id' => 'required|exists:empresas,id',
+            'descricao' => 'required|string|max:255',
+            'validade' => 'nullable|date|after_or_equal:today',
+            'cliente_tipo' => 'required|in:cliente,pre_cliente',
+            'cliente_id' => 'nullable|exists:clientes,id',
+            'pre_cliente_id' => 'nullable|exists:pre_clientes,id',
+            'itens' => 'required|array|min:1|max:50',
             'desconto_servico_valor' => 'nullable|numeric|min:0|max:99999999',
             'desconto_produto_valor' => 'nullable|numeric|min:0|max:99999999',
             'forma_pagamento' => 'nullable|string|max:255',
             'prazo_pagamento' => 'nullable|string|max:255',
-            'observacoes'     => 'nullable|string|max:5000',
+            'observacoes' => 'nullable|string|max:5000',
         ]);
 
         if (
-            ($request->cliente_tipo === 'cliente' && !$request->filled('cliente_id')) ||
-            ($request->cliente_tipo === 'pre_cliente' && !$request->filled('pre_cliente_id'))
+            ($request->cliente_tipo === 'cliente' && ! $request->filled('cliente_id')) ||
+            ($request->cliente_tipo === 'pre_cliente' && ! $request->filled('pre_cliente_id'))
         ) {
             return back()
                 ->withErrors(['cliente_nome' => 'Selecione um cliente ou pré-cliente válido.'])
@@ -257,7 +280,7 @@ class OrcamentoController extends Controller
 
         DB::transaction(function () use ($request, $user) {
 
-            if (!is_array($request->itens) || count($request->itens) === 0) {
+            if (! is_array($request->itens) || count($request->itens) === 0) {
                 return back()
                     ->withErrors(['itens' => 'Adicione pelo menos um serviço ou produto.'])
                     ->withInput();
@@ -272,38 +295,38 @@ class OrcamentoController extends Controller
                     $nome = $itemTaxa['nome'] ?? '';
                     $valor = (float) str_replace(',', '.', $itemTaxa['valor'] ?? 0);
 
-                    if (!empty($nome) && $valor > 0) {
+                    if (! empty($nome) && $valor > 0) {
                         $taxasLista[] = ['nome' => $nome, 'valor' => $valor];
                         $totalTaxasCalculado += $valor;
                     }
                 }
             }
 
-            $clienteId    = ($request->cliente_tipo === 'cliente') ? $request->cliente_id : null;
+            $clienteId = ($request->cliente_tipo === 'cliente') ? $request->cliente_id : null;
             $preClienteId = ($request->cliente_tipo === 'pre_cliente') ? $request->pre_cliente_id : null;
 
             // ================= CRIA ORÇAMENTO (SEM TOTAL AINDA) =================
             $orcamento = Orcamento::create([
-                'empresa_id'             => $request->empresa_id,
-                'atendimento_id'         => $request->atendimento_id,
-                'numero_orcamento'       => Orcamento::gerarNumero($request->empresa_id),
-                'descricao'              => $request->descricao,
-                'validade'               => $request->validade,
-                'status'                 => 'em_elaboracao',
-                'cliente_id'             => $clienteId,
-                'pre_cliente_id'         => $preClienteId,
+                'empresa_id' => $request->empresa_id,
+                'atendimento_id' => $request->atendimento_id,
+                'numero_orcamento' => Orcamento::gerarNumero($request->empresa_id),
+                'descricao' => $request->descricao,
+                'validade' => $request->validade,
+                'status' => 'em_elaboracao',
+                'cliente_id' => $clienteId,
+                'pre_cliente_id' => $preClienteId,
 
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
-                'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
+                'desconto_servico_tipo' => $request->desconto_servico_tipo ?? 'valor',
                 'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
-                'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
+                'desconto_produto_tipo' => $request->desconto_produto_tipo ?? 'valor',
 
-                'taxas'           => $totalTaxasCalculado,
+                'taxas' => $totalTaxasCalculado,
                 'descricao_taxas' => json_encode($taxasLista),
                 'forma_pagamento' => $request->forma_pagamento,
                 'prazo_pagamento' => $request->prazo_pagamento,
-                'observacoes'     => $request->observacoes,
-                'created_by'      => $user->id,
+                'observacoes' => $request->observacoes,
+                'created_by' => $user->id,
             ]);
 
             // ================= ITENS =================
@@ -312,8 +335,8 @@ class OrcamentoController extends Controller
 
             foreach ($request->itens as $itemData) {
                 $itemId = $itemData['item_comercial_id'] ?? null;
-                $qtd    = $itemData['quantidade'] ?? null;
-                $valor  = $itemData['valor_unitario'] ?? null;
+                $qtd = $itemData['quantidade'] ?? null;
+                $valor = $itemData['valor_unitario'] ?? null;
 
                 if (empty($itemId) || $qtd === null || $valor === null) {
                     throw new \Exception('Item inválido no orçamento.');
@@ -322,7 +345,7 @@ class OrcamentoController extends Controller
                 $item = ItemComercial::findOrFail($itemId);
 
                 $valorUnitario = (float) $valor;
-                $quantidade    = (int) $qtd;
+                $quantidade = (int) $qtd;
 
                 // Validações mais rigorosas
                 if ($quantidade < 1 || $quantidade > 9999) {
@@ -336,13 +359,13 @@ class OrcamentoController extends Controller
                 $subtotal = $quantidade * $valorUnitario;
 
                 OrcamentoItem::create([
-                    'orcamento_id'      => $orcamento->id,
+                    'orcamento_id' => $orcamento->id,
                     'item_comercial_id' => $item->id,
-                    'tipo'              => $item->tipo,
-                    'nome'              => $item->nome,
-                    'quantidade'        => $quantidade,
-                    'valor_unitario'    => $valorUnitario,
-                    'subtotal'          => $subtotal,
+                    'tipo' => $item->tipo,
+                    'nome' => $item->nome,
+                    'quantidade' => $quantidade,
+                    'valor_unitario' => $valorUnitario,
+                    'subtotal' => $subtotal,
                 ]);
 
                 if ($item->tipo === 'servico') {
@@ -392,7 +415,6 @@ class OrcamentoController extends Controller
                 throw new \Exception('O valor final do orçamento não pode ser negativo.');
             }
 
-
             // ================= TOTAL FINAL =================
             $valorFinal = $totalServicos
                 + $totalProdutos
@@ -400,7 +422,7 @@ class OrcamentoController extends Controller
                 + $totalTaxasCalculado;
 
             $orcamento->update([
-                'desconto'    => $descontoTotalCalculado,
+                'desconto' => $descontoTotalCalculado,
                 'valor_total' => $valorFinal,
             ]);
         });
@@ -414,7 +436,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403
         );
 
@@ -425,24 +447,24 @@ class OrcamentoController extends Controller
             'preCliente',
             'itens' => function ($q) {
                 $q->orderBy('id');
-            }
+            },
         ]);
 
         // ================= ITENS PARA O JS =================
         $itensArray = $orcamento->itens->map(function ($item) {
             return [
-                'id'           => $item->item_comercial_id,
-                'nome'         => $item->nome,
-                'tipo'         => $item->tipo,
-                'preco_venda'  => (float) $item->valor_unitario,
-                'quantidade'   => (int) $item->quantidade,
+                'id' => $item->item_comercial_id,
+                'nome' => $item->nome,
+                'tipo' => $item->tipo,
+                'preco_venda' => (float) $item->valor_unitario,
+                'quantidade' => (int) $item->quantidade,
             ];
         })->values();
 
         // ================= EXTRAS =================
         $extras = [
             'desconto' => (float) $orcamento->desconto,
-            'taxas'    => (float) $orcamento->taxas,
+            'taxas' => (float) $orcamento->taxas,
         ];
 
         return view(
@@ -451,22 +473,20 @@ class OrcamentoController extends Controller
         );
     }
 
-
-
     public function update(Request $request, Orcamento $orcamento)
     {
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
+        abort_if(! $user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
 
         $request->validate([
-            'empresa_id'      => 'required|exists:empresas,id',
-            'descricao'       => 'required|string|max:255',
-            'itens'           => 'required|array|min:1',
+            'empresa_id' => 'required|exists:empresas,id',
+            'descricao' => 'required|string|max:255',
+            'itens' => 'required|array|min:1',
         ]);
 
-        DB::transaction(function () use ($request, $user, $orcamento) {
+        DB::transaction(function () use ($request, $orcamento) {
             // Desconto Total (calculado pelo JS)
             $descontoTotal = (float) str_replace(',', '.', $request->input('desconto', 0));
 
@@ -477,7 +497,7 @@ class OrcamentoController extends Controller
                 foreach ($request->taxas_detalhe as $itemTaxa) {
                     $nome = $itemTaxa['nome'] ?? '';
                     $valor = (float) str_replace(',', '.', $itemTaxa['valor'] ?? 0);
-                    if (!empty($nome) && $valor > 0) {
+                    if (! empty($nome) && $valor > 0) {
                         $taxasLista[] = ['nome' => $nome, 'valor' => $valor];
                         $totalTaxasCalculado += $valor;
                     }
@@ -488,24 +508,24 @@ class OrcamentoController extends Controller
             $preClienteId = ($request->cliente_tipo === 'pre_cliente') ? $request->pre_cliente_id : null;
 
             $orcamento->update([
-                'empresa_id'             => $request->empresa_id,
-                'descricao'              => $request->descricao,
-                'validade'               => $request->validade,
-                'cliente_id'             => $clienteId,
-                'pre_cliente_id'         => $preClienteId,
+                'empresa_id' => $request->empresa_id,
+                'descricao' => $request->descricao,
+                'validade' => $request->validade,
+                'cliente_id' => $clienteId,
+                'pre_cliente_id' => $preClienteId,
 
                 // Salvando descontos por categoria
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
-                'desconto_servico_tipo'  => $request->desconto_servico_tipo ?? 'valor',
+                'desconto_servico_tipo' => $request->desconto_servico_tipo ?? 'valor',
                 'desconto_produto_valor' => $request->desconto_produto_valor ?? 0,
-                'desconto_produto_tipo'  => $request->desconto_produto_tipo ?? 'valor',
+                'desconto_produto_tipo' => $request->desconto_produto_tipo ?? 'valor',
 
-                'desconto'               => $descontoTotal,
-                'taxas'                  => $totalTaxasCalculado,
-                'descricao_taxas'        => json_encode($taxasLista),
-                'forma_pagamento'        => $request->forma_pagamento,
-                'prazo_pagamento'        => $request->prazo_pagamento,
-                'observacoes'            => $request->observacoes,
+                'desconto' => $descontoTotal,
+                'taxas' => $totalTaxasCalculado,
+                'descricao_taxas' => json_encode($taxasLista),
+                'forma_pagamento' => $request->forma_pagamento,
+                'prazo_pagamento' => $request->prazo_pagamento,
+                'observacoes' => $request->observacoes,
             ]);
 
             $orcamento->itens()->delete();
@@ -518,17 +538,20 @@ class OrcamentoController extends Controller
                 $subtotal = $itemData['quantidade'] * $valorUnitario;
 
                 OrcamentoItem::create([
-                    'orcamento_id'      => $orcamento->id,
+                    'orcamento_id' => $orcamento->id,
                     'item_comercial_id' => $item->id,
-                    'tipo'              => $item->tipo,
-                    'nome'              => $item->nome,
-                    'quantidade'        => $itemData['quantidade'],
-                    'valor_unitario'    => $valorUnitario,
-                    'subtotal'          => $subtotal,
+                    'tipo' => $item->tipo,
+                    'nome' => $item->nome,
+                    'quantidade' => $itemData['quantidade'],
+                    'valor_unitario' => $valorUnitario,
+                    'subtotal' => $subtotal,
                 ]);
 
-                if ($item->tipo === 'servico') $totalServicos += $subtotal;
-                else $totalProdutos += $subtotal;
+                if ($item->tipo === 'servico') {
+                    $totalServicos += $subtotal;
+                } else {
+                    $totalProdutos += $subtotal;
+                }
             }
 
             // Desconto Serviços
@@ -572,16 +595,14 @@ class OrcamentoController extends Controller
                 throw new \Exception('O valor final do orçamento não pode ser negativo.');
             }
 
-
             $orcamento->update([
-                'desconto'    => $descontoTotalCalculado,
-                'valor_total' => $valorFinal
+                'desconto' => $descontoTotalCalculado,
+                'valor_total' => $valorFinal,
             ]);
         });
 
         return redirect()->route('orcamentos.index')->with('success', 'Orçamento atualizado com sucesso!');
     }
-
 
     public function destroy(Orcamento $orcamento)
     {
@@ -589,7 +610,7 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -597,7 +618,7 @@ class OrcamentoController extends Controller
         // TRAVA FINANCEIRA
         if (\App\Models\Cobranca::where('descricao', 'like', "%{$orcamento->numero_orcamento}%")->exists()) {
             return back()->withErrors([
-                'delete' => 'Este orçamento possui cobrança vinculada. Solicite ao financeiro a exclusão da cobrança antes de remover o orçamento.'
+                'delete' => 'Este orçamento possui cobrança vinculada. Solicite ao financeiro a exclusão da cobrança antes de remover o orçamento.',
             ]);
         }
 
@@ -614,12 +635,12 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403
         );
 
         return response()->json([
-            'numero' => Orcamento::gerarNumero((int) $empresaId)
+            'numero' => Orcamento::gerarNumero((int) $empresaId),
         ]);
     }
 
@@ -629,27 +650,27 @@ class OrcamentoController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
 
-        $request->validate([
-            'status' => 'required|in:em_elaboracao,aguardando_aprovacao,aprovado,financeiro,aguardando_pagamento,em_andamento,concluido,recusado,cancelado,garantia'
-        ]);
+        try {
+            $request->validate([
+                'orcamento_status' => 'required|in:em_elaboracao,aguardando_aprovacao,aprovado,financeiro,aguardando_pagamento,em_andamento,agendado,concluido,recusado,cancelado,garantia',
+            ]);
 
-        DB::transaction(function () use ($orcamento, $request) {
-
-            $statusAnterior = $orcamento->status;
-            $novoStatus     = $request->status;
+            $novoStatus = $request->orcamento_status;
 
             // Atualiza status do orçamento
             $orcamento->update([
                 'status' => $novoStatus,
             ]);
-        });
 
-        return back()->with('success', 'Status atualizado com sucesso.');
+            return back()->with('success', 'Status atualizado com sucesso.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao atualizar status: '.$e->getMessage());
+        }
     }
 
     public function imprimir($id)
@@ -660,27 +681,27 @@ class OrcamentoController extends Controller
             'cliente.emails',
             'cliente.telefones',
             'preCliente',
-            'itens'
+            'itens',
         ])->findOrFail($id);
 
-        $view = 'orcamentos.' . $orcamento->empresa->layout_pdf;
+        $view = 'orcamentos.'.$orcamento->empresa->layout_pdf;
 
-        if (!view()->exists($view)) {
+        if (! view()->exists($view)) {
             abort(500, 'Layout de impressão não encontrado.');
         }
 
         $pdf = app('dompdf.wrapper');
         $pdf->loadView($view, [
             'orcamento' => $orcamento,
-            'empresa'   => $orcamento->empresa
+            'empresa' => $orcamento->empresa,
         ]);
         $pdf->setPaper('A4', 'portrait');
 
-        $filename = 'orcamento_' . str_replace(
+        $filename = 'orcamento_'.str_replace(
             ['/', '\\'],
             '-',
             $orcamento->numero_orcamento
-        ) . '.pdf';
+        ).'.pdf';
 
         return $pdf->stream($filename);
     }

@@ -13,32 +13,25 @@
         }
     </style>
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-emerald-100 rounded-lg text-emerald-600 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2a3 3 0 006 0v-2c0-1.657-1.343-3-3-3zm0 0V6a2 2 0 10-4 0" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                    Relatorio - Contas a Receber e a Pagar
-                </h2>
-            </div>
-
-            <a href="{{ route('relatorios.index') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm group print:hidden"
-                title="Voltar para Relatorios">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    <x-slot name="breadcrumb">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span>Voltar</span>
             </a>
-        </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <a href="{{ route('relatorios.index') }}" class="text-gray-500 hover:text-gray-700 transition">Relatórios</a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="text-gray-800 font-medium">Contas a Receber e Pagar</span>
+        </nav>
     </x-slot>
 
-    <div class="py-8">
+    <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="section-card filters-card mb-6 print:hidden">
@@ -245,7 +238,7 @@
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Cliente</th>
                                 <th class="text-left">Vencimento</th>
-                                <th class="text-right">Valor</th>
+                                <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
                             </tr>
                         </thead>
@@ -261,11 +254,11 @@
                                     <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
-                                    <td class="text-right font-black text-emerald-700">
+                                    <td class="text-left font-black text-emerald-700">
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
                                     </td>
                                     <td class="text-left">
-                                        {{ $conta->status ?? '-' }}
+                                        <x-status-badge-contas-receber :status="$conta->status" />
                                     </td>
                                 </tr>
                             @empty
@@ -316,7 +309,7 @@
                                 <th class="text-left">Centro</th>
                                 <th class="text-left">Fornecedor</th>
                                 <th class="text-left">Vencimento</th>
-                                <th class="text-right">Valor</th>
+                                <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
                             </tr>
                         </thead>
@@ -335,11 +328,11 @@
                                     <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
-                                    <td class="text-right font-black text-red-600">
+                                    <td class="text-left font-black text-red-600">
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
                                     </td>
                                     <td class="text-left">
-                                        {{ $conta->status ?? '-' }}
+                                        <x-status-badge-contas-receber :status="$conta->status" />
                                     </td>
                                 </tr>
                             @empty
@@ -423,14 +416,29 @@
                 var colspan = tipo === 'receber' ? '5' : '6';
                 tableRows = '<tr><td colspan="' + colspan + '" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
             } else {
+                var statusConfig = {
+                    'pago': { label: 'Pago', bg: '#dcfce7', color: '#166534', icon: 'check' },
+                    'vencido': { label: 'Vencido', bg: '#fee2e2', color: '#991b1b', icon: 'x' },
+                    'vence_hoje': { label: 'Vence Hoje', bg: '#ffedd5', color: '#9a3412', icon: 'clock' },
+                    'a_vencer': { label: 'A Vencer', bg: '#dbeafe', color: '#1e40af', icon: 'clock' },
+                    'em_aberto': { label: 'Em Aberto', bg: '#f3f4f6', color: '#374151', icon: 'clock' }
+                };
+                var iconSvg = {
+                    'check': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>',
+                    'x': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>',
+                    'clock': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>'
+                };
                 contas.forEach(function(conta) {
+                    var status = conta.status || 'em_aberto';
+                    var config = statusConfig[status] || statusConfig['em_aberto'];
+                    var statusBadge = '<span style="display: inline-flex; align-items: center; justify-content: center; width: 130px; padding: 6px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; background-color: ' + config.bg + '; color: ' + config.color + ';">' + iconSvg[config.icon] + config.label + '</span>';
                     if (tipo === 'receber') {
                         tableRows += '<tr>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669; white-space: nowrap;">' + conta.valor_formatado + '</td>';
-                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
                         tableRows += '</tr>';
                     } else {
                         tableRows += '<tr>';
@@ -439,7 +447,7 @@
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.fornecedor || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">' + conta.valor_formatado + '</td>';
-                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
                         tableRows += '</tr>';
                     }
                 });
