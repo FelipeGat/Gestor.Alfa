@@ -1,6 +1,6 @@
 <x-app-layout>
     @push('styles')
-    @vite('resources/css/atendimentos/index.css')
+    @vite('resources/css/orcamentos/index.css')
     @endpush
 
     @push('scripts')
@@ -25,8 +25,8 @@
         </nav>
     </x-slot>
 
-    <div class="py-10 bg-gray-50 min-h-screen">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="pb-8 pt-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= ERROS ================= --}}
             @if ($errors->any())
@@ -45,7 +45,7 @@
             </div>
             @endif
 
-            <form action="{{ route('orcamentos.store') }}" method="POST" class="space-y-8">
+            <form action="{{ route('orcamentos.store') }}" method="POST" class="space-y-6">
                 @csrf
 
                 <div id="orcamento-root" data-url-busca="{{ url('/itemcomercial/buscar') }}"></div>
@@ -56,20 +56,15 @@
                 @endif
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
-                <div class="form-card">
+                <div class="section-card">
                     <div class="card-header">
-                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Dados do Orçamento
-                        </h3>
+                        <h3 class="font-bold text-gray-800">Dados do Orçamento</h3>
                     </div>
 
                     <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-6">
-                            <label class="label-text">Empresa <span class="text-red-500">*</span></label>
-                            <select name="empresa_id" required class="input-field w-full">
+                            <label class="filter-label">Empresa <span class="text-red-500">*</span></label>
+                            <select name="empresa_id" required class="filter-select w-full">
                                 <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
                                 <option value="{{ $empresa->id }}" @if(isset($atendimento) && $atendimento->empresa_id == $empresa->id) selected @endif>
@@ -80,23 +75,22 @@
                         </div>
 
                         <div class="md:col-span-6">
-                            <label class="label-text">Número do Orçamento</label>
-                            <input type="text" name="numero_orcamento" readonly placeholder="Automático" class="input-field w-full bg-gray-50 font-mono font-bold text-blue-600 ">
+                            <label class="filter-label">Número do Orçamento</label>
+                            <input type="text" name="numero_orcamento" readonly placeholder="Automático" class="filter-select w-full bg-gray-50 font-mono font-bold text-blue-600">
                         </div>
 
                         <div class="md:col-span-12">
-                            <label class="label-text">Descrição / Referência <span class="text-red-500">*</span></label>
-                            <input type="text" name="descricao" required value="{{ old('descricao', $atendimento->descricao ?? '') }}" class="input-field w-full">
+                            <label class="filter-label">Descrição / Referência <span class="text-red-500">*</span></label>
+                            <input type="text" name="descricao" required value="{{ old('descricao', $atendimento->descricao ?? '') }}" class="filter-select w-full">
                         </div>
 
                         <div class="md:col-span-8 relative">
-                            <label class="label-text">Cliente</label>
-                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}" placeholder="Buscar cliente...ou Pré Cliente" class="input-field w-full">
+                            <label class="filter-label">Cliente</label>
+                            <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}" placeholder="Buscar cliente...ou Pré Cliente" class="filter-select w-full">
                             <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $atendimento?->cliente_id ?? '') }}">
                             <input type="hidden" name="pre_cliente_id" id="pre_cliente_id" value="{{ old('pre_cliente_id') }}">
                             <input type="hidden" name="cliente_tipo" id="cliente_tipo" value="{{ old('cliente_tipo', $atendimento?->cliente_id ? 'cliente' : '') }}">
 
-                            {{-- Lista de resultados --}}
                             <div id="cliente-resultados" class="search-results-container hidden"></div>
 
                             <a href="{{ route('pre-clientes.create') }}"
@@ -107,32 +101,33 @@
                         </div>
 
                         <div class="md:col-span-4">
-                            <label class="label-text">Validade</label>
-                            <input type="date" name="validade" value="{{ old('validade', now()->addDays(5)->format('Y-m-d')) }}" class="input-field w-full">
+                            <label class="filter-label">Validade</label>
+                            <input type="date" name="validade" value="{{ old('validade', now()->addDays(5)->format('Y-m-d')) }}" class="filter-select w-full">
                         </div>
                     </div>
                 </div>
 
                 {{-- ================= ITENS DO ORÇAMENTO ================= --}}
-                <div class="form-card border-t-4 border-t-green-500">
+                <div class="section-card">
                     <div class="card-header">
-                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                            </svg>
-                            Itens e Serviços
-                        </h3>
+                        <h3 class="font-bold text-gray-800">Itens e Serviços</h3>
                     </div>
 
                     <div class="p-6 space-y-8">
                         {{-- SERVIÇOS --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-lg"></span> Serviços</h4>
-                                <button type="button" id="btn-add-servico" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">➕ Adicionar Serviço</button>
+                                <h4 class="filter-label flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-lg"></span> Serviços</h4>
+                                <button type="button" id="btn-add-servico" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Adicionar
+                                </button>
                             </div>
                             <div class="relative hidden mb-4" id="busca-servico-wrapper">
-                                <input type="text" id="busca-servico" placeholder="Pesquisar serviço..." class="input-field border-orange-200">
+                                <input type="text" id="busca-servico" placeholder="Pesquisar serviço..." class="filter-select w-full">
                                 <div id="resultado-servico" class="search-results-container hidden"></div>
                             </div>
                             <div class="overflow-hidden rounded-xl border border-gray-100">
@@ -154,11 +149,16 @@
                         {{-- PRODUTOS --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-lg"></span> Materiais e Produtos</h4>
-                                <button type="button" id="btn-add-produto" class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">➕ Adicionar Produto</button>
+                                <h4 class="filter-label flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-lg"></span> Materiais e Produtos</h4>
+                                <button type="button" id="btn-add-produto" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    Adicionar
+                                </button>
                             </div>
                             <div class="relative hidden mb-4" id="busca-produto-wrapper">
-                                <input type="text" id="busca-produto" placeholder="Pesquisar produto..." class="input-field border-blue-200">
+                                <input type="text" id="busca-produto" placeholder="Pesquisar produto..." class="filter-select w-full">
                                 <div id="resultado-produto" class="search-results-container hidden"></div>
                             </div>
                             <div class="overflow-hidden rounded-xl border border-gray-100">
@@ -179,35 +179,30 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
 
                         {{-- ================= BLOCO DE DESCONTOS ================= --}}
-                        <div class="form-card border-t-4 border-t-red-400">
+                        <div class="section-card">
                             <div class="card-header">
-                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-                                    </svg>
-                                    Descontos por Categoria
-                                </h3>
+                                <h3 class="font-bold text-gray-800">Descontos por Categoria</h3>
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="label-text">Desconto em Serviços</label>
+                                    <label class="filter-label">Desconto em Serviços</label>
                                     <div class="flex gap-2 mt-1">
-                                        <input type="number" step="0.01" id="desconto-servico-valor" name="desconto_servico_valor" class="input-field flex-1" placeholder="0,00">
-                                        <select id="desconto-servico-tipo" name="desconto_servico_tipo" class="input-field w-24">
+                                        <input type="number" step="0.01" id="desconto-servico-valor" name="desconto_servico_valor" class="filter-select flex-1" placeholder="0,00">
+                                        <select id="desconto-servico-tipo" name="desconto_servico_tipo" class="filter-select w-24">
                                             <option value="valor">R$</option>
                                             <option value="percentual">%</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="label-text">Desconto em Materiais</label>
+                                    <label class="filter-label">Desconto em Materiais</label>
                                     <div class="flex gap-2 mt-1">
-                                        <input type="number" step="0.01" id="desconto-produto-valor" name="desconto_produto_valor" class="input-field flex-1" placeholder="0,00">
-                                        <select id="desconto-produto-tipo" name="desconto_produto_tipo" class="input-field w-24">
+                                        <input type="number" step="0.01" id="desconto-produto-valor" name="desconto_produto_valor" class="filter-select flex-1" placeholder="0,00">
+                                        <select id="desconto-produto-tipo" name="desconto_produto_tipo" class="filter-select w-24">
                                             <option value="valor">R$</option>
                                             <option value="percentual">%</option>
                                         </select>
@@ -217,21 +212,18 @@
                         </div>
 
                         {{-- TAXAS ADICIONAIS --}}
-                        <div class="form-card border-t-4 border-t-purple-500">
-                            <div class="card-header flex justify-between items-center p-4 bg-gray-50">
-                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <div class="section-card">
+                            <div class="card-header flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800">Taxas e Impostos</h3>
+                                <button type="button" id="btn-add-taxa" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Taxas e Impostos
-                                </h3>
-                                <button type="button" id="btn-add-taxa" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-purple-200 transition">
-                                    ➕ Adicionar Taxa
+                                    Adicionar
                                 </button>
                             </div>
                             <div class="p-6">
                                 <div id="lista-taxas" class="space-y-3">
-                                    {{-- As taxas dinâmicas entrarão aqui --}}
                                 </div>
                             </div>
                         </div>
@@ -253,8 +245,8 @@
                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm" required>
                                         </div>
                                         <button type="button" onclick="document.getElementById('taxa-${novoId}').remove()" class="text-red-500 hover:text-red-700 p-1">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                             </svg>
                                         </button>
                                     </div>
@@ -264,17 +256,18 @@
                             });
                         </script>
 
-                        {{-- FORMAS DE PAGAMENTO --}}
-                        <div class="form-card border-t-4 border-t-emerald-500">
+                        {{-- OBSERVAÇÕES --}}
+                        <div class="section-card">
                             <div class="card-header">
-                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                        </path>
-                                    </svg>
-                                    Condições de Pagamento
-                                </h3>
+                                <h3 class="font-bold text-gray-800">Observações</h3>
+                            </div>
+                            <div class="p-4"><textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes') }}</textarea></div>
+                        </div>
+
+                        {{-- FORMAS DE PAGAMENTO --}}
+                        <div class="section-card">
+                            <div class="card-header">
+                                <h3 class="font-bold text-gray-800">Condições de Pagamento</h3>
                             </div>
 
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -284,20 +277,20 @@
 
                                     {{-- PIX / DINHEIRO --}}
                                     <label
-                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="pix"
-                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                             À Vista (Pix / Dinheiro)
                                         </span>
                                     </label>
 
                                     {{-- DÉBITO --}}
                                     <label
-                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="debito"
-                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                             Cartão de Débito
                                         </span>
                                     </label>
@@ -309,63 +302,60 @@
 
                                     {{-- CRÉDITO --}}
                                     <label
-                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="credito"
-                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Cartão de Crédito
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                                <span class="text-xs font-bold text-gray-400">x</span>
                                             </div>
                                         </div>
                                     </label>
 
                                     {{-- BOLETO --}}
                                     <label
-                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="boleto"
-                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Boleto
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                                <span class="text-xs font-bold text-gray-400">x</span>
                                             </div>
                                         </div>
                                     </label>
 
                                     {{-- FATURADO --}}
                                     <label
-                                        class="group flex items-center p-3 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 cursor-pointer transition-all active:scale-[0.98]">
+                                        class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="faturado"
-                                            class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500 fp-check">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
-                                            <span class="text-sm font-medium text-gray-700 group-hover:text-emerald-700">
+                                            <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Faturado
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border-gray-200 rounded text-xs p-1 text-center fp-parcelas focus:border-emerald-500"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">Dias</span>
+                                                <span class="text-xs font-bold text-gray-400">dias</span>
                                             </div>
                                         </div>
                                     </label>
@@ -376,43 +366,39 @@
                     </div>
 
                     {{-- COLUNA DIREITA: RESUMO --}}
-                    <div class="space-y-8">
-                        <div class="form-card bg-gray-900 border-none text-green-600 sticky top-8">
-                            <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                </svg>
-                                <h3 class="text-sm font-bold uppercase tracking-widest">Resumo Financeiro</h3>
+                    <div class="space-y-6">
+                        <div class="section-card bg-gray-50 border-none">
+                            <div class="card-header">
+                                <h3 class="font-bold text-gray-800">Resumo Financeiro</h3>
                             </div>
                             <div class="p-6 space-y-4">
-                                <div class="flex justify-between text-sm"><span class="text-gray-400">Serviços</span><span class="font-mono font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
-                                <div class="flex justify-between text-sm"><span class="text-gray-400">Materiais</span><span class="font-mono font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
-                                <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-400"><span>Descontos</span><span class="font-mono font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
-                                <div id="resumo-taxas-wrapper" class="hidden flex justify-between text-sm text-orange-400"><span>Taxas</span><span class="font-mono font-bold">+ R$ <span id="resumo-taxas">0,00</span></span></div>
-                                <div class="pt-4 border-t border-gray-800 flex justify-between items-end">
+                                <div class="flex justify-between text-sm"><span class="text-gray-600">Serviços</span><span class="font-mono font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
+                                <div class="flex justify-between text-sm"><span class="text-gray-600">Materiais</span><span class="font-mono font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
+                                <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-600"><span>Descontos</span><span class="font-mono font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
+                                <div id="resumo-taxas-wrapper" class="hidden flex justify-between text-sm text-orange-600"><span>Taxas</span><span class="font-mono font-bold">+ R$ <span id="resumo-taxas">0,00</span></span></div>
+                                <div class="pt-4 border-t border-gray-200 flex justify-between items-end">
                                     <div>
-                                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Total Geral</p>
-                                        <p class="text-3xl font-bold text-blue-400 font-mono">R$ <span id="total-orcamento">0,00</span></p>
+                                        <p class="text-xs font-bold text-gray-500 uppercase">Total Geral</p>
+                                        <p class="text-3xl font-bold text-blue-600 font-mono">R$ <span id="total-orcamento">0,00</span></p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 bg-gray-800/50">
-                                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <div class="p-4 bg-gray-100 border-t border-gray-200">
+                                <button type="submit" class="btn btn-primary w-full justify-center" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; border-radius: 9999px;">
+                                    <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
-                                    SALVAR ORÇAMENTO
+                                    Salvar
                                 </button>
-                                <a href="{{ route('orcamentos.index') }}" class="block text-center mt-3 text-red-700 hover:text-red-300 font-medium uppercase tracking-widest">Cancelar</a>
+                                <a href="{{ route('orcamentos.index') }}" class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; margin-top: 0.75rem; width: 100%;">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                    Cancelar
+                                </a>
                             </div>
                         </div>
 
-                        <div class="form-card border-t-4 border-t-indigo-500">
-                            <div class="card-header">
-                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Observações</h3>
-                            </div>
-                            <div class="p-4"><textarea name="observacoes" rows="4" class="input-field w-full bg-gray-50 border-none focus:ring-indigo-100">{{ old('observacoes') }}</textarea></div>
-                        </div>
                     </div>
                 </div>
             </form>

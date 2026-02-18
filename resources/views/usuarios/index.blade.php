@@ -118,7 +118,6 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Nome</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Tipo</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Perfis</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Status</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Ações</th>
                             </tr>
@@ -136,28 +135,26 @@
                                     {{ $usuario->email }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
-            {{ $usuario->tipo === 'admin'
-                ? 'bg-red-100 text-red-800'
-                : ($usuario->tipo === 'administrativo'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-green-100 text-green-800') }}">
-                                        {{ ucfirst($usuario->tipo) }}
-                                    </span>
-                                </td>
-
                                 <td class="px-4 py-3 text-sm text-gray-700">
-                                    {{ $usuario->perfis->pluck('nome')->join(', ') ?: '—' }}
+                                    {{ ucfirst($usuario->tipo) }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-full text-xs font-semibold
-                                            {{ !$usuario->primeiro_acesso ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}"
-                                        style="padding-top: 0.5rem; padding-bottom: 0.5rem; min-width: 90px; justify-content: center;">
-                                        {{ !$usuario->primeiro_acesso ? '✓ Ativo' : 'Primeiro acesso' }}
-                                    </span>
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                                    @if(!$usuario->primeiro_acesso)
+                                        <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="width: 130px; justify-content: center; background-color: #dcfce7; color: #166534;">
+                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            Ativo
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="width: 130px; justify-content: center; background-color: #fef3c7; color: #92400e;">
+                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                            </svg>
+                                            Primeiro acesso
+                                        </span>
+                                    @endif
                                 </td>
 
                                 <td class="px-4 py-3">
@@ -175,7 +172,7 @@
 
                             @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="5" class="px-4 py-8 text-center text-gray-500">
                                     Nenhum usuário encontrado.
                                 </td>
                             </tr>

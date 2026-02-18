@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Perfil;
 use App\Models\Empresa;
+use App\Models\Perfil;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ class UsuarioController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user || !$user->isAdminPanel(), 403, 'Acesso não autorizado');
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
 
         /*
         |--------------------------------------------------------------------------
@@ -28,9 +28,18 @@ class UsuarioController extends Controller
         // (Opcional) Busca futura
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('email', 'like', '%'.$request->search.'%');
             });
+        }
+
+        // Filtro por status
+        if ($request->filled('status')) {
+            if ($request->status === 'ativo') {
+                $query->where('primeiro_acesso', false);
+            } elseif ($request->status === 'inativo' || $request->status === 'primeiro acesso') {
+                $query->where('primeiro_acesso', true);
+            }
         }
 
         /*
@@ -48,12 +57,11 @@ class UsuarioController extends Controller
         | Resumo (dados REAIS do banco)
         |--------------------------------------------------------------------------
         */
-        $totalUsuarios      = User::count();
-        $usuariosAdmins     = User::where('tipo', 'admin')->count();
-        $usuariosClientes   = User::where('tipo', 'cliente')->count();
-        $usuariosAtivos     = User::where('primeiro_acesso', false)->count();
-        $usuariosInativos   = User::where('primeiro_acesso', true)->count();
-        
+        $totalUsuarios = User::count();
+        $usuariosAdmins = User::where('tipo', 'admin')->count();
+        $usuariosClientes = User::where('tipo', 'cliente')->count();
+        $usuariosAtivos = User::where('primeiro_acesso', false)->count();
+        $usuariosInativos = User::where('primeiro_acesso', true)->count();
 
         return view('usuarios.index', compact(
             'usuarios',
@@ -70,9 +78,9 @@ class UsuarioController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user || !$user->isAdminPanel(), 403, 'Acesso não autorizado');
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
 
-        $perfis   = Perfil::orderBy('nome')->get();
+        $perfis = Perfil::orderBy('nome')->get();
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
         return view('usuarios.create', compact('perfis', 'empresas'));
@@ -83,24 +91,24 @@ class UsuarioController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user || !$user->isAdminPanel(), 403, 'Acesso não autorizado');
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
 
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email',
-            'password'   => 'required|min:6',
-            'tipo'       => 'required|in:admin,administrativo,comercial,cliente,funcionario',
-            'perfis'     => 'required|array',
-            'perfis.*'   => 'exists:perfis,id',
-            'empresas'   => 'nullable|array',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+            'tipo' => 'required|in:admin,administrativo,comercial,cliente,funcionario',
+            'perfis' => 'required|array',
+            'perfis.*' => 'exists:perfis,id',
+            'empresas' => 'nullable|array',
             'empresas.*' => 'exists:empresas,id',
         ]);
 
         $novoUsuario = User::create([
-            'name'            => $request->name,
-            'email'           => $request->email,
-            'password'        => Hash::make($request->password),
-            'tipo'            => $request->tipo,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'tipo' => $request->tipo,
             'primeiro_acesso' => true,
         ]);
 
@@ -120,9 +128,9 @@ class UsuarioController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user || !$user->isAdminPanel(), 403, 'Acesso não autorizado');
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
 
-        $perfis   = Perfil::orderBy('nome')->get();
+        $perfis = Perfil::orderBy('nome')->get();
         $empresas = Empresa::orderBy('nome_fantasia')->get();
 
         $usuario->load(['perfis', 'empresas']);
@@ -135,23 +143,23 @@ class UsuarioController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(!$user || !$user->isAdminPanel(), 403, 'Acesso não autorizado');
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
 
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $usuario->id,
-            'password'   => 'nullable|min:6',
-            'tipo'       => 'required|in:admin,administrativo,comercial,cliente,funcionario',
-            'perfis'     => 'required|array',
-            'perfis.*'   => 'exists:perfis,id',
-            'empresas'   => 'nullable|array',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$usuario->id,
+            'password' => 'nullable|min:6',
+            'tipo' => 'required|in:admin,administrativo,comercial,cliente,funcionario',
+            'perfis' => 'required|array',
+            'perfis.*' => 'exists:perfis,id',
+            'empresas' => 'nullable|array',
             'empresas.*' => 'exists:empresas,id',
         ]);
 
         $usuario->update([
-            'name'  => $request->name,
+            'name' => $request->name,
             'email' => $request->email,
-            'tipo'  => $request->tipo,
+            'tipo' => $request->tipo,
         ]);
 
         if ($request->filled('password')) {
