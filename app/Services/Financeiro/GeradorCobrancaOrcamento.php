@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 class GeradorCobrancaOrcamento
 {
     protected Orcamento $orcamento;
+
     protected array $dados;
 
     public function __construct(Orcamento $orcamento, array $dados)
@@ -45,7 +46,7 @@ class GeradorCobrancaOrcamento
             ]);
         }
 
-        if (!$this->orcamento->cliente_id) {
+        if (! $this->orcamento->cliente_id) {
             throw ValidationException::withMessages([
                 'cliente' => 'Não é possível gerar cobrança para Pré-Cliente.',
             ]);
@@ -70,7 +71,7 @@ class GeradorCobrancaOrcamento
 
         if (
             empty($this->dados['forma_pagamento']) ||
-            !in_array($this->dados['forma_pagamento'], $formasPermitidas)
+            ! in_array($this->dados['forma_pagamento'], $formasPermitidas)
         ) {
             throw ValidationException::withMessages([
                 'forma_pagamento' => 'Forma de pagamento inválida.',
@@ -107,13 +108,6 @@ class GeradorCobrancaOrcamento
         foreach ($this->dados['vencimentos'] as $data) {
             $dataCarbon = Carbon::parse($data);
 
-            // Permitir data de hoje, bloquear apenas datas anteriores a hoje
-            if ($dataCarbon->isBefore(Carbon::today())) {
-                throw ValidationException::withMessages([
-                    'vencimentos' => 'Não é permitido vencimento no passado.',
-                ]);
-            }
-
             if ($ultimaData && $dataCarbon->lessThanOrEqualTo($ultimaData)) {
                 throw ValidationException::withMessages([
                     'vencimentos' => 'As datas de vencimento devem ser crescentes.',
@@ -125,17 +119,17 @@ class GeradorCobrancaOrcamento
 
         // Validação da soma das parcelas
         $valoresCustomizados = $this->dados['valores_parcelas'] ?? [];
-        if (!empty($valoresCustomizados)) {
+        if (! empty($valoresCustomizados)) {
             $somaParcelas = array_sum(array_map('floatval', $valoresCustomizados));
             $valorTotal = (float) $this->orcamento->valor_total;
             // Aceita diferença de até 10 centavos usando bccomp
-            if (bccomp((string)$somaParcelas, (string)($valorTotal + 0.10), 2) === 1) {
+            if (bccomp((string) $somaParcelas, (string) ($valorTotal + 0.10), 2) === 1) {
                 throw ValidationException::withMessages([
-                    'parcelas' => 'A soma das Parcelas (R$ ' . number_format($somaParcelas, 2, ',', '.') . ') ultrapassa o valor total da Cobranca (R$ ' . number_format($valorTotal, 2, ',', '.') . ')',
+                    'parcelas' => 'A soma das Parcelas (R$ '.number_format($somaParcelas, 2, ',', '.').') ultrapassa o valor total da Cobranca (R$ '.number_format($valorTotal, 2, ',', '.').')',
                 ]);
-            } elseif (bccomp((string)$somaParcelas, (string)($valorTotal - 0.10), 2) === -1) {
+            } elseif (bccomp((string) $somaParcelas, (string) ($valorTotal - 0.10), 2) === -1) {
                 throw ValidationException::withMessages([
-                    'parcelas' => 'A soma das Parcelas (R$ ' . number_format($somaParcelas, 2, ',', '.') . ') é inferior ao valor total da Cobranca (R$ ' . number_format($valorTotal, 2, ',', '.') . ')',
+                    'parcelas' => 'A soma das Parcelas (R$ '.number_format($somaParcelas, 2, ',', '.').') é inferior ao valor total da Cobranca (R$ '.number_format($valorTotal, 2, ',', '.').')',
                 ]);
             }
         }
@@ -155,12 +149,12 @@ class GeradorCobrancaOrcamento
         // Pagamento à vista
         if (in_array($forma, ['pix', 'debito'])) {
             return [[
-                'cliente_id'      => $this->orcamento->cliente_id,
-                'orcamento_id'    => $this->orcamento->id,
-                'valor'           => $valorTotal,
+                'cliente_id' => $this->orcamento->cliente_id,
+                'orcamento_id' => $this->orcamento->id,
+                'valor' => $valorTotal,
                 'data_vencimento' => Carbon::today()->toDateString(),
-                'descricao'       => "Orçamento {$this->orcamento->numero_orcamento}",
-                'origem'          => 'orcamento',
+                'descricao' => "Orçamento {$this->orcamento->numero_orcamento}",
+                'origem' => 'orcamento',
             ]];
         }
 
@@ -169,7 +163,7 @@ class GeradorCobrancaOrcamento
         $valoresCustomizados = $this->dados['valores_parcelas'] ?? [];
 
         // Verificar se há valores customizados
-        $usarValoresCustomizados = !empty($valoresCustomizados) && count($valoresCustomizados) === $parcelas;
+        $usarValoresCustomizados = ! empty($valoresCustomizados) && count($valoresCustomizados) === $parcelas;
 
         if ($usarValoresCustomizados) {
             // Usar valores customizados do modal
@@ -179,12 +173,12 @@ class GeradorCobrancaOrcamento
                 $valor = isset($valoresCustomizados[$index]) ? (float) $valoresCustomizados[$index] : 0;
 
                 $resultado[] = [
-                    'cliente_id'      => $this->orcamento->cliente_id,
-                    'orcamento_id'    => $this->orcamento->id,
-                    'valor'           => $valor,
+                    'cliente_id' => $this->orcamento->cliente_id,
+                    'orcamento_id' => $this->orcamento->id,
+                    'valor' => $valor,
                     'data_vencimento' => Carbon::parse($data)->toDateString(),
-                    'descricao'       => "Orçamento {$this->orcamento->numero_orcamento} - Parcela " . ($index + 1) . "/{$parcelas}",
-                    'origem'          => 'orcamento',
+                    'descricao' => "Orçamento {$this->orcamento->numero_orcamento} - Parcela ".($index + 1)."/{$parcelas}",
+                    'origem' => 'orcamento',
                 ];
             }
 
@@ -206,12 +200,12 @@ class GeradorCobrancaOrcamento
             }
 
             $resultado[] = [
-                'cliente_id'      => $this->orcamento->cliente_id,
-                'orcamento_id'    => $this->orcamento->id,
-                'valor'           => $valor,
+                'cliente_id' => $this->orcamento->cliente_id,
+                'orcamento_id' => $this->orcamento->id,
+                'valor' => $valor,
                 'data_vencimento' => Carbon::parse($data)->toDateString(),
-                'descricao'       => "Orçamento {$this->orcamento->numero_orcamento} - Parcela " . ($index + 1) . "/{$parcelas}",
-                'origem'          => 'orcamento',
+                'descricao' => "Orçamento {$this->orcamento->numero_orcamento} - Parcela ".($index + 1)."/{$parcelas}",
+                'origem' => 'orcamento',
             ];
         }
 

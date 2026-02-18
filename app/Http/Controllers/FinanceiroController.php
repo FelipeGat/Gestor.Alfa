@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Orcamento;
-use App\Models\Empresa;
 use App\Models\Cobranca;
+use App\Models\Empresa;
+use App\Models\Orcamento;
 use App\Models\User;
-use App\Models\ContaFinanceira;
-use App\Models\ContaPagar;
 use App\Services\Financeiro\GeradorCobrancaOrcamento;
 use App\Services\MovimentacaoFinanceiraService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 
 class FinanceiroController extends Controller
 {
@@ -28,12 +26,12 @@ class FinanceiroController extends Controller
         ]);
 
         $orcamento->update([
-            'data_agendamento' => $request->data_agendamento
+            'data_agendamento' => $request->data_agendamento,
         ]);
 
         return redirect()
             ->route('financeiro.cobrar')
-            ->with('success', 'Cobrança agendada para ' . Carbon::parse($orcamento->data_agendamento)->format('d/m/Y'));
+            ->with('success', 'Cobrança agendada para '.Carbon::parse($orcamento->data_agendamento)->format('d/m/Y'));
     }
 
     /**
@@ -56,7 +54,7 @@ class FinanceiroController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -77,11 +75,11 @@ class FinanceiroController extends Controller
             ->where('status', 'financeiro');
 
         if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
+            $search = '%'.$request->search.'%';
             $query->where(function ($q) use ($search) {
                 $q->where('numero_orcamento', 'like', $search)
-                    ->orWhereHas('cliente', fn($c) => $c->where('nome_fantasia', 'like', $search))
-                    ->orWhereHas('preCliente', fn($p) => $p->where('nome_fantasia', 'like', $search));
+                    ->orWhereHas('cliente', fn ($c) => $c->where('nome_fantasia', 'like', $search))
+                    ->orWhereHas('preCliente', fn ($p) => $p->where('nome_fantasia', 'like', $search));
             });
         }
 
@@ -115,7 +113,7 @@ class FinanceiroController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -126,7 +124,7 @@ class FinanceiroController extends Controller
 
                 if ($orcamento->status !== 'financeiro') {
                     throw ValidationException::withMessages([
-                        'orcamento' => 'Este orçamento já foi processado.'
+                        'orcamento' => 'Este orçamento já foi processado.',
                     ]);
                 }
 
@@ -134,15 +132,15 @@ class FinanceiroController extends Controller
                     'forma_pagamento' => 'required|in:pix,debito,credito,boleto,faturado',
                     'parcelas' => 'required_if:forma_pagamento,credito,boleto,faturado|integer|min:1|max:12',
                     'vencimentos' => 'required_if:forma_pagamento,credito,boleto,faturado|array|min:1|max:12',
-                    'vencimentos.*' => 'date|after_or_equal:today',
+                    'vencimentos.*' => 'date',
                     'valores_parcelas' => 'nullable|array',
                     'valores_parcelas.*' => 'numeric|min:0.01',
                 ]);
 
-                if (!empty($dados['valores_parcelas']) && $dados['forma_pagamento'] !== 'pix') {
+                if (! empty($dados['valores_parcelas']) && $dados['forma_pagamento'] !== 'pix') {
                     if (abs(array_sum($dados['valores_parcelas']) - $orcamento->valor_total) > 0.02) {
                         throw ValidationException::withMessages([
-                            'valores_parcelas' => 'Soma das parcelas diferente do valor total.'
+                            'valores_parcelas' => 'Soma das parcelas diferente do valor total.',
                         ]);
                     }
                 }
@@ -150,7 +148,7 @@ class FinanceiroController extends Controller
                 $gerador = new GeradorCobrancaOrcamento($orcamento, $dados);
                 $parcelas = $gerador->gerar();
 
-                if (!$parcelas) {
+                if (! $parcelas) {
                     throw new \Exception('Nenhuma parcela gerada.');
                 }
 
@@ -197,7 +195,7 @@ class FinanceiroController extends Controller
             $valor *= -1;
         }
 
-        (new MovimentacaoFinanceiraService())->registrar([
+        (new MovimentacaoFinanceiraService)->registrar([
             'conta_origem_id' => $data['conta_id'],
             'conta_destino_id' => $data['conta_id'],
             'tipo' => $data['tipo_ajuste'],
@@ -218,7 +216,7 @@ class FinanceiroController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
@@ -243,11 +241,11 @@ class FinanceiroController extends Controller
 
         // ================= FILTRO DE BUSCA =================
         if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
+            $search = '%'.$request->search.'%';
             $query->where(function ($q) use ($search) {
                 $q->where('numero_orcamento', 'like', $search)
-                    ->orWhereHas('cliente', fn($c) => $c->where('nome_fantasia', 'like', $search))
-                    ->orWhereHas('preCliente', fn($p) => $p->where('nome_fantasia', 'like', $search));
+                    ->orWhereHas('cliente', fn ($c) => $c->where('nome_fantasia', 'like', $search))
+                    ->orWhereHas('preCliente', fn ($p) => $p->where('nome_fantasia', 'like', $search));
             });
         }
 
