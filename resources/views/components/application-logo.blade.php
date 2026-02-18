@@ -1,1 +1,1 @@
-<img src="{{ asset('logo.svg') }}" width="150" class="mx-auto">
+<img src="{{ asset('logo.svg') }}" width="100" class="mx-auto">

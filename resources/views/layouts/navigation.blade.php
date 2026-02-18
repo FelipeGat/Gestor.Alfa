@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
 
     @php
     $user = auth()->user();
@@ -12,7 +12,7 @@
     @endphp
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-12">
 
             {{-- LOGO --}}
             <div class="flex items-center">
@@ -24,7 +24,7 @@
                     @else {{ route('portal-funcionario.index') }}
                     @endif
                 ">
-                    <x-application-logo class="h-9 w-auto text-gray-800" />
+                    <x-application-logo class="h-6 w-auto text-gray-800" />
                 </a>
             </div>
 
