@@ -23,30 +23,44 @@
 
     <!-- FILTROS -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <form action="{{ url()->current() }}" method="GET" class="flex flex-wrap gap-3">
-            <select name="empresa_id" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                <option value="">Todas as Empresas</option>
-                @foreach($empresas as $empresa)
-                <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
-                    {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                </option>
-                @endforeach
-            </select>
+        <form action="{{ url()->current() }}" method="GET" class="bg-white shadow rounded-lg p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                <div class="flex flex-col lg:col-span-5">
+                    <label class="text-sm font-medium text-gray-700 mb-2">
+                        Empresa
+                    </label>
+                    <select name="empresa_id" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todas as Empresas</option>
+                        @foreach($empresas as $empresa)
+                        <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
+                            {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <select name="status" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                <option value="">Todos os Status</option>
-                @foreach($todosStatus as $st)
-                <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
-                    {{ ucfirst($st) }}
-                </option>
-                @endforeach
-            </select>
+                <div class="flex flex-col lg:col-span-5">
+                    <label class="text-sm font-medium text-gray-700 mb-2">
+                        Status
+                    </label>
+                    <select name="status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos os Status</option>
+                        @foreach($todosStatus as $st)
+                        <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
+                            {{ ucfirst($st) }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
 
-            @if($empresaId || $statusFiltro)
-            <a href="{{ url()->current() }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
-                Limpar
-            </a>
-            @endif
+                @if($empresaId || $statusFiltro)
+                <div class="flex lg:col-span-2">
+                    <a href="{{ url()->current() }}" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-center text-sm hover:bg-gray-300 transition">
+                        Limpar
+                    </a>
+                </div>
+                @endif
+            </div>
         </form>
     </div>
 
@@ -57,7 +71,7 @@
         style="display: none;">
     </div>
 
-    <div class="pb-8 pt-4 bg-gray-50 min-h-screen" x-data="{
+    <div class="pb-8 pt-4" x-data="{
         modalAberto: false,
         carregando: false,
         tituloModal: '',
