@@ -15,6 +15,78 @@
             color: #1f2937;
         }
 
+        /* ========================= FILTROS ========================= */
+        .filters-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-select {
+            padding: 0.625rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background-color: white;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background-color: #f0f9ff;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* ========================= SECTION CARD ========================= */
+        .section-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+
+        .card-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
         /* ========================= PAGINAÇÃO ========================= */
     .pagination-wrapper {
         display: flex;
@@ -121,6 +193,17 @@
             transform: translateY(-1px);
         }
 
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
         .btn-sm {
             padding: 0.5rem 0.75rem;
             font-size: 0.75rem;
@@ -199,38 +282,48 @@
         /* ========================= STATUS BADGES ========================= */
         .status-select {
             appearance: none;
-            padding: 0.4rem 2rem 0.4rem 1rem;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
+            font-size: 0.875rem;
+            font-weight: 600;
             cursor: pointer;
-            border: 2px solid transparent;
             transition: all 0.2s;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 0.75rem center;
+            background-position: right 0.5rem center;
             background-size: 1rem;
             text-transform: uppercase;
+            min-width: 140px;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: auto;
+            line-height: 1.25rem;
         }
 
         .status-select:focus {
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
         }
+        .status-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
 
         /* Cores por Status */
-        .status-em_elaboracao { background-color: #f3f4f6; color: #374151; border-color: #d1d5db; }
-        .status-aguardando_aprovacao { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
-        .status-enviado { background-color: #dbeafe; color: #1e40af; border-color: #93c5fd; }
-        .status-aprovado { background-color: #dcfce7; color: #166534; border-color: #86efac; }
-        .status-aguardando_pagamento { background-color: #fef9c3; color: #854d0e; border-color: #fde047; }
-        .status-concluido { background-color: #dcfce7; color: #15803d; border-color: #22c55e; }
-        .status-recusado { background-color: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-        .status-agendado { background-color: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
-        .status-em_andamento { background-color: #e0f2fe; color: #075985; border-color: #7dd3fc; }
-        .status-garantia { background-color: #ffedd5; color: #9a3412; border-color: #fdba74; }
-        .status-financeiro { background-color: #00000049; color: #ff0000; border-color: #49030391; }
-        .status-cancelado { background-color: #f3f4f6; color: #6b7280; border-color: #d1d5db; text-decoration: line-through; }
+        .status-em_elaboracao { background-color: #f3f4f6; color: #374151; }
+        .status-aguardando_aprovacao { background-color: #fef3c7; color: #92400e; }
+        .status-enviado { background-color: #dbeafe; color: #1e40af; }
+        .status-aprovado { background-color: #dcfce7; color: #166534; }
+        .status-aguardando_pagamento { background-color: #fef9c3; color: #854d0e; }
+        .status-concluido { background-color: #dcfce7; color: #15803d; }
+        .status-recusado { background-color: #fee2e2; color: #991b1b; }
+        .status-agendado { background-color: #ede9fe; color: #5b21b6; }
+        .status-em_andamento { background-color: #e0f2fe; color: #075985; }
+        .status-garantia { background-color: #ffedd5; color: #9a3412; }
+        .status-financeiro { background-color: #00000049; color: #ff0000; }
+        .status-cancelado { background-color: #f3f4f6; color: #6b7280; text-decoration: line-through; }
 
         /* ========================= EMPTY STATE ========================= */
         .empty-state {
