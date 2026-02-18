@@ -132,13 +132,8 @@
                                 </td>
 
                                 {{-- TIPO --}}
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                                {{ $assunto->tipo === 'SERVICO'
-                                                    ? 'bg-indigo-100 text-indigo-800'
-                                                    : 'bg-yellow-100 text-yellow-800' }}">
-                                        {{ $assunto->tipo }}
-                                    </span>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-700">
+                                    {{ $assunto->tipo }}
                                 </td>
 
                                 {{-- CATEGORIA --}}
