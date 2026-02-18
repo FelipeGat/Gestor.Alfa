@@ -256,6 +256,14 @@
                             });
                         </script>
 
+                        {{-- OBSERVAÇÕES --}}
+                        <div class="section-card">
+                            <div class="card-header">
+                                <h3 class="font-bold text-gray-800">Observações</h3>
+                            </div>
+                            <div class="p-4"><textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes') }}</textarea></div>
+                        </div>
+
                         {{-- FORMAS DE PAGAMENTO --}}
                         <div class="section-card">
                             <div class="card-header">
@@ -296,19 +304,18 @@
                                     <label
                                         class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="credito"
-                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
                                             <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Cartão de Crédito
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border border-gray-300 rounded text-xs p-1 text-center"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                                <span class="text-xs font-bold text-gray-400">x</span>
                                             </div>
                                         </div>
                                     </label>
@@ -317,19 +324,18 @@
                                     <label
                                         class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="boleto"
-                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
                                             <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Boleto
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border border-gray-300 rounded text-xs p-1 text-center"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">x</span>
+                                                <span class="text-xs font-bold text-gray-400">x</span>
                                             </div>
                                         </div>
                                     </label>
@@ -338,19 +344,18 @@
                                     <label
                                         class="group flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                                         <input type="radio" name="forma_pagamento" value="faturado"
-                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 fp-check">
 
                                         <div class="flex-1 flex items-center justify-between ml-3">
                                             <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                                                 Faturado
                                             </span>
 
-                                            <div class="flex items-center gap-1">
+                                            <div class="flex items-center gap-1 bg-gray-100 rounded-md px-3 py-1.5 w-32">
                                                 <input type="number" name="prazo_pagamento" min="1" max="28" value="1"
-                                                    class="w-12 border border-gray-300 rounded text-xs p-1 text-center"
+                                                    class="w-16 bg-transparent border-none text-center text-sm font-medium text-gray-700 focus:outline-none fp-parcelas"
                                                     disabled onclick="event.stopPropagation()">
-
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase">Dias</span>
+                                                <span class="text-xs font-bold text-gray-400">dias</span>
                                             </div>
                                         </div>
                                     </label>
@@ -394,12 +399,6 @@
                             </div>
                         </div>
 
-                        <div class="section-card">
-                            <div class="card-header">
-                                <h3 class="font-bold text-gray-800">Observações</h3>
-                            </div>
-                            <div class="p-4"><textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes') }}</textarea></div>
-                        </div>
                     </div>
                 </div>
             </form>
