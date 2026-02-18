@@ -194,61 +194,6 @@
                     </div>
                 </div>
 
-                    <div class="p-6 space-y-8">
-                        {{-- Serviços --}}
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-orange-400 rounded-lg"></span> Serviços</h4>
-                                <button type="button" id="btn-add-servico" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all">➕ Adicionar Serviço</button>
-                            </div>
-                            <div class="relative hidden mb-4" id="busca-servico-wrapper">
-                                <input type="text" id="busca-servico" placeholder="Pesquisar serviço..." class="input-field border-orange-200">
-                                <div id="resultado-servico" class="search-results-container hidden"></div>
-                            </div>
-                            <div class="overflow-hidden rounded-xl border border-gray-100">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead>
-                                        <tr>
-                                            <th class="table-header">Descrição</th>
-                                            <th class="table-header text-center w-24">Qtd</th>
-                                            <th class="table-header text-right w-32">Valor Unit.</th>
-                                            <th class="table-header text-right w-32">Subtotal</th>
-                                            <th class="table-header text-center w-16"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="itens-servicos" class="bg-white divide-y divide-gray-50"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {{-- Produtos --}}
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><span class="w-2 h-2 bg-blue-400 rounded-lg"></span> Materiais e Produtos</h4>
-                                <button type="button" id="btn-add-produto" class="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">➕ Adicionar Produto</button>
-                            </div>
-                            <div class="relative hidden mb-4" id="busca-produto-wrapper">
-                                <input type="text" id="busca-produto" placeholder="Pesquisar produto..." class="input-field border-blue-200">
-                                <div id="resultado-produto" class="search-results-container hidden"></div>
-                            </div>
-                            <div class="overflow-hidden rounded-xl border border-gray-100">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead>
-                                        <tr>
-                                            <th class="table-header">Nome do Produto</th>
-                                            <th class="table-header text-center w-24">Qtd</th>
-                                            <th class="table-header text-right w-32">Valor Unit.</th>
-                                            <th class="table-header text-right w-32">Subtotal</th>
-                                            <th class="table-header text-center w-16"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="itens-produtos" class="bg-white divide-y divide-gray-50"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-6">
 
