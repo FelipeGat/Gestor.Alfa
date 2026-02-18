@@ -4,22 +4,6 @@
     @vite('resources/css/orcamentos/index.css')
     @endpush
 
-    @php
-    $statusList = [
-    'em_elaboracao' => 'Em Elaboração',
-    'aguardando_aprovacao' => 'Aguardando Aprovação',
-    'aprovado' => 'Aprovado',
-    'aguardando_pagamento' => 'Aguardando Pagamento',
-    'agendado' => 'Agendado',
-    'recusado' => 'Recusado',
-    'em_andamento' => 'Em Andamento',
-    'financeiro' => 'Financeiro',
-    'concluido' => 'Concluído',
-    'garantia' => 'Garantia',
-    'cancelado' => 'Cancelado',
-    ];
-    @endphp
-
     <x-slot name="breadcrumb">
         <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
             <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
@@ -36,6 +20,21 @@
 
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+            {{-- Mensagens de erro/sucesso --}}
+            @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Erro!</strong>
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+            @endif
+
+            @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Sucesso!</strong>
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+            @endif
 
             {{-- ================= FILTROS ================= --}}
             <div class="filters-card" style="border: none;">
@@ -54,7 +53,7 @@
                             {{-- 📌 STATUS --}}
                             <div class="filter-group">
                                 <label class="filter-label">Status</label>
-                                <select name="status[]" multiple
+                                <select name="status" multiple
                                     class="filter-select h-24">
                                     @foreach($statusList as $key => $label)
                                     <option value="{{ $key }}"
@@ -68,7 +67,7 @@
                             {{-- 🏢 EMPRESA --}}
                             <div class="filter-group">
                                 <label class="filter-label">Empresa</label>
-                                <select name="empresa_id[]" multiple
+                                <select name="empresa_id" multiple
                                     class="filter-select h-24">
                                     @foreach($empresas as $empresa)
                                     <option value="{{ $empresa->id }}"
@@ -278,7 +277,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @foreach($orcamentos as $orcamento)
-                            <tr class="hover:bg-gray-50 transition">
+                            <tr class="hover:bg-gray-50 transition" data-orcamento-id="{{ $orcamento->id }}">
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {{ $orcamento->numero_orcamento }}
                                 </td>
@@ -291,12 +290,24 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $orcamento->empresa?->nome_fantasia ?? '—' }}</td>
-                                <td class="px-4 py-3 text-left">
+                                <td class="px-4 py-3 text-left" onclick="event.stopPropagation();">
                                     <form action="{{ route('orcamentos.updateStatus', $orcamento) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-
-                                        <select name="status" onchange="this.form.submit()" class="status-select status-{{ $orcamento->status }} text-xs" style="border: none !important; text-align: center;" @disabled($orcamento->status === 'aguardando_pagamento')>
+                                        <select name="orcamento_status" class="status-select status-{{ $orcamento->status }} text-xs" 
+                                            style="border: none !important; text-align: center; @switch($orcamento->status)
+                                                @case('em_elaboracao') background-color: #f3f4f6; color: #374151; @break
+                                                @case('aguardando_aprovacao') background-color: #fef3c7; color: #92400e; @break
+                                                @case('aprovado') background-color: #dcfce7; color: #166534; @break
+                                                @case('aguardando_pagamento') background-color: #fef9c3; color: #854d0e; @break
+                                                @case('agendado') background-color: #ede9fe; color: #5b21b6; @break
+                                                @case('em_andamento') background-color: #e0f2fe; color: #075985; @break
+                                                @case('financeiro') background-color: #fee2e2; color: #dc2626; @break
+                                                @case('concluido') background-color: #dcfce7; color: #15803d; @break
+                                                @case('recusado') background-color: #fee2e2; color: #991b1b; @break
+                                                @case('garantia') background-color: #ffedd5; color: #9a3412; @break
+                                                @case('cancelado') background-color: #f3f4f6; color: #6b7280; @break
+                                            @endswitch">
                                             @foreach($statusList as $key => $label)
                                             <option value="{{ $key }}" @selected($orcamento->status === $key)>
                                                 {{ $label }}
@@ -368,3 +379,67 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('change', function(e) {
+            if (e.target.tagName === 'SELECT' && e.target.name === 'orcamento_status') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Navegar manualmente para encontrar o formulário
+                var element = e.target;
+                var form = null;
+                
+                // Subir na árvore do DOM até encontrar o FORM
+                while (element && element.tagName !== 'BODY') {
+                    if (element.tagName === 'FORM') {
+                        form = element;
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+                
+                if (form) {
+                    form.submit();
+                } else {
+                    // Fallback: criar form dinamicamente
+                    var status = e.target.value;
+                    var row = e.target.closest('tr');
+                    var orcamentoId = row ? row.getAttribute('data-orcamento-id') : null;
+                    
+                    if (!orcamentoId) {
+                        console.error('ID do orçamento não encontrado');
+                        return;
+                    }
+                    
+                    // Criar form dinamicamente
+                    var tempForm = document.createElement('form');
+                    tempForm.method = 'POST';
+                    tempForm.action = '/orcamentos/' + orcamentoId + '/status';
+                    
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    tempForm.appendChild(csrfInput);
+                    
+                    var methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'PATCH';
+                    tempForm.appendChild(methodInput);
+                    
+                    var statusInput = document.createElement('input');
+                    statusInput.type = 'hidden';
+                    statusInput.name = 'orcamento_status';
+                    statusInput.value = status;
+                    tempForm.appendChild(statusInput);
+                    
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                }
+            }
+        });
+    });
+</script>
