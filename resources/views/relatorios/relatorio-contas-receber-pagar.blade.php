@@ -258,7 +258,7 @@
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
                                     </td>
                                     <td class="text-left">
-                                        {{ $conta->status ?? '-' }}
+                                        <x-status-badge-contas-receber :status="$conta->status" />
                                     </td>
                                 </tr>
                             @empty
@@ -332,7 +332,7 @@
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
                                     </td>
                                     <td class="text-left">
-                                        {{ $conta->status ?? '-' }}
+                                        <x-status-badge-contas-receber :status="$conta->status" />
                                     </td>
                                 </tr>
                             @empty
@@ -416,14 +416,29 @@
                 var colspan = tipo === 'receber' ? '5' : '6';
                 tableRows = '<tr><td colspan="' + colspan + '" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
             } else {
+                var statusConfig = {
+                    'pago': { label: 'Pago', bg: '#dcfce7', color: '#166534', icon: 'check' },
+                    'vencido': { label: 'Vencido', bg: '#fee2e2', color: '#991b1b', icon: 'x' },
+                    'vence_hoje': { label: 'Vence Hoje', bg: '#ffedd5', color: '#9a3412', icon: 'clock' },
+                    'a_vencer': { label: 'A Vencer', bg: '#dbeafe', color: '#1e40af', icon: 'clock' },
+                    'em_aberto': { label: 'Em Aberto', bg: '#f3f4f6', color: '#374151', icon: 'clock' }
+                };
+                var iconSvg = {
+                    'check': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>',
+                    'x': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>',
+                    'clock': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; margin-right: 6px;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>'
+                };
                 contas.forEach(function(conta) {
+                    var status = conta.status || 'em_aberto';
+                    var config = statusConfig[status] || statusConfig['em_aberto'];
+                    var statusBadge = '<span style="display: inline-flex; align-items: center; justify-content: center; width: 130px; padding: 6px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; background-color: ' + config.bg + '; color: ' + config.color + ';">' + iconSvg[config.icon] + config.label + '</span>';
                     if (tipo === 'receber') {
                         tableRows += '<tr>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669; white-space: nowrap;">' + conta.valor_formatado + '</td>';
-                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
                         tableRows += '</tr>';
                     } else {
                         tableRows += '<tr>';
@@ -432,7 +447,7 @@
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.fornecedor || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">' + conta.valor_formatado + '</td>';
-                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.status || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
                         tableRows += '</tr>';
                     }
                 });
