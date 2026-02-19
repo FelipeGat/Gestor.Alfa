@@ -15,7 +15,7 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -34,9 +34,13 @@ class ItemComercialController extends Controller
             $query->where('ativo', $request->status === 'ativo');
         }
 
-        $totalItemComercial    = ItemComercial::count();
-        $itemAtivos            = ItemComercial::where('ativo', true)->count();
-        $itemInativos          = ItemComercial::where('ativo', false)->count();
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        $totalItemComercial = ItemComercial::count();
+        $itemAtivos = ItemComercial::where('ativo', true)->count();
+        $itemInativos = ItemComercial::where('ativo', false)->count();
 
         $itemcomercial = $query
             ->orderBy('nome')
@@ -57,7 +61,7 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -71,18 +75,18 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
 
         $request->validate([
-            'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255|unique:itens_comerciais,nome',
-            'preco_venda'    => 'required|numeric|min:0|max:99999999',
-            'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
+            'tipo' => 'required|in:produto,servico',
+            'nome' => 'required|string|max:255|unique:itens_comerciais,nome',
+            'preco_venda' => 'required|numeric|min:0|max:99999999',
+            'preco_custo' => 'nullable|numeric|min:0|max:99999999',
             'unidade_medida' => 'required|string|max:50',
-            'estoque_atual'  => 'nullable|integer|min:0|max:999999',
+            'estoque_atual' => 'nullable|integer|min:0|max:999999',
             'estoque_minimo' => 'nullable|integer|min:0|max:999999',
             'gerencia_estoque' => 'nullable|boolean',
             'sku_ou_referencia' => 'nullable|string|max:100',
@@ -97,18 +101,18 @@ class ItemComercialController extends Controller
         }
 
         ItemComercial::create([
-            'tipo'            => $request->tipo,
-            'nome'            => $request->nome,
+            'tipo' => $request->tipo,
+            'nome' => $request->nome,
             'sku_ou_referencia' => $request->sku_ou_referencia,
             'codigo_barras_ean' => $request->codigo_barras_ean,
-            'categoria_id'    => $request->categoria_id,
-            'preco_venda'     => $request->preco_venda,
-            'preco_custo'     => $request->preco_custo,
-            'unidade_medida'  => $request->unidade_medida,
-            'estoque_atual'   => $request->estoque_atual,
-            'estoque_minimo'  => $request->estoque_minimo,
+            'categoria_id' => $request->categoria_id,
+            'preco_venda' => $request->preco_venda,
+            'preco_custo' => $request->preco_custo,
+            'unidade_medida' => $request->unidade_medida,
+            'estoque_atual' => $request->estoque_atual,
+            'estoque_minimo' => $request->estoque_minimo,
             'gerencia_estoque' => $request->boolean('gerencia_estoque'),
-            'ativo'           => true,
+            'ativo' => true,
         ]);
 
         return redirect()
@@ -122,13 +126,13 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
 
         return view('itemcomercial.edit', [
-            'itemComercial' => $item_comercial
+            'itemComercial' => $item_comercial,
         ]);
     }
 
@@ -138,18 +142,18 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
 
         $request->validate([
-            'tipo'           => 'required|in:produto,servico',
-            'nome'           => 'required|string|max:255|unique:itens_comerciais,nome,' . $itemComercial->id,
-            'preco_venda'    => 'required|numeric|min:0|max:99999999',
-            'preco_custo'    => 'nullable|numeric|min:0|max:99999999',
+            'tipo' => 'required|in:produto,servico',
+            'nome' => 'required|string|max:255|unique:itens_comerciais,nome,'.$itemComercial->id,
+            'preco_venda' => 'required|numeric|min:0|max:99999999',
+            'preco_custo' => 'nullable|numeric|min:0|max:99999999',
             'unidade_medida' => 'required|string|max:50',
-            'estoque_atual'  => 'nullable|integer|min:0|max:999999',
+            'estoque_atual' => 'nullable|integer|min:0|max:999999',
             'estoque_minimo' => 'nullable|integer|min:0|max:999999',
             'gerencia_estoque' => 'nullable|boolean',
             'sku_ou_referencia' => 'nullable|string|max:100',
@@ -164,18 +168,18 @@ class ItemComercialController extends Controller
         }
 
         $itemComercial->update([
-            'tipo'            => $request->tipo,
-            'nome'            => $request->nome,
+            'tipo' => $request->tipo,
+            'nome' => $request->nome,
             'sku_ou_referencia' => $request->sku_ou_referencia,
             'codigo_barras_ean' => $request->codigo_barras_ean,
-            'categoria_id'    => $request->categoria_id,
-            'preco_venda'     => $request->preco_venda,
-            'preco_custo'     => $request->preco_custo,
-            'unidade_medida'  => $request->unidade_medida,
-            'estoque_atual'   => $request->estoque_atual,
-            'estoque_minimo'  => $request->estoque_minimo,
+            'categoria_id' => $request->categoria_id,
+            'preco_venda' => $request->preco_venda,
+            'preco_custo' => $request->preco_custo,
+            'unidade_medida' => $request->unidade_medida,
+            'estoque_atual' => $request->estoque_atual,
+            'estoque_minimo' => $request->estoque_minimo,
             'gerencia_estoque' => $request->boolean('gerencia_estoque'),
-            'ativo'           => $request->boolean('ativo'),
+            'ativo' => $request->boolean('ativo'),
         ]);
 
         return redirect()
@@ -189,7 +193,7 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -207,7 +211,7 @@ class ItemComercialController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && $user->tipo !== 'comercial',
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
             403,
             'Acesso não autorizado'
         );
@@ -237,11 +241,11 @@ class ItemComercialController extends Controller
             ]);
 
         return response()->json(
-            $itens->map(fn($item) => [
-                'id'            => $item->id,
-                'nome'          => $item->nome,
-                'tipo'          => $item->tipo,
-                'preco_venda'   => (float) $item->preco_venda,
+            $itens->map(fn ($item) => [
+                'id' => $item->id,
+                'nome' => $item->nome,
+                'tipo' => $item->tipo,
+                'preco_venda' => (float) $item->preco_venda,
                 'unidade_medida' => $item->unidade_medida,
             ])
         );
