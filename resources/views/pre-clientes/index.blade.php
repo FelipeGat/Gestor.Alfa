@@ -144,10 +144,8 @@
                                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                                     {{ $preCliente->telefone ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 100px; justify-content: center; {{ $preCliente->origem === 'orcamento' ? 'background-color: #dbeafe; color: #1e40af;' : 'background-color: #f3f4f6; color: #374151;' }}">
-                                        {{ ucfirst($preCliente->origem) }}
-                                    </span>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                    {{ ucfirst($preCliente->origem) }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fee2e2; color: #991b1b;' }}">
