@@ -79,7 +79,7 @@
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
                 <div class="section-card">
                     <div class="card-header">
-                        <h3 class="font-bold text-gray-800">Dados do Orçamento</h3>
+                        <h3 class="text-base font-semibold text-gray-800">Dados do Orçamento</h3>
                     </div>
 
                     <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -97,7 +97,7 @@
 
                         <div class="md:col-span-6">
                             <label class="filter-label">Número do Orçamento</label>
-                            <input type="text" name="numero_orcamento" readonly value="{{ $orcamento->numero_orcamento }}" class="filter-select w-full bg-gray-50 font-mono font-bold text-blue-600">
+                            <input type="text" name="numero_orcamento" readonly value="{{ $orcamento->numero_orcamento }}" class="filter-select w-full bg-gray-50 font-bold text-blue-600">
                         </div>
 
                         <div class="md:col-span-12">
@@ -125,7 +125,7 @@
                 {{-- ITENS DO ORÇAMENTO --}}
                 <div class="section-card">
                     <div class="card-header flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">Itens e Serviços</h3>
+                        <h3 class="text-base font-semibold text-gray-800">Itens e Serviços</h3>
                     </div>
 
                     <div class="p-6 space-y-8">
@@ -200,7 +200,7 @@
                         {{-- DESCONTOS --}}
                         <div class="section-card">
                             <div class="card-header">
-                                <h3 class="font-bold text-gray-800">Descontos por Categoria</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Descontos por Categoria</h3>
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -229,7 +229,7 @@
                         {{-- TAXAS ADICIONAIS - DEIXANDO O JS CONTROLAR --}}
                         <div class="section-card">
                             <div class="card-header flex justify-between items-center">
-                                <h3 class="font-bold text-gray-800">Taxas e Impostos</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Taxas e Impostos</h3>
                                 <button type="button" id="btn-add-taxa" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -246,7 +246,7 @@
                         {{-- OBSERVAÇÕES --}}
                         <div class="section-card">
                             <div class="card-header">
-                                <h3 class="font-bold text-gray-800">Observações</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Observações</h3>
                             </div>
                             <div class="p-4"><textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes', $orcamento->observacoes) }}</textarea></div>
                         </div>
@@ -254,7 +254,7 @@
                         {{-- FORMAS DE PAGAMENTO --}}
                         <div class="section-card">
                             <div class="card-header">
-                                <h3 class="font-bold text-gray-800">Condições de Pagamento</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Condições de Pagamento</h3>
                             </div>
 
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,17 +370,17 @@
                     <div class="space-y-6">
                         <div class="section-card bg-gray-50 border-none">
                             <div class="card-header">
-                                <h3 class="font-bold text-gray-800">Resumo Financeiro</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Resumo Financeiro</h3>
                             </div>
                             <div class="p-6 space-y-4">
-                                <div class="flex justify-between text-sm"><span class="text-gray-600">Serviços</span><span class="font-mono font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
-                                <div class="flex justify-between text-sm"><span class="text-gray-600">Materiais</span><span class="font-mono font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
-                                <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-600"><span>Descontos</span><span class="font-mono font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
-                                <div id="resumo-taxas-wrapper" class="hidden flex justify-between text-sm text-orange-600"><span>Taxas</span><span class="font-mono font-bold">+ R$ <span id="resumo-taxas">0,00</span></span></div>
+                                <div class="flex justify-between text-sm"><span class="text-gray-600">Serviços</span><span class="font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
+                                <div class="flex justify-between text-sm"><span class="text-gray-600">Materiais</span><span class="font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
+                                <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-600"><span>Descontos</span><span class="font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
+                                <div id="resumo-taxas-wrapper" class="hidden flex justify-between text-sm text-orange-600"><span>Taxas</span><span class="font-bold">+ R$ <span id="resumo-taxas">0,00</span></span></div>
                                 <div class="pt-4 border-t border-gray-200 flex justify-between items-end">
                                     <div>
                                         <p class="text-xs font-bold text-gray-500 uppercase">Total Geral</p>
-                                        <p class="text-3xl font-bold text-blue-600 font-mono">R$ <span id="total-orcamento">0,00</span></p>
+                                        <p class="text-3xl font-bold text-blue-600">R$ <span id="total-orcamento">0,00</span></p>
                                     </div>
                                 </div>
                             </div>
