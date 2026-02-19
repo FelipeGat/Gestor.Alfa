@@ -114,11 +114,8 @@
                             <tr class="hover:bg-gray-50 transition">
 
                                 {{-- ID --}}
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex items-center justify-center w-8 h-8
-                                                         rounded-full bg-blue-100 text-blue-600 font-semibold">
-                                        {{ $assunto->id }}
-                                    </span>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                    {{ $assunto->id }}
                                 </td>
 
                                 {{-- EMPRESA --}}
