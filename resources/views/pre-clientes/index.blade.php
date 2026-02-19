@@ -148,7 +148,7 @@
                                     {{ ucfirst($preCliente->origem) }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fee2e2; color: #991b1b;' }}">
+                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fef9c3; color: #854d0e;' }}">
                                         {{ $preCliente->convertido_em_cliente ? 'Convertido' : 'Pendente' }}
                                     </span>
                                 </td>
