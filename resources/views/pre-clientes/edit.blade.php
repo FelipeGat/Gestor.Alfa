@@ -1,8 +1,12 @@
 
 <x-app-layout>
 
+    @push('styles')
+    @vite('resources/css/orcamentos/index.css')
+    @endpush
+
     <x-slot name="breadcrumb">
-        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full pt-2">
             <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -19,30 +23,20 @@
         </nav>
     </x-slot>
 
-    <div class="pb-8 pt-4">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {{-- HEADER DO FORMULÁRIO --}}
-            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
-                <h1 class="text-2xl font-bold text-black">Editar Pré-Cliente</h1>
-                <p class="text-sm text-gray-600 mt-1">Atualize os dados do pré-cliente conforme necessário</p>
-            </div>
-
-            {{-- ERROS --}}
+            {{-- ================= ERROS ================= --}}
             @if ($errors->any())
-            <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0"><svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
+                        </svg></div>
                     <div class="ml-3">
-                        <h3 class="font-medium text-red-800 mb-2">Erros encontrados:</h3>
-                        <ul class="list-disc list-inside text-sm space-y-1">
-                            @foreach ($errors->all() as $erro)
-                            <li>{{ $erro }}</li>
-                            @endforeach
+                        <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide">Erros encontrados:</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
+                            @foreach ($errors->all() as $erro) <li>{{ $erro }}</li> @endforeach
                         </ul>
                     </div>
                 </div>
@@ -53,141 +47,115 @@
                 @csrf
                 @method('PUT')
 
-                {{-- DADOS BÁSICOS --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📋 Dados Básicos
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pessoa <span class="text-red-500">*</span></label>
-                            <select name="tipo_pessoa" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900" required>
+                {{-- ================= DADOS BÁSICOS ================= --}}
+                <div class="section-card">
+                    <div class="card-header">
+                        <h3 class="text-base font-semibold text-gray-800">Dados Básicos</h3>
+                    </div>
+
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="filter-label">Tipo de Pessoa <span class="text-red-500">*</span></label>
+                            <select name="tipo_pessoa" required class="filter-select w-full">
                                 <option value="PF" @selected(old('tipo_pessoa', $preCliente->tipo_pessoa)=='PF')>Pessoa Física</option>
                                 <option value="PJ" @selected(old('tipo_pessoa', $preCliente->tipo_pessoa)=='PJ')>Pessoa Jurídica</option>
                             </select>
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CPF / CNPJ <span class="text-red-500">*</span></label>
-                            <input type="text" name="cpf_cnpj" value="{{ old('cpf_cnpj', $preCliente->cpf_cnpj) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 pr-10" required>
+                        <div>
+                            <label class="filter-label">CPF / CNPJ <span class="text-red-500">*</span></label>
+                            <input type="text" name="cpf_cnpj" value="{{ old('cpf_cnpj', $preCliente->cpf_cnpj) }}" class="filter-select w-full" required>
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Razão Social</label>
-                            <input type="text" name="razao_social" value="{{ old('razao_social', $preCliente->razao_social) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="Digite o nome completo">
+                        <div>
+                            <label class="filter-label">Razão Social</label>
+                            <input type="text" name="razao_social" value="{{ old('razao_social', $preCliente->razao_social) }}" class="filter-select w-full" placeholder="Digite o nome completo">
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia</label>
-                            <input type="text" name="nome_fantasia" value="{{ old('nome_fantasia', $preCliente->nome_fantasia) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="Digite o nome fantasia">
-                        </div>
-                    </div>
-                </div>
-
-                {{-- CONTATO --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        📞 Contato
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" name="email" value="{{ old('email', $preCliente->email) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="email@exemplo.com">
-                        </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                            <input type="text" name="telefone" value="{{ old('telefone', $preCliente->telefone) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" placeholder="(00) 00000-0000">
+                        <div>
+                            <label class="filter-label">Nome Fantasia</label>
+                            <input type="text" name="nome_fantasia" value="{{ old('nome_fantasia', $preCliente->nome_fantasia) }}" class="filter-select w-full" placeholder="Digite o nome fantasia">
                         </div>
                     </div>
                 </div>
 
-                {{-- ENDEREÇO --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        🏠 Endereço
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                            <input type="text" name="cep" placeholder="CEP" value="{{ old('cep', $preCliente->cep) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                        </div>
-                        <div class="col-span-1 sm:col-span-2 lg:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
-                            <input type="text" name="logradouro" placeholder="Logradouro" value="{{ old('logradouro', $preCliente->logradouro) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                        </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
-                            <input type="text" name="numero" placeholder="Número" value="{{ old('numero', $preCliente->numero) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                        </div>
+                {{-- ================= CONTATO ================= --}}
+                <div class="section-card">
+                    <div class="card-header">
+                        <h3 class="text-base font-semibold text-gray-800">Contato</h3>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-                            <input type="text" name="bairro" placeholder="Bairro" value="{{ old('bairro', $preCliente->bairro) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="filter-label">Email</label>
+                            <input type="email" name="email" value="{{ old('email', $preCliente->email) }}" class="filter-select w-full" placeholder="email@exemplo.com">
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                            <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade', $preCliente->cidade) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
-                        </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
-                            <input type="text" name="estado" placeholder="UF" maxlength="2" value="{{ old('estado', $preCliente->estado) }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 uppercase">
+                        <div>
+                            <label class="filter-label">Telefone</label>
+                            <input type="text" name="telefone" value="{{ old('telefone', $preCliente->telefone) }}" class="filter-select w-full" placeholder="(00) 00000-0000">
                         </div>
                     </div>
                 </div>
 
-                {{-- AÇÕES --}}
-                                <style>
-                                    .btn-action {
-                                        display: inline-flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        padding: 0.5rem 1.5rem;
-                                        border-radius: 0.5rem;
-                                        font-weight: 500;
-                                        font-size: 1rem;
-                                        border: none;
-                                        transition: background 0.2s;
-                                    }
-                                    .btn-action svg {
-                                        margin-right: 0.5rem;
-                                        width: 1.25rem;
-                                        height: 1.25rem;
-                                    }
-                                    .btn-cancelar {
-                                        background: #ef4444;
-                                        color: #fff;
-                                    }
-                                    .btn-cancelar:hover {
-                                        background: #dc2626;
-                                    }
-                                    .btn-primary {
-                                        background: #2563eb;
-                                        color: #fff;
-                                    }
-                                    .btn-primary:hover {
-                                        background: #1d4ed8;
-                                    }
-                                </style>
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 bg-white shadow rounded-lg p-6 sm:p-8">
-                    <a href="{{ route('pre-clientes.index') }}" class="btn-action btn-cancelar">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                        Cancelar
-                    </a>
-                    <button type="submit" class="btn-action btn-primary">
-                        <svg fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                        Atualizar Pré-Cliente
-                    </button>
-                </div>
-            </form>
+                {{-- ================= ENDEREÇO ================= --}}
+                <div class="section-card">
+                    <div class="card-header">
+                        <h3 class="text-base font-semibold text-gray-800">Endereço</h3>
+                    </div>
 
-            {{-- CONVERTER PARA CLIENTE --}}
-            <form method="POST" action="{{ route('pre-clientes.converter', $preCliente) }}" onsubmit="return confirm('Deseja converter este pré-cliente em cliente?')" class="mt-6">
-                @csrf
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow">
-                    🔄 Converter para Cliente
-                </button>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div>
+                            <label class="filter-label">CEP</label>
+                            <input type="text" name="cep" placeholder="CEP" value="{{ old('cep', $preCliente->cep) }}" class="filter-select w-full">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="filter-label">Logradouro</label>
+                            <input type="text" name="logradouro" placeholder="Logradouro" value="{{ old('logradouro', $preCliente->logradouro) }}" class="filter-select w-full">
+                        </div>
+                        <div>
+                            <label class="filter-label">Número</label>
+                            <input type="text" name="numero" placeholder="Número" value="{{ old('numero', $preCliente->numero) }}" class="filter-select w-full">
+                        </div>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 pt-0">
+                        <div>
+                            <label class="filter-label">Bairro</label>
+                            <input type="text" name="bairro" placeholder="Bairro" value="{{ old('bairro', $preCliente->bairro) }}" class="filter-select w-full">
+                        </div>
+                        <div>
+                            <label class="filter-label">Cidade</label>
+                            <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade', $preCliente->cidade) }}" class="filter-select w-full">
+                        </div>
+                        <div>
+                            <label class="filter-label">UF</label>
+                            <input type="text" name="estado" placeholder="UF" maxlength="2" value="{{ old('estado', $preCliente->estado) }}" class="filter-select w-full uppercase">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ================= AÇÕES ================= --}}
+                <div class="flex flex-col-reverse md:flex-row justify-between gap-3 items-center">
+                    <form method="POST" action="{{ route('pre-clientes.converter', $preCliente) }}" onsubmit="return confirm('Deseja converter este pré-cliente em cliente?')" class="inline">
+                        @csrf
+                        <button type="submit" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Converter para Cliente
+                        </button>
+                    </form>
+                    <div class="flex gap-3">
+                        <a href="{{ route('pre-clientes.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #ef4444; border-radius: 9999px;">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            Salvar
+                        </button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
