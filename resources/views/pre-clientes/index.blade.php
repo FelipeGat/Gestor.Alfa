@@ -132,7 +132,7 @@
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {{ $preCliente->id }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap">
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {{ \App\Helpers\FormatHelper::cpfCnpj($preCliente->cpf_cnpj) }}
                                 </td>
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 truncate">
