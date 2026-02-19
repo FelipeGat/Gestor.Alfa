@@ -158,12 +158,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                    <span class="px-2 py-1 rounded text-xs font-semibold
-                                                {{ $item->tipo === 'produto'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-indigo-100 text-indigo-800' }}">
-                                        {{ ucfirst($item->tipo) }}
-                                    </span>
+                                    {{ ucfirst($item->tipo) }}
                                 </td>
 
                                 <td class="px-4 py-3 text-sm font-medium">
