@@ -37,97 +37,72 @@
             @endif
 
             {{-- ================= FILTROS ================= --}}
-            <div class="filters-card" style="border: none;">
-                <form method="GET" class="filter-form">
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <div class="filter-group">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pesquisar</label>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cliente, Empresa, Status"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        </div>
+            <form method="GET" class="bg-white shadow rounded-lg p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                    <div class="flex flex-col lg:col-span-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Pesquisar</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cliente, Empresa, Status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                     </div>
 
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {{-- 📌 STATUS --}}
-                            <div class="filter-group">
-                                <label class="filter-label">Status</label>
-                                <select name="status" multiple
-                                    class="filter-select h-24">
-                                    @foreach($statusList as $key => $label)
-                                    <option value="{{ $key }}"
-                                        @selected(collect(request('status'))->contains($key))>
-                                        {{ $label }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- 🏢 EMPRESA --}}
-                            <div class="filter-group">
-                                <label class="filter-label">Empresa</label>
-                                <select name="empresa_id" multiple
-                                    class="filter-select h-24">
-                                    @foreach($empresas as $empresa)
-                                    <option value="{{ $empresa->id }}"
-                                        @selected(collect(request('empresa_id'))->contains($empresa->id))>
-                                        {{ $empresa->nome_fantasia }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- 📅 PERÍODO --}}
-                            <div class="filter-group">
-                                <label class="filter-label">Período</label>
-                                <select name="periodo"
-                                    class="filter-select">
-                                    <option value="">Todos</option>
-                                    <option value="ano" @selected(request('periodo')==='ano' )>Ano Atual</option>
-                                    <option value="mes" @selected(request('periodo')==='mes' )>Mês Atual</option>
-                                    <option value="semana" @selected(request('periodo')==='semana' )>Semana Atual</option>
-                                    <option value="dia" @selected(request('periodo')==='dia' )>Hoje</option>
-                                    <option value="intervalo" @selected(request('periodo')==='intervalo' )>
-                                        Intervalo de Datas
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div></div>
-
-                            {{-- 📆 DATA INICIAL --}}
-                            <div class="filter-group">
-                                <label class="filter-label">Data Inicial</label>
-                                <input type="date" name="data_inicio" value="{{ request('data_inicio') }}"
-                                    class="filter-select">
-                            </div>
-
-                            {{-- 📆 DATA FINAL --}}
-                            <div class="filter-group">
-                                <label class="filter-label">Data Final</label>
-                                <input type="date" name="data_fim" value="{{ request('data_fim') }}"
-                                    class="filter-select">
-                            </div>
-                        </div>
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <option value="">Todos</option>
+                            @foreach($statusList as $key => $label)
+                            <option value="{{ $key }}" @selected(collect(request('status'))->contains($key))>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="filter-actions justify-end">
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Empresa</label>
+                        <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <option value="">Todas</option>
+                            @foreach($empresas as $empresa)
+                            <option value="{{ $empresa->id }}" @selected(collect(request('empresa_id'))->contains($empresa->id))>{{ $empresa->nome_fantasia }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Período</label>
+                        <select name="periodo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <option value="">Todos</option>
+                            <option value="ano" @selected(request('periodo')==='ano')>Ano Atual</option>
+                            <option value="mes" @selected(request('periodo')==='mes')>Mês Atual</option>
+                            <option value="semana" @selected(request('periodo')==='semana')>Semana Atual</option>
+                            <option value="dia" @selected(request('periodo')==='dia')>Hoje</option>
+                            <option value="intervalo" @selected(request('periodo')==='intervalo')>Intervalo</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Data Inicial</label>
+                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                    </div>
+
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Data Final</label>
+                        <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                    </div>
+
+                    <div class="flex items-end gap-2 lg:col-span-2">
                         <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                                <path fill-rule="evenodd"
-                                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                                    clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
                             </svg>
                             Filtrar
                         </button>
 
-                        <a href="{{ route('orcamentos.index') }}"
-                            class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; border-radius: 9999px;">
+                        <a href="{{ route('orcamentos.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
                             Limpar
                         </a>
                     </div>
-            </div>
+                </div>
+            </form>
 
             {{-- ================= RESUMO ================= --}}
             @php
