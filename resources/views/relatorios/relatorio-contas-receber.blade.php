@@ -204,7 +204,7 @@
             </div>
 
             <div class="section-card mb-6 print-section mt-10">
-                <div class="Print-title mb-6 pb-4 border-b-2 border-gray-300 flex items-start justify-between">
+                <div class="Print-title mb-6 p-4 border-b-2 border-gray-300 flex items-start justify-between">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">Relatório - Contas a Receber</h1>
                         <p class="text-sm text-gray-600 mt-2">Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}</p>
