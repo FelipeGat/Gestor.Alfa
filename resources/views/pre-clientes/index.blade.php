@@ -145,12 +145,12 @@
                                     {{ $preCliente->telefone ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $preCliente->origem === 'orcamento' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
+                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 100px; justify-content: center; {{ $preCliente->origem === 'orcamento' ? 'background-color: #dbeafe; color: #1e40af;' : 'background-color: #f3f4f6; color: #374151;' }}">
                                         {{ ucfirst($preCliente->origem) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $preCliente->convertido_em_cliente ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fee2e2; color: #991b1b;' }}">
                                         {{ $preCliente->convertido_em_cliente ? 'Convertido' : 'Pendente' }}
                                     </span>
                                 </td>
