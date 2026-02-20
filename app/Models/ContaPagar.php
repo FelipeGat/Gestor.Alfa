@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class ContaPagar extends Model
 {
@@ -32,6 +31,7 @@ class ContaPagar extends Model
         'forma_pagamento',
         'observacoes',
         'orcamento_id',
+        'user_id',
     ];
 
     /**
@@ -47,8 +47,10 @@ class ContaPagar extends Model
         if ($this->contaFinanceira && $this->contaFinanceira->empresa) {
             return $this->contaFinanceira->empresa;
         }
+
         return null;
     }
+
     public function orcamento()
     {
         return $this->belongsTo(Orcamento::class);
@@ -93,6 +95,11 @@ class ContaPagar extends Model
     public function contaFixaPagar()
     {
         return $this->belongsTo(ContaFixaPagar::class);
+    }
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function anexos()

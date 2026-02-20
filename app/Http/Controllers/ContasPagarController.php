@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use App\Models\Conta;
+use App\Models\ContaFixaPagar;
 use App\Models\ContaPagar;
 use App\Models\ContaPagarAnexo;
 use App\Models\Subcategoria;
-use App\Models\Conta;
-use App\Models\ContaFixaPagar;
 use App\Services\Financeiro\ContaPagarService;
-
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ContasPagarController extends Controller
 {
@@ -36,7 +34,7 @@ class ContasPagarController extends Controller
 
         // Filtro de busca geral
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->input('search') . '%';
+            $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('descricao', 'like', $searchTerm)
                     ->orWhereHas('fornecedor', function ($sq) use ($searchTerm) {
@@ -132,6 +130,7 @@ class ContasPagarController extends Controller
         // Adicione outras variáveis conforme necessário para a view
         return view('financeiro.contasapagar', compact('contas', 'centrosCusto', 'categorias', 'subcategorias', 'contasFiltro', 'contadoresStatus', 'kpis', 'totalGeralFiltrado', 'contasFinanceiras', 'fornecedores'));
     }
+
     /**
      * Baixa múltipla de contas a pagar
      */
@@ -141,7 +140,7 @@ class ContasPagarController extends Controller
         if (is_string($ids)) {
             $ids = json_decode($ids, true);
         }
-        if (!is_array($ids) || empty($ids)) {
+        if (! is_array($ids) || empty($ids)) {
             return back()->with('error', 'Nenhuma conta selecionada.');
         }
 
@@ -171,7 +170,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -197,7 +196,6 @@ class ContasPagarController extends Controller
             'valor_restante' => 'nullable|numeric|min:0',
             'data_vencimento_original' => 'nullable|date',
         ]);
-
 
         // Usa o valor_total enviado pelo formulário, se existir, senão mantém o valor original
         $valorTotal = $request->has('valor_total') ? floatval($request->valor_total) : floatval($conta->valor);
@@ -231,7 +229,7 @@ class ContasPagarController extends Controller
                     // Antes de criar, remove qualquer movimentação anterior deste pagamento (evita duplicidade)
                     \App\Models\MovimentacaoFinanceira::where('tipo', 'saida')
                         ->where(function ($q) use ($conta) {
-                            $q->where('observacao', 'like', 'Pagamento de conta a pagar ID ' . $conta->id . '%');
+                            $q->where('observacao', 'like', 'Pagamento de conta a pagar ID '.$conta->id.'%');
                         })
                         ->delete();
                     // Registrar movimentação financeira (apenas UM lançamento por pagamento)
@@ -241,7 +239,7 @@ class ContasPagarController extends Controller
                         'tipo' => 'saida',
                         'valor' => $valorPago, // SEMPRE o valor pago!
                         'saldo_resultante' => $contaBancaria->saldo,
-                        'observacao' => 'Pagamento de conta a pagar ID ' . $conta->id . ' | Valor pago: R$ ' . number_format($valorPago, 2, ',', '.'),
+                        'observacao' => 'Pagamento de conta a pagar ID '.$conta->id.' | Valor pago: R$ '.number_format($valorPago, 2, ',', '.'),
                         'user_id' => $request->user() ? $request->user()->id : null,
                         'data_movimentacao' => $request->data_pagamento,
                     ]);
@@ -258,7 +256,7 @@ class ContasPagarController extends Controller
                     'conta_id' => $conta->conta_id,
                     'fornecedor_id' => $conta->fornecedor_id,
                     'conta_fixa_pagar_id' => $conta->conta_fixa_pagar_id,
-                    'descricao' => $conta->descricao . ' (Restante)',
+                    'descricao' => $conta->descricao.' (Restante)',
                     'valor' => $valorRestante,
                     'data_vencimento' => $request->data_vencimento_original ?? $conta->data_vencimento,
                     'status' => 'em_aberto',
@@ -270,7 +268,7 @@ class ContasPagarController extends Controller
 
         $mensagem = 'Conta marcada como paga e registrada na movimentação.';
         if ($request->criar_nova_conta && $request->valor_restante > 0) {
-            $mensagem .= ' Uma nova conta foi criada com o valor restante de R$ ' . number_format($request->valor_restante, 2, ',', '.');
+            $mensagem .= ' Uma nova conta foi criada com o valor restante de R$ '.number_format($request->valor_restante, 2, ',', '.');
         }
 
         return back()->with('success', $mensagem);
@@ -285,7 +283,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -305,7 +303,7 @@ class ContasPagarController extends Controller
             // Remover TODAS as movimentações financeiras associadas a este pagamento
             \App\Models\MovimentacaoFinanceira::where('tipo', 'saida')
                 ->where(function ($q) use ($conta) {
-                    $q->where('observacao', 'like', 'Pagamento de conta a pagar ID ' . $conta->id . '%');
+                    $q->where('observacao', 'like', 'Pagamento de conta a pagar ID '.$conta->id.'%');
                 })
                 ->delete();
 
@@ -328,7 +326,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -372,7 +370,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -390,7 +388,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -428,7 +426,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -461,7 +459,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -537,13 +535,14 @@ class ContasPagarController extends Controller
                     'conta_id' => $contaFixa->conta_id,
                     'conta_fixa_pagar_id' => $contaFixa->id,
                     'fornecedor_id' => $contaFixa->fornecedor_id,
-                    'descricao' => $contaFixa->descricao . ' - ' . $dataVencimentoAjustada->format('d/m/Y'),
+                    'descricao' => $contaFixa->descricao.' - '.$dataVencimentoAjustada->format('d/m/Y'),
                     'valor' => $contaFixa->valor,
                     'data_vencimento' => $dataVencimentoAjustada->format('Y-m-d'),
                     'forma_pagamento' => $contaFixa->forma_pagamento,
                     'conta_financeira_id' => $contaFixa->conta_financeira_id,
                     'status' => 'em_aberto',
                     'tipo' => 'fixa',
+                    'user_id' => auth()->id(),
                 ]);
 
                 $parcelasGeradas++;
@@ -588,10 +587,12 @@ class ContasPagarController extends Controller
             }
 
             DB::commit();
+
             return back()->with('success', "Despesa fixa criada! {$parcelasGeradas} parcelas geradas com sucesso!");
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Erro ao criar despesa fixa: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Erro ao criar despesa fixa: '.$e->getMessage()]);
         }
     }
 
@@ -604,13 +605,13 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
         $contasFixas = ContaFixaPagar::with([
             'centroCusto:id,nome',
-            'conta.subcategoria.categoria:id,nome'
+            'conta.subcategoria.categoria:id,nome',
         ])->orderBy('dia_vencimento')->get();
 
         return view('financeiro.contas-fixas-pagar', compact('contasFixas'));
@@ -625,7 +626,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -643,7 +644,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -762,7 +763,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -780,7 +781,7 @@ class ContasPagarController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403
         );
 
@@ -815,7 +816,7 @@ class ContasPagarController extends Controller
         return response()->json($contas);
     }
 
-                                                                    // ================= ANEXOS =================
+    // ================= ANEXOS =================
 
     /**
      * Listar anexos de uma conta a pagar
@@ -828,7 +829,7 @@ class ContasPagarController extends Controller
 
         return response()->json([
             'success' => true,
-            'anexos' => $anexos
+            'anexos' => $anexos,
         ]);
     }
 
@@ -854,7 +855,7 @@ class ContasPagarController extends Controller
                     // Gerar nome único para o arquivo
                     $nomeOriginal = $arquivo->getClientOriginalName();
                     $extensao = $arquivo->getClientOriginalExtension();
-                    $nomeArquivo = uniqid() . '_' . time() . '.' . $extensao;
+                    $nomeArquivo = uniqid().'_'.time().'.'.$extensao;
 
                     // Salvar arquivo no storage
                     $caminho = $arquivo->storeAs('anexos/contas_pagar', $nomeArquivo, 'public');
@@ -887,20 +888,21 @@ class ContasPagarController extends Controller
                     'success' => true,
                     'message' => $mensagem,
                     'uploaded' => $uploadedCount,
-                    'errors' => $errors
+                    'errors' => $errors,
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Nenhum arquivo foi enviado',
-                    'errors' => $errors
+                    'errors' => $errors,
                 ], 422);
             }
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao enviar anexos: ' . $e->getMessage()
+                'message' => 'Erro ao enviar anexos: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -921,12 +923,12 @@ class ContasPagarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Anexo excluído com sucesso!'
+                'message' => 'Anexo excluído com sucesso!',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao excluir anexo: ' . $e->getMessage()
+                'message' => 'Erro ao excluir anexo: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -940,29 +942,29 @@ class ContasPagarController extends Controller
             \Log::info('Download anexo iniciado', [
                 'anexo_id' => $anexo->id,
                 'caminho' => $anexo->caminho,
-                'nome_original' => $anexo->nome_original
+                'nome_original' => $anexo->nome_original,
             ]);
-            
+
             // Usar o disco 'public' configurado para data/uploads
-            if (!Storage::disk('public')->exists($anexo->caminho)) {
+            if (! Storage::disk('public')->exists($anexo->caminho)) {
                 \Log::error('Arquivo não encontrado no storage', [
                     'caminho' => $anexo->caminho,
-                    'anexo_id' => $anexo->id
+                    'anexo_id' => $anexo->id,
                 ]);
                 abort(404, 'Arquivo não encontrado no servidor');
             }
 
             \Log::info('Arquivo encontrado, iniciando download', [
-                'caminho' => $anexo->caminho
+                'caminho' => $anexo->caminho,
             ]);
 
             return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
         } catch (\Exception $e) {
             \Log::error('Erro ao fazer download do anexo', [
                 'anexo_id' => $anexo->id ?? null,
-                'erro' => $e->getMessage()
+                'erro' => $e->getMessage(),
             ]);
-            abort(500, 'Erro ao fazer download do anexo: ' . $e->getMessage());
+            abort(500, 'Erro ao fazer download do anexo: '.$e->getMessage());
         }
     }
 }

@@ -5,16 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Cobranca;
 use App\Models\CobrancaAnexo;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class ContasReceberController extends Controller
 {
-
     /**
      * Baixa múltipla de cobranças
      */
@@ -24,7 +23,7 @@ class ContasReceberController extends Controller
         if (is_string($ids)) {
             $ids = json_decode($ids, true);
         }
-        if (!is_array($ids) || empty($ids)) {
+        if (! is_array($ids) || empty($ids)) {
             return back()->with('error', 'Nenhuma cobrança selecionada.');
         }
 
@@ -37,7 +36,7 @@ class ContasReceberController extends Controller
         DB::transaction(function () use ($ids, $request) {
             foreach ($ids as $id) {
                 $cobranca = Cobranca::find($id);
-                if (!$cobranca || $cobranca->status === 'pago') {
+                if (! $cobranca || $cobranca->status === 'pago') {
                     continue;
                 }
                 $cobranca->status = 'pago';
@@ -58,7 +57,7 @@ class ContasReceberController extends Controller
                         'tipo' => 'entrada',
                         'valor' => $cobranca->valor,
                         'saldo_resultante' => $contaFinanceira->saldo,
-                        'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id,
+                        'observacao' => 'Recebimento de cobrança ID '.$cobranca->id,
                         'user_id' => $request->user() ? $request->user()->id : null,
                         'data_movimentacao' => $request->data_pagamento,
                     ]);
@@ -68,6 +67,7 @@ class ContasReceberController extends Controller
 
         return redirect()->route('financeiro.contasareceber')->with('success', 'Cobranças baixadas com sucesso!');
     }
+
     public function index(Request $request)
     {
         // ================= PREPARAÇÃO DA QUERY BASE =================
@@ -75,7 +75,7 @@ class ContasReceberController extends Controller
             'cliente:id,nome,nome_fantasia,cpf_cnpj',
             'anexos',
             'orcamento.empresa:id,nome_fantasia',
-            'contaFixa.empresa:id,nome_fantasia'
+            'contaFixa.empresa:id,nome_fantasia',
         ])
             ->select('cobrancas.*')
             ->join('clientes', 'clientes.id', '=', 'cobrancas.cliente_id')
@@ -90,17 +90,16 @@ class ContasReceberController extends Controller
 
         // Sua lógica de segurança original foi mantida.
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
-
 
         // ================= APLICAÇÃO DOS FILTROS =================
 
         // Filtro de Busca (Cliente ou Descrição)
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->input('search') . '%';
+            $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('clientes.nome_fantasia', 'like', $searchTerm)
                     ->orWhere('cobrancas.descricao', 'like', $searchTerm);
@@ -125,7 +124,7 @@ class ContasReceberController extends Controller
 
         // Filtro por Nota Fiscal
         if ($request->filled('nota_fiscal')) {
-            $query->whereHas('cliente', function ($q) use ($request) {
+            $query->whereHas('cliente', function ($q) {
                 $q->where('nota_fiscal', 1);
             });
         }
@@ -143,8 +142,6 @@ class ContasReceberController extends Controller
             });
         }
 
-
-
         // Clonar a query para os KPIs (com todos os filtros, inclusive status)
         $queryParaKPIs = clone $query;
 
@@ -159,11 +156,11 @@ class ContasReceberController extends Controller
                 ->whereDate('data_vencimento', '>=', today())
                 ->sum('valor'),
             // Recebido: status pago
-            'recebido'  => (clone $queryParaKPIs)
+            'recebido' => (clone $queryParaKPIs)
                 ->where('status', 'pago')
                 ->sum('valor'),
             // Vencido: status diferente de pago e vencimento passado
-            'vencido'   => (clone $queryParaKPIs)
+            'vencido' => (clone $queryParaKPIs)
                 ->where('status', '!=', 'pago')
                 ->whereDate('data_vencimento', '<', today())
                 ->sum('valor'),
@@ -180,13 +177,13 @@ class ContasReceberController extends Controller
         // ================= DADOS PARA FILTROS RÁPIDOS (baseado na query *sem* filtro de status) =================
         $contadoresStatus = [
             'pendente' => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->count(),
-            'vencido'  => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
+            'vencido' => (clone $queryParaContadores)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->count(),
         ];
 
         // Contadores por tipo
         $contadoresTipo = [
             'orcamento' => (clone $queryParaContadores)->where('tipo', 'orcamento')->count(),
-            'contrato'  => (clone $queryParaContadores)->where('tipo', 'contrato')->count(),
+            'contrato' => (clone $queryParaContadores)->where('tipo', 'contrato')->count(),
         ];
 
         // Contador de Nota Fiscal
@@ -256,7 +253,6 @@ class ContasReceberController extends Controller
             'data_vencimento_original' => 'nullable|date',
         ]);
 
-
         // Corrige valores para aceitar vírgula como separador decimal
         $valorTotal = $request->has('valor_total') ? floatval(str_replace(',', '.', $request->valor_total)) : floatval($cobranca->valor);
         $valorPago = floatval(str_replace(',', '.', $request->valor_pago));
@@ -266,7 +262,7 @@ class ContasReceberController extends Controller
         $valorTotalComJuros = $valorTotal + $jurosMulta;
 
         // Permitir valor pago menor que o total apenas se for gerar nova cobrança com restante
-        if ($valorPago < $valorTotal && (!$request->criar_nova_cobranca || $request->valor_restante <= 0)) {
+        if ($valorPago < $valorTotal && (! $request->criar_nova_cobranca || $request->valor_restante <= 0)) {
             return back()->with('error', 'O valor pago não pode ser menor que o valor da cobrança.');
         }
         if ($valorPago > $valorTotalComJuros) {
@@ -308,7 +304,7 @@ class ContasReceberController extends Controller
                     'tipo' => 'entrada',
                     'valor' => $valorPago,
                     'saldo_resultante' => $contaFinanceira->saldo,
-                    'observacao' => 'Recebimento de cobrança ID ' . $cobranca->id . ($jurosMulta > 0 ? ' | Juros/Multa: R$ ' . number_format($jurosMulta, 2, ',', '.') : ''),
+                    'observacao' => 'Recebimento de cobrança ID '.$cobranca->id.($jurosMulta > 0 ? ' | Juros/Multa: R$ '.number_format($jurosMulta, 2, ',', '.') : ''),
                     'user_id' => $request->user() ? $request->user()->id : null,
                     'data_movimentacao' => $request->data_pagamento,
                 ]);
@@ -335,7 +331,7 @@ class ContasReceberController extends Controller
                     'cliente_id' => $cobranca->cliente_id,
                     'orcamento_id' => $cobranca->orcamento_id,
                     'valor' => $valorRestante,
-                    'descricao' => $cobranca->descricao . ' (Restante)',
+                    'descricao' => $cobranca->descricao.' (Restante)',
                     'data_vencimento' => $request->data_vencimento_original ?? $cobranca->data_vencimento,
                     'status' => 'pendente',
                     'forma_pagamento' => $request->forma_pagamento,
@@ -345,7 +341,7 @@ class ContasReceberController extends Controller
 
         $mensagem = 'Cobrança marcada como paga e registrada na movimentação.';
         if ($request->criar_nova_cobranca && $request->valor_restante > 0) {
-            $mensagem .= ' Uma nova cobrança foi criada com o valor restante de R$ ' . number_format($request->valor_restante, 2, ',', '.');
+            $mensagem .= ' Uma nova cobrança foi criada com o valor restante de R$ '.number_format($request->valor_restante, 2, ',', '.');
         }
 
         return back()->with('success', $mensagem);
@@ -422,7 +418,7 @@ class ContasReceberController extends Controller
             }
 
             $cobranca->update([
-                'status'  => 'pendente',
+                'status' => 'pendente',
                 'pago_em' => null,
             ]);
         });
@@ -446,7 +442,7 @@ class ContasReceberController extends Controller
         $empresas = \App\Models\Empresa::orderBy('nome_fantasia')->get();
 
         // Se não houver filtro de data, usar mês atual
-        if (!$request->filled('data_inicio') && !$request->filled('data_fim')) {
+        if (! $request->filled('data_inicio') && ! $request->filled('data_fim')) {
             $inicio = Carbon::now()->startOfMonth()->format('Y-m-d');
             $fim = Carbon::now()->endOfMonth()->format('Y-m-d');
             $request->merge(['data_inicio' => $inicio, 'data_fim' => $fim]);
@@ -455,7 +451,7 @@ class ContasReceberController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
@@ -481,6 +477,7 @@ class ContasReceberController extends Controller
                 ->map(function ($item) {
                     $item->tipo_movimentacao = 'saida';
                     $item->is_financeiro = true;
+
                     return $item;
                 });
             // Paginação manual
@@ -496,10 +493,11 @@ class ContasReceberController extends Controller
             );
             $contadoresStatus = [
                 'recebido' => 0,
-                'pago'     => $movimentacoesCollection->count(),
+                'pago' => $movimentacoesCollection->count(),
             ];
             $totalEntradas = 0;
             $totalSaidas = $movimentacoesCollection->sum('valor');
+
             return view('financeiro.movimentacao', compact(
                 'movimentacoes',
                 'centrosCusto',
@@ -518,7 +516,7 @@ class ContasReceberController extends Controller
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
             'orcamento:id,empresa_id,forma_pagamento',
             'contaFixa:id,empresa_id',
-            'contaFinanceira:id,nome,tipo,empresa_id'
+            'contaFinanceira:id,nome,tipo,empresa_id',
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
@@ -547,7 +545,7 @@ class ContasReceberController extends Controller
         $cobrancasPagas = $cobrancasQuery->get();
         // Montar movimentações de entrada a partir das cobranças pagas
         $movFinanceirasEntradas = $cobrancasPagas->map(function ($cobranca) {
-            $mov = new \stdClass();
+            $mov = new \stdClass;
             $mov->tipo_movimentacao = 'entrada';
             $mov->is_financeiro = false;
             $mov->valor = $cobranca->valor;
@@ -558,6 +556,7 @@ class ContasReceberController extends Controller
             $mov->contaFinanceira = $cobranca->contaFinanceira;
             $mov->usuario = $cobranca->usuario;
             $mov->cobranca = $cobranca;
+
             return $mov;
         });
 
@@ -569,6 +568,7 @@ class ContasReceberController extends Controller
             'contaFinanceira:id,nome,tipo',
             'orcamento:id,empresa_id',
             'contaFixaPagar:id',
+            'usuario:id,name',
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');
@@ -604,14 +604,13 @@ class ContasReceberController extends Controller
 
         // ================= FILTROS =================
         if ($request->filled('search')) {
-            $search = '%' . $request->input('search') . '%';
+            $search = '%'.$request->input('search').'%';
             $searchRaw = $request->input('search');
 
-            $cobrancasQuery->where(function ($q) use ($search, $searchRaw) {
+            $cobrancasQuery->where(function ($q) use ($search) {
                 $q->whereHas(
                     'cliente',
-                    fn($sq) =>
-                    $sq->where('nome', 'like', $search)
+                    fn ($sq) => $sq->where('nome', 'like', $search)
                         ->orWhere('nome_fantasia', 'like', $search)
                         ->orWhere('razao_social', 'like', $search)
                 )
@@ -619,13 +618,13 @@ class ContasReceberController extends Controller
                     ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$search]);
             });
 
-            $contasPagarQuery->where(function ($q) use ($search, $searchRaw) {
+            $contasPagarQuery->where(function ($q) use ($search) {
                 $q->where('descricao', 'like', $search)
                     ->orWhereHas('fornecedor', function ($sq) use ($search) {
                         $sq->where('razao_social', 'like', $search)
                             ->orWhere('nome_fantasia', 'like', $search);
                     })
-                    ->orWhereHas('centroCusto', fn($sq) => $sq->where('nome', 'like', $search))
+                    ->orWhereHas('centroCusto', fn ($sq) => $sq->where('nome', 'like', $search))
                     ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$search]);
             });
         }
@@ -665,12 +664,12 @@ class ContasReceberController extends Controller
                 $item->tipo_movimentacao = $item->tipo === 'ajuste_entrada' ? 'entrada' : 'saida';
                 $item->is_financeiro = true;
                 // Garante que contaDestino esteja sempre preenchido (objeto ou null)
-                if (!isset($item->contaDestino) && isset($item->conta_destino_id) && $item->conta_destino_id) {
+                if (! isset($item->contaDestino) && isset($item->conta_destino_id) && $item->conta_destino_id) {
                     $item->contaDestino = \App\Models\ContaFinanceira::find($item->conta_destino_id);
                 }
+
                 return $item;
             });
-
 
         // ================= COMBINAR E ORDENAR =================
         // Entradas: apenas movimentações financeiras de recebimento (tipo entrada, observação 'Recebimento de cobrança ID%')
@@ -694,6 +693,7 @@ class ContasReceberController extends Controller
             ->map(function ($item) {
                 $item->tipo_movimentacao = 'entrada';
                 $item->is_financeiro = true;
+
                 return $item;
             });
 
@@ -708,14 +708,16 @@ class ContasReceberController extends Controller
             } else {
                 $item->usuario = null;
             }
+
             return $item;
         });
 
         $movFinanceirasSaidas = $movFinanceiras->map(function ($item) {
             // Garante que usuario seja sempre o objeto User
-            if (!isset($item->usuario) && isset($item->user_id)) {
+            if (! isset($item->usuario) && isset($item->user_id)) {
                 $item->usuario = \App\Models\User::find($item->user_id);
             }
+
             return $item;
         });
 
@@ -724,6 +726,7 @@ class ContasReceberController extends Controller
             $contasPagarCollection = $contasPagarQuery->get()->map(function ($item) {
                 $item->tipo_movimentacao = 'saida';
                 $item->is_financeiro = false;
+
                 return $item;
             });
             // Paginação manual
@@ -739,10 +742,11 @@ class ContasReceberController extends Controller
             );
             $contadoresStatus = [
                 'recebido' => 0,
-                'pago'     => $contasPagarCollection->count(),
+                'pago' => $contasPagarCollection->count(),
             ];
             $totalEntradas = 0;
             $totalSaidas = $contasPagarCollection->sum('valor');
+
             return view('financeiro.movimentacao', compact(
                 'movimentacoes',
                 'centrosCusto',
@@ -763,9 +767,10 @@ class ContasReceberController extends Controller
                 ->concat($contasPagar)
                 ->concat($movFinanceirasSaidas)
                 ->filter(function ($item) use ($request) {
-                    if (!$request->filled('tipo_movimentacao')) {
+                    if (! $request->filled('tipo_movimentacao')) {
                         return true;
                     }
+
                     return $item->tipo_movimentacao === $request->input('tipo_movimentacao');
                 });
 
@@ -797,7 +802,7 @@ class ContasReceberController extends Controller
             // ================= CONTADORES PARA FILTROS RÁPIDOS =================
             $contadoresStatus = [
                 'recebido' => $movFinanceirasEntradas->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->count(),
-                'pago'     => $contasPagar->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'saida')->count(),
+                'pago' => $contasPagar->count() + $movFinanceirasSaidas->where('tipo_movimentacao', 'saida')->count(),
             ];
 
             return view('financeiro.movimentacao', compact(
@@ -812,12 +817,13 @@ class ContasReceberController extends Controller
                 'contadoresStatus'
             ));
         }
-    } // ================= RECIBO =================
+    }
+
+    // ================= RECIBO =================
     public function recibo(Cobranca $cobranca)
     {
         return view('financeiro.recibos.recibo-pagamento', compact('cobranca'));
     }
-
 
     // ================= ESTORNAR PAGAMENTO =================
     public function estornar(Cobranca $cobranca)
@@ -837,7 +843,7 @@ class ContasReceberController extends Controller
 
             // Remover movimentação financeira associada
             \App\Models\MovimentacaoFinanceira::where('tipo', 'entrada')
-                ->where('observacao', 'like', 'Recebimento de cobrança ID ' . $cobranca->id . '%')
+                ->where('observacao', 'like', 'Recebimento de cobrança ID '.$cobranca->id.'%')
                 ->delete();
 
             $cobranca->update([
@@ -978,6 +984,7 @@ class ContasReceberController extends Controller
     public function getContaFixa(\App\Models\ContaFixa $contaFixa)
     {
         $contaFixa->load(['empresa', 'cliente', 'contaFinanceira']);
+
         return response()->json($contaFixa);
     }
 
@@ -1008,7 +1015,7 @@ class ContasReceberController extends Controller
 
             // Atualizar todas as cobranças pendentes vinculadas a esta conta fixa
             $descricao = $validated['categoria'];
-            if (!empty($validated['observacao'])) {
+            if (! empty($validated['observacao'])) {
                 $descricao .= " - {$validated['observacao']}";
             }
 
@@ -1026,7 +1033,7 @@ class ContasReceberController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Conta fixa e cobranças pendentes atualizadas com sucesso!',
-            'reload' => true
+            'reload' => true,
         ]);
     }
 
@@ -1045,7 +1052,7 @@ class ContasReceberController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
@@ -1077,22 +1084,22 @@ class ContasReceberController extends Controller
                 $nomeOriginalSanitizado = preg_replace('/[^a-zA-Z0-9._-]/', '_', $nomeOriginal);
 
                 // Gerar nome único para o arquivo
-                $nomeArquivo = time() . '_' . uniqid() . '_' . $nomeOriginalSanitizado;
-                
+                $nomeArquivo = time().'_'.uniqid().'_'.$nomeOriginalSanitizado;
+
                 // Garantir que o diretório exista no disco público
                 $diretorio = 'cobrancas/anexos';
-                if (!Storage::disk('public')->exists($diretorio)) {
+                if (! Storage::disk('public')->exists($diretorio)) {
                     Storage::disk('public')->makeDirectory($diretorio);
                 }
 
                 // Salvar arquivo usando o Storage facade
                 $conteudo = file_get_contents($arquivo->getPathname());
-                $caminhoCompleto = $diretorio . '/' . $nomeArquivo;
+                $caminhoCompleto = $diretorio.'/'.$nomeArquivo;
 
-                if (!Storage::disk('public')->put($caminhoCompleto, $conteudo)) {
-                    throw new \Exception('Falha ao salvar arquivo: ' . $nomeOriginal);
+                if (! Storage::disk('public')->put($caminhoCompleto, $conteudo)) {
+                    throw new \Exception('Falha ao salvar arquivo: '.$nomeOriginal);
                 }
-                
+
                 $caminho = $caminhoCompleto;
 
                 // Criar registro no banco
@@ -1110,13 +1117,13 @@ class ContasReceberController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($anexosSalvos) . ' arquivo(s) anexado(s) com sucesso!',
+                'message' => count($anexosSalvos).' arquivo(s) anexado(s) com sucesso!',
                 'anexos' => $anexosSalvos,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao fazer upload: ' . $e->getMessage(),
+                'message' => 'Erro ao fazer upload: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1130,7 +1137,7 @@ class ContasReceberController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
@@ -1164,15 +1171,15 @@ class ContasReceberController extends Controller
             $isClienteProprietario = $clienteIds->contains($anexo->cobranca->cliente_id);
         }
 
-        abort_if(!$isFinanceiro && !$isClienteProprietario, 403, 'Acesso não autorizado');
+        abort_if(! $isFinanceiro && ! $isClienteProprietario, 403, 'Acesso não autorizado');
 
         if (empty($anexo->caminho)) {
             abort(404, 'Arquivo não disponível (upload incompleto ou arquivo perdido)');
         }
 
         // Usar o disco 'public' configurado para data/uploads
-        if (!Storage::disk('public')->exists($anexo->caminho)) {
-            abort(404, 'Arquivo não encontrado no servidor: ' . $anexo->nome_original);
+        if (! Storage::disk('public')->exists($anexo->caminho)) {
+            abort(404, 'Arquivo não encontrado no servidor: '.$anexo->nome_original);
         }
 
         return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
@@ -1187,17 +1194,17 @@ class ContasReceberController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->isAdminPanel() && !$user->perfis()->where('slug', 'financeiro')->exists(),
+            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
             403,
             'Acesso não autorizado'
         );
 
         try {
             // Remover arquivo físico de forma segura
-            $caminhoCompleto = storage_path('app/public/' . $anexo->caminho);
+            $caminhoCompleto = storage_path('app/public/'.$anexo->caminho);
             if (file_exists($caminhoCompleto)) {
-                if (!@unlink($caminhoCompleto)) {
-                    Log::warning('Não foi possível excluir o arquivo físico: ' . $caminhoCompleto);
+                if (! @unlink($caminhoCompleto)) {
+                    Log::warning('Não foi possível excluir o arquivo físico: '.$caminhoCompleto);
                 }
             }
 
@@ -1209,10 +1216,11 @@ class ContasReceberController extends Controller
                 'message' => 'Anexo excluído com sucesso!',
             ]);
         } catch (\Exception $e) {
-            Log::error('Erro ao excluir anexo: ' . $e->getMessage());
+            Log::error('Erro ao excluir anexo: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao excluir anexo: ' . $e->getMessage(),
+                'message' => 'Erro ao excluir anexo: '.$e->getMessage(),
             ], 500);
         }
     }
