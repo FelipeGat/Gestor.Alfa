@@ -105,9 +105,25 @@ class ContasPagarController extends Controller
             ->paginate(15)
             ->appends($request->except('page'));
 
-        // KPIs - usando service
-        $kpis = $this->service->calcularKPIs();
-        $contadoresStatus = $this->service->contarPorStatus();
+        // KPIs - usando service com filtros
+        $filtros = [
+            'centro_custo_id' => $request->input('centro_custo_id'),
+            'categoria_id' => $request->input('categoria_id'),
+            'subcategoria_id' => $request->input('subcategoria_id'),
+            'conta_id' => $request->input('conta_id'),
+            'search' => $request->input('search'),
+        ];
+
+        // Só passa período se o usuário definiu explicitamente
+        if ($request->filled('vencimento_inicio')) {
+            $filtros['vencimento_inicio'] = $vencimentoInicio;
+        }
+        if ($request->filled('vencimento_fim')) {
+            $filtros['vencimento_fim'] = $vencimentoFim;
+        }
+
+        $kpis = $this->service->calcularKPIs($filtros);
+        $contadoresStatus = $this->service->contarPorStatus($filtros);
 
         // Total geral filtrado (soma dos valores das contas exibidas na página)
         $totalGeralFiltrado = $contas->sum('valor');
