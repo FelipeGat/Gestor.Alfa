@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -39,7 +38,7 @@ class AuthenticatedSessionController extends Controller
 
         // Redirecionamento para Admin/Administrativo
         if ($user->isAdminPanel()) {
-            return redirect()->route('financeiro.dashboard');
+            return redirect()->route('dashboard');
         }
 
         // Cliente
@@ -47,11 +46,9 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('portal.index');
         }
 
-        // Funcion¨¢rio
+        // Funcionï¿½ï¿½rio
         return redirect()->route('portal-funcionario.index');
     }
-
-
 
     /**
      * Destroy an authenticated session.
