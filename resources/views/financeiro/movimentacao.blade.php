@@ -305,7 +305,21 @@
                                     </th>
                                     <th>DESCRIÇÃO</th>
                                     <th>CLIENTE/FORNECEDOR</th>
-                                    <th>VALOR</th>
+                                    <th>
+                                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), [
+                                            'order_by' => 'valor',
+                                            'order_dir' => request('order_by') === 'valor' && request('order_dir') === 'asc' ? 'desc' : 'asc'
+                                        ])) }}" class="flex items-center gap-1 text-indigo-700 hover:underline">
+                                            VALOR
+                                            @if(request('order_by') === 'valor')
+                                                @if(request('order_dir') === 'asc')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                                @endif
+                                            @endif
+                                        </a>
+                                    </th>
                                     <th>CENTRO DE CUSTO</th>
                                     <th>FORMA PAGTO</th>
                                     <th>USUÁRIO</th>

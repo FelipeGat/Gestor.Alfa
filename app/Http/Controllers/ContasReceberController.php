@@ -779,6 +779,8 @@ class ContasReceberController extends Controller
                     // Usa data_movimentacao para movimentações financeiras, pago_em para cobranças/contas a pagar
                     return $item->is_financeiro ? $item->data_movimentacao : ($item->pago_em ?? $item->data_movimentacao);
                 }, SORT_REGULAR, $orderDir === 'desc');
+            } elseif ($orderBy === 'valor') {
+                $movimentacoes = $movimentacoes->sortBy('valor', SORT_REGULAR, $orderDir === 'desc');
             }
 
             $movimentacoes = $movimentacoes->values();
