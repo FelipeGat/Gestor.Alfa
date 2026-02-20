@@ -95,6 +95,8 @@ class OrcamentoController extends Controller
             if (! empty($statusArray)) {
                 $query->whereIn('status', $statusArray);
             }
+        } else {
+            $query->whereNotIn('status', ['recusado', 'cancelado', 'concluido']);
         }
 
         // ================= FILTRO POR EMPRESA (MÚLTIPLA) =================
