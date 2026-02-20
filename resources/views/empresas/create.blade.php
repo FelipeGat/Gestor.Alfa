@@ -2,10 +2,44 @@
 
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
+    <style>
+        select[name="ativo"] {
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
+        select[name="ativo"]:focus {
+            border-color: #3f9cae !important;
+            box-shadow: 0 0 0 1px rgba(63, 156, 174, 0.2) !important;
+        }
+        select[name="ativo"] option {
+            color: #111827;
+        }
+        .form-section {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .form-section h3 {
+            font-family: Figtree, sans-serif;
+            font-weight: 600;
+            color: #111827;
+        }
+        input[type="text"],
+        input[type="email"] {
+            font-family: Figtree, sans-serif !important;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus {
+            border-color: #3f9cae !important;
+            box-shadow: 0 0 0 3px rgba(63, 156, 174, 0.1) !important;
+        }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
-        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full">
             <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -22,17 +56,8 @@
         </nav>
     </x-slot>
 
-    <div class="pb-8 pt-4">
+    <div class="pb-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- HEADER DO FORMULÁRIO --}}
-
-            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
-                <h1 class="text-2xl font-bold text-black">Cadastro de Empresa</h1>
-                <p class="text-sm text-gray-600 mt-1">
-                    Preencha os dados abaixo para cadastrar uma nova empresa
-                </p>
-            </div>
 
             {{-- ERROS --}}
             @if ($errors->any())
@@ -50,7 +75,7 @@
                 @csrf
 
                 {{-- SEÇÃO 1: DADOS DA EMPRESA --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Dados da Empresa
                     </h3>
@@ -61,7 +86,7 @@
                                 Razão Social <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="razao_social" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="Razão Social da empresa">
                         </div>
 
@@ -70,7 +95,7 @@
                                 Nome Fantasia
                             </label>
                             <input type="text" name="nome_fantasia" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="Nome fantasia (opcional)">
                         </div>
                     </div>
@@ -81,7 +106,7 @@
                                 CNPJ <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="cnpj" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="00.000.000/0000-00">
                         </div>
 
@@ -90,14 +115,14 @@
                                 Endereço
                             </label>
                             <input type="text" name="endereco" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="Endereço completo">
                         </div>
                     </div>
                 </div>
 
                 {{-- SEÇÃO 2: CONTATOS --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Contatos
                     </h3>
@@ -108,7 +133,7 @@
                                 Email Comercial
                             </label>
                             <input type="email" name="email_comercial" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="comercial@empresa.com">
                         </div>
 
@@ -117,14 +142,14 @@
                                 Email Administrativo
                             </label>
                             <input type="email" name="email_administrativo" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                       focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                       focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="adm@empresa.com">
                         </div>
                     </div>
                 </div>
 
                 {{-- SEÇÃO 3: STATUS --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Status
                     </h3>
@@ -133,8 +158,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Situação da Empresa
                         </label>
-                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm
-                                   focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2">
                             <option value="1" selected>Ativa</option>
                             <option value="0">Inativa</option>
                         </select>
@@ -142,8 +166,7 @@
                 </div>
 
                 {{-- AÇÕES --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
-                            bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
 
                     <a href="{{ route('empresas.index') }}"
                         class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
