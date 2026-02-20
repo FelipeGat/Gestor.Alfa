@@ -675,6 +675,76 @@ class OrcamentoController extends Controller
         }
     }
 
+    public function duplicate(Orcamento $orcamento)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(! $user->isAdminPanel() && $user->tipo !== 'comercial', 403, 'Acesso não autorizado');
+
+        $original = $orcamento->load(['itens', 'taxasItens', 'pagamentos']);
+
+        $novoNumero = Orcamento::gerarNumero($original->empresa_id);
+
+        $novoOrcamento = DB::transaction(function () use ($original, $user, $novoNumero) {
+            $novoOrcamento = Orcamento::create([
+                'empresa_id' => $original->empresa_id,
+                'atendimento_id' => null,
+                'numero_orcamento' => $novoNumero,
+                'descricao' => $original->descricao,
+                'validade' => $original->validade,
+                'status' => 'em_elaboracao',
+                'cliente_id' => $original->cliente_id,
+                'pre_cliente_id' => $original->pre_cliente_id,
+                'desconto_servico_valor' => $original->desconto_servico_valor,
+                'desconto_servico_tipo' => $original->desconto_servico_tipo,
+                'desconto_produto_valor' => $original->desconto_produto_valor,
+                'desconto_produto_tipo' => $original->desconto_produto_tipo,
+                'taxas' => $original->taxas,
+                'descricao_taxas' => $original->descricao_taxas,
+                'forma_pagamento' => $original->forma_pagamento,
+                'prazo_pagamento' => $original->prazo_pagamento,
+                'observacoes' => $original->observacoes,
+                'created_by' => $user->id,
+            ]);
+
+            foreach ($original->itens as $item) {
+                OrcamentoItem::create([
+                    'orcamento_id' => $novoOrcamento->id,
+                    'item_comercial_id' => $item->item_comercial_id,
+                    'tipo' => $item->tipo,
+                    'nome' => $item->nome,
+                    'quantidade' => $item->quantidade,
+                    'valor_unitario' => $item->valor_unitario,
+                    'subtotal' => $item->subtotal,
+                ]);
+            }
+
+            foreach ($original->taxasItens as $taxa) {
+                \App\Models\OrcamentoTaxa::create([
+                    'orcamento_id' => $novoOrcamento->id,
+                    'nome' => $taxa->nome,
+                    'valor' => $taxa->valor,
+                ]);
+            }
+
+            foreach ($original->pagamentos as $pagamento) {
+                \App\Models\OrcamentoPagamento::create([
+                    'orcamento_id' => $novoOrcamento->id,
+                    'forma' => $pagamento->forma,
+                    'percentual' => $pagamento->percentual,
+                    'valor' => $pagamento->valor,
+                    'parcelas' => $pagamento->parcelas,
+                ]);
+            }
+
+            return $novoOrcamento;
+        });
+
+        return redirect()->route('orcamentos.edit', $novoOrcamento)
+            ->with('success', 'Orçamento duplicado com sucesso! Novo número: '.$novoNumero);
+    }
+
     public function imprimir($id)
     {
         $orcamento = Orcamento::with([

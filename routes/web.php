@@ -152,6 +152,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
         ->name('orcamentos.imprimir');
 
+    Route::post('/orcamentos/{orcamento}/duplicar', [OrcamentoController::class, 'duplicate'])
+        ->name('orcamentos.duplicate');
+
     // Serviços e Produtos
     Route::get('/itemcomercial/buscar', [ItemComercialController::class, 'buscar'])
         ->middleware(['auth', 'dashboard.comercial'])
