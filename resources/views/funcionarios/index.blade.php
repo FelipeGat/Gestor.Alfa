@@ -19,9 +19,19 @@
             outline: none !important;
             box-shadow: 0 0 0 1px #3f9cae !important;
         }
+        .tabela-funcionarios thead th {
+            color: rgb(17, 24, 39) !important;
+        }
+        .tabela-funcionarios tbody td {
+            font-weight: 400 !important;
+        }
+        .tabela-funcionarios tbody td.font-medium {
+            font-weight: 400 !important;
+        }
         .tabela-funcionarios tbody td:nth-child(3) {
             font-family: 'Inter', sans-serif !important;
             font-weight: 500 !important;
+            color: rgb(17, 24, 39) !important;
         }
     </style>
     @endpush
@@ -154,11 +164,11 @@
                             @forelse($funcionarios as $funcionario)
                             <tr class="hover:bg-gray-50 transition">
 
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ $funcionario->id }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ $funcionario->nome }}
                                 </td>
 
