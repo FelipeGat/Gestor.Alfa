@@ -189,7 +189,7 @@
                                 </td>
 
                                 {{-- Telefone --}}
-                                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap min-w-[140px]">
+                                <td class="px-4 py-3 text-sm whitespace-nowrap min-w-[140px]">
                                     @if($tel)
                                     <a href="tel:{{ preg_replace('/\D/', '', $tel->valor) }}"
                                         class="text-blue-600 hover:text-blue-700 hover:underline">
