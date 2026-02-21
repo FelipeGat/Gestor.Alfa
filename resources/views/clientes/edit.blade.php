@@ -25,7 +25,7 @@
             border-radius: 0.5rem;
         }
         .form-section h3 {
-            font-family: Figtree, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 600;
             color: #111827;
         }
@@ -33,7 +33,8 @@
         input[type="email"],
         input[type="date"],
         select {
-            font-family: Figtree, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
         }
         input[type="text"]:focus,
         input[type="email"]:focus,
@@ -644,7 +645,8 @@
 
                     <a href="{{ route('clientes.index') }}"
                         class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
-                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center;">
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; box-shadow: none;"
+                        onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'" onmouseout="this.style.boxShadow='none'">
 
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
