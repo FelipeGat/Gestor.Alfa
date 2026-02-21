@@ -19,7 +19,7 @@
             outline: none !important;
             box-shadow: 0 0 0 1px #3f9cae !important;
         }
-        .tabela-clientes tbody td:nth-child(3) {
+        .tabela-clientes tbody td:nth-child(2) {
             font-family: Figtree, sans-serif !important;
             font-weight: 500 !important;
         }
@@ -173,7 +173,7 @@
                                 </td>
 
                                 {{-- CPF / CNPJ --}}
-                                <td class="px-4 py-3 text-sm text-gray-600 font-mono whitespace-nowrap min-w-[160px]">
+                                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap min-w-[160px]">
                                     {{ \App\Helpers\FormatHelper::cpfCnpj($cliente->cpf_cnpj) }}
                                 </td>
 
