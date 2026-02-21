@@ -55,6 +55,19 @@
         .btn-success:hover {
             box-shadow: 0 4px 6px rgba(34, 197, 94, 0.4);
         }
+        /* Inputs Dinâmicos (Taxas) */
+        .input-field {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        .input-field:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
     </style>
     @endpush
 
@@ -282,7 +295,7 @@
                                     Adicionar
                                 </button>
                             </div>
-                            <div class="p-6">
+                            <div class="p-6 sm:p-8">
                                 <div id="lista-taxas" class="space-y-3">
                                 </div>
                             </div>
