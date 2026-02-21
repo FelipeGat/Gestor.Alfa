@@ -309,9 +309,6 @@
     <div class="pb-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="mb-4">
-                <x-back-button />
-            </div>
 
 
             @if ($errors->any())
@@ -472,13 +469,6 @@
                     </h3>
 
                     {{-- Campo de busca --}}
-                    <div class="mb-4">
-                        <input
-                            type="text"
-                            id="busca-usuarios-portal"
-                            placeholder="Buscar por nome ou e-mail..."
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                    </div>
 
                     {{-- Lista de usuários --}}
                     <div

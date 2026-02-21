@@ -299,9 +299,6 @@
     <div class="pb-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="mb-4">
-                <x-back-button />
-            </div>
 
 
             @if ($errors->any())
