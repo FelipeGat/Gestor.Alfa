@@ -19,13 +19,18 @@
             outline: none !important;
             box-shadow: 0 0 0 1px #3f9cae !important;
         }
-        .tabela-clientes tbody td:nth-child(2) {
-            font-family: Figtree, sans-serif !important;
-            font-weight: 500 !important;
+        .tabela-clientes thead th {
             color: rgb(17, 24, 39) !important;
         }
+        .tabela-clientes tbody td {
+            font-weight: 400 !important;
+        }
+        .tabela-clientes tbody td.font-medium {
+            font-weight: 400 !important;
+        }
+        .tabela-clientes tbody td:nth-child(2),
         .tabela-clientes tbody td:nth-child(4) {
-            font-family: Figtree, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             font-weight: 500 !important;
             color: rgb(17, 24, 39) !important;
         }
@@ -172,7 +177,7 @@
                             <tr class="hover:bg-gray-50 transition">
 
                                 {{-- ID --}}
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                                     {{ $cliente->id }}
                                 </td>
 
@@ -182,7 +187,7 @@
                                 </td>
 
                                 {{-- Nome --}}
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900 min-w-[200px] max-w-[280px] truncate">
+                                <td class="px-4 py-3 text-sm text-gray-900 min-w-[200px] max-w-[280px] truncate">
                                     {{ $cliente->nome }}
                                 </td>
 
@@ -190,7 +195,6 @@
                                 <td class="px-4 py-3 text-sm whitespace-nowrap min-w-[140px]">
                                     @if($tel)
                                     <a href="tel:{{ preg_replace('/\D/', '', $tel->valor) }}"
-                                        style="color: rgb(17, 24, 39); font-family: Figtree, sans-serif; font-weight: 500;"
                                         class="hover:text-blue-600 hover:underline">
                                         {{ $tel->valor }}
                                     </a>
