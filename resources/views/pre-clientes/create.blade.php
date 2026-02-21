@@ -187,30 +187,30 @@
                 <div class="section-card p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900">Endereço</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-2">
                             <label class="filter-label">CEP</label>
                             <input type="text" name="cep" placeholder="CEP" value="{{ old('cep') }}" class="filter-select w-full">
                         </div>
-                        <div class="md:col-span-2">
+                        <div class="md:col-span-8">
                             <label class="filter-label">Logradouro</label>
                             <input type="text" name="logradouro" placeholder="Logradouro" value="{{ old('logradouro') }}" class="filter-select w-full">
                         </div>
-                        <div>
+                        <div class="md:col-span-2">
                             <label class="filter-label">Número</label>
                             <input type="text" name="numero" placeholder="Número" value="{{ old('numero') }}" class="filter-select w-full">
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" style="margin-top: -1.5rem;">
-                        <div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-4">
                             <label class="filter-label">Bairro</label>
                             <input type="text" name="bairro" placeholder="Bairro" value="{{ old('bairro') }}" class="filter-select w-full">
                         </div>
-                        <div>
+                        <div class="md:col-span-5">
                             <label class="filter-label">Cidade</label>
                             <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade') }}" class="filter-select w-full">
                         </div>
-                        <div>
+                        <div class="md:col-span-3">
                             <label class="filter-label">UF</label>
                             <input type="text" name="estado" placeholder="UF" maxlength="2" value="{{ old('estado') }}" class="filter-select w-full uppercase">
                         </div>
