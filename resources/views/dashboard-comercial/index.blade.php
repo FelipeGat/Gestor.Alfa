@@ -637,59 +637,63 @@
                         </div>
 
                         <!-- Tabela de Orçamentos -->
-                        <div x-show="!carregando && orcamentos.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full table-auto" style="background: white; border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
-                                <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Número</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Cliente</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Empresa</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Vendedor</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Valor</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Status</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Data</th>
-                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <template x-for="orc in orcamentos" :key="orc.id">
-                                        <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.numero"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.cliente"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.empresa"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.vendedor"></td>
-                                            <td class="px-4 py-3 text-sm font-semibold" style="color: rgb(17, 24, 39);">
-                                                R$ <span x-text="orc.valor_total"></span>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm">
-                                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                                    :class="getStatusColor(orc.status)"
-                                                    x-text="orc.status_label"></span>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.data"></td>
-                                            <td class="px-4 py-3 text-sm">
-                                                <div class="flex items-center gap-2">
-                                                    <button @click="abrirModalHistorico(orc)"
-                                                        class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                        </svg>
-                                                        Histórico
-                                                    </button>
-                                                    <a :href="orc.url"
-                                                        target="_blank"
-                                                        class="text-indigo-600 hover:text-indigo-900 font-medium flex items-center gap-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                                                        </svg>
-                                                        Imprimir
-                                                    </a>
-                                                </div>
-                                            </td>
+                        <div x-show="!carregando && orcamentos.length > 0" class="rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                            <div class="overflow-x-auto">
+                                <table class="w-full table-auto">
+                                    <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Número</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Cliente</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Empresa</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Vendedor</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Valor</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Status</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Data</th>
+                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Ações</th>
                                         </tr>
-                                    </template>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <template x-for="orc in orcamentos" :key="orc.id">
+                                            <tr class="hover:bg-gray-50 transition">
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" x-text="orc.numero"></td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <span class="font-medium text-gray-900" x-text="orc.cliente"></span>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.empresa"></td>
+                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.vendedor"></td>
+                                                <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                    R$ <span x-text="orc.valor_total"></span>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                                        :class="getStatusColor(orc.status)"
+                                                        x-text="orc.status_label"></span>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.data"></td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <div class="flex items-center gap-2">
+                                                        <button @click="abrirModalHistorico(orc)"
+                                                            class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                            </svg>
+                                                            Histórico
+                                                        </button>
+                                                        <a :href="orc.url"
+                                                            target="_blank"
+                                                            class="text-indigo-600 hover:text-indigo-900 font-medium flex items-center gap-1">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                                            </svg>
+                                                            Imprimir
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <!-- Mensagem vazia -->
