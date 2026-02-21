@@ -733,16 +733,20 @@
                     <!-- Footer -->
                     <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3" style="border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
                         <button @click="exportarModal()"
-                            class="px-4 py-2 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
-                            style="background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;">
+                            class="px-4 py-2 text-white rounded-lg transition font-medium flex items-center gap-2"
+                            style="background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
+                            onmouseover="this.style.boxShadow='0 4px 6px rgba(34, 197, 94, 0.4)'"
+                            onmouseout="this.style.boxShadow='0 2px 4px rgba(34, 197, 94, 0.3)'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             Exportar PDF
                         </button>
                         <button @click="fecharModal()"
-                            class="px-4 py-2 text-white rounded-lg hover:bg-red-700 transition font-medium"
-                            style="background: #ef4444; border-radius: 9999px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;">
+                            class="px-4 py-2 text-white rounded-lg transition font-medium"
+                            style="background: #ef4444; border-radius: 9999px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
+                            onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'"
+                            onmouseout="this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.3)'">
                             Fechar
                         </button>
                     </div>
