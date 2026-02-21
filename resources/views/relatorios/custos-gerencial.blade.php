@@ -48,8 +48,6 @@
         }
         .pagination-link {
             border-radius: 9999px !important;
-            min-width: 40px;
-            text-align: center;
         }
         .card-zoom { transition: box-shadow 0.2s; }
         .card-zoom:hover { box-shadow: 0 0 0 4px #3b82f633; }

@@ -28,8 +28,6 @@
         }
         .pagination-link {
             border-radius: 9999px !important;
-            min-width: 40px;
-            text-align: center;
         }
     </style>
 

@@ -95,21 +95,6 @@
                     </div>
                 </a>
 
-                <!-- Relatório: Contas a Receber e Pagar -->
-                <a href="{{ route('relatorios.contas-receber-pagar') }}" class="card-relatorio group block p-6">
-                    <div class="flex items-center justify-center mb-4">
-                        <div class="p-3 icone-bg rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 icone-cor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Contas a Receber e Pagar</div>
-                        <div class="text-xs text-gray-500">Visão consolidada de contas a receber e pagar</div>
-                    </div>
-                </a>
-
             </div>
         </div>
     </div>
