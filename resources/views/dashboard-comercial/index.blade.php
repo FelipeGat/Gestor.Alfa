@@ -5,6 +5,29 @@
         [x-cloak] {
             display: none !important;
         }
+        /* Status Badges - Igual página de orçamentos */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            min-width: 140px;
+        }
+        .status-badge-em_elaboracao { background-color: #f3f4f6; color: #374151; }
+        .status-badge-aguardando_aprovacao { background-color: #fef3c7; color: #92400e; }
+        .status-badge-aprovado { background-color: #dcfce7; color: #166534; }
+        .status-badge-aguardando_pagamento { background-color: #fef9c3; color: #854d0e; }
+        .status-badge-concluido { background-color: #dcfce7; color: #15803d; }
+        .status-badge-recusado { background-color: #fee2e2; color: #991b1b; }
+        .status-badge-agendado { background-color: #ede9fe; color: #5b21b6; }
+        .status-badge-em_andamento { background-color: #e0f2fe; color: #075985; }
+        .status-badge-garantia { background-color: #ffedd5; color: #9a3412; }
+        .status-badge-financeiro { background-color: #fee2e2; color: #dc2626; }
+        .status-badge-cancelado { background-color: #f3f4f6; color: #6b7280; text-decoration: line-through; }
         /* Filtros */
         .filters-card {
             background: white;
@@ -665,9 +688,10 @@
                                                     R$ <span x-text="orc.valor_total"></span>
                                                 </td>
                                                 <td class="px-4 py-3 text-sm">
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                                        :class="getStatusColor(orc.status)"
-                                                        x-text="orc.status_label"></span>
+                                                    <span class="status-badge"
+                                                        :class="'status-badge-' + orc.status">
+                                                        <span x-text="orc.status_label"></span>
+                                                    </span>
                                                 </td>
                                                 <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.data"></td>
                                                 <td class="px-4 py-3 text-sm">
