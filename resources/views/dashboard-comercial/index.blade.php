@@ -5,6 +5,90 @@
         [x-cloak] {
             display: none !important;
         }
+        /* Filtros */
+        .filters-card {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        /* Inputs e Selects */
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        /* Cards KPI */
+        .kpi-card {
+            background: white;
+            border: 1px solid;
+            border-left-width: 4px;
+            border-top-width: 1px;
+            border-right-width: 1px;
+            border-bottom-width: 1px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .kpi-card-indigo {
+            border-color: #6366f1;
+        }
+        .kpi-card-emerald {
+            border-color: #10b981;
+        }
+        .kpi-card-amber {
+            border-color: #f59e0b;
+        }
+        .kpi-card-blue {
+            border-color: #2563eb;
+        }
+        .kpi-card-green {
+            border-color: #16a34a;
+        }
+        /* Botões de Filtro Rápido */
+        .btn-filtro-rapido {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-filtro-rapido.ativo {
+            background: #3f9cae;
+            color: white;
+        }
+        .btn-filtro-rapido.inativo {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .btn-filtro-rapido.inativo:hover {
+            background: #e5e7eb;
+        }
+        /* Cards dos Gráficos */
+        .card-grafico {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Métricas Filtro Atual */
+        .metricas-filtro-atual {
+            background: #3f9cae;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .metricas-filtro-atual:hover {
+            background: #358a96;
+        }
     </style>
     @endpush
     <x-slot name="breadcrumb">
@@ -16,13 +100,13 @@
 
     <!-- FILTROS -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <form action="{{ url()->current() }}" method="GET" class="bg-white shadow rounded-lg p-6">
+        <form action="{{ url()->current() }}" method="GET" class="filters-card p-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
                 <div class="flex flex-col lg:col-span-5">
                     <label class="text-sm font-medium text-gray-700 mb-2">
                         Empresa
                     </label>
-                    <select name="empresa_id" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="empresa_id" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
                         <option value="">Todas as Empresas</option>
                         @foreach($empresas as $empresa)
                         <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
@@ -36,7 +120,7 @@
                     <label class="text-sm font-medium text-gray-700 mb-2">
                         Status
                     </label>
-                    <select name="status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
                         <option value="">Todos os Status</option>
                         @foreach($todosStatus as $st)
                         <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
@@ -47,8 +131,11 @@
                 </div>
 
                 @if($empresaId || $statusFiltro)
-                <div class="flex lg:col-span-2">
-                    <a href="{{ url()->current() }}" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-center text-sm hover:bg-gray-300 transition">
+                <div class="flex lg:col-span-2 gap-2">
+                    <button type="submit" class="w-full px-4 py-2 bg-[#3f9cae] text-white rounded-lg text-center text-sm hover:bg-[#358a96] transition font-medium" style="border-radius: 9999px;">
+                        Filtrar
+                    </button>
+                    <a href="{{ url()->current() }}" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-center text-sm hover:bg-gray-300 transition font-medium" style="border-radius: 9999px;">
                         Limpar
                     </a>
                 </div>
@@ -242,7 +329,7 @@
                     form.querySelector('input[name=origem]').value = origem;
                     setTimeout(() => form.submit(), 10);
                 }
-            }" class="mb-6 bg-white rounded-xl shadow-sm p-6">
+            }" class="mb-6 filters-card p-6">
                 <form method="GET" x-ref="formFiltro" action="{{ route('dashboard.comercial') }}">
                     @if($empresaId)
                     <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
@@ -260,38 +347,38 @@
                                 {{-- Botões de filtro rápido --}}
                                 <button type="button"
                                     @click="aplicarFiltro('mes_anterior')"
-                                    :class="filtroRapido === 'mes_anterior' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'mes_anterior' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Mês Anterior
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('dia')"
-                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'dia' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Dia
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('semana')"
-                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'semana' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Semana
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('mes')"
-                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'mes' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Mês
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('ano')"
-                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'ano' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Ano
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('custom')"
-                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'custom' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     Outro período
                                 </button>
                             </div>
@@ -299,20 +386,20 @@
                                 <input type="hidden" name="origem" :value="origemFiltro">
                                 <button type="button"
                                     @click="aplicarOrigem('todos')"
-                                    :class="origemFiltro === 'todos' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="origemFiltro === 'todos' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     TODOS
                                 </button>
                                 <button type="button"
                                     @click="aplicarOrigem('contrato')"
-                                    :class="origemFiltro === 'contrato' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="origemFiltro === 'contrato' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     CONTRATOS
                                 </button>
                                 <button type="button"
                                     @click="aplicarOrigem('avulso')"
-                                    :class="origemFiltro === 'avulso' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-2 rounded-md text-xs font-medium transition">
+                                    :class="origemFiltro === 'avulso' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
                                     AVULSO
                                 </button>
                             </div>
@@ -341,29 +428,29 @@
 
             {{-- ================= MÉTRICAS FILTRADAS (QTD E VALOR) ================= --}}
             <div @click="abrirModal('{{ $statusFiltro }}', 'Filtro Atual: {{ $statusFiltro ? ucfirst($statusFiltro) : "Todos os Status" }}')"
-                class="bg-indigo-700 rounded-xl shadow-lg p-8 mb-10 text-white cursor-pointer hover:bg-indigo-800 transition-all transform hover:scale-[1.02]">
+                class="metricas-filtro-atual cursor-pointer transition-all transform hover:scale-[1.02]">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
-                        <h3 class="text-indigo-100 text-lg font-medium flex items-center gap-2">
+                        <h3 class="text-white text-lg font-medium flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                             Resultado do Filtro Atual (clique para ver detalhes)
                         </h3>
-                        <p class="text-sm text-indigo-200">
+                        <p class="text-sm text-white">
                             Status: <strong>{{ $statusFiltro ?: 'Todos' }}</strong> |
                             Empresa: <strong>{{ $empresaId ? ($empresas->find($empresaId)->nome_fantasia ?? 'Selecionada') : 'Todas' }}</strong>
                         </p>
                     </div>
                     <div class="flex gap-12">
                         <div class="text-center">
-                            <span class="block text-indigo-200 text-xs uppercase font-bold">Quantidade</span>
-                            <span class="text-4xl font-black">{{ $metricasFiltradas->qtd ?? 0 }}</span>
+                            <span class="block text-white text-xs uppercase font-bold">Quantidade</span>
+                            <span class="text-4xl font-black text-white">{{ $metricasFiltradas->qtd ?? 0 }}</span>
                         </div>
-                        <div class="text-center border-l border-indigo-500 pl-12">
-                            <span class="block text-indigo-200 text-xs uppercase font-bold">Valor Total</span>
-                            <span class="text-4xl font-black">R$ {{ number_format($metricasFiltradas->valor_total ?? 0, 2, ',', '.') }}</span>
+                        <div class="text-center border-l border-white/50 pl-12">
+                            <span class="block text-white text-xs uppercase font-bold">Valor Total</span>
+                            <span class="text-4xl font-black text-white">R$ {{ number_format($metricasFiltradas->valor_total ?? 0, 2, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
@@ -373,7 +460,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
 
                 <div @click="abrirModal('aguardando_aprovacao', 'Aguardando Aprovação')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-indigo-400 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    class="kpi-card kpi-card-indigo cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         Aguardando Aprovação
                         <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,7 +473,7 @@
                 </div>
 
                 <div @click="abrirModal('aprovado', 'Aprovado')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-emerald-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    class="kpi-card kpi-card-emerald cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         Aprovado
                         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,7 +486,7 @@
                 </div>
 
                 <div @click="abrirModal('financeiro', 'Financeiro')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-amber-500 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    class="kpi-card kpi-card-amber cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         Financeiro
                         <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,7 +499,7 @@
                 </div>
 
                 <div @click="abrirModal('aguardando_pagamento', 'Aguardando Pagamento')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-blue-600 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    class="kpi-card kpi-card-blue cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         Aguardando Pagamento
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,7 +512,7 @@
                 </div>
 
                 <div @click="abrirModal('concluido', 'Concluído')"
-                    class="bg-white shadow rounded-xl p-6 border-l-4 border-green-600 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105">
+                    class="kpi-card kpi-card-green cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         Concluído
                         <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,7 +528,7 @@
             {{-- ================= GRÁFICOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
 
-                <div class="bg-white shadow rounded-xl p-6">
+                <div class="card-grafico p-6">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                         <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
@@ -454,7 +541,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white shadow rounded-xl p-6">
+                <div class="card-grafico p-6">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4m-5 10h.01M15 7h.01M15 11h.01M15 15h.01M15 19h.01M9 15h.01M9 19h.01"></path>
@@ -468,7 +555,7 @@
 
             </div>
 
-            <div class="bg-white shadow rounded-xl p-6 mb-10">
+            <div class="card-grafico p-6 mb-10">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
