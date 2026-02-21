@@ -20,6 +20,7 @@
             font-size: 1.125rem;
             font-weight: 600;
             color: #111827;
+            padding-bottom: 0.75rem;
         }
         .section-card h4 {
             font-family: 'Inter', sans-serif;
