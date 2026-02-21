@@ -13,21 +13,11 @@
     </style>
 
     <x-slot name="breadcrumb">
-        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
-            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            </a>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <a href="{{ route('relatorios.index') }}" class="text-gray-500 hover:text-gray-700 transition">Relatórios</a>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <span class="text-gray-800 font-medium">Contas a Pagar</span>
-        </nav>
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Relatórios', 'url' => route('relatorios.index')],
+            ['label' => 'Contas a Pagar']
+        ]" />
     </x-slot>
 
     <div class="pb-8 pt-4">

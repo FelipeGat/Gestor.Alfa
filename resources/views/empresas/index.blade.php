@@ -30,17 +30,10 @@
     </style>
 
     <x-slot name="breadcrumb">
-        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
-            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            </a>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <span class="text-gray-800 font-medium">Empresas</span>
-        </nav>
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Empresas']
+        ]" />
     </x-slot>
 
     <div class="pb-8 pt-4">
@@ -151,7 +144,7 @@
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto tabela-empresas">
-                        <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
+                        <thead style="background-color: #f3f4f6; border-bottom: 1px solid #3f9cae;">
                             <tr>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">ID</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">Empresa</th>
