@@ -27,9 +27,11 @@
         }
         /* Labels */
         .filter-label {
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
             display: block;
         }
