@@ -179,7 +179,7 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr>
-                                            <th class="table-header">Descrição</th>
+                                            <th class="table-header" style="padding: 1rem;">Descrição</th>
                                             <th class="table-header text-center w-24">Qtd</th>
                                             <th class="table-header text-right w-32">Valor Unit.</th>
                                             <th class="table-header text-right w-32">Subtotal</th>
@@ -210,7 +210,7 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr>
-                                            <th class="table-header">Nome do Produto</th>
+                                            <th class="table-header" style="padding: 1rem;">Nome do Produto</th>
                                             <th class="table-header text-center w-24">Qtd</th>
                                             <th class="table-header text-right w-32">Valor Unit.</th>
                                             <th class="table-header text-right w-32">Subtotal</th>
