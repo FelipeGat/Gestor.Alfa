@@ -101,30 +101,30 @@
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
 
-                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600 w-full" style="border-top: 1px solid #2563eb; border-right: 1px solid #2563eb; border-bottom: 1px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Total de Funcionários
                     </p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">
-                        {{ $funcionarios->count() }}
+                        {{ $totais['total'] }}
                     </p>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg border-l-4 border-green-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-green-600 w-full" style="border-top: 1px solid #16a34a; border-right: 1px solid #16a34a; border-bottom: 1px solid #16a34a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Ativos
                     </p>
                     <p class="text-3xl font-bold text-green-600 mt-2">
-                        {{ $funcionarios->where('ativo', true)->count() }}
+                        {{ $totais['ativos'] }}
                     </p>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg border-l-4 border-red-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-red-600 w-full" style="border-top: 1px solid #dc2626; border-right: 1px solid #dc2626; border-bottom: 1px solid #dc2626; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Inativos
                     </p>
                     <p class="text-3xl font-bold text-red-600 mt-2">
-                        {{ $funcionarios->where('ativo', false)->count() }}
+                        {{ $totais['inativos'] }}
                     </p>
                 </div>
 
@@ -224,6 +224,85 @@
                     </table>
                 </div>
             </div>
+
+            @if($funcionarios->hasPages())
+            <style>
+                .pagination-wrapper {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 1.5rem;
+                    background: white;
+                    border-radius: 0.75rem;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    margin-bottom: 2rem;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                }
+                .pagination-info {
+                    font-size: 0.875rem;
+                    color: #6b7280;
+                }
+                .pagination-links {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+                .pagination-link {
+                    padding: 0.5rem 0.75rem;
+                    border: 1px solid #d1d5db;
+                    border-radius: 0.375rem;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    color: #374151;
+                    background: white;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    text-decoration: none;
+                }
+                .pagination-link:hover {
+                    border-color: #3f9cae;
+                    color: #3f9cae;
+                    background: #f0f9ff;
+                }
+                .pagination-link.active {
+                    background: #3f9cae;
+                    color: white;
+                    border-color: #3f9cae;
+                }
+                .pagination-link.disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                    pointer-events: none;
+                }
+            </style>
+            <div class="pagination-wrapper">
+                <div class="pagination-info">
+                    Mostrando <strong>{{ $funcionarios->count() }}</strong> de
+                    <strong>{{ $funcionarios->total() }}</strong>
+                    funcionários
+                </div>
+                <div class="pagination-links">
+                    @if($funcionarios->onFirstPage())
+                    <span class="pagination-link disabled">← Anterior</span>
+                    @else
+                    <a href="{{ $funcionarios->previousPageUrl() }}" class="pagination-link">← Anterior</a>
+                    @endif
+                    @foreach($funcionarios->getUrlRange(1, $funcionarios->lastPage()) as $page => $url)
+                    @if($page == $funcionarios->currentPage())
+                    <span class="pagination-link active">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="pagination-link">{{ $page }}</a>
+                    @endif
+                    @endforeach
+                    @if($funcionarios->hasMorePages())
+                    <a href="{{ $funcionarios->nextPageUrl() }}" class="pagination-link">Próximo →</a>
+                    @else
+                    <span class="pagination-link disabled">Próximo →</span>
+                    @endif
+                </div>
+            </div>
+            @endif
 
         </div>
     </div>

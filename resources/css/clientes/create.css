@@ -7,6 +7,10 @@
         animation: spin 1s linear infinite;
     }
 
+    .form-section:first-child {
+        margin-top: 0;
+    }
+
     @keyframes spin {
         to {
             transform: rotate(360deg);

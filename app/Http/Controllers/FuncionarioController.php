@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PrimeiroAcessoMail;
 use App\Models\Funcionario;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\PrimeiroAcessoMail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class FuncionarioController extends Controller
 {
@@ -18,7 +18,7 @@ class FuncionarioController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('funcionarios', 'ler'),
+            ! $user->canPermissao('funcionarios', 'ler'),
             403
         );
         $query = Funcionario::query();
@@ -41,9 +41,16 @@ class FuncionarioController extends Controller
 
         $funcionarios = $query
             ->orderBy('nome')
-            ->get();
+            ->paginate(15)
+            ->appends($request->query());
 
-        return view('funcionarios.index', compact('funcionarios'));
+        $totais = [
+            'total' => Funcionario::count(),
+            'ativos' => Funcionario::where('ativo', true)->count(),
+            'inativos' => Funcionario::where('ativo', false)->count(),
+        ];
+
+        return view('funcionarios.index', compact('funcionarios', 'totais'));
     }
 
     public function create()
@@ -52,7 +59,7 @@ class FuncionarioController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('funcionarios', 'incluir'),
+            ! $user->canPermissao('funcionarios', 'incluir'),
             403
         );
 
@@ -61,32 +68,32 @@ class FuncionarioController extends Controller
 
     public function store(Request $request)
     {
-            $request->validate(
-        [
-            'nome'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-        ],
-        [
-            'email.unique' => 'Este e-mail já está em uso por outro usuário.',
-            'email.required' => 'O e-mail é obrigatório.',
-            'email.email' => 'Informe um e-mail válido.',
-            'nome.required' => 'O nome é obrigatório.',
-        ]
-    );
+        $request->validate(
+            [
+                'nome' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+            ],
+            [
+                'email.unique' => 'Este e-mail já está em uso por outro usuário.',
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Informe um e-mail válido.',
+                'nome.required' => 'O nome é obrigatório.',
+            ]
+        );
 
         // Cria funcionário
         $funcionario = Funcionario::create([
-            'nome'  => $request->nome,
+            'nome' => $request->nome,
             'ativo' => $request->ativo ?? true,
         ]);
 
         // Cria usuário do funcionário
         $user = User::create([
-            'name'            => $funcionario->nome,
-            'email'           => $request->email,
+            'name' => $funcionario->nome,
+            'email' => $request->email,
             'password' => bcrypt($request->email), // senha temporária email
-            'tipo'            => 'funcionario',
-            'funcionario_id'  => $funcionario->id,
+            'tipo' => 'funcionario',
+            'funcionario_id' => $funcionario->id,
             'primeiro_acesso' => true,
         ]);
 
@@ -101,6 +108,7 @@ class FuncionarioController extends Controller
     public function edit(Funcionario $funcionario)
     {
         $funcionario->load('user');
+
         return view('funcionarios.edit', compact('funcionario'));
     }
 
@@ -111,17 +119,17 @@ class FuncionarioController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('funcionarios', 'incluir'),
+            ! $user->canPermissao('funcionarios', 'incluir'),
             403
         );
 
         $request->validate([
             'nome' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($funcionario->user->id),],
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($funcionario->user->id)],
         ]);
 
         $funcionario->update([
-            'nome'  => $request->nome,
+            'nome' => $request->nome,
             'ativo' => $request->boolean('ativo'),
         ]);
 
@@ -140,7 +148,7 @@ class FuncionarioController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('funcionarios', 'excluir'),
+            ! $user->canPermissao('funcionarios', 'excluir'),
             403
         );
 

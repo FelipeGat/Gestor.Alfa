@@ -59,7 +59,7 @@
             document.getElementById('emails').insertAdjacentHTML(
                 'beforeend',
                 `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
-                <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2" required>
+                <input type="email" name="emails[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2" required>
                 <div class="flex items-center gap-2 whitespace-nowrap">
                     <input type="radio" name="email_principal" value="1" class="rounded-lg text-blue-600">
                     <span class="text-sm text-gray-600">Principal</span>
@@ -78,7 +78,7 @@
             document.getElementById('telefones').insertAdjacentHTML(
                 'beforeend',
                 `<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
-                <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                <input type="text" name="telefones[]" class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                 <div class="flex items-center gap-2 whitespace-nowrap">
                     <input type="radio" name="telefone_principal" value="1" class="rounded-lg text-blue-600">
                     <span class="text-sm text-gray-600">Principal</span>
@@ -297,7 +297,7 @@
 
 
     <div class="pb-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
 
 
 
@@ -329,7 +329,7 @@
 
 
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
-                <div class="form-section p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8" style="margin-top: 0 !important;">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Dados Básicos
                     </h3>
@@ -339,7 +339,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pessoa <span
                                     class="text-red-500">*</span></label>
                             <select name="tipo_pessoa"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900"
                                 required>
                                 <option value="">Selecione</option>
                                 <option value="PF">Pessoa Física</option>
@@ -353,7 +353,7 @@
                             </label>
 
                             <input type="text" name="cpf_cnpj" class="w-full rounded-lg border border-gray-300 shadow-sm
-                            focus:border-blue-500 focus:ring-blue-500 px-3 py-2 pr-10" placeholder="000.000.000-00"
+                            focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 pr-10" placeholder="000.000.000-00"
                                 required>
 
                             {{-- Loading / Status --}}
@@ -368,7 +368,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Data de Cadastro <span
                                     class="text-red-500">*</span></label>
                             <input type="date" name="data_cadastro" value="{{ date('Y-m-d') }}"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 required>
                         </div>
                     </div>
@@ -378,14 +378,14 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nome / Razão Social <span
                                     class="text-red-500">*</span></label>
                             <input type="text" name="razao_social"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="Digite o nome completo" required>
                         </div>
 
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia</label>
                             <input type="text" name="nome_fantasia"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                 placeholder="Digite o nome fantasia">
                         </div>
                     </div>
@@ -415,7 +415,7 @@
                                 <div
                                     class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                     <input type="email" name="emails[]"
-                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                         placeholder="seu.email@exemplo.com" required>
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="email_principal" checked
@@ -441,7 +441,7 @@
                                 <div
                                     class="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                     <input type="text" name="telefones[]"
-                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                        class="block w-full sm:flex-1 rounded-md border border-gray-300 shadow-sm telefone focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                                         placeholder="(00) 0000-0000">
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <input type="radio" name="telefone_principal" checked
@@ -464,17 +464,17 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
                             <input type="text" name="cep" placeholder="00000-000"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                         <div class="col-span-1 sm:col-span-2 lg:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
                             <input type="text" name="logradouro" placeholder="Rua, Avenida, etc."
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
                             <input type="text" name="numero" placeholder="Nº"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                     </div>
 
@@ -482,29 +482,29 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
                             <input type="text" name="bairro" placeholder="Bairro"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
                             <input type="text" name="cidade" placeholder="Cidade"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
                             <input type="text" name="estado" placeholder="UF" maxlength="2"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 uppercase">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 uppercase">
                         </div>
                     </div>
 
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
                         <input type="text" name="complemento" placeholder="Apto, sala, etc."
-                            class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                            class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                     </div>
                 </div>
 
                 {{-- SEÇÃO 4: CONTRATO --}}
-                <div id="bloco-contrato" class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div id="bloco-contrato" class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Informações de Contrato
                     </h3>
@@ -513,7 +513,7 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cliente</label>
                             <select name="tipo_cliente"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
                                 <option value="CONTRATO">Contrato</option>
                                 <option value="AVULSO">Avulso</option>
                             </select>
@@ -523,13 +523,13 @@
                             <div class="col-span-1">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Valor Mensal</label>
                                 <input type="number" step="0.01" name="valor_mensal" placeholder="0,00"
-                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                             </div>
 
                             <div class="col-span-1">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Dia de Vencimento</label>
                                 <select name="dia_vencimento"
-                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-900">
+                                    class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
                                     <option value="">Selecione</option>
                                     @for($i=1;$i<=28;$i++) <option value="{{ $i }}">Dia {{ $i }}</option>
                                         @endfor
@@ -537,7 +537,7 @@
                             </div>
                             <div class="col-span-1">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Cliente Com Nota Fiscal?</label>
-                                <select name="nota_fiscal" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                <select name="nota_fiscal" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                                     <option value="0">Não</option>
                                     <option value="1">Sim</option>
                                 </select>
@@ -555,12 +555,12 @@
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Inscrição Estadual</label>
                             <input type="text" name="inscricao_estadual" placeholder="IE"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Inscrição Municipal</label>
                             <input type="text" name="inscricao_municipal" placeholder="IM"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
                     </div>
                 </div>
@@ -571,7 +571,7 @@
                         Observações
                     </h3>
                     <textarea name="observacoes" rows="4"
-                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                        class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2"
                         placeholder="Adicione observações importantes sobre o cliente..."></textarea>
                 </div>
 

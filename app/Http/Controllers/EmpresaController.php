@@ -6,7 +6,6 @@ use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-
 class EmpresaController extends Controller
 {
     public function index(Request $request)
@@ -15,7 +14,7 @@ class EmpresaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('empresas', 'ler'),
+            ! $user->canPermissao('empresas', 'ler'),
             403
         );
 
@@ -44,9 +43,16 @@ class EmpresaController extends Controller
 
         $empresas = $query
             ->orderBy('razao_social')
-            ->get();
+            ->paginate(15)
+            ->appends($request->query());
 
-        return view('empresas.index', compact('empresas'));
+        $totais = [
+            'total' => Empresa::count(),
+            'ativos' => Empresa::where('ativo', true)->count(),
+            'inativos' => Empresa::where('ativo', false)->count(),
+        ];
+
+        return view('empresas.index', compact('empresas', 'totais'));
     }
 
     public function create()
@@ -56,7 +62,7 @@ class EmpresaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('empresas', 'incluir'),
+            ! $user->canPermissao('empresas', 'incluir'),
             403
         );
 
@@ -67,18 +73,18 @@ class EmpresaController extends Controller
     {
         $request->validate([
             'razao_social' => 'required|string|max:255',
-            'cnpj'         => 'required|string|max:18|unique:empresas',
+            'cnpj' => 'required|string|max:18|unique:empresas',
         ]);
 
         Empresa::create([
-            'razao_social'        => $request->razao_social,
-            'nome_fantasia'       => $request->nome_fantasia,
-            'cnpj'                => $request->cnpj,
-            'endereco'            => $request->endereco,
-            'email_comercial'     => $request->email_comercial,
+            'razao_social' => $request->razao_social,
+            'nome_fantasia' => $request->nome_fantasia,
+            'cnpj' => $request->cnpj,
+            'endereco' => $request->endereco,
+            'email_comercial' => $request->email_comercial,
             'email_administrativo' => $request->email_administrativo,
-            'telefone_comercial'  => $request->telefone_comercial,
-            'ativo'               => $request->ativo ?? true,
+            'telefone_comercial' => $request->telefone_comercial,
+            'ativo' => $request->ativo ?? true,
         ]);
 
         return redirect()
@@ -92,7 +98,7 @@ class EmpresaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('empresas', 'incluir'),
+            ! $user->canPermissao('empresas', 'incluir'),
             403
         );
 
@@ -103,18 +109,18 @@ class EmpresaController extends Controller
     {
         $request->validate([
             'razao_social' => 'required|string|max:255',
-            'cnpj'         => 'required|string|max:18|unique:empresas,cnpj,' . $empresa->id,
+            'cnpj' => 'required|string|max:18|unique:empresas,cnpj,'.$empresa->id,
         ]);
 
         $empresa->update([
-            'razao_social'        => $request->razao_social,
-            'nome_fantasia'       => $request->nome_fantasia,
-            'cnpj'                => $request->cnpj,
-            'endereco'            => $request->endereco,
-            'email_comercial'     => $request->email_comercial,
+            'razao_social' => $request->razao_social,
+            'nome_fantasia' => $request->nome_fantasia,
+            'cnpj' => $request->cnpj,
+            'endereco' => $request->endereco,
+            'email_comercial' => $request->email_comercial,
             'email_administrativo' => $request->email_administrativo,
-            'telefone_comercial'  => $request->telefone_comercial,
-            'ativo'               => $request->boolean('ativo'),
+            'telefone_comercial' => $request->telefone_comercial,
+            'ativo' => $request->boolean('ativo'),
         ]);
 
         return redirect()
@@ -128,7 +134,7 @@ class EmpresaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            !$user->canPermissao('empresas', 'excluir'),
+            ! $user->canPermissao('empresas', 'excluir'),
             403
         );
 
@@ -150,9 +156,10 @@ class EmpresaController extends Controller
                 'id',
                 'nome',
                 'categoria',
-                'subcategoria'
+                'subcategoria',
             ]);
     }
+
     /**
      * API - Retorna lista de empresas para select
      */
