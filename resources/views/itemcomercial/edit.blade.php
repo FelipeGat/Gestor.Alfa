@@ -1,7 +1,107 @@
 <x-app-layout>
-
     @push('styles')
     @vite('resources/css/orcamentos/index.css')
+    <style>
+        /* Cards de Seção */
+        .section-card {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .section-card > h3,
+        .section-card .card-header h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .section-card h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #111827;
+        }
+        /* Labels */
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        /* Inputs e Selects */
+        .filter-select,
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea,
+        select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        .filter-select:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        /* Botões */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        .btn-success {
+            background: #22c55e !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+            transition: all 0.2s;
+            color: white !important;
+        }
+        .btn-success:hover {
+            box-shadow: 0 4px 6px rgba(34, 197, 94, 0.4);
+        }
+        .btn-cancel {
+            background: #ef4444 !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+            transition: all 0.2s;
+            color: white !important;
+        }
+        .btn-cancel:hover {
+            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4);
+        }
+        .btn-save {
+            background: #3f9cae !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3);
+            transition: all 0.2s;
+            color: white !important;
+        }
+        .btn-save:hover {
+            box-shadow: 0 4px 6px rgba(63, 156, 174, 0.4);
+        }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
@@ -13,7 +113,7 @@
     </x-slot>
 
     <div class="pb-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= ERROS ================= --}}
             @if ($errors->any())
@@ -46,19 +146,15 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('itemcomercial.update', ['item_comercial' => $itemComercial->id]) }}"  class="space-y-6">
-  
-            @csrf
-            @method('PUT')
+            <form method="POST" action="{{ route('itemcomercial.update', ['item_comercial' => $itemComercial->id]) }}" class="space-y-6">
+                @csrf
+                @method('PUT')
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Informações Básicas</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Informações Básicas</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {{-- TIPO --}}
                         <div>
                             <label class="filter-label">Tipo <span class="text-red-500">*</span></label>
@@ -116,18 +212,14 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= CATEGORIA E ASSUNTO ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Categoria / Assunto</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Categoria / Assunto</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {{-- CATEGORIA --}}
                         <div>
                             <label class="filter-label">Categoria / Assunto</label>
@@ -155,18 +247,14 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= PRECIFICAÇÃO ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Precificação</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Precificação</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {{-- PREÇO CUSTO --}}
                         <div>
                             <label class="filter-label">Preço de Custo</label>
@@ -220,18 +308,14 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= ESTOQUE (PRODUTO) ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Estoque (somente para produtos)</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Estoque (somente para produtos)</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {{-- GERENCIAR ESTOQUE --}}
                         <div>
                             <label class="filter-label">Gerenciar Estoque</label>
@@ -276,18 +360,14 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= DADOS FISCAIS ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Dados Fiscais</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Dados Fiscais</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {{-- NCM --}}
                         <div>
                             <label class="filter-label">NCM</label>
@@ -332,18 +412,14 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= STATUS ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Status</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Status</h3>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-1 gap-6">
-
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
                         {{-- ATIVO --}}
                         <div>
                             <label class="filter-label">Status</label>
@@ -355,22 +431,20 @@
                             <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                     </div>
                 </div>
 
                 {{-- ================= AÇÕES ================= --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 p-6 bg-white shadow rounded-lg" style="margin-top: 1.5rem;">
-
-                    <a href="{{ route('itemcomercial.index') }}" class="font-medium" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; display: inline-flex; align-items: center;">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3" style="margin-top: 1.5rem;">
+                    <a href="{{ route('itemcomercial.index') }}" class="btn btn-cancel" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center;">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                         Cancelar
                     </a>
 
-                    <button type="submit" class="font-medium" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; color: white; border: none; border-radius: 9999px; min-width: 130px; display: inline-flex; align-items: center;">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <button type="submit" class="btn btn-save" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center;">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                         Atualizar Item
