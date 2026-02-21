@@ -655,13 +655,13 @@
                                     <tbody class="divide-y divide-gray-200">
                                         <template x-for="orc in orcamentos" :key="orc.id">
                                             <tr class="hover:bg-gray-50 transition">
-                                                <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" x-text="orc.numero"></td>
+                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.numero"></td>
                                                 <td class="px-4 py-3 text-sm">
-                                                    <span class="font-medium text-gray-900" x-text="orc.cliente"></span>
+                                                    <span style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.cliente"></span>
                                                 </td>
-                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.empresa"></td>
-                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.vendedor"></td>
-                                                <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.empresa"></td>
+                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.vendedor"></td>
+                                                <td class="px-4 py-3 text-sm font-semibold" style="font-weight: 400; color: rgb(17, 24, 39);">
                                                     R$ <span x-text="orc.valor_total"></span>
                                                 </td>
                                                 <td class="px-4 py-3 text-sm">
@@ -669,7 +669,7 @@
                                                         :class="getStatusColor(orc.status)"
                                                         x-text="orc.status_label"></span>
                                                 </td>
-                                                <td class="px-4 py-3 text-sm text-gray-500" x-text="orc.data"></td>
+                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.data"></td>
                                                 <td class="px-4 py-3 text-sm">
                                                     <div class="flex items-center gap-2">
                                                         <button @click="abrirModalHistorico(orc)"
