@@ -15,7 +15,8 @@
             font-weight: 600;
             border-radius: 9999px;
             text-transform: uppercase;
-            min-width: 140px;
+            min-width: 160px;
+            white-space: nowrap;
         }
         .status-badge-em_elaboracao { background-color: #f3f4f6; color: #374151; }
         .status-badge-aguardando_aprovacao { background-color: #fef3c7; color: #92400e; }
