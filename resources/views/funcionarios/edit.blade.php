@@ -22,16 +22,19 @@
             border-radius: 0.5rem;
         }
         .form-section h3 {
-            font-family: Figtree, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 600;
             color: #111827;
         }
         input[type="text"],
-        input[type="email"] {
-            font-family: Figtree, sans-serif !important;
+        input[type="email"],
+        select {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
         }
         input[type="text"]:focus,
-        input[type="email"]:focus {
+        input[type="email"]:focus,
+        select:focus {
             border-color: #3f9cae !important;
             box-shadow: 0 0 0 1px rgba(63, 156, 174, 0.2) !important;
         }

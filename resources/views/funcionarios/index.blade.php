@@ -20,7 +20,7 @@
             box-shadow: 0 0 0 1px #3f9cae !important;
         }
         .tabela-funcionarios tbody td:nth-child(3) {
-            font-family: Figtree, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             font-weight: 500 !important;
         }
     </style>
