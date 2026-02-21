@@ -768,18 +768,21 @@
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-90"
                     class="relative bg-white rounded-lg shadow-xl w-full max-w-3xl"
+                    style="border: 1px solid #3f9cae; border-top-width: 4px;"
                     @click.stop>
 
                     <!-- Header -->
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg">
+                    <div class="px-6 py-4" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #e5e7eb;">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-xl font-bold flex items-center gap-2">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                <span>Histórico do Orçamento <span x-text="orcamentoAtual?.numero"></span></span>
+                            <h3 class="text-lg font-semibold" style="font-family: 'Inter', sans-serif; font-size: 1.125rem; font-weight: 600; color: #111827;">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Histórico do Orçamento <span x-text="orcamentoAtual?.numero"></span>
+                                </span>
                             </h3>
-                            <button @click="fecharModalHistorico()" class="text-white hover:text-gray-200">
+                            <button @click="fecharModalHistorico()" class="text-gray-400 hover:text-red-600 transition">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -790,18 +793,22 @@
                     <!-- Body -->
                     <div class="p-6 max-h-[60vh] overflow-y-auto">
                         <!-- Formulário para nova observação -->
-                        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                        <div class="mb-6 p-4 rounded-lg" style="background-color: #f9fafb;">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Nova Observação
                             </label>
                             <textarea x-model="novaObservacao"
                                 rows="3"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae] focus:ring-opacity-20"
                                 placeholder="Digite a observação sobre o contato com o cliente..."></textarea>
                             <div class="mt-2 flex justify-end">
                                 <button @click="salvarHistorico()"
                                     :disabled="salvandoHistorico"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition">
+                                    class="px-4 py-2 text-white rounded-lg transition font-medium"
+                                    style="background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3);"
+                                    onmouseover="this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'"
+                                    onmouseout="this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'"
+                                    :class="salvandoHistorico ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#358a96]'">
                                     <span x-show="!salvandoHistorico">Salvar</span>
                                     <span x-show="salvandoHistorico">Salvando...</span>
                                 </button>
@@ -810,7 +817,7 @@
 
                         <!-- Loading -->
                         <div x-show="carregandoHistoricos" class="text-center py-8">
-                            <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                            <svg class="animate-spin h-8 w-8 text-[#3f9cae] mx-auto" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
@@ -819,7 +826,7 @@
 
                         <!-- Lista de históricos -->
                         <div x-show="!carregandoHistoricos && historicos.length > 0">
-                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Histórico de Contatos</h4>
+                            <h4 class="text-lg font-semibold" style="font-family: 'Inter', sans-serif; font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">Histórico de Contatos</h4>
                             <div class="space-y-3">
                                 <template x-for="hist in historicos" :key="hist.id">
                                     <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -844,9 +851,12 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="bg-gray-50 px-6 py-4 flex justify-end rounded-b-lg">
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end" style="border-top: 1px solid #e5e7eb;">
                         <button @click="fecharModalHistorico()"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                            class="px-4 py-2 text-white rounded-lg transition font-medium"
+                            style="background: #ef4444; border-radius: 9999px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
+                            onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'"
+                            onmouseout="this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.3)'">
                             Fechar
                         </button>
                     </div>
