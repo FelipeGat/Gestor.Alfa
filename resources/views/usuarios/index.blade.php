@@ -21,6 +21,11 @@
             border-color: #3f9cae !important;
             box-shadow: 0 0 0 1px rgba(63, 156, 174, 0.2) !important;
         }
+        .pagination-link {
+            border-radius: 9999px !important;
+            min-width: 40px;
+            text-align: center;
+        }
     </style>
     @endpush
 
