@@ -217,7 +217,7 @@
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Unidade</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Estoque</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Status', 'ativo') !!}</th>
-                                <th class="px-4 py-3 text-center uppercase" style="font-size: 14px; font-weight: 600;">Ações</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Ações</th>
                             </tr>
                         </thead>
 
