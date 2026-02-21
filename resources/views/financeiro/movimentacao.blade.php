@@ -468,18 +468,17 @@
                                     {{-- USUÁRIO RESPONSÁVEL --}}
                                     <td>
                                         @php
-                                            // Tenta pegar o usuário relacionado à movimentação
                                             $usuario = null;
-                                            if (isset($mov->usuario) && $mov->usuario) {
+                                            
+                                            if (isset($mov->usuario) && is_object($mov->usuario)) {
                                                 $usuario = $mov->usuario;
-                                            } elseif (isset($mov->user) && $mov->user) {
+                                            } elseif (isset($mov->user) && is_object($mov->user)) {
                                                 $usuario = $mov->user;
-                                            } elseif (isset($mov->contaPagar) && $mov->contaPagar && $mov->contaPagar->usuario) {
-                                                $usuario = $mov->contaPagar->usuario;
-                                            } elseif (isset($mov->cobranca) && $mov->cobranca && $mov->cobranca->usuario) {
+                                            } elseif (isset($mov->cobranca) && is_object($mov->cobranca) && isset($mov->cobranca->usuario) && is_object($mov->cobranca->usuario)) {
                                                 $usuario = $mov->cobranca->usuario;
-                                            } elseif (isset($mov->user_id)) {
-                                                // fallback para user_id direto
+                                            } elseif (isset($mov->contaPagar) && is_object($mov->contaPagar) && isset($mov->contaPagar->usuario) && is_object($mov->contaPagar->usuario)) {
+                                                $usuario = $mov->contaPagar->usuario;
+                                            } elseif (isset($mov->user_id) && $mov->user_id) {
                                                 $usuario = \App\Models\User::find($mov->user_id);
                                             }
                                         @endphp

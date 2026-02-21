@@ -41,6 +41,7 @@ class BaixarCobrancaAction
                 'valor_pago' => $dto->valor,
                 'forma_pagamento' => $dto->formaPagamento,
                 'observacoes' => $dto->observacoes,
+                'user_id' => $dto->usuarioId,
             ]);
 
             if ($cobranca->orcamento) {

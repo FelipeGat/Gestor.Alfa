@@ -517,6 +517,7 @@ class ContasReceberController extends Controller
             'orcamento:id,empresa_id,forma_pagamento',
             'contaFixa:id,empresa_id',
             'contaFinanceira:id,nome,tipo,empresa_id',
+            'usuario:id,name',
         ])
             ->where('status', 'pago')
             ->whereNotNull('pago_em');

@@ -89,6 +89,7 @@ class CobrancaController extends Controller
         $cobranca->update([
             'status'  => 'pago',
             'pago_em' => now(),
+            'user_id' => Auth::id(),
         ]);
 
         if ($cobranca->boleto) {
