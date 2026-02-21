@@ -605,14 +605,14 @@
                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full"
-                    style="border: 1px solid #3f9cae; border-top-width: 4px;">
+                    style="background: white; border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
 
                     <!-- Header -->
-                    <div class="px-6 py-4" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #e5e7eb;">
+                    <div style="padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb;">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-semibold" style="font-size: 1.125rem; font-weight: 600; color: rgb(17, 24, 39);" x-text="tituloModal"></h3>
-                                <p class="text-sm mt-1" style="color: rgb(17, 24, 39);">
+                                <h3 class="text-lg font-semibold" style="font-family: 'Inter', sans-serif; font-size: 1.125rem; font-weight: 600; color: #111827;" x-text="tituloModal"></h3>
+                                <p class="text-sm mt-1" style="color: #6b7280; font-size: 0.875rem;">
                                     <span x-text="totalOrcamentos"></span> orçamento(s) |
                                     Valor Total: R$ <span x-text="valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})"></span>
                                 </p>
@@ -638,7 +638,7 @@
 
                         <!-- Tabela de Orçamentos -->
                         <div x-show="!carregando && orcamentos.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full table-auto" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
+                            <table class="min-w-full table-auto" style="background: white; border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
                                 <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                                     <tr>
                                         <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Número</th>
@@ -654,10 +654,10 @@
                                 <tbody class="divide-y divide-gray-200">
                                     <template x-for="orc in orcamentos" :key="orc.id">
                                         <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.numero"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.cliente"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.empresa"></td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.vendedor"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.numero"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.cliente"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.empresa"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.vendedor"></td>
                                             <td class="px-4 py-3 text-sm font-semibold" style="color: rgb(17, 24, 39);">
                                                 R$ <span x-text="orc.valor_total"></span>
                                             </td>
@@ -666,7 +666,7 @@
                                                     :class="getStatusColor(orc.status)"
                                                     x-text="orc.status_label"></span>
                                             </td>
-                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.data"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: 'Inter', sans-serif;" x-text="orc.data"></td>
                                             <td class="px-4 py-3 text-sm">
                                                 <div class="flex items-center gap-2">
                                                     <button @click="abrirModalHistorico(orc)"
@@ -702,7 +702,7 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3" style="border-top: 1px solid #e5e7eb;">
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3" style="border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
                         <button @click="exportarModal()"
                             class="px-4 py-2 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
                             style="background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);">
