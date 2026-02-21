@@ -29,6 +29,11 @@
             font-weight: 500 !important;
             color: rgb(17, 24, 39) !important;
         }
+        .pagination-link {
+            border-radius: 9999px !important;
+            min-width: 40px;
+            text-align: center;
+        }
     </style>
     @endpush
 
