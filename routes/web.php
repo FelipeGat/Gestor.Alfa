@@ -33,6 +33,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comercial', function () {
         return view('comercial.index');
     })->name('comercial.index');
+
+    // Gestão
+    Route::get('/gestao', function () {
+        return view('gestao.index');
+    })->name('gestao.index');
 });
 
 use App\Http\Controllers\AssuntoController;

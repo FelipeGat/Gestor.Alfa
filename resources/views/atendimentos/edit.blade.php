@@ -32,6 +32,15 @@
         </div>
     </x-slot>
 
+    <x-slot name="breadcrumb">
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Gestão', 'url' => route('gestao.index')],
+            ['label' => 'Atendimentos', 'url' => route('atendimentos.index')],
+            ['label' => 'Editar #' . $atendimento->numero_atendimento]
+        ]" />
+    </x-slot>
+
     {{-- ================= CONTEÚDO ================= --}}
     <div class="page-wrapper">
         <div class="content-grid">

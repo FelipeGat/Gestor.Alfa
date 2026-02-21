@@ -8,6 +8,14 @@
     </style>
     @endpush
 
+    <x-slot name="breadcrumb">
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Gestão', 'url' => route('gestao.index')],
+            ['label' => 'Dashboard Técnico']
+        ]" />
+    </x-slot>
+
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
