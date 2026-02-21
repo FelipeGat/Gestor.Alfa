@@ -10,17 +10,14 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-radius: 0.5rem;
         }
-        .section-card .card-header {
-            padding: 1.5rem 2rem 0;
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 1.5rem;
-        }
-        .section-card .card-header h3 {
+        .section-card > h3 {
             font-family: 'Inter', sans-serif;
             font-size: 1.125rem;
             font-weight: 600;
             color: #111827;
+            margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
         }
         .section-card h4 {
             font-family: 'Inter', sans-serif;
@@ -114,12 +111,10 @@
                 @endif
 
                 {{-- ================= INFORMAÇÕES BÁSICAS ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Dados do Orçamento</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Dados do Orçamento</h3>
 
-                    <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-6">
                             <label class="filter-label">Empresa <span class="text-red-500">*</span></label>
                             <select name="empresa_id" required class="filter-select w-full">
@@ -166,12 +161,10 @@
                 </div>
 
                 {{-- ================= ITENS DO ORÇAMENTO ================= --}}
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3 class="text-base font-semibold text-gray-800">Itens e Serviços</h3>
-                    </div>
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Itens e Serviços</h3>
 
-                    <div class="p-6 sm:p-8 space-y-8">
+                    <div class="space-y-8">
                         {{-- SERVIÇOS --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
@@ -241,11 +234,9 @@
                     <div class="lg:col-span-2 space-y-6">
 
                         {{-- ================= BLOCO DE DESCONTOS ================= --}}
-                        <div class="section-card">
-                            <div class="card-header">
-                                <h3 class="text-base font-semibold text-gray-800">Descontos por Categoria</h3>
-                            </div>
-                            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="section-card p-6 sm:p-8">
+                            <h3 class="text-lg font-semibold text-gray-900">Descontos por Categoria</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="filter-label">Desconto em Serviços</label>
                                     <div class="flex gap-2 mt-1">
@@ -270,9 +261,9 @@
                         </div>
 
                         {{-- TAXAS ADICIONAIS --}}
-                        <div class="section-card">
-                            <div class="card-header flex justify-between items-center">
-                                <h3 class="text-base font-semibold text-gray-800">Taxas e Impostos</h3>
+                        <div class="section-card p-6 sm:p-8">
+                            <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Taxas e Impostos</h3>
                                 <button type="button" id="btn-add-taxa" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -280,7 +271,7 @@
                                     Adicionar
                                 </button>
                             </div>
-                            <div class="p-6 sm:p-8">
+                            <div>
                                 <div id="lista-taxas" class="space-y-3">
                                 </div>
                             </div>
@@ -315,20 +306,16 @@
                         </script>
 
                         {{-- OBSERVAÇÕES --}}
-                        <div class="section-card">
-                            <div class="card-header">
-                                <h3 class="text-base font-semibold text-gray-800">Observações</h3>
-                            </div>
-                            <div class="p-4"><textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes') }}</textarea></div>
+                        <div class="section-card p-6 sm:p-8">
+                            <h3 class="text-lg font-semibold text-gray-900">Observações</h3>
+                            <textarea name="observacoes" rows="4" class="filter-select w-full bg-gray-50">{{ old('observacoes') }}</textarea>
                         </div>
 
                         {{-- FORMAS DE PAGAMENTO --}}
-                        <div class="section-card">
-                            <div class="card-header">
-                                <h3 class="text-base font-semibold text-gray-800">Condições de Pagamento</h3>
-                            </div>
+                        <div class="section-card p-6 sm:p-8">
+                            <h3 class="text-lg font-semibold text-gray-900">Condições de Pagamento</h3>
 
-                            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                                 {{-- COLUNA 1 --}}
                                 <div class="space-y-3">
@@ -425,11 +412,9 @@
 
                     {{-- COLUNA DIREITA: RESUMO --}}
                     <div class="space-y-6">
-                        <div class="section-card bg-gray-50 border-none">
-                            <div class="card-header">
-                                <h3 class="text-base font-semibold text-gray-800">Resumo Financeiro</h3>
-                            </div>
-                            <div class="p-6 sm:p-8 space-y-4">
+                        <div class="section-card bg-gray-50 border-none p-6 sm:p-8">
+                            <h3 class="text-lg font-semibold text-gray-900">Resumo Financeiro</h3>
+                            <div class="space-y-4">
                                 <div class="flex justify-between text-sm"><span class="text-gray-600">Serviços</span><span class="font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
                                 <div class="flex justify-between text-sm"><span class="text-gray-600">Materiais</span><span class="font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
                                 <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-600"><span>Descontos</span><span class="font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
