@@ -28,6 +28,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cadastros', function () {
         return view('cadastros.index');
     })->name('cadastros.index');
+
+    // Comercial
+    Route::get('/comercial', function () {
+        return view('comercial.index');
+    })->name('comercial.index');
 });
 
 use App\Http\Controllers\AssuntoController;
