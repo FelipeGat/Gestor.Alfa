@@ -1,6 +1,50 @@
 <x-app-layout>
     @push('styles')
     @vite('resources/css/orcamentos/index.css')
+    <style>
+        /* Cards de Seção */
+        .section-card {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .section-card h3,
+        .section-card h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #111827;
+        }
+        /* Inputs e Selects */
+        .filter-select:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        /* Tabela de Itens */
+        .table-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgb(17, 24, 39);
+            text-transform: uppercase;
+        }
+        /* Botões */
+        .btn-success {
+            background: #22c55e !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-success:hover {
+            box-shadow: 0 4px 6px rgba(34, 197, 94, 0.4);
+        }
+    </style>
     @endpush
 
     @push('scripts')
@@ -72,7 +116,7 @@
                         <h3 class="text-base font-semibold text-gray-800">Dados do Orçamento</h3>
                     </div>
 
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-6">
                             <label class="filter-label">Empresa <span class="text-red-500">*</span></label>
                             <select name="empresa_id" required class="filter-select w-full">
@@ -118,7 +162,7 @@
                         <h3 class="text-base font-semibold text-gray-800">Itens e Serviços</h3>
                     </div>
 
-                    <div class="p-6 space-y-8">
+                    <div class="p-6 sm:p-8 space-y-8">
                         {{-- Serviços --}}
                         <div>
                             <div class="flex items-center justify-between mb-4">
@@ -192,7 +236,7 @@
                             <div class="card-header">
                                 <h3 class="text-base font-semibold text-gray-800">Descontos por Categoria</h3>
                             </div>
-                            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="filter-label">Desconto em Serviços</label>
                                     <div class="flex gap-2 mt-1">
@@ -247,7 +291,7 @@
                                 <h3 class="text-base font-semibold text-gray-800">Condições de Pagamento</h3>
                             </div>
 
-                            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
 
                                 {{-- COLUNA 1 --}}
                                 <div class="space-y-3">
@@ -362,7 +406,7 @@
                             <div class="card-header">
                                 <h3 class="text-base font-semibold text-gray-800">Resumo Financeiro</h3>
                             </div>
-                            <div class="p-6 space-y-4">
+                            <div class="p-6 sm:p-8 space-y-4">
                                 <div class="flex justify-between text-sm"><span class="text-gray-600">Serviços</span><span class="font-bold">R$ <span id="resumo-servicos">0,00</span></span></div>
                                 <div class="flex justify-between text-sm"><span class="text-gray-600">Materiais</span><span class="font-bold">R$ <span id="resumo-produtos">0,00</span></span></div>
                                 <div id="resumo-desconto-wrapper" class="hidden flex justify-between text-sm text-red-600"><span>Descontos</span><span class="font-bold">- R$ <span id="resumo-desconto">0,00</span></span></div>
@@ -375,13 +419,13 @@
                                 </div>
                             </div>
                             <div class="p-4 bg-gray-100 border-t border-gray-200">
-                                <button type="submit" class="btn btn-primary w-full justify-center" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; border-radius: 9999px;">
+                                <button type="submit" class="btn btn-primary w-full justify-center" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3); transition: all 0.2s;" onmouseover="this.style.background='#358a96'; this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'" onmouseout="this.style.background='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'">
                                     <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                     Atualizar
                                 </button>
-                                <a href="{{ route('orcamentos.index') }}" class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; margin-top: 0.75rem; width: 100%;">
+                                <a href="{{ route('orcamentos.index') }}" class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; margin-top: 0.75rem; width: 100%; box-shadow: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'" onmouseout="this.style.boxShadow='none'">
                                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                     </svg>
