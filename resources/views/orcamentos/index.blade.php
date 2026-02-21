@@ -2,6 +2,68 @@
 
     @push('styles')
     @vite('resources/css/orcamentos/index.css')
+    <style>
+        /* Filtros */
+        .filters-card {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        /* Inputs e Selects */
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        /* Tabela */
+        .tabela-orcamentos thead th {
+            color: rgb(17, 24, 39) !important;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .tabela-orcamentos tbody td {
+            font-weight: 400 !important;
+            color: rgb(17, 24, 39) !important;
+        }
+        .tabela-orcamentos tbody td.font-medium {
+            font-weight: 400 !important;
+            color: rgb(17, 24, 39) !important;
+        }
+        .tabela-orcamentos tbody td:nth-child(1),
+        .tabela-orcamentos tbody td:nth-child(2),
+        .tabela-orcamentos tbody td:nth-child(3),
+        .tabela-orcamentos tbody td:nth-child(5),
+        .tabela-orcamentos tbody td:nth-child(6) {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 400 !important;
+            color: rgb(17, 24, 39) !important;
+        }
+        /* Paginação */
+        .pagination-link {
+            border-radius: 9999px !important;
+            min-width: 40px;
+            text-align: center;
+        }
+        /* Cards KPI */
+        .kpi-card {
+            background: white;
+            border: 1px solid;
+            border-left-width: 4px;
+            border-top-width: 1px;
+            border-right-width: 1px;
+            border-bottom-width: 1px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .kpi-card-blue { border-color: #2563eb; }
+        .kpi-card-green { border-color: #16a34a; }
+        .kpi-card-yellow { border-color: #eab308; }
+        .kpi-card-purple { border-color: #7c3aed; }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
@@ -30,16 +92,16 @@
             @endif
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="bg-white shadow rounded-lg p-6">
+            <form method="GET" class="filters-card p-6">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
                     <div class="flex flex-col lg:col-span-4">
                         <label class="text-sm font-medium text-gray-700 mb-2">Pesquisar</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cliente, Empresa, Status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cliente, Empresa, Status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                     </div>
 
                     <div class="flex flex-col lg:col-span-3">
                         <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todos</option>
                             @foreach($statusList as $key => $label)
                             <option value="{{ $key }}" @selected(collect(request('status'))->contains($key))>{{ $label }}</option>
@@ -49,7 +111,7 @@
 
                     <div class="flex flex-col lg:col-span-3">
                         <label class="text-sm font-medium text-gray-700 mb-2">Empresa</label>
-                        <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todas</option>
                             @foreach($empresas as $empresa)
                             <option value="{{ $empresa->id }}" @selected(collect(request('empresa_id'))->contains($empresa->id))>{{ $empresa->nome_fantasia }}</option>
@@ -59,7 +121,7 @@
 
                     <div class="flex flex-col lg:col-span-2">
                         <label class="text-sm font-medium text-gray-700 mb-2">Período</label>
-                        <select name="periodo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <select name="periodo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todos</option>
                             <option value="ano" @selected(request('periodo')==='ano')>Ano Atual</option>
                             <option value="mes" @selected(request('periodo')==='mes')>Mês Atual</option>
@@ -71,23 +133,23 @@
 
                     <div class="flex flex-col lg:col-span-2">
                         <label class="text-sm font-medium text-gray-700 mb-2">Data Inicial</label>
-                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                     </div>
 
                     <div class="flex flex-col lg:col-span-2">
                         <label class="text-sm font-medium text-gray-700 mb-2">Data Final</label>
-                        <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                     </div>
 
-                    <div class="flex items-end gap-2 lg:col-span-2">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
+                    <div class="flex items-end gap-2 lg:col-span-3">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
                             </svg>
                             Filtrar
                         </button>
 
-                        <a href="{{ route('orcamentos.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                        <a href="{{ route('orcamentos.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
@@ -116,28 +178,28 @@
             <div class="resumo-grid gap-4 mb-6" style="
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-blue-600 w-full max-w-none">
+                <div class="kpi-card kpi-card-blue w-full max-w-none p-6">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Orçamentos</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">
                         {{ $totalOrcamentos }}
                     </p>
                 </div>
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-green-600 w-full max-w-none">
+                <div class="kpi-card kpi-card-green w-full max-w-none p-6">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Aprovados</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">
                         {{ $aprovados }}
                     </p>
                 </div>
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-yellow-500 w-full max-w-none">
+                <div class="kpi-card kpi-card-yellow w-full max-w-none p-6">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Pendentes</p>
                     <p class="text-3xl font-bold text-yellow-600 mt-2">
                         {{ $pendentes }}
                     </p>
                 </div>
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-purple-600 w-full max-w-none">
+                <div class="kpi-card kpi-card-purple w-full max-w-none p-6">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Valor Total</p>
                     <p class="text-3xl font-bold text-purple-600 mt-2">
                         R$ {{ number_format($valorTotal, 2, ',', '.') }}
@@ -229,18 +291,18 @@
                 '</a>';
             }
             @endphp
-            <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="overflow-x-auto">
-                    <table class="w-full table-auto">
-                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                    <table class="w-full table-auto tabela-orcamentos">
+                        <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{!! sortLink('Nº', 'numero_orcamento') !!}</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{!! sortLink('Cliente', 'nome_cliente') !!}</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Empresa</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">{!! sortLink('Status', 'status') !!}</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{!! sortLink('Valor Total', 'valor_total') !!}</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{!! sortLink('Data', 'created_at') !!}</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Ações</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Nº', 'numero_orcamento') !!}</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Cliente', 'nome_cliente') !!}</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Empresa</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Status', 'status') !!}</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Valor Total', 'valor_total') !!}</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Data', 'created_at') !!}</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -288,8 +350,8 @@
                                     {{ $orcamento->valor_total ? 'R$ ' . number_format($orcamento->valor_total, 2, ',', '.') : '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $orcamento->created_at->format('d/m/Y') }}</td>
-                                <td class="px-4 py-3 text-center">
-                                    <div class="flex gap-1 items-center justify-center">
+                                <td class="px-4 py-3 text-left">
+                                    <div class="flex gap-1 items-center justify-start">
                                         <a href="{{ route('orcamentos.imprimir', $orcamento->id) }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 bg-gray-800 hover:bg-gray-900 text-white rounded-full transition" title="Imprimir">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
@@ -327,22 +389,14 @@
             </div>
 
             {{-- ================= PAGINAÇÃO ================= --}}
-            <div class="pagination-wrapper">
-                <div class="pagination-info">
-                    Mostrando <strong>{{ $orcamentos->count() }}</strong> de
-                    <strong>{{ $orcamentos->total() }}</strong>
-                    Orçamentos
-                </div>
-
-                <div class="pagination-links">
-                    {{ $orcamentos->links() }}
-                </div>
+            <div class="pagination-container">
+                {{ $orcamentos->links() }}
             </div>
 
             @else
-            <div class="bg-white shadow rounded-lg p-12 text-center">
+            <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <h3 class="text-lg font-medium text-gray-900">Nenhum orçamento encontrado</h3>
-                <a href="{{ route('orcamentos.create') }}" class="btn btn-success mt-4 inline-flex" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                <a href="{{ route('orcamentos.create') }}" class="btn btn-success mt-4 inline-flex" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);" onmouseover="this.style.boxShadow='0 4px 6px rgba(34, 197, 94, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(34, 197, 94, 0.3)'">
                     <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                         <path fill-rule="evenodd"
                             d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
