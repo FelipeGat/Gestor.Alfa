@@ -6,6 +6,8 @@
         select[name="ativo"] {
             border-color: #d1d5db !important;
             color: #111827 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
         }
         select[name="ativo"]:focus {
             border-color: #3f9cae !important;
@@ -28,7 +30,8 @@
         }
         input[type="text"],
         input[type="email"] {
-            font-family: Figtree, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
         }
         input[type="text"]:focus,
         input[type="email"]:focus {

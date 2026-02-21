@@ -24,7 +24,7 @@
 
     <style>
         .tabela-empresas tbody td:nth-child(3) {
-            font-family: Figtree, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             font-weight: 500 !important;
         }
     </style>
@@ -146,11 +146,11 @@
                     <table class="w-full table-auto tabela-empresas">
                         <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                             <tr>
-                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">ID</th>
-                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">Empresa</th>
-                                <th class="px-4 py-3 text-left uppercase col-cnpj" style="font-size: 14px;">CNPJ</th>
-                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">Status</th>
-                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">Ações</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">ID</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Empresa</th>
+                                <th class="px-4 py-3 text-left uppercase col-cnpj" style="font-size: 14px; font-weight: 600;">CNPJ</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Status</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Ações</th>
                             </tr>
                         </thead>
 
@@ -174,7 +174,7 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-sm text-gray-600 font-mono">
+                                <td class="px-4 py-3 text-sm text-gray-600" style="font-family: 'Inter', sans-serif;">
                                     {{ $empresa->cnpj }}
                                 </td>
 
