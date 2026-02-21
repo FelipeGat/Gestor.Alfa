@@ -5,6 +5,14 @@
     @vite('resources/css/financeiro/index.css')
     @endpush
 
+    <x-slot name="breadcrumb">
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Financeiro', 'url' => route('financeiro.home')],
+            ['label' => 'Extrato']
+        ]" />
+    </x-slot>
+
     {{-- HEADER --}}
     <x-slot name="header">
         <div class="flex items-center justify-between w-full">

@@ -272,6 +272,11 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             [FinanceiroController::class, 'cancelarAgendamento']
         )->name('cancelar-agendamento');
 
+        // Home Financeiro (página de cards)
+        Route::get('/home', function () {
+            return view('financeiro.home');
+        })->name('home');
+
         // Dashboard financeiro
         Route::get('/', [FinanceiroController::class, 'dashboard'])
             ->name('index');

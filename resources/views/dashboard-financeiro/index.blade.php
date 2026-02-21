@@ -18,6 +18,14 @@
     @vite('resources/css/financeiro/index.css')
     @endpush
 
+    <x-slot name="breadcrumb">
+        <x-breadcrumb-tabs :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Financeiro', 'url' => route('financeiro.home')],
+            ['label' => 'Dashboard Financeiro']
+        ]" />
+    </x-slot>
+
     {{-- ================= HEADER ================= --}}
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
