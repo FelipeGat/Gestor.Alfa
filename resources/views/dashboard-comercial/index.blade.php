@@ -102,11 +102,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <form action="{{ url()->current() }}" method="GET" class="filters-card p-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                <div class="flex flex-col lg:col-span-5">
+                <div class="flex flex-col lg:col-span-4">
                     <label class="text-sm font-medium text-gray-700 mb-2">
                         Empresa
                     </label>
-                    <select name="empresa_id" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                    <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
                         <option value="">Todas as Empresas</option>
                         @foreach($empresas as $empresa)
                         <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
@@ -116,11 +116,11 @@
                     </select>
                 </div>
 
-                <div class="flex flex-col lg:col-span-5">
+                <div class="flex flex-col lg:col-span-4">
                     <label class="text-sm font-medium text-gray-700 mb-2">
                         Status
                     </label>
-                    <select name="status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                    <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
                         <option value="">Todos os Status</option>
                         @foreach($todosStatus as $st)
                         <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
@@ -130,16 +130,20 @@
                     </select>
                 </div>
 
-                @if($empresaId || $statusFiltro)
-                <div class="flex lg:col-span-2 gap-2">
-                    <button type="submit" class="w-full px-4 py-2 bg-[#3f9cae] text-white rounded-lg text-center text-sm hover:bg-[#358a96] transition font-medium" style="border-radius: 9999px;">
+                <div class="flex items-end gap-2 lg:col-span-4">
+                    <button type="submit" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.5rem; color: white; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3);" onmouseover="this.style.background='#358a96'; this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'" onmouseout="this.style.background='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'">
+                        <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                        </svg>
                         Filtrar
                     </button>
-                    <a href="{{ url()->current() }}" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-center text-sm hover:bg-gray-300 transition font-medium" style="border-radius: 9999px;">
+                    <a href="{{ route('dashboard.comercial') }}" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); display: inline-flex; align-items: center; gap: 0.5rem; color: white; font-weight: 500; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                        <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
                         Limpar
                     </a>
                 </div>
-                @endif
             </div>
         </form>
     </div>
