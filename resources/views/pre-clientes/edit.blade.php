@@ -141,10 +141,10 @@
                 @method('PUT')
 
                 {{-- ================= DADOS BÁSICOS ================= --}}
-                <div class="section-card p-6 sm:p-8">
+                <div class="section-card p-5 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900">Dados Básicos</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="filter-label">Tipo de Pessoa <span class="text-red-500">*</span></label>
                             <select name="tipo_pessoa" required class="filter-select w-full">
@@ -168,10 +168,10 @@
                 </div>
 
                 {{-- ================= CONTATO ================= --}}
-                <div class="section-card p-6 sm:p-8">
+                <div class="section-card p-5 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900">Contato</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="filter-label">Email</label>
                             <input type="email" name="email" value="{{ old('email', $preCliente->email) }}" class="filter-select w-full" placeholder="email@exemplo.com">
@@ -184,35 +184,37 @@
                 </div>
 
                 {{-- ================= ENDEREÇO ================= --}}
-                <div class="section-card p-6 sm:p-8">
+                <div class="section-card p-5 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900">Endereço</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div class="md:col-span-2">
-                            <label class="filter-label">CEP</label>
-                            <input type="text" name="cep" placeholder="CEP" value="{{ old('cep', $preCliente->cep) }}" class="filter-select w-full">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="filter-label">CEP</label>
+                                <input type="text" name="cep" placeholder="CEP" value="{{ old('cep', $preCliente->cep) }}" class="filter-select w-full">
+                            </div>
+                            <div class="md:col-span-8">
+                                <label class="filter-label">Logradouro</label>
+                                <input type="text" name="logradouro" placeholder="Logradouro" value="{{ old('logradouro', $preCliente->logradouro) }}" class="filter-select w-full">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="filter-label">Número</label>
+                                <input type="text" name="numero" placeholder="Número" value="{{ old('numero', $preCliente->numero) }}" class="filter-select w-full">
+                            </div>
                         </div>
-                        <div class="md:col-span-8">
-                            <label class="filter-label">Logradouro</label>
-                            <input type="text" name="logradouro" placeholder="Logradouro" value="{{ old('logradouro', $preCliente->logradouro) }}" class="filter-select w-full">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="filter-label">Número</label>
-                            <input type="text" name="numero" placeholder="Número" value="{{ old('numero', $preCliente->numero) }}" class="filter-select w-full">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div class="md:col-span-4">
-                            <label class="filter-label">Bairro</label>
-                            <input type="text" name="bairro" placeholder="Bairro" value="{{ old('bairro', $preCliente->bairro) }}" class="filter-select w-full">
-                        </div>
-                        <div class="md:col-span-5">
-                            <label class="filter-label">Cidade</label>
-                            <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade', $preCliente->cidade) }}" class="filter-select w-full">
-                        </div>
-                        <div class="md:col-span-3">
-                            <label class="filter-label">UF</label>
-                            <input type="text" name="estado" placeholder="UF" maxlength="2" value="{{ old('estado', $preCliente->estado) }}" class="filter-select w-full uppercase">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-4">
+                                <label class="filter-label">Bairro</label>
+                                <input type="text" name="bairro" placeholder="Bairro" value="{{ old('bairro', $preCliente->bairro) }}" class="filter-select w-full">
+                            </div>
+                            <div class="md:col-span-5">
+                                <label class="filter-label">Cidade</label>
+                                <input type="text" name="cidade" placeholder="Cidade" value="{{ old('cidade', $preCliente->cidade) }}" class="filter-select w-full">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="filter-label">UF</label>
+                                <input type="text" name="estado" placeholder="UF" maxlength="2" value="{{ old('estado', $preCliente->estado) }}" class="filter-select w-full uppercase">
+                            </div>
                         </div>
                     </div>
                 </div>
