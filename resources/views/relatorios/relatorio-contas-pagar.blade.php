@@ -5,10 +5,31 @@
 
     <style>
         @media print {
-            .print\:hidden, .filters-card, .pagination-container, 
+            .print\:hidden, .filters-card, .pagination-container,
             header, footer, nav, .btn, a[href] {
                 display: none !important;
             }
+        }
+        .filters-card {
+            border: 1px solid #3f9cae !important;
+            border-top-width: 4px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            border-radius: 0.5rem !important;
+        }
+        .section-card {
+            border: 1px solid #3f9cae !important;
+            border-top-width: 4px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            border-radius: 0.5rem !important;
+        }
+        .filter-select:focus, .filter-input:focus {
+            border-color: #3f9cae !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        .pagination-link {
+            border-radius: 9999px !important;
+            min-width: 40px;
+            text-align: center;
         }
     </style>
 
@@ -181,7 +202,7 @@
                     </div>
 
                     <div class="filter-actions justify-end mt-4">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd"
                                     d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
@@ -189,6 +210,12 @@
                             </svg>
                             Filtrar
                         </button>
+                        <a href="{{ route('relatorios.contas-pagar') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Limpar
+                        </a>
                     </div>
                 </form>
             </div>

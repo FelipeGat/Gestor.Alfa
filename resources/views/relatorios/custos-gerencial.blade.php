@@ -36,6 +36,21 @@
         @media print {
             .print\:hidden { display: none !important; }
         }
+        .filters-card, .section-card, .bg-white.shadow.rounded-xl {
+            border: 1px solid #3f9cae !important;
+            border-top-width: 4px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            border-radius: 0.5rem !important;
+        }
+        .filter-select:focus, .filter-input:focus {
+            border-color: #3f9cae !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        .pagination-link {
+            border-radius: 9999px !important;
+            min-width: 40px;
+            text-align: center;
+        }
         .card-zoom { transition: box-shadow 0.2s; }
         .card-zoom:hover { box-shadow: 0 0 0 4px #3b82f633; }
         .modal-card {
