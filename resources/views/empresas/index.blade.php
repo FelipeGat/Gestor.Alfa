@@ -23,9 +23,19 @@
     @endpush
 
     <style>
+        .tabela-empresas thead th {
+            color: rgb(17, 24, 39) !important;
+        }
+        .tabela-empresas tbody td {
+            font-weight: 400 !important;
+        }
+        .tabela-empresas tbody td.font-medium {
+            font-weight: 400 !important;
+        }
         .tabela-empresas tbody td:nth-child(3) {
             font-family: 'Inter', sans-serif !important;
             font-weight: 500 !important;
+            color: rgb(17, 24, 39) !important;
         }
     </style>
 
@@ -158,12 +168,12 @@
                             @forelse($empresas as $empresa)
                             <tr class="hover:bg-gray-50 transition">
 
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ $empresa->id }}
                                 </td>
 
                                 <td class="px-4 py-3 text-sm text-gray-900 min-w-[220px]">
-                                    <div class="font-medium">
+                                    <div>
                                         {{ $empresa->razao_social }}
                                     </div>
 

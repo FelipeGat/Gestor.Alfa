@@ -24,7 +24,7 @@
             border-radius: 0.5rem;
         }
         .form-section h3 {
-            font-family: Figtree, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 600;
             color: #111827;
         }
