@@ -604,19 +604,20 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full"
+                    style="border: 1px solid #3f9cae; border-top-width: 4px;">
 
                     <!-- Header -->
-                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
+                    <div class="px-6 py-4" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #e5e7eb;">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-semibold text-white" x-text="tituloModal"></h3>
-                                <p class="text-sm text-indigo-100 mt-1">
+                                <h3 class="text-lg font-semibold" style="font-size: 1.125rem; font-weight: 600; color: rgb(17, 24, 39);" x-text="tituloModal"></h3>
+                                <p class="text-sm mt-1" style="color: rgb(17, 24, 39);">
                                     <span x-text="totalOrcamentos"></span> orçamento(s) |
                                     Valor Total: R$ <span x-text="valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})"></span>
                                 </p>
                             </div>
-                            <button @click="fecharModal()" class="text-white hover:text-indigo-200 transition">
+                            <button @click="fecharModal()" class="text-gray-400 hover:text-red-600 transition">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -637,36 +638,36 @@
 
                         <!-- Tabela de Orçamentos -->
                         <div x-show="!carregando && orcamentos.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                            <table class="min-w-full table-auto" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
+                                <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Número</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Cliente</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Empresa</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Vendedor</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Valor</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Status</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Data</th>
+                                        <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-200">
                                     <template x-for="orc in orcamentos" :key="orc.id">
                                         <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="orc.numero"></td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.cliente"></td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.empresa"></td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700" x-text="orc.vendedor"></td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.numero"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.cliente"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.empresa"></td>
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.vendedor"></td>
+                                            <td class="px-4 py-3 text-sm font-semibold" style="color: rgb(17, 24, 39);">
                                                 R$ <span x-text="orc.valor_total"></span>
                                             </td>
-                                            <td class="px-4 py-4 whitespace-nowrap">
+                                            <td class="px-4 py-3 text-sm">
                                                 <span class="px-2 py-1 text-xs font-semibold rounded-full"
                                                     :class="getStatusColor(orc.status)"
                                                     x-text="orc.status_label"></span>
                                             </td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500" x-text="orc.data"></td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                            <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;" x-text="orc.data"></td>
+                                            <td class="px-4 py-3 text-sm">
                                                 <div class="flex items-center gap-2">
                                                     <button @click="abrirModalHistorico(orc)"
                                                         class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1">
@@ -701,16 +702,18 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3" style="border-top: 1px solid #e5e7eb;">
                         <button @click="exportarModal()"
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
+                            class="px-4 py-2 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
+                            style="background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             Exportar PDF
                         </button>
                         <button @click="fecharModal()"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                            class="px-4 py-2 text-white rounded-lg hover:bg-red-700 transition font-medium"
+                            style="background: #ef4444; border-radius: 9999px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
                             Fechar
                         </button>
                     </div>
