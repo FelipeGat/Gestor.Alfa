@@ -119,7 +119,7 @@
                         </select>
                     </div>
 
-                    <div class="flex items-end gap-2 lg:col-span-2">
+                    <div class="flex items-end gap-2 lg:col-span-3">
                         <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
