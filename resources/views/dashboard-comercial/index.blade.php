@@ -805,7 +805,7 @@
                                 <button @click="salvarHistorico()"
                                     :disabled="salvandoHistorico"
                                     class="px-4 py-2 text-white rounded-lg transition font-medium"
-                                    style="background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3);"
+                                    style="background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
                                     onmouseover="this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'"
                                     onmouseout="this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'"
                                     :class="salvandoHistorico ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#358a96]'">
