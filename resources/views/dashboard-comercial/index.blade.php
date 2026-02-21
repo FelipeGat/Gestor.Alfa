@@ -608,11 +608,11 @@
                     style="background: white; border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;">
 
                     <!-- Header -->
-                    <div style="padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb;">
+                    <div class="px-6 py-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-semibold" style="font-family: 'Inter', sans-serif; font-size: 1.125rem; font-weight: 600; color: #111827;" x-text="tituloModal"></h3>
-                                <p class="text-sm mt-1" style="color: #6b7280; font-size: 0.875rem;">
+                                <h3 class="text-lg font-semibold text-gray-900" style="font-family: 'Inter', sans-serif; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;" x-text="tituloModal"></h3>
+                                <p class="text-sm text-gray-600" style="font-size: 0.875rem;">
                                     <span x-text="totalOrcamentos"></span> orçamento(s) |
                                     Valor Total: R$ <span x-text="valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})"></span>
                                 </p>
