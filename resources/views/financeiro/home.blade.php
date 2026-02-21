@@ -24,7 +24,6 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Home', 'url' => route('dashboard')],
             ['label' => 'Financeiro']
         ]" />
     </x-slot>

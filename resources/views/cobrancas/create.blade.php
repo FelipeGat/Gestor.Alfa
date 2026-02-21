@@ -1,7 +1,6 @@
 <x-app-layout>
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Home', 'url' => route('dashboard')],
             ['label' => 'Cobranças', 'url' => route('cobrancas.index')],
             ['label' => 'Nova']
         ]" />

@@ -55,7 +55,6 @@
     {{-- ================= HEADER ================= --}}
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Home', 'url' => route('dashboard')],
             ['label' => 'Gestão', 'url' => route('gestao.index')],
             ['label' => 'Atendimentos']
         ]" />
