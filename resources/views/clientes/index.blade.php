@@ -24,6 +24,11 @@
             font-weight: 500 !important;
             color: rgb(17, 24, 39) !important;
         }
+        .tabela-clientes tbody td:nth-child(4) {
+            font-family: Figtree, sans-serif !important;
+            font-weight: 500 !important;
+            color: rgb(17, 24, 39) !important;
+        }
     </style>
     @endpush
 
