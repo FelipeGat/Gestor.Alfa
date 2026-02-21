@@ -685,7 +685,7 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.empresa"></td>
                                                 <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.vendedor"></td>
-                                                <td class="px-4 py-3 text-sm font-semibold" style="font-weight: 400; color: rgb(17, 24, 39);">
+                                                <td class="px-4 py-3 text-sm font-semibold whitespace-nowrap" style="font-weight: 400; color: rgb(17, 24, 39);">
                                                     R$ <span x-text="orc.valor_total"></span>
                                                 </td>
                                                 <td class="px-4 py-3 text-sm">
