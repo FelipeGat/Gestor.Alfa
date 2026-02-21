@@ -247,11 +247,11 @@ fpChecks.forEach(check => {
         itens.forEach((item, i) => {
             const subtotal = item.quantidade * item.preco_venda;
             const linha = `<tr class="hover:bg-gray-50 transition-colors">
-                <td class="table-cell font-medium">${item.nome}</td>
-                <td class="table-cell text-center"><input type="number" min="1" class="w-16 border-gray-200 rounded text-center text-xs" value="${item.quantidade}" onchange="atualizarQtd(${i}, this.value)"></td>
-                <td class="table-cell text-right"><input type="number" step="0.01" class="w-24 border-gray-200 rounded text-right text-xs" value="${item.preco_venda}" onchange="atualizarPreco(${i}, this.value)"></td>
-                <td class="table-cell text-right font-mono font-bold text-gray-900">R$ ${subtotal.toFixed(2).replace('.',',')}</td>
-                <td class="table-cell text-center"><button type="button" class="text-red-500 hover:text-red-700 p-1" onclick="removerItem(${i})"><svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></td>
+                <td class="table-cell font-medium" style="padding: 1rem;">${item.nome}</td>
+                <td class="table-cell text-center" style="padding: 1rem;"><input type="number" min="1" class="w-16 border-gray-200 rounded text-center text-xs" value="${item.quantidade}" onchange="atualizarQtd(${i}, this.value)"></td>
+                <td class="table-cell text-right" style="padding: 1rem;"><input type="number" step="0.01" class="w-24 border-gray-200 rounded text-right text-xs" value="${item.preco_venda}" onchange="atualizarPreco(${i}, this.value)"></td>
+                <td class="table-cell text-right font-mono font-bold text-gray-900" style="padding: 1rem;">R$ ${subtotal.toFixed(2).replace('.',',')}</td>
+                <td class="table-cell text-center" style="padding: 1rem;"><button type="button" class="text-red-500 hover:text-red-700 p-1" onclick="removerItem(${i})"><svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></td>
             </tr>`;
             if (item.tipo === 'servico') { totalServ += subtotal; tabServ.innerHTML += linha; }
             else { totalProd += subtotal; tabProd.innerHTML += linha; }
