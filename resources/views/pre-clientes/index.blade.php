@@ -188,10 +188,10 @@
                                     {{ $preCliente->id }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <span class="font-medium text-gray-900">{{ \App\Helpers\FormatHelper::cpfCnpj($preCliente->cpf_cnpj) }}</span>
+                                    <span style="font-weight: 400; color: rgb(17, 24, 39);">{{ \App\Helpers\FormatHelper::cpfCnpj($preCliente->cpf_cnpj) }}</span>
                                 </td>
                                 <td class="px-4 py-3 text-sm truncate">
-                                    <span class="font-medium text-gray-900">{{ $preCliente->nome_fantasia ?? $preCliente->razao_social ?? '—' }}</span>
+                                    <span style="font-weight: 400; color: rgb(17, 24, 39);">{{ $preCliente->nome_fantasia ?? $preCliente->razao_social ?? '—' }}</span>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500 truncate">
                                     {{ $preCliente->email ?? '—' }}
