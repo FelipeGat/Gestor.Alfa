@@ -2,6 +2,34 @@
 
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
+    <style>
+        .form-section {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .form-section h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #111827;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        select {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            box-shadow: 0 0 0 1px rgba(63, 156, 174, 0.2) !important;
+        }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
@@ -12,16 +40,8 @@
         ]" />
     </x-slot>
 
-    <div class="pb-8 pt-4">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- HEADER DO FORMULÁRIO --}}
-            <div class="bg-slate-100 shadow-lg rounded-lg px-6 py-4 sm:px-8 sm:py-6 mb-6">
-                <h1 class="text-2xl font-bold text-black">Editar Assunto</h1>
-                <p class="text-sm text-gray-600 mt-1">
-                    Atualize as informações do assunto
-                </p>
-            </div>
+    <div class="pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
 
             {{-- ERROS --}}
             @if ($errors->any())
@@ -53,7 +73,7 @@
                 @method('PUT')
 
                 {{-- SEÇÃO: CLASSIFICAÇÃO --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8" style="margin-top: 0 !important;">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Classificação do Assunto
                     </h3>
@@ -66,7 +86,7 @@
                                 Empresa <span class="text-red-500">*</span>
                             </label>
                             <select name="empresa_id" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                           focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                           focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
                                 <option value="">Selecione a empresa</option>
                                 @foreach($empresas as $empresa)
                                 <option value="{{ $empresa->id }}" @selected(old('empresa_id', $assunto->empresa_id) ==
@@ -83,7 +103,7 @@
                                 Tipo <span class="text-red-500">*</span>
                             </label>
                             <select name="tipo" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                           focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                           focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
                                 <option value="">Selecione</option>
                                 <option value="SERVICO" @selected(old('tipo', $assunto->tipo)=='SERVICO')>
                                     Serviço
@@ -104,7 +124,7 @@
                 </div>
 
                 {{-- SEÇÃO: DADOS DO ASSUNTO --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Dados do Assunto
                     </h3>
@@ -117,7 +137,7 @@
                                 Assunto <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="nome" value="{{ old('nome', $assunto->nome) }}" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                          focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                          focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
 
                         {{-- CATEGORIA --}}
@@ -127,7 +147,7 @@
                             </label>
                             <input type="text" name="categoria" value="{{ old('categoria', $assunto->categoria) }}"
                                 required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                          focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                          focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
 
                         {{-- SUBCATEGORIA --}}
@@ -137,14 +157,14 @@
                             </label>
                             <input type="text" name="subcategoria"
                                 value="{{ old('subcategoria', $assunto->subcategoria) }}" required class="w-full rounded-lg border border-gray-300 shadow-sm
-                                          focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                                          focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
                         </div>
 
                     </div>
                 </div>
 
                 {{-- SEÇÃO: STATUS --}}
-                <div class="bg-white shadow rounded-lg p-6 sm:p-8">
+                <div class="form-section p-6 sm:p-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Status
                     </h3>
@@ -153,7 +173,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Situação do Assunto
                         </label>
-                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
+                        <select name="ativo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
                             <option value="1" @selected(old('ativo', $assunto->ativo)==1)>Ativo</option>
                             <option value="0" @selected(old('ativo', $assunto->ativo)==0)>Inativo</option>
                         </select>
@@ -161,12 +181,11 @@
                 </div>
 
                 {{-- AÇÕES --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3
-                            bg-white shadow rounded-lg p-6 sm:p-8">
-
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                     <a href="{{ route('assuntos.index') }}"
                         class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
-                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center;">
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; box-shadow: none;"
+                        onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'" onmouseout="this.style.boxShadow='none'">
 
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
@@ -178,7 +197,7 @@
                     </a>
 
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3b82f6; border-radius: 9999px; min-width: 130px; justify-content: center;">
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3f9cae; border-radius: 9999px; min-width: 130px; justify-content: center;">
                         <svg fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
