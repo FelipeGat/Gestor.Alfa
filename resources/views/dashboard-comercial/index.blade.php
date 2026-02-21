@@ -743,10 +743,13 @@
                             Exportar PDF
                         </button>
                         <button @click="fecharModal()"
-                            class="px-4 py-2 text-white rounded-lg transition font-medium"
+                            class="px-4 py-2 text-white rounded-lg transition font-medium flex items-center gap-2"
                             style="background: #ef4444; border-radius: 9999px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
                             onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'"
                             onmouseout="this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.3)'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                             Fechar
                         </button>
                     </div>
