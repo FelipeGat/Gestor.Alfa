@@ -11,7 +11,7 @@
             border-radius: 0.5rem;
         }
         .form-section h3 {
-            font-family: Figtree, sans-serif;
+            font-family: Inter, sans-serif;
             font-weight: 600;
             color: #111827;
         }
@@ -19,7 +19,7 @@
         input[type="email"],
         input[type="password"],
         select {
-            font-family: Figtree, sans-serif !important;
+            font-family: Inter, sans-serif !important;
         }
         input[type="text"]:focus,
         input[type="email"]:focus,
@@ -58,7 +58,7 @@
                                 Nome <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="name" value="{{ old('name', $usuario->name) }}" required
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-sm">
                         </div>
 
                         <div>
@@ -66,7 +66,7 @@
                                 Email <span class="text-red-500">*</span>
                             </label>
                             <input type="email" name="email" value="{{ old('email', $usuario->email) }}" required
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-sm">
                         </div>
 
                         <div>
@@ -74,14 +74,14 @@
                                 Nova Senha <span class="text-xs text-gray-500">(opcional)</span>
                             </label>
                             <input type="password" name="password"
-                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2">
+                                class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-sm">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Tipo de Usuário
                             </label>
-                            <select name="tipo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-gray-900">
+                            <select name="tipo" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2 text-sm text-gray-900">
                                 @foreach(['admin','administrativo','financeiro','comercial','cliente'] as $tipo)
                                 <option value="{{ $tipo }}" @selected($usuario->tipo === $tipo)>
                                     {{ ucfirst($tipo) }}
@@ -133,7 +133,8 @@
 
                     <a href="{{ route('usuarios.index') }}"
                         class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
-                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center;">
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; box-shadow: none;"
+                        onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'" onmouseout="this.style.boxShadow='none'">
 
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
