@@ -110,28 +110,28 @@
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
                 <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600 w-full max-w-none" style="border-top: 1px solid #2563eb; border-right: 1px solid #2563eb; border-bottom: 1px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Total de Clientes</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Clientes</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">
                         {{ $totalClientes }}
                     </p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border-l-4 border-green-600 w-full max-w-none" style="border-top: 1px solid #16a34a; border-right: 1px solid #16a34a; border-bottom: 1px solid #16a34a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Ativos</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">
                         {{ $clientesAtivos }}
                     </p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border-l-4 border-red-600 w-full max-w-none" style="border-top: 1px solid #dc2626; border-right: 1px solid #dc2626; border-bottom: 1px solid #dc2626; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Inativos</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Inativos</p>
                     <p class="text-3xl font-bold text-red-600 mt-2">
                         {{ $clientesInativos }}
                     </p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border-l-4 border-yellow-500 w-full max-w-none" style="border-top: 1px solid #eab308; border-right: 1px solid #eab308; border-bottom: 1px solid #eab308; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Receita Mensal</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Receita Mensal</p>
                     <p class="text-3xl font-bold text-yellow-600 mt-2">
                         R$ {{ number_format($receitaMensal, 2, ',', '.') }}
                     </p>
@@ -247,7 +247,7 @@
             </div>
 
             {{-- ================= PAGINAÇÃO ================= --}}
-            <div class="pagination-wrapper">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
                 <div class="pagination-info">
                     Mostrando <strong>{{ $clientes->count() }}</strong> de
                     <strong>{{ $clientes->total() }}</strong>
