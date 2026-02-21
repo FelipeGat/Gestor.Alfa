@@ -806,11 +806,11 @@
                                     :disabled="salvandoHistorico"
                                     class="px-4 py-2 text-white rounded-lg transition font-medium flex items-center gap-2"
                                     style="background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3); font-size: 0.875rem; min-width: 140px; justify-content: center;"
-                                    onmouseover="this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'"
-                                    onmouseout="this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'"
-                                    :class="salvandoHistorico ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#358a96]'">
+                                    onmouseover="this.style.background='#358a96'; this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'"
+                                    onmouseout="this.style.background='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'"
+                                    :class="salvandoHistorico ? 'opacity-50 cursor-not-allowed' : ''">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                     <span x-show="!salvandoHistorico">Salvar</span>
                                     <span x-show="salvandoHistorico">Salvando...</span>
