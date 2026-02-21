@@ -199,7 +199,7 @@
             </div>
 
             {{-- ================= PAGINAÇÃO ================= --}}
-            <div class="pagination-wrapper">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div class="pagination-info">
                     Mostrando
                     <strong>{{ $usuarios->firstItem() ?? 0 }}</strong>
