@@ -234,7 +234,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-sm">
-                                    <span class="font-medium text-gray-900">{{ $item->nome }}</span>
+                                    <span style="font-weight: 400; color: rgb(17, 24, 39);">{{ $item->nome }}</span>
                                 </td>
 
                                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">
