@@ -144,7 +144,7 @@
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto tabela-empresas">
-                        <thead style="background-color: #f3f4f6; border-bottom: 1px solid #3f9cae;">
+                        <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                             <tr>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">ID</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px;">Empresa</th>
