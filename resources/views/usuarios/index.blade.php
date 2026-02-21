@@ -13,7 +13,7 @@
         input[type="text"],
         input[type="email"],
         select {
-            font-family: Figtree, sans-serif !important;
+            font-family: Inter, sans-serif !important;
         }
         input[type="text"]:focus,
         input[type="email"]:focus,
@@ -40,7 +40,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="form-section p-6 sm:p-8">
+            <form method="GET" class="form-section" style="padding: 1.5rem;">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
 
                     <div class="flex flex-col lg:col-span-6">
@@ -91,21 +91,21 @@
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
                 <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600 w-full max-w-none" style="border-top: 1px solid #2563eb; border-right: 1px solid #2563eb; border-bottom: 1px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Total de Usuarios</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Usuarios</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">
                         {{ $totalUsuarios }}
                     </p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border-l-4 border-green-600 w-full max-w-none" style="border-top: 1px solid #16a34a; border-right: 1px solid #16a34a; border-bottom: 1px solid #16a34a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Ativos</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">
                         {{ $usuariosAtivos }}
                     </p>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border-l-4 border-red-600 w-full max-w-none" style="border-top: 1px solid #dc2626; border-right: 1px solid #dc2626; border-bottom: 1px solid #dc2626; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide" style="color: #3f9cae;">Primeiro Acesso</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Primeiro Acesso</p>
                     <p class="text-3xl font-bold text-red-600 mt-2">
                         {{ $usuariosInativos }}
                     </p>
@@ -143,15 +143,15 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse($usuarios as $usuario)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 text-sm text-gray-900" style="font-weight: 400;">
+                                <td class="px-4 py-3 text-sm text-gray-900" style="font-weight: 500;">
                                     {{ $usuario->name }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);">
                                     {{ $usuario->email }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);">
                                     {{ ucfirst($usuario->tipo) }}
                                 </td>
 
