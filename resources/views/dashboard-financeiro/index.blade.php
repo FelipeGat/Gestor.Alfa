@@ -358,21 +358,26 @@
 
                         <!-- Modal de Lançamentos -->
                         <div id="modal-lancamentos" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
-                            <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-6 relative">
-                                <button onclick="fecharModalLancamentos()" class="absolute top-2 right-2 text-gray-400 hover:text-red-600 text-xl">&times;</button>
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <h3 id="modal-titulo" class="text-lg font-bold text-gray-800">Lançamentos</h3>
-<button onclick="imprimirModalLancamentos()" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 print:hidden" title="Imprimir">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" /></svg>
+                            <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-0 relative" style="border: 1px solid #3f9cae; border-top-width: 4px;">
+                                <button onclick="fecharModalLancamentos()" class="absolute top-3 right-3 text-gray-400 hover:text-red-600 text-2xl font-bold z-10">&times;</button>
+                                
+                                {{-- HEADER DO MODAL --}}
+                                <div class="px-6 py-4 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
+                                    <div class="flex items-center justify-between">
+                                        <h3 id="modal-titulo" class="text-lg font-semibold text-gray-900" style="font-size: 1.125rem; font-weight: 600;">Lançamentos</h3>
+                                        <button onclick="imprimirModalLancamentos()" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg shadow transition" style="font-size: 0.875rem; border-radius: 9999px;" title="Imprimir">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8" />
+                                            </svg>
                                             Imprimir
                                         </button>
-                                        </button>
                                     </div>
-                                    <span id="modal-total" class="text-base font-semibold text-gray-700"></span>
+                                    <div class="mt-2">
+                                        <span id="modal-total" class="text-sm font-semibold"></span>
+                                    </div>
                                 </div>
 
-                                <div id="modal-lista-lancamentos" class="max-h-80 overflow-y-auto text-sm">
+                                <div id="modal-lista-lancamentos" class="max-h-96 overflow-y-auto p-6">
                                     <!-- Conteúdo preenchido via JS -->
                                 </div>
                             </div>
@@ -602,39 +607,45 @@
             document.getElementById('modal-total').innerHTML = `<span class='${totalColor}'>${totalFormatado}</span>`;
             const container = document.getElementById('modal-lista-lancamentos');
             if (lista.length === 0) {
-                container.innerHTML = '<div class="text-gray-400 text-center py-6">Nenhum lançamento encontrado.</div>';
+                container.innerHTML = '<div class="text-gray-500 text-center py-8" style="font-size: 0.875rem;">Nenhum lançamento encontrado.</div>';
             } else {
                 let thExtra = '';
                 if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
-                    thExtra = `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>Empresa</th>`;
+                    thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Empresa</th>`;
                 } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
-                    thExtra = `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>Centro de Custo</th>`;
+                    thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Centro de Custo</th>`;
                 }
+                
+                let thCnpj = '';
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    thCnpj = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>CNPJ/CPF</th>`;
+                }
+                
                 container.innerHTML = `
                 <div class='overflow-x-auto'>
-                <table class='w-full text-xs text-left border border-gray-200 rounded'>
-                    <thead class='bg-gray-100 sticky top-0'>
+                <table class='w-full table-auto' style='border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;'>
+                    <thead style='background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;'>
                         <tr>
-                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Pagamento</th>
+                            <th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Pagamento</th>
                             ${thExtra}
-                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Cliente/Fornecedor</th>
-                            ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<th class='px-2 py-2 font-semibold text-gray-700 border-b'>CNPJ/CPF</th>` : ''}
-                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Descrição</th>
-                            <th class='px-2 py-2 font-semibold text-gray-700 border-b'>Tipo</th>
-                            <th class='px-2 py-2 font-semibold text-gray-700 border-b text-right'>Valor</th>
+                            <th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Cliente/Fornecedor</th>
+                            ${thCnpj}
+                            <th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Descrição</th>
+                            <th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Tipo</th>
+                            <th class='px-4 py-3 text-right uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Valor</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class='divide-y divide-gray-200'>
                         ${lista.map(l => `
-                            <tr>
-                                <td class='px-2 py-1 whitespace-nowrap'>${l.data ?? ''}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.empresa ?? '-'}</td>` : ''}
-                                ${(tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.centro_custo ?? '-'}</td>` : ''}
-                                <td class='px-2 py-1 whitespace-nowrap'>${l.cliente ?? '-'}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-2 py-1 whitespace-nowrap'>${l.cnpjcpf ?? '-'}</td>` : ''}
-                                <td class='px-2 py-1'>${l.descricao ?? '-'}</td>
-                                <td class='px-2 py-1 whitespace-nowrap'>${l.tipo ?? '-'}</td>
-                                <td class='px-2 py-1 whitespace-nowrap text-right ${totalColor}'>R$ ${parseFloat(l.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                            <tr class='hover:bg-gray-50 transition'>
+                                <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.data ?? ''}</td>
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.empresa ?? '-'}</td>` : ''}
+                                ${(tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.centro_custo ?? '-'}</td>` : ''}
+                                <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cliente ?? '-'}</td>
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cnpjcpf ?? '-'}</td>` : ''}
+                                <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.descricao ?? '-'}</td>
+                                <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.tipo ?? '-'}</td>
+                                <td class='px-4 py-3 text-sm text-right font-semibold' style='color: rgb(17, 24, 39);'>R$ ${parseFloat(l.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                             </tr>
                         `).join('')}
                     </tbody>
