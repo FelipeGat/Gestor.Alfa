@@ -2,10 +2,32 @@
 
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
+    <style>
+        input[name="search"] {
+            border-color: #d1d5db !important;
+        }
+        input[name="search"]:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        select[name="status"] {
+            border-color: #d1d5db !important;
+        }
+        select[name="status"]:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        .tabela-funcionarios tbody td:nth-child(3) {
+            font-family: Figtree, sans-serif !important;
+            font-weight: 500 !important;
+        }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
-        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full py-2">
+        <nav class="flex items-center gap-2 text-base font-semibold leading-tight rounded-full">
             <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -22,7 +44,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="bg-white shadow rounded-lg p-6">
+            <form method="GET" class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
 
                     <div class="flex flex-col lg:col-span-6">
@@ -31,23 +53,22 @@
                         </label>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Nome do funcionário" class="border border-gray-300 rounded-lg px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   focus:outline-none focus:border-[#3f9cae]">
                     </div>
 
                     <div class="flex flex-col lg:col-span-3">
                         <label class="text-sm font-medium text-gray-700 mb-2">
                             Status
                         </label>
-                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
                             <option value="">Todos</option>
                             <option value="ativo" @selected(request('status')=='ativo' )>Ativo</option>
                             <option value="inativo" @selected(request('status')=='inativo' )>Inativo</option>
                         </select>
                     </div>
 
-                    <div class="flex items-end lg:col-span-2">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3b82f6; border-radius: 9999px;">
+                    <div class="flex items-end lg:col-span-3 gap-2">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
@@ -55,6 +76,12 @@
                             </svg>
                             Filtrar
                         </button>
+                        <a href="{{ route('funcionarios.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Limpar
+                        </a>
                     </div>
 
                 </div>
@@ -74,7 +101,7 @@
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-blue-600 w-full">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Total de Funcionários
                     </p>
@@ -83,7 +110,7 @@
                     </p>
                 </div>
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-green-600 w-full">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-green-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Ativos
                     </p>
@@ -92,7 +119,7 @@
                     </p>
                 </div>
 
-                <div class="bg-white p-6 shadow rounded-lg border-l-4 border-red-600 w-full">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-red-600 w-full" style="border-top: 1px solid #3f9cae; border-right: 1px solid #3f9cae; border-bottom: 1px solid #3f9cae; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">
                         Inativos
                     </p>
@@ -117,16 +144,16 @@
             @endif
 
             {{-- ================= TABELA ================= --}}
-            <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="overflow-x-auto">
-                    <table class="w-full table-auto">
-                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                    <table class="w-full table-auto tabela-funcionarios">
+                        <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Nome</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Email</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Status</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase">Ações</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">ID</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Nome</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Email</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Status</th>
+                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Ações</th>
                             </tr>
                         </thead>
 
