@@ -10,7 +10,17 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-radius: 0.5rem;
         }
-        .section-card h3,
+        .section-card .card-header {
+            padding: 1.5rem 2rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        .section-card .card-header h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
         .section-card h4 {
             font-family: 'Inter', sans-serif;
             font-weight: 600;
