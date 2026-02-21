@@ -23,6 +23,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.contas-pagar');
     Route::get('/relatorios/contas-pagar/json', [RelatorioFinanceiroController::class, 'contasPagarJson'])
         ->name('relatorios.contas-pagar.json');
+
+    // Cadastros
+    Route::get('/cadastros', function () {
+        return view('cadastros.index');
+    })->name('cadastros.index');
 });
 
 use App\Http\Controllers\AssuntoController;
