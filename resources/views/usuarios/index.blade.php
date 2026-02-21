@@ -26,6 +26,20 @@
             min-width: 40px;
             text-align: center;
         }
+        table thead th {
+            color: rgb(17, 24, 39) !important;
+        }
+        table tbody td {
+            font-weight: 400 !important;
+        }
+        table tbody td.font-medium {
+            font-weight: 400 !important;
+        }
+        table tbody td:nth-child(2) {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 500 !important;
+            color: rgb(17, 24, 39) !important;
+        }
     </style>
     @endpush
 
@@ -143,15 +157,15 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse($usuarios as $usuario)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 text-sm text-gray-900" style="font-weight: 500;">
+                                <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ $usuario->name }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);">
+                                <td class="px-4 py-3 text-sm">
                                     {{ $usuario->email }}
                                 </td>
 
-                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);">
+                                <td class="px-4 py-3 text-sm">
                                     {{ ucfirst($usuario->tipo) }}
                                 </td>
 
