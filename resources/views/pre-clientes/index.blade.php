@@ -187,22 +187,22 @@
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {{ $preCliente->id }}
                                 </td>
-                                <td class="px-4 py-3 text-sm">
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
                                     <span style="font-weight: 400; color: rgb(17, 24, 39);">{{ \App\Helpers\FormatHelper::cpfCnpj($preCliente->cpf_cnpj) }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm truncate">
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
                                     <span style="font-weight: 400; color: rgb(17, 24, 39);">{{ $preCliente->nome_fantasia ?? $preCliente->razao_social ?? '—' }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-500 truncate">
+                                <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                                     {{ $preCliente->email ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                                     {{ $preCliente->telefone ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-500">
+                                <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                                     {{ ucfirst($preCliente->origem) }}
                                 </td>
-                                <td class="px-4 py-3 text-sm">
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
                                     <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fef9c3; color: #854d0e;' }}">
                                         {{ $preCliente->convertido_em_cliente ? 'Convertido' : 'Pendente' }}
                                     </span>
