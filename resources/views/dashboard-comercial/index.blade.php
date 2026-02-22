@@ -10,7 +10,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.25rem 0.75rem;
+            padding: 0.5rem 0.75rem;
             font-size: 0.75rem;
             font-weight: 600;
             border-radius: 9999px;
