@@ -12,10 +12,68 @@
     @php return; @endphp
 @endif
 
-<x-app-layout>
+    <x-app-layout>
     @push('styles')
     @vite('resources/css/dashboard/dashboard_comercial.css')
     @vite('resources/css/financeiro/index.css')
+    <style>
+        .filters-card {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
+        .card-grafico {
+            background: white;
+            border: 1px solid #3f9cae;
+            border-top-width: 4px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-filtro-rapido {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            line-height: 1.25rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-filtro-rapido.ativo {
+            background: #3f9cae;
+            color: white;
+        }
+        .btn-filtro-rapido.inativo {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .btn-filtro-rapido.inativo:hover {
+            background: #e5e7eb;
+        }
+        .nav-financeiro-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.5rem 0.5rem 0 0;
+            border: 1px solid transparent;
+            border-bottom: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .nav-financeiro-tab:hover {
+            transform: translateY(-2px);
+        }
+    </style>
     @endpush
 
     <x-slot name="breadcrumb">
@@ -38,7 +96,7 @@
             <form method="GET" class="flex flex-wrap gap-3">
                 <select name="empresa_id"
                     onchange="this.form.submit()"
-                    class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    class="rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae]/20">
                     <option value="">Todas as Empresas</option>
                     @foreach($empresas as $empresa)
                     <option value="{{ $empresa->id }}" @selected($empresaId==$empresa->id)>
@@ -49,7 +107,7 @@
 
                 @if($empresaId || ($ano && $ano != date('Y')))
                 <a href="{{ route('financeiro.dashboard') }}"
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                    class="px-4 py-2 bg-gray-400 text-white rounded-full hover:bg-gray-500 transition text-sm font-medium">
                     Limpar
                 </a>
                 @endif
@@ -62,63 +120,65 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= NAVEGAÇÃO ================= --}}
-            <div class="section-card financeiro-nav mb-6">
-                {{-- BANCOS --}}
-                <a href="{{ route('financeiro.contas-financeiras.index') }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-lg transition shadow-sm border border-yellow-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    Bancos
-                </a>
+            <div class="filters-card p-4 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    {{-- BANCOS --}}
+                    <a href="{{ route('financeiro.contas-financeiras.index') }}"
+                        class="nav-financeiro-tab bg-yellow-400 text-black font-bold shadow-sm border border-yellow-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Bancos
+                    </a>
 
-                {{-- COBRANÇA --}}
-                <a href="{{ route('financeiro.cobrar' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-md border border-indigo-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Cobrar
-                </a>
+                    {{-- COBRANÇA --}}
+                    <a href="{{ route('financeiro.cobrar' ) }}"
+                        class="nav-financeiro-tab bg-indigo-600 text-white font-bold shadow-md border border-indigo-700/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Cobrar
+                    </a>
 
-                {{-- CONTAS A RECEBER --}}
-                <a href="{{ route('financeiro.contasareceber' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md border border-emerald-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-2-2m2 2l2-2" />
-                    </svg>
-                    Receber
-                </a>
+                    {{-- CONTAS A RECEBER --}}
+                    <a href="{{ route('financeiro.contasareceber' ) }}"
+                        class="nav-financeiro-tab bg-emerald-600 text-white font-bold shadow-md border border-emerald-700/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-2-2m2 2l2-2" />
+                        </svg>
+                        Receber
+                    </a>
 
-                {{-- CONTAS A PAGAR --}}
-                <a href="{{ route('financeiro.contasapagar') }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition shadow-md border border-red-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12V6m0 0l-2 2m2-2l2 2" />
-                    </svg>
-                    Pagar
-                </a>
+                    {{-- CONTAS A PAGAR --}}
+                    <a href="{{ route('financeiro.contasapagar') }}"
+                        class="nav-financeiro-tab bg-red-600 text-white font-bold shadow-md border border-red-700/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12V6m0 0l-2 2m2-2l2 2" />
+                        </svg>
+                        Pagar
+                    </a>
 
-                {{-- MOVIMENTAÇÃO --}}
-                <a href="{{ route('financeiro.movimentacao' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-md border border-blue-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                    Extrato
-                </a>
+                    {{-- MOVIMENTAÇÃO --}}
+                    <a href="{{ route('financeiro.movimentacao' ) }}"
+                        class="nav-financeiro-tab bg-blue-600 text-white font-bold shadow-md border border-blue-700/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        Extrato
+                    </a>
+                </div>
             </div>
 
 
             {{-- ================= GRÁFICO ================= --}}
-            <div class="bg-white shadow rounded-xl p-6 mb-10">
+            <div class="card-grafico p-6 mb-10">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +197,7 @@
 
                         <select name="ano"
                             onchange="this.form.submit()"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae]/20 text-sm">
                             @for($y = date('Y') + 1; $y >= date('Y') - 5; $y--)
                             <option value="{{ $y }}" @selected(($ano ?? date('Y'))==$y)>
                                 {{ $y }}
@@ -196,38 +256,38 @@
                                 {{-- Botões de filtro rápido --}}
                                 <button type="button"
                                     @click="aplicarFiltro('dia')"
-                                    :class="filtroRapido === 'dia' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'dia' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Dia
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('semana')"
-                                    :class="filtroRapido === 'semana' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'semana' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Semana
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('mes')"
-                                    :class="filtroRapido === 'mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'mes' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Mês
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('ano')"
-                                    :class="filtroRapido === 'ano' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'ano' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Ano
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('proximo_mes')"
-                                    :class="filtroRapido === 'proximo_mes' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'proximo_mes' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Próximo Mês
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('custom')"
-                                    :class="filtroRapido === 'custom' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                                    class="px-3 py-1.5 rounded-md text-xs font-medium transition">
+                                    :class="filtroRapido === 'custom' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
                                     Outro período
                                 </button>
                             </div>
@@ -236,13 +296,13 @@
                                 <input type="date"
                                     name="inicio"
                                     value="{{ $inicio->format('Y-m-d') }}"
-                                    class="rounded-md border-gray-300 text-sm">
+                                    class="rounded-md border-gray-300 focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae]/20 text-sm">
                                 <span class="text-gray-400">até</span>
                                 <input type="date"
                                     name="fim"
                                     value="{{ $fim->format('Y-m-d') }}"
-                                    class="rounded-md border-gray-300 text-sm">
-                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">
+                                    class="rounded-md border-gray-300 focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae]/20 text-sm">
+                                <button type="submit" class="px-4 py-1.5 bg-[#3f9cae] text-white rounded-full text-xs font-medium hover:bg-[#358a96] transition shadow-md">
                                     Aplicar
                                 </button>
                             </div>
@@ -251,7 +311,7 @@
                 </div>
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-                <div class="bg-white shadow rounded-xl p-6 relative">
+                <div class="card-grafico p-6 relative">
                     {{-- HEADER --}}
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -330,7 +390,7 @@
                     </div>
                 </div>
                 {{-- RESUMO FINANCEIRO --}}
-                <div class="bg-white shadow rounded-xl p-6 relative">
+                <div class="card-grafico p-6 relative">
                     {{-- HEADER --}}
                     <div class="mb-4">
                         <h3 class="text-sm font-semibold text-gray-700">
@@ -450,14 +510,14 @@
             <div class="mb-4 flex flex-col items-center gap-2">
                 <h2 class="text-lg font-bold text-gray-800 text-center">Custos por Categorias:</h2>
                 <div class="flex gap-2 justify-center">
-                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="categoria">Categorias</button>
-                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="subcategoria">Subcategorias</button>
-                    <button type="button" class="btn-nivel-categoria px-3 py-1.5 rounded-md text-xs font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-nivel="conta">Contas</button>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
                 @foreach($dadosCentros as $centro => $dados)
-                <div class="bg-white shadow rounded-xl p-6 flex flex-col items-center">
+                <div class="card-grafico p-6 flex flex-col items-center">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
                         Gastos por <span id="grafico-nivel-{{ Str::slug($centro) }}">Categoria</span><br><span class="text-xs text-gray-500">{{ $centro }}</span>
                     </h3>
@@ -471,7 +531,7 @@
             {{-- ================= NOVOS CARDS: INDICADORES E ALERTAS ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {{-- CARD 1: INDICADORES INTELIGENTES --}}
-                <div class="bg-white shadow rounded-xl p-6 flex flex-col gap-6">
+                <div class="card-grafico p-6 flex flex-col gap-6">
                     <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
                         Indicadores Inteligentes
@@ -517,7 +577,7 @@
                     </div>
                 </div>
                 {{-- CARD 2: ALERTAS E INSIGHTS AUTOMÁTICOS --}}
-                <div class="bg-white shadow rounded-xl p-6 flex flex-col gap-4">
+                <div class="card-grafico p-6 flex flex-col gap-4">
                     <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
                         Alertas e Insights Automáticos
