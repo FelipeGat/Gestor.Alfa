@@ -1,8 +1,28 @@
 <x-app-layout>
 
     @push('styles')
+    @vite('resources/css/orcamentos/index.css')
     @vite('resources/css/atendimentos/index.css')
     <style>
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .filter-select:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
         /* Filtros */
         .filters-card {
             background: white;
