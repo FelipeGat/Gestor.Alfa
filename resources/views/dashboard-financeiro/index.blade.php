@@ -212,24 +212,22 @@
             <div>
                 {{-- FILTRO RÁPIDO DE PERÍODO --}}
                 <div class="filters-card p-6 mb-6">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Filtrar por Data:</h2>
-                    <div class="flex gap-2 justify-center">
-                        <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }">
-                            <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
-                                @if($empresaId)
-                                <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
-                                @endif
-                                <input type="hidden" name="ano" value="{{ $ano }}">
-                                <input type="hidden" name="filtro_rapido" :value="filtroRapido">
-                                <div class="flex flex-wrap items-center gap-2 text-sm">
-                                    
-                                    {{-- Botões de filtro rápido --}}
-                                    <button type="button"
-                                        @click="aplicarFiltro('dia')"
-                                        :class="filtroRapido === 'dia' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
-                                        class="">
-                                        Dia
-                                    </button>
+                    <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }">
+                        <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
+                            @if($empresaId)
+                            <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
+                            @endif
+                            <input type="hidden" name="ano" value="{{ $ano }}">
+                            <input type="hidden" name="filtro_rapido" :value="filtroRapido">
+                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                <span class="text-gray-700 font-semibold text-sm">Filtrar por Data:</span>
+                                {{-- Botões de filtro rápido --}}
+                                <button type="button"
+                                    @click="aplicarFiltro('dia')"
+                                    :class="filtroRapido === 'dia' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
+                                    Dia
+                                </button>
                                     <button type="button"
                                         @click="aplicarFiltro('semana')"
                                         :class="filtroRapido === 'semana' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
@@ -479,13 +477,11 @@
 
             {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
             <div class="filters-card p-6 mb-6">
-                <div class="mb-4 flex flex-col items-center gap-2">
-                    <h2 class="text-lg font-bold text-gray-800 text-center">Custos por Categorias:</h2>
-                    <div class="flex gap-2 justify-center">
-                        <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
-                        <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
-                        <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
-                    </div>
+                <div class="flex flex-wrap items-center gap-2 text-sm">
+                    <span class="text-gray-700 font-semibold text-sm">Custos por Categorias:</span>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
+                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
