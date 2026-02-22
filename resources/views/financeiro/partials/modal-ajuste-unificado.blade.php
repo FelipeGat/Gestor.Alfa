@@ -74,10 +74,7 @@
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm" style="z-index: 10;">R$</span>
                         <input type="text" name="valor" step="0.01" min="0.01" required placeholder="0,00" 
                             class="filter-select w-full" 
-                            style="padding-left: 2.5rem; font-size: 1rem;"
-                            oninput="this.value = this.value.replace(/[^0-9,]/g, '').replace(/,/g, '.');"
-                            onclick="this.value = this.value.replace(/,/g, '.');"
-                            onblur="this.value = this.value.replace(/,/g, '.');">
+                            style="padding-left: 3rem; font-size: 1rem;">
                     </div>
                 </div>
 
