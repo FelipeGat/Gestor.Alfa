@@ -73,7 +73,6 @@
                         wrapper.style.right = '0';
                         wrapper.style.zIndex = '50';
                         wrapper.style.backgroundColor = '#f3f4f6';
-                        wrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                         wrapper.style.paddingTop = '1rem';
                         wrapper.style.paddingBottom = '';
                     }
