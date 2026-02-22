@@ -217,7 +217,7 @@
                         <div x-data="{ filtroRapido: '{{ request('filtro_rapido') ?: 'mes' }}', mostrarCustom: {{ request('filtro_rapido') === 'custom' ? 'true' : 'false' }}, aplicarFiltro(tipo) { this.filtroRapido = tipo; if (tipo !== 'custom') { this.mostrarCustom = false; const form = this.$refs.formFiltro; const inputInicio = form.querySelector('input[name=inicio]'); const inputFim = form.querySelector('input[name=fim]'); if (inputInicio) inputInicio.disabled = true; if (inputFim) inputFim.disabled = true; setTimeout(() => form.submit(), 10); } else { this.mostrarCustom = true; } } }">
                             <form method="GET" x-ref="formFiltro" action="/financeiro/dashboard">
                                 @if($empresaId)
-                                <input type="hidden" name="empresa $empresaId_id" value="{{ }}">
+                                <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
                                 @endif
                                 <input type="hidden" name="ano" value="{{ $ano }}">
                                 <input type="hidden" name="filtro_rapido" :value="filtroRapido">
