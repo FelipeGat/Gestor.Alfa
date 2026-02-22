@@ -26,21 +26,24 @@
     <div class="min-h-screen bg-gray-100">
         @include('layouts.navigation')
 
-        <!-- Page Heading -->
-        @isset($header)
-        <header class="bg-white shadow">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                {{ $header }}
-            </div>
-        </header>
-        @endisset
+        <!-- Sticky wrapper for header + breadcrumb -->
+        <div id="sticky-wrapper" class="relative pt-12">
+            <!-- Page Heading -->
+            @isset($header)
+            <header id="page-header" class="bg-white shadow">
+                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    {{ $header }}
+                </div>
+            </header>
+            @endisset
 
-        <!-- Breadcrumb -->
-        @isset($breadcrumb)
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            {{ $breadcrumb }}
+            <!-- Breadcrumb -->
+            @isset($breadcrumb)
+            <div id="breadcrumb-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2">
+                {{ $breadcrumb }}
+            </div>
+            @endisset
         </div>
-        @endisset
 
         <!-- Page Content -->
         <main>
@@ -54,6 +57,43 @@
         @include('components.dashboard-fab')
     </div>
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrapper = document.getElementById('sticky-wrapper');
+            const navHeight = 48;
+            
+            function handleScroll() {
+                const scrollTop = window.scrollY;
+                
+                if (scrollTop > navHeight) {
+                    if (wrapper) {
+                        wrapper.style.position = 'fixed';
+                        wrapper.style.top = '0';
+                        wrapper.style.left = '0';
+                        wrapper.style.right = '0';
+                        wrapper.style.zIndex = '50';
+                        wrapper.style.backgroundColor = '#f3f4f6';
+                        wrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        wrapper.style.paddingTop = '0';
+                    }
+                } else {
+                    if (wrapper) {
+                        wrapper.style.position = '';
+                        wrapper.style.top = '';
+                        wrapper.style.left = '';
+                        wrapper.style.right = '';
+                        wrapper.style.zIndex = '';
+                        wrapper.style.backgroundColor = '';
+                        wrapper.style.boxShadow = '';
+                        wrapper.style.paddingTop = '';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', handleScroll);
+            handleScroll();
+        });
+    </script>
 </body>
 
 </html>

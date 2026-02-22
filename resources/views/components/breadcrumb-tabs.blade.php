@@ -22,5 +22,4 @@
             @endif
         @endforeach
     </nav>
-    <hr class="h-[2px] -mx-px bg-[#3f9cae] border-0" />
 </div>
