@@ -39,14 +39,14 @@
                 <div id="camposAjusteManual" class="p-4 rounded-xl border space-y-3 transition-all" style="background-color: rgba(63, 156, 174, 0.05); border-color: #3f9cae;">
                     <label class="filter-label" style="color: #3f9cae;">Tipo de Ajuste</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="relative flex items-center justify-center p-3 border-2 border-white bg-white rounded-xl cursor-pointer hover:border-indigo-200 transition-all">
+                        <label class="relative flex items-center justify-center p-3 border-2 border-white bg-white rounded-xl cursor-pointer hover:border-[#3f9cae] transition-all">
                             <input type="radio" name="tipo_ajuste" value="ajuste_entrada" checked class="sr-only peer">
                             <div class="peer-checked:text-emerald-600 peer-checked:font-black text-gray-400 text-sm flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
                                 Entrada
                             </div>
                         </label>
-                        <label class="relative flex items-center justify-center p-3 border-2 border-white bg-white rounded-xl cursor-pointer hover:border-indigo-200 transition-all">
+                        <label class="relative flex items-center justify-center p-3 border-2 border-white bg-white rounded-xl cursor-pointer hover:border-[#3f9cae] transition-all">
                             <input type="radio" name="tipo_ajuste" value="ajuste_saida" class="sr-only peer">
                             <div class="peer-checked:text-red-600 peer-checked:font-black text-gray-400 text-sm flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
