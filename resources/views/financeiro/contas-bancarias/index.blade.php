@@ -142,7 +142,7 @@
             }
             </style>
 
-            <div class="resumo-grid gap-4 mb-6" style="
+            <div class="resumo-grid gap-4 mb-6 mt-6" style="
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
                 <div class="kpi-card kpi-card-blue w-full max-w-none p-6">
