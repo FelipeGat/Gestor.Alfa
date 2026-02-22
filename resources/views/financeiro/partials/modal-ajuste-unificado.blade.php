@@ -72,7 +72,7 @@
                     <label class="filter-label">Valor da Operação <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">R$</span>
-                        <input type="number" name="valor" step="0.01" min="0.01" required placeholder="0,00" class="filter-select w-full pl-10">
+                        <input type="number" name="valor" step="0.01" min="0.01" required placeholder="0,00" class="filter-select w-full pl-10" style="padding-top: 0.625rem; padding-bottom: 0.625rem;">
                     </div>
                 </div>
 
