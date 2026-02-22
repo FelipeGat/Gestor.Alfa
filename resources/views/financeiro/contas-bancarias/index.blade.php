@@ -71,33 +71,6 @@
         ]" />
     </x-slot>
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-
-            {{-- TÍTULO --}}
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                    Contas Bancárias
-                </h2>
-            </div>
-
-            {{-- BOTÃO VOLTAR --}}
-            <a href="{{ route('financeiro.dashboard') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group"
-                title="Voltar para Dashboard Financeiro">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span>Voltar</span>
-            </a>
-        </div>
-    </x-slot><br>
-
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
