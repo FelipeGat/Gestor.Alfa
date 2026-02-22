@@ -1,6 +1,70 @@
 @import '../atendimentos/index.css';
 
-/* Ajustes específicos de contas bancárias */
+.filters-card {
+    background: white;
+    border: 1px solid #3f9cae;
+    border-top-width: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filters-card input:focus,
+.filters-card select:focus {
+    border-color: #3f9cae !important;
+    outline: none !important;
+    box-shadow: 0 0 0 1px #3f9cae !important;
+}
+
+.tabela-contas thead th {
+    color: rgb(17, 24, 39) !important;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tabela-contas tbody td {
+    font-weight: 400 !important;
+    color: rgb(17, 24, 39) !important;
+}
+
+.tabela-contas tbody td.font-medium {
+    font-weight: 400 !important;
+    color: rgb(17, 24, 39) !important;
+}
+
+.tabela-contas tbody td:nth-child(2),
+.tabela-contas tbody td:nth-child(3),
+.tabela-contas tbody td:nth-child(5),
+.tabela-contas tbody td:nth-child(6) {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 400 !important;
+    color: rgb(17, 24, 39) !important;
+}
+
+.pagination-link {
+    border-radius: 9999px !important;
+    min-width: 40px;
+    text-align: center;
+}
+
+.kpi-card {
+    background: white;
+    border: 1px solid;
+    border-left-width: 4px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1.5rem;
+}
+
+.kpi-card-blue { border-color: #2563eb; }
+.kpi-card-green { border-color: #16a34a; }
+.kpi-card-yellow { border-color: #eab308; }
+.kpi-card-red { border-color: #dc2626; }
+
 .badge-corrente {
     background: #e0f2fe;
     color: #075985;
@@ -19,4 +83,35 @@
 .badge-credito {
     background: #ede9fe;
     color: #5b21b6;
+}
+
+.badge-banco {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.badge-pix {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-caixa {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.empty-state {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
 }
