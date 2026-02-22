@@ -219,7 +219,7 @@
                             @endif
                             <input type="hidden" name="ano" value="{{ $ano }}">
                             <input type="hidden" name="filtro_rapido" :value="filtroRapido">
-                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                            <div class="flex flex-wrap items-center justify-center gap-2 text-sm">
                                 <span class="text-gray-700 font-semibold text-sm">Filtrar por Data:</span>
                                 {{-- Botões de filtro rápido --}}
                                 <button type="button"
@@ -477,7 +477,7 @@
 
             {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
             <div class="filters-card p-6 mb-6">
-                <div class="flex flex-wrap items-center gap-2 text-sm">
+                <div class="flex flex-wrap items-center justify-center gap-2 text-sm">
                     <span class="text-gray-700 font-semibold text-sm">Custos por Categorias:</span>
                     <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
                     <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
