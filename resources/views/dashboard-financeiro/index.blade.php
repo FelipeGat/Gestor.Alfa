@@ -84,37 +84,6 @@
         ]" />
     </x-slot>
 
-    {{-- ================= HEADER ================= --}}
-    <x-slot name="header">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard Financeiro
-                {{ $empresaId ? '- ' . ($empresas->find($empresaId)->nome_fantasia ?? 'Empresa') : '(Global)' }}
-            </h2>
-
-            {{-- FILTROS --}}
-            <form method="GET" class="flex flex-wrap gap-3">
-                <select name="empresa_id"
-                    onchange="this.form.submit()"
-                    class="rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring focus:ring-[#3f9cae]/20">
-                    <option value="">Todas as Empresas</option>
-                    @foreach($empresas as $empresa)
-                    <option value="{{ $empresa->id }}" @selected($empresaId==$empresa->id)>
-                        {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                    </option>
-                    @endforeach
-                </select>
-
-                @if($empresaId || ($ano && $ano != date('Y')))
-                <a href="{{ route('financeiro.dashboard') }}"
-                    class="px-4 py-2 bg-gray-400 text-white rounded-full hover:bg-gray-500 transition text-sm font-medium">
-                    Limpar
-                </a>
-                @endif
-            </form>
-        </div>
-    </x-slot>
-
     {{-- ================= CONTEÚDO ================= --}}
     <div class="py-8 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
