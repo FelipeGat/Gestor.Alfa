@@ -203,8 +203,8 @@
                                     {{ ucfirst($preCliente->origem) }}
                                 </td>
                                 <td class="px-4 py-3 text-sm whitespace-nowrap">
-                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 110px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fef9c3; color: #854d0e;' }}">
-                                        {{ $preCliente->convertido_em_cliente ? 'Convertido' : 'Pendente' }}
+                                    <span class="inline-flex items-center rounded-full text-sm font-semibold" style="height: 36px; width: 160px; justify-content: center; {{ $preCliente->convertido_em_cliente ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #fef9c3; color: #854d0e;' }}">
+                                        {{ strtoupper($preCliente->convertido_em_cliente ? 'Convertido' : 'Pendente') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
