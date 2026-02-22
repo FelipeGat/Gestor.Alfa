@@ -5,12 +5,7 @@
         {{-- Cabeçalho do Modal --}}
         <div class="px-6 py-4 flex items-center justify-between" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
             <div class="flex items-center gap-3">
-                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-800">Ajuste Manual - <span id="ajusteUnificadoContaNome" class="text-indigo-600"></span></h3>
+                <h3 class="text-lg font-bold text-gray-800">Ajuste Manual - <span id="ajusteUnificadoContaNome" style="color: rgb(17, 24, 39);"></span></h3>
             </div>
             <button type="button" onclick="fecharModal('modalAjusteUnificado')" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
