@@ -225,7 +225,7 @@
                                     R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}
                                 </td>
                                 <td class="px-4 py-3 text-left">
-                                    <span class="inline-flex items-center justify-center h-8 px-3 rounded-full text-xs font-semibold w-28
+                                    <span class="inline-flex items-center justify-center h-8 px-3 rounded-full text-xs font-semibold w-28 uppercase
                                         {{ $conta->ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $conta->ativo ? 'Ativo' : 'Inativo' }}
                                     </span>
