@@ -74,7 +74,7 @@
                         wrapper.style.zIndex = '50';
                         wrapper.style.backgroundColor = '#f3f4f6';
                         wrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                        wrapper.style.paddingTop = '0.5rem';
+                        wrapper.style.paddingTop = '1rem';
                         wrapper.style.paddingBottom = '';
                     }
                 } else {
@@ -86,8 +86,8 @@
                         wrapper.style.zIndex = '';
                         wrapper.style.backgroundColor = '';
                         wrapper.style.boxShadow = '';
-                        wrapper.style.paddingTop = '0.5rem';
-                        wrapper.style.paddingBottom = '0.5rem';
+                        wrapper.style.paddingTop = '1rem';
+                        wrapper.style.paddingBottom = '1rem';
                     }
                 }
             }
