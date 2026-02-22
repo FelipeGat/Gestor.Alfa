@@ -87,7 +87,7 @@
                         wrapper.style.backgroundColor = '';
                         wrapper.style.boxShadow = '';
                         wrapper.style.paddingTop = '1rem';
-                        wrapper.style.paddingBottom = '3rem';
+                        wrapper.style.paddingBottom = '0.20rem';
                     }
                 }
             }
