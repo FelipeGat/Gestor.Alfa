@@ -71,7 +71,7 @@
                 <div class="group">
                     <label class="filter-label">Valor da Operação <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm" style="z-index: 10;">R$</span>
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm" style="z-index: 10;">R$</span>
                         <input type="text" name="valor" step="0.01" min="0.01" required placeholder="0,00" 
                             class="filter-select w-full" 
                             style="padding-left: 3rem; font-size: 1rem;">
