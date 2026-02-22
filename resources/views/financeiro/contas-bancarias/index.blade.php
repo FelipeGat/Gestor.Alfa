@@ -75,17 +75,17 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="filters-card">
-                <div class="filters-grid">
+            <form method="GET" class="filters-card p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
 
-                    <div class="filter-group">
-                        <label>Pesquisar Conta</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Nome da conta">
+                    <div class="flex flex-col lg:col-span-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Pesquisar Conta</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Nome da conta" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                     </div>
 
-                    <div class="filter-group">
-                        <label>Empresa</label>
-                        <select name="empresa_id">
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Empresa</label>
+                        <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todas</option>
                             @foreach($empresas as $empresa)
                             <option value="{{ $empresa->id }}" @selected(request('empresa_id')==$empresa->id)>
@@ -95,9 +95,9 @@
                         </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label>Tipo</label>
-                        <select name="tipo">
+                    <div class="flex flex-col lg:col-span-3">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select name="tipo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todos</option>
                             <option value="banco">Banco</option>
                             <option value="pix">Pix</option>
@@ -106,22 +106,16 @@
                         </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select name="status">
+                    <div class="flex flex-col lg:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
                             <option value="">Todos</option>
                             <option value="ativo">Ativo</option>
                             <option value="inativo">Inativo</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="actions-container">
-                    {{-- Espaço vazio (Esquerda) --}}
-                    <div></div>
-
-                    {{-- Grupo de Botões (Direita) --}}
-                    <div class="filters-actions">
+                    <div class="flex items-end gap-2 lg:col-span-3">
                         <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
