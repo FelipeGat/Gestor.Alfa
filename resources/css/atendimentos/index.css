@@ -246,6 +246,11 @@
         border: 1px solid #3b82f6;
         color: #3b82f6;
         background: white;
+        border-radius: 9999px;
+        padding: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-edit:hover {
@@ -256,10 +261,37 @@
         border: 1px solid #ef4444;
         color: #ef4444;
         background: white;
+        border-radius: 9999px;
+        padding: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-delete:hover {
         background: #fef2f2;
+    }
+
+    .btn-adjust {
+        border: 1px solid #eab308;
+        color: #eab308;
+        background: white;
+        border-radius: 9999px;
+        padding: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-adjust:hover {
+        background: #fefce8;
+    }
+
+    .btn-edit svg,
+    .btn-delete svg,
+    .btn-adjust svg {
+        width: 18px;
+        height: 18px;
     }
 
     /* ========================= PAGINAÇÃO ========================= */
