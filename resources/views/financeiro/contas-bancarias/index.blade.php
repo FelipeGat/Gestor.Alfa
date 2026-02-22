@@ -10,6 +10,7 @@
             border-top-width: 4px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-radius: 0.5rem;
+            margin-bottom: 0;
         }
         /* Inputs e Selects */
         .filters-card input:focus,
@@ -71,7 +72,7 @@
         ]" />
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= FILTROS ================= --}}
