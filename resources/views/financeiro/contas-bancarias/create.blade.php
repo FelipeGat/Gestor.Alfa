@@ -3,15 +3,14 @@
     @push('styles')
     @vite('resources/css/orcamentos/index.css')
     <style>
-        /* Card de Seção */
-        .form-card {
+        .section-card {
             background: white;
             border: 1px solid #3f9cae;
             border-top-width: 4px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-radius: 0.5rem;
         }
-        .form-card > h3 {
+        .section-card > h3 {
             font-family: 'Inter', sans-serif;
             font-size: 1.125rem;
             font-weight: 600;
@@ -20,7 +19,16 @@
             padding-bottom: 0.75rem;
             border-bottom: 1px solid #e5e7eb;
         }
-        /* Inputs */
+        .filter-select:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3f9cae !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #3f9cae !important;
+        }
         .input-field {
             border: 1px solid #d1d5db !important;
             border-radius: 0.375rem !important;
@@ -33,15 +41,14 @@
             outline: none !important;
             box-shadow: 0 0 0 1px #3f9cae !important;
         }
-        /* Label */
-        .label-text {
-            font-size: 0.875rem;
-            font-weight: 600;
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 700;
             color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
-            display: block;
         }
-        /* Botão Salvar */
         .btn-success {
             background: #22c55e !important;
             border-radius: 9999px !important;
@@ -51,7 +58,6 @@
         .btn-success:hover {
             box-shadow: 0 4px 6px rgba(34, 197, 94, 0.4);
         }
-        /* Botão Cancelar */
         .btn-cancelar {
             background: #ef4444 !important;
             color: white !important;
@@ -68,142 +74,140 @@
         ]" />
     </x-slot>
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                    Nova Conta Bancária
-                </h2>
-            </div>
+    <div class="py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <a href="{{ route('financeiro.contas-financeiras.index') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group"
-                title="Voltar para Contas Bancárias">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span>Voltar</span>
-            </a>
+            @if ($errors->any())
+            <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0"><svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg></div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide">Erros encontrados:</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
+                            @foreach ($errors->all() as $erro) <li>{{ $erro }}</li> @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <form method="POST"
+                action="{{ route('financeiro.contas-financeiras.store') }}">
+                @csrf
+
+                <div class="section-card p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900">Dados da Conta</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="filter-label">Empresa <span class="text-red-500">*</span></label>
+                            <select name="empresa_id" class="filter-select w-full" required>
+                                <option value="">Selecione a empresa</option>
+                                @foreach($empresas as $empresa)
+                                <option value="{{ $empresa->id }}">
+                                    {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Banco <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                name="nome"
+                                class="filter-select w-full"
+                                placeholder="Ex: Banco do Brasil, Sicoob"
+                                required>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Tipo da Conta <span class="text-red-500">*</span></label>
+                            <select name="tipo" class="filter-select w-full" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="corrente">Conta Corrente</option>
+                                <option value="poupanca">Poupança</option>
+                                <option value="investimento">Investimento</option>
+                                <option value="credito">Cartão de Crédito</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Saldo Inicial</label>
+                            <input type="number"
+                                step="0.01"
+                                name="saldo"
+                                class="filter-select w-full"
+                                placeholder="Pode ser negativo">
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Limite do Cartão de Crédito</label>
+                            <input type="number"
+                                step="0.01"
+                                name="limite_credito"
+                                class="filter-select w-full"
+                                placeholder="Ex: 5000.00">
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Limite Utilizado (Cartão)</label>
+                            <input type="number"
+                                step="0.01"
+                                name="limite_credito_utilizado"
+                                class="filter-select w-full"
+                                placeholder="Ex: 1200.00">
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Limite Cheque Especial</label>
+                            <input type="number"
+                                step="0.01"
+                                name="limite_cheque_especial"
+                                class="filter-select w-full"
+                                placeholder="Ex: 3000.00">
+                        </div>
+
+                        <div>
+                            <label class="filter-label">Conta Ativa <span class="text-red-500">*</span></label>
+                            <select name="ativo" class="filter-select w-full" required>
+                                <option value="">Selecione</option>
+                                <option value="1">Sim</option>
+                                <option value="0">Não</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <a href="{{ route('financeiro.contas-financeiras.index') }}" 
+                        class="btn btn-cancelar inline-flex items-center justify-center px-6 py-2" 
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; min-width: 130px; justify-content: center; width: 130px; box-shadow: none;" 
+                        onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'" 
+                        onmouseout="this.style.boxShadow='none'">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Cancelar
+                    </a>
+
+                    <button type="submit" 
+                        class="btn btn-primary inline-flex items-center justify-center px-6 py-2" 
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; background: #3f9cae; border-radius: 9999px; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3); transition: all 0.2s; min-width: 130px; width: 130px;" 
+                        onmouseover="this.style.background='#358a96'; this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'" 
+                        onmouseout="this.style.background='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'"
+                        onclick="this.disabled=true; this.form.submit();">
+                        <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Salvar
+                    </button>
+                </div>
+
+            </form>
+
         </div>
-    </x-slot>
-
-    <div class="py-8 max-w-4xl mx-auto px-4">
-
-        <form method="POST"
-            action="{{ route('financeiro.contas-financeiras.store') }}"
-            class="form-card p-0">
-            @csrf
-
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
-                <h3 class="font-semibold text-gray-800" style="font-size: 1.125rem; font-weight: 600;">Dados da Conta</h3>
-            </div>
-
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {{-- EMPRESA --}}
-                <div>
-                    <label class="label-text">Empresa</label>
-                    <select name="empresa_id" class="input-field" required>
-                        @foreach($empresas as $empresa)
-                        <option value="{{ $empresa->id }}">
-                            {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- NOME DO BANCO --}}
-                <div>
-                    <label class="label-text">Banco</label>
-                    <input type="text"
-                        name="nome"
-                        class="input-field"
-                        placeholder="Ex: Banco do Brasil, Sicoob"
-                        required>
-                </div>
-
-                {{-- TIPO DA CONTA --}}
-                <div>
-                    <label class="label-text">Tipo da Conta</label>
-                    <select name="tipo" class="input-field" required>
-                        <option value="corrente">Conta Corrente</option>
-                        <option value="poupanca">Poupança</option>
-                        <option value="investimento">Investimento</option>
-                        <option value="credito">Cartão de Crédito</option>
-                    </select>
-                </div>
-
-                {{-- SALDO --}}
-                <div>
-                    <label class="label-text">Saldo Inicial</label>
-                    <input type="number"
-                        step="0.01"
-                        name="saldo"
-                        class="input-field"
-                        placeholder="Pode ser negativo">
-                </div>
-
-                {{-- LIMITE CARTÃO --}}
-                <div>
-                    <label class="label-text">Limite do Cartão de Crédito</label>
-                    <input type="number"
-                        step="0.01"
-                        name="limite_credito"
-                        class="input-field"
-                        placeholder="Ex: 5000.00">
-                </div>
-
-                {{-- LIMITE UTILIZADO --}}
-                <div>
-                    <label class="label-text">Limite Utilizado (Cartão)</label>
-                    <input type="number"
-                        step="0.01"
-                        name="limite_credito_utilizado"
-                        class="input-field"
-                        placeholder="Ex: 1200.00">
-                </div>
-
-                {{-- CHEQUE ESPECIAL --}}
-                <div>
-                    <label class="label-text">Limite Cheque Especial</label>
-                    <input type="number"
-                        step="0.01"
-                        name="limite_cheque_especial"
-                        class="input-field"
-                        placeholder="Ex: 3000.00">
-                </div>
-
-                {{-- STATUS --}}
-                <div>
-                    <label class="label-text">Conta Ativa</label>
-                    <select name="ativo" class="input-field" required>
-                        <option value="1">Sim</option>
-                        <option value="0">Não</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" style="background-color: rgba(63, 156, 174, 0.05); border-top: 1px solid #e5e7eb;">
-                <a href="{{ route('financeiro.contas-financeiras.index') }}"
-                    class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-full hover:bg-red-700 transition shadow-md" style="padding: 0.625rem 1.25rem; border-radius: 9999px; background: #ef4444;">
-                    Cancelar
-                </a>
-
-                <button type="submit" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white rounded-full hover:opacity-90 transition shadow-md" 
-                    style="padding: 0.625rem 1.25rem; border-radius: 9999px; background: #22c55e; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);"
-                    onclick="this.disabled=true; this.form.submit();">
-                    Salvar Conta
-                </button>
-            </div>
-
-        </form>
-
     </div>
 
 </x-app-layout>
