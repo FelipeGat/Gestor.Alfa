@@ -10,6 +10,12 @@
     margin-bottom: 1.25rem;
 }
 
+@media (min-width: 640px) {
+    .modal-cobranca-section {
+        padding: 2rem;
+    }
+}
+
 .modal-cobranca-section:last-child {
     margin-bottom: 0;
 }
@@ -63,7 +69,7 @@
 /* ================= HEADER ================= */
 
 .modal-cobranca-header {
-    padding: 16px 20px;
+    padding: 40px 20px 16px;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
@@ -91,10 +97,16 @@
 /* ================= BODY ================= */
 
 .modal-cobranca-body {
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto;
     flex: 1;
     max-height: calc(90vh - 140px);
+}
+
+@media (min-width: 640px) {
+    .modal-cobranca-body {
+        padding: 32px;
+    }
 }
 
 .modal-grid {
