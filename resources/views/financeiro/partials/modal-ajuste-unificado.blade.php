@@ -48,7 +48,7 @@
                         </label>
                         <label class="relative flex items-center justify-center px-4 py-2 bg-white rounded-full cursor-pointer transition-all" style="border: 1px solid #d1d5db;" onmouseover="this.style.borderColor='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'" onmouseout="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
                             <input type="radio" name="tipo_ajuste" value="ajuste_saida" class="sr-only peer">
-                            <div class="peer-checked:text-red-600 peer-checked:font-black text-gray-600 text-sm flex items-center gap-2">
+                            <div class="peer-checked:text-red-600 peer-checked:font-black text-red-600 text-sm flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
                                 Saída
                             </div>
