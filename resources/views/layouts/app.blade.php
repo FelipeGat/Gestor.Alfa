@@ -39,7 +39,7 @@
 
             <!-- Breadcrumb -->
             @isset($breadcrumb)
-            <div id="breadcrumb-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2">
+            <div id="breadcrumb-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {{ $breadcrumb }}
             </div>
             @endisset
@@ -75,6 +75,7 @@
                         wrapper.style.backgroundColor = '#f3f4f6';
                         wrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                         wrapper.style.paddingTop = '0';
+                        wrapper.style.paddingBottom = '';
                     }
                 } else {
                     if (wrapper) {
@@ -86,6 +87,7 @@
                         wrapper.style.backgroundColor = '';
                         wrapper.style.boxShadow = '';
                         wrapper.style.paddingTop = '';
+                        wrapper.style.paddingBottom = '0.5rem';
                     }
                 }
             }
