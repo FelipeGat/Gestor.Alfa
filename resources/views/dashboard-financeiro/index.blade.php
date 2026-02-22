@@ -479,7 +479,7 @@
             <div class="filters-card p-6 mb-6">
                 <div class="flex flex-wrap items-center justify-center gap-2 text-sm">
                     <span class="text-gray-700 font-semibold text-sm">Custos por Categorias:</span>
-                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
+                    <button type="button" class="btn-filtro-rapido ativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
                     <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
                     <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
                 </div>
@@ -930,7 +930,7 @@
 
                 Object.entries(dadosCentros).forEach(([centro, dados]) => {
                     const centroSlug = centro.toLowerCase().replace(/ /g, '-');
-                    estadoNivel[centro] = 1; // 0: categoria, 1: subcategoria, 2: conta (padrão: subcategoria)
+                    estadoNivel[centro] = 0; // 0: categoria, 1: subcategoria, 2: conta (padrão: categoria)
                     const ctx = document.getElementById('grafico-categoria-' + centroSlug);
                     if (!ctx) return;
 
@@ -1031,32 +1031,80 @@
                         updateChart();
                     };
 
-                    // Botões de nível: aplicar destaque visual
-                    function updateBotoesNivel() {
-                        document.querySelectorAll('.btn-nivel-categoria').forEach(btn => {
-                            const nivel = btn.getAttribute('data-nivel');
-                            if (niveis[estadoNivel[centro]] === nivel) {
-                                btn.classList.add('bg-indigo-600', 'text-white');
-                                btn.classList.remove('bg-gray-100', 'text-gray-700');
-                            } else {
-                                btn.classList.remove('bg-indigo-600', 'text-white');
-                                btn.classList.add('bg-gray-100', 'text-gray-700');
-                            }
-                        });
-                    }
+                    // Botões de nível: alternar visual
                     document.querySelectorAll('.btn-nivel-categoria').forEach(btn => {
                         btn.addEventListener('click', function() {
                             const nivel = this.getAttribute('data-nivel');
                             const idx = niveis.indexOf(nivel);
-                            if (idx !== -1) {
-                                estadoNivel[centro] = idx;
-                                updateChart();
-                                updateBotoesNivel();
-                            }
+                            if (idx === -1) return;
+
+                            // Atualiza todos os centros
+                            Object.keys(estadoNivel).forEach(c => {
+                                estadoNivel[c] = idx;
+                            });
+
+                            // Atualiza todos os gráficos
+                            Object.entries(charts).forEach(([centro, chart]) => {
+                                const dados = dadosCentros[centro];
+                                let chartData;
+                                if (nivel === 'categoria') {
+                                    chartData = {
+                                        labels: (dados.categorias || []).map(c => c.nome),
+                                        data: (dados.categorias || []).map(c => c.total),
+                                    };
+                                } else if (nivel === 'subcategoria') {
+                                    chartData = {
+                                        labels: (dados.subcategorias || []).map(s => s.nome),
+                                        data: (dados.subcategorias || []).map(s => s.total),
+                                        meta: dados.subcategorias || []
+                                    };
+                                } else if (nivel === 'conta') {
+                                    chartData = {
+                                        labels: (dados.contas || []).map(c => c.nome),
+                                        data: (dados.contas || []).map(c => c.total),
+                                        meta: dados.contas || []
+                                    };
+                                }
+
+                                let backgroundColors;
+                                if (nivel === 'subcategoria') {
+                                    backgroundColors = (chartData.meta || []).map(s => {
+                                        const key = `${normalizeString(s.categoria)}::${normalizeString(s.nome)}`;
+                                        return colorMapSubcategorias[key] || fallbackColor;
+                                    });
+                                } else if (nivel === 'conta') {
+                                    backgroundColors = (chartData.meta || []).map(c => {
+                                        const key = `${normalizeString(c.subcategoria)}::${normalizeString(c.nome)}`;
+                                        return colorMapContas[key] || fallbackColor;
+                                    });
+                                } else {
+                                    backgroundColors = getColorsByLabels(chartData.labels, nivel);
+                                }
+
+                                chart.data.labels = chartData.labels;
+                                chart.data.datasets[0].data = chartData.data;
+                                chart.data.datasets[0].backgroundColor = backgroundColors;
+                                chart.update();
+
+                                // Atualiza texto do nível
+                                const nivelEl = document.getElementById('grafico-nivel-' + centro.toLowerCase().replace(/ /g, '-'));
+                                if (nivelEl) {
+                                    nivelEl.textContent = nivel.charAt(0).toUpperCase() + nivel.slice(1);
+                                }
+                            });
+
+                            // Atualiza visual dos botões
+                            document.querySelectorAll('.btn-nivel-categoria').forEach(b => {
+                                if (b.getAttribute('data-nivel') === nivel) {
+                                    b.classList.remove('btn-filtro-rapido', 'inativo');
+                                    b.classList.add('btn-filtro-rapido', 'ativo');
+                                } else {
+                                    b.classList.remove('btn-filtro-rapido', 'ativo');
+                                    b.classList.add('btn-filtro-rapido', 'inativo');
+                                }
+                            });
                         });
                     });
-                    // Atualizar botões ao iniciar
-                    updateBotoesNivel();
                 });
             });
         </script>
