@@ -132,16 +132,6 @@
                 </div>
             </form>
 
-            {{-- ================= BOTÃO ADICIONAR ================= --}}
-            <div class="flex justify-start" style="margin-bottom: -1rem;">
-                <a href="{{ route('financeiro.contas-financeiras.create') }}" class="btn btn-success inline-flex" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
-                    <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Adicionar
-                </a>
-            </div>
-
             {{-- ================= RESUMO ================= --}}
             <style>
             @media (min-width: 1024px) {
@@ -181,6 +171,16 @@
                         R$ {{ number_format($contas->sum('saldo'), 2, ',', '.') }}
                     </p>
                 </div>
+            </div>
+
+            {{-- ================= BOTÃO ADICIONAR ================= --}}
+            <div class="flex justify-start mb-4">
+                <a href="{{ route('financeiro.contas-financeiras.create') }}" class="btn btn-success inline-flex" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px;">
+                    <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Adicionar
+                </a>
             </div>
 
             {{-- ================= TABELA ================= --}}
