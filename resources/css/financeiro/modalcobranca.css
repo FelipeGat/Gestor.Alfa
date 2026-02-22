@@ -1,3 +1,29 @@
+/* ================= SECTIONS (Padrão Empresas/Edit) ================= */
+
+.modal-cobranca-section {
+    background: white;
+    border: 1px solid #3f9cae;
+    border-top-width: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.25rem;
+}
+
+.modal-cobranca-section:last-child {
+    margin-bottom: 0;
+}
+
+.modal-cobranca-section-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: #111827;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
 /* ================= MODAL COBRANÇA ================= */
 
 .modal-cobranca-overlay {
@@ -93,13 +119,23 @@
 .modal-select {
     padding: 8px 10px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 0.5rem;
     font-size: 14px;
     background: #fff;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-input:focus,
+.modal-select:focus {
+    border-color: #3f9cae !important;
+    box-shadow: 0 0 0 3px rgba(63, 156, 174, 0.1) !important;
+    outline: none;
 }
 
 .modal-input:disabled {
     background: #f3f4f6;
+    color: #6b7280;
 }
 
 /* ================= PARCELAS ================= */
@@ -130,28 +166,35 @@
 }
 
 .modal-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 8px 20px;
+    border-radius: 9999px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     border: none;
+    min-width: 130px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .modal-btn-cancel {
-    background: #e5e7eb;
-    color: #374151;
+    background: #ef4444;
+    color: white;
 }
 
 .modal-btn-cancel:hover {
-    background: #d1d5db;
+    background: #dc2626;
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4);
 }
 
 .modal-btn-success {
-    background: #16a34a;
+    background: #3f9cae;
     color: #ffffff;
 }
 
 .modal-btn-success:hover {
-    background: #15803d;
+    background: #35869a;
+    box-shadow: 0 4px 6px rgba(63, 156, 174, 0.4);
 }

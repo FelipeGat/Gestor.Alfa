@@ -15,7 +15,7 @@
         {{-- ================= HEADER ================= --}}
         <div class="modal-cobranca-header">
             <div class="modal-cobranca-title">
-                💰 Gerar Cobrança —
+                Gerar Cobrança —
                 Orçamento
                 <span x-text="$store.modalCobranca.orcamento?.numero_orcamento"></span>
             </div>
@@ -67,104 +67,117 @@
                     </div>
                 </template>
 
-                <div class="modal-grid">
-                    {{-- CLIENTE --}}
-                    <div class="modal-field">
-                        <label class="modal-label">Cliente</label>
-                        <input
-                            type="text"
-                            class="modal-input"
-                            :value="$store.modalCobranca.orcamento?.cliente?.nome_fantasia || 'N/A'"
-                            disabled>
-                    </div>
+                {{-- SEÇÃO 1: INFORMAÇÕES DO ORÇAMENTO --}}
+                <div class="modal-cobranca-section">
+                    <h3 class="modal-cobranca-section-title">Informações do Orçamento</h3>
 
-                    {{-- ORÇAMENTO --}}
-                    <div class="modal-field">
-                        <label class="modal-label">Orçamento</label>
-                        <input
-                            type="text"
-                            class="modal-input"
-                            :value="$store.modalCobranca.orcamento?.numero_orcamento"
-                            disabled>
+                    <div class="modal-grid">
+                        {{-- CLIENTE --}}
+                        <div class="modal-field">
+                            <label class="modal-label">Cliente</label>
+                            <input
+                                type="text"
+                                class="modal-input"
+                                :value="$store.modalCobranca.orcamento?.cliente?.nome_fantasia || 'N/A'"
+                                disabled>
+                        </div>
+
+                        {{-- ORÇAMENTO --}}
+                        <div class="modal-field">
+                            <label class="modal-label">Orçamento</label>
+                            <input
+                                type="text"
+                                class="modal-input"
+                                :value="$store.modalCobranca.orcamento?.numero_orcamento"
+                                disabled>
+                        </div>
                     </div>
                 </div>
 
-                {{-- FORMA DE PAGAMENTO --}}
-                <div class="modal-field" style="margin-top:16px">
-                    <label class="modal-label">Forma de Pagamento</label>
-                    <select
-                        name="forma_pagamento"
-                        x-model="forma"
-                        @change="atualizarForma()"
-                        class="modal-select"
-                        required>
-                        <option value="">Selecione</option>
-                        <option value="pix">Pix</option>
-                        <option value="debito">Cartão de Débito</option>
-                        <option value="credito">Cartão de Crédito</option>
-                        <option value="boleto">Boleto</option>
-                        <option value="faturado">Faturado</option>
-                    </select>
+                {{-- SEÇÃO 2: FORMA DE PAGAMENTO --}}
+                <div class="modal-cobranca-section">
+                    <h3 class="modal-cobranca-section-title">Forma de Pagamento</h3>
+
+                    <div class="modal-field">
+                        <label class="modal-label">Forma de Pagamento</label>
+                        <select
+                            name="forma_pagamento"
+                            x-model="forma"
+                            @change="atualizarForma()"
+                            class="modal-select"
+                            required>
+                            <option value="">Selecione</option>
+                            <option value="pix">Pix</option>
+                            <option value="debito">Cartão de Débito</option>
+                            <option value="credito">Cartão de Crédito</option>
+                            <option value="boleto">Boleto</option>
+                            <option value="faturado">Faturado</option>
+                        </select>
+                    </div>
                 </div>
 
-                {{-- PARCELAS --}}
+                {{-- SEÇÃO 3: PARCELAS (Condicional) --}}
                 <template x-if="mostrarParcelas">
-                    <div class="modal-parcelas" style="margin-top:16px">
-                        <label class="modal-label">Quantidade de Parcelas</label>
-                        <input
-                            type="number"
-                            name="parcelas"
-                            min="1"
-                            max="12"
-                            x-model.number="parcelas"
-                            @input="gerarVencimentos()"
-                            class="modal-input"
-                            style="max-width:120px">
-                    </div>
-                </template>
+                    <div class="modal-cobranca-section">
+                        <h3 class="modal-cobranca-section-title">Parcelas</h3>
 
-                {{-- VENCIMENTOS E VALORES --}}
-                <template x-if="vencimentos.length > 0">
-                    <div class="modal-vencimentos" style="margin-top:16px">
-                        <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid #3b82f6;">
-                            <strong>Valor Total: R$ <span x-text="formatarMoeda($store.modalCobranca.orcamento?.valor_total)"></span></strong>
-                            <span style="margin-left: 16px; color: #666;">Distribuído: R$ <span x-text="formatarMoeda(getValorTotal())"></span></span>
+                        <div class="modal-field" style="margin-bottom: 16px;">
+                            <label class="modal-label">Quantidade de Parcelas</label>
+                            <input
+                                type="number"
+                                name="parcelas"
+                                min="1"
+                                max="12"
+                                x-model.number="parcelas"
+                                @input="gerarVencimentos()"
+                                class="modal-input"
+                                style="max-width:120px">
                         </div>
 
-                        <div class="modal-vencimentos-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                            <template x-for="(v, index) in vencimentos" :key="index">
-                                <div style="display: grid; grid-template-columns: 2fr 2fr; gap: 10px; padding: 12px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
-                                    <div class="modal-field" style="margin: 0;">
-                                        <label class="modal-label">
-                                            📅 Parcela <span x-text="index + 1"></span> - Vencimento
-                                        </label>
-                                        <input
-                                            type="date"
-                                            :name="`vencimentos[${index}]`"
-                                            x-model="vencimentos[index]"
-                                            @change="recalcularDatas(index)"
-                                            class="modal-input"
-                                            required>
-                                    </div>
-                                    <div class="modal-field" style="margin: 0;">
-                                        <label class="modal-label">
-                                            💵 Valor (R$)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            :name="`valores_parcelas[${index}]`"
-                                            x-model="valoresParcelas[index]"
-                                            @focus="salvarValorOriginal(index)"
-                                            @blur="ajustarValores(index)"
-                                            class="modal-input"
-                                            required
-                                            style="font-weight: 600; color: #059669;">
-                                    </div>
+                        {{-- VENCIMENTOS E VALORES --}}
+                        <template x-if="vencimentos.length > 0">
+                            <div class="modal-vencimentos">
+                                <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                                    <strong>Valor Total: R$ <span x-text="formatarMoeda($store.modalCobranca.orcamento?.valor_total)"></span></strong>
+                                    <span style="margin-left: 16px; color: #666;">Distribuído: R$ <span x-text="formatarMoeda(getValorTotal())"></span></span>
                                 </div>
-                            </template>
-                        </div>
+
+                                <div class="modal-vencimentos-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                                    <template x-for="(v, index) in vencimentos" :key="index">
+                                        <div style="display: grid; grid-template-columns: 2fr 2fr; gap: 10px; padding: 12px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                            <div class="modal-field" style="margin: 0;">
+                                                <label class="modal-label">
+                                                    📅 Parcela <span x-text="index + 1"></span> - Vencimento
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    :name="`vencimentos[${index}]`"
+                                                    x-model="vencimentos[index]"
+                                                    @change="recalcularDatas(index)"
+                                                    class="modal-input"
+                                                    required>
+                                            </div>
+                                            <div class="modal-field" style="margin: 0;">
+                                                <label class="modal-label">
+                                                    💵 Valor (R$)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    :name="`valores_parcelas[${index}]`"
+                                                    x-model="valoresParcelas[index]"
+                                                    @focus="salvarValorOriginal(index)"
+                                                    @blur="ajustarValores(index)"
+                                                    class="modal-input"
+                                                    required
+                                                    style="font-weight: 600; color: #059669;">
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </template>
 
