@@ -208,8 +208,8 @@
                 const tabsHtml = tabs.map(tab => {
                     const isActive = tab.id === activeId || tab.url === currentUrl;
                     const closeButton = isActive 
-                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-3 w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">×</button>`
-                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-3 w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none opacity-0 group-hover:opacity-100">×</button>`;
+                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-3 w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">X</button>`
+                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-3 w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none opacity-0 group-hover:opacity-100">X</button>`;
 
                     if (isActive) {
                         return `<div class="tab-item group relative" data-tab-id="${tab.id}" data-tab-url="${tab.url}">

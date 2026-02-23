@@ -29,7 +29,7 @@ $tabs = !empty($tabs) ? $tabs : array_map(function($item) {
                                 class="ml-3 w-5 h-5 flex items-center justify-center rounded-full 
                                        text-gray-400 hover:text-red-500 hover:bg-red-100 
                                        transition-colors text-sm leading-none">
-                            ×
+                            X
                         </button>
                     </span>
                 @else
@@ -44,7 +44,7 @@ $tabs = !empty($tabs) ? $tabs : array_map(function($item) {
                                 class="ml-3 w-5 h-5 flex items-center justify-center rounded-full 
                                        text-gray-400 hover:text-red-500 hover:bg-red-100 
                                        transition-colors text-sm leading-none opacity-0 group-hover:opacity-100">
-                            ×
+                            X
                         </button>
                     </a>
                 @endif
