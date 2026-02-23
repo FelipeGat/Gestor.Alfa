@@ -99,7 +99,7 @@ class CategoriaController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome',
             'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         Categoria::create([
@@ -124,7 +124,7 @@ class CategoriaController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome,'.$categoria->id,
             'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         $categoria->update([
@@ -164,7 +164,7 @@ class CategoriaController extends Controller
         $request->validate([
             'categoria_id' => 'required|exists:categorias,id',
             'nome' => 'required|string|max:255',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         Subcategoria::create([
@@ -189,7 +189,7 @@ class CategoriaController extends Controller
         $request->validate([
             'categoria_id' => 'required|exists:categorias,id',
             'nome' => 'required|string|max:255',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         $subcategoria->update([
@@ -229,7 +229,7 @@ class CategoriaController extends Controller
         $request->validate([
             'subcategoria_id' => 'required|exists:subcategorias,id',
             'nome' => 'required|string|max:255',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         Conta::create([
@@ -254,7 +254,7 @@ class CategoriaController extends Controller
         $request->validate([
             'subcategoria_id' => 'required|exists:subcategorias,id',
             'nome' => 'required|string|max:255',
-            'ativo' => 'required|boolean',
+            'ativo' => 'required|in:0,1',
         ]);
 
         $conta->update([
