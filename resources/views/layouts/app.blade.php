@@ -93,6 +93,163 @@
 
             window.addEventListener('scroll', handleScroll);
             handleScroll();
+
+            // ============================================
+            // Gerenciamento de Abas (Browser Tabs)
+            // ============================================
+            const STORAGE_KEY = 'gestor_alfa_tabs';
+            const ACTIVE_TAB_KEY = 'gestor_alfa_active_tab';
+
+            function getTabs() {
+                const data = sessionStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            }
+
+            function saveTabs(tabs) {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+            }
+
+            function getActiveTabId() {
+                return sessionStorage.getItem(ACTIVE_TAB_KEY);
+            }
+
+            function setActiveTabId(id) {
+                sessionStorage.setItem(ACTIVE_TAB_KEY, id);
+            }
+
+            function generateTabId(url, label) {
+                return 'tab_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+            }
+
+            window.abrirTab = function(url, label) {
+                let tabs = getTabs();
+                const tabId = generateTabId(url, label);
+                
+                tabs.push({ id: tabId, url: url, label: label });
+                
+                saveTabs(tabs);
+                setActiveTabId(tabId);
+                
+                window.location.href = url;
+            };
+
+            window.fecharTab = function(tabId) {
+                let tabs = getTabs();
+                const activeId = getActiveTabId();
+                
+                const tabIndex = tabs.findIndex(t => t.id === tabId);
+                if (tabIndex === -1) return;
+                
+                tabs.splice(tabIndex, 1);
+                saveTabs(tabs);
+                
+                if (tabId === activeId) {
+                    if (tabs.length > 0) {
+                        const newActiveIndex = Math.min(tabIndex, tabs.length - 1);
+                        const newActive = tabs[newActiveIndex];
+                        setActiveTabId(newActive.id);
+                        window.location.href = newActive.url;
+                    } else {
+                        sessionStorage.removeItem(ACTIVE_TAB_KEY);
+                        window.location.href = '{{ route("dashboard") }}';
+                    }
+                } else {
+                    window.location.reload();
+                }
+            };
+
+            window.ativarTab = function(tabId) {
+                let tabs = getTabs();
+                const tab = tabs.find(t => t.id === tabId);
+                
+                if (tab) {
+                    setActiveTabId(tabId);
+                    window.location.href = tab.url;
+                }
+            };
+
+            window.getAbas = function() {
+                return getTabs();
+            };
+
+            window.getAbaAtiva = function() {
+                return getActiveTabId();
+            };
+
+            // Interceptor de cliques nos links do menu
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('[data-tab-link]');
+                if (link) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    const url = link.getAttribute('href');
+                    const label = link.getAttribute('data-tab-label') || link.textContent.trim();
+                    if (url && url !== '#') {
+                        window.abrirTab(url, label);
+                        return false;
+                    }
+                }
+            }, true);
+
+            // Renderizar abas do sessionStorage
+            function renderAbas() {
+                const container = document.getElementById('breadcrumb-container');
+                if (!container) return;
+
+                const tabs = getTabs();
+                const activeId = getActiveTabId();
+                const currentUrl = window.location.href;
+
+                if (tabs.length === 0) {
+                    return;
+                }
+
+                const tabsHtml = tabs.map(tab => {
+                    const isActive = tab.id === activeId || tab.url === currentUrl;
+                    const closeButton = isActive 
+                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none">×</button>`
+                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none opacity-0 group-hover:opacity-100">×</button>`;
+
+                    if (isActive) {
+                        return `<div class="tab-item group relative" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
+                            <span class="relative bg-white px-4 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center gap-2">
+                                ${tab.label}
+                                ${closeButton}
+                            </span>
+                        </div>`;
+                    } else {
+                        return `<div class="tab-item group relative" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
+                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center gap-2 hover:bg-gray-300 hover:text-gray-800 transition-all">
+                                ${tab.label}
+                                ${closeButton}
+                            </a>
+                        </div>`;
+                    }
+                }).join('');
+
+                container.innerHTML = `<nav class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
+            }
+
+            // Inicializar aba atual se não existir
+            function inicializarAbas() {
+                let tabs = getTabs();
+                const activeId = getActiveTabId();
+
+                if (tabs.length === 0) {
+                    const currentLabel = document.querySelector('h2')?.textContent?.trim() || 'Página';
+                    const currentUrl = window.location.href;
+                    const tabId = generateTabId(currentUrl, currentLabel);
+                    tabs = [{ id: tabId, url: currentUrl, label: currentLabel }];
+                    saveTabs(tabs);
+                    setActiveTabId(tabId);
+                } else if (!activeId && tabs.length > 0) {
+                    setActiveTabId(tabs[0].id);
+                }
+            }
+
+            renderAbas();
+            inicializarAbas();
         });
     </script>
 </body>

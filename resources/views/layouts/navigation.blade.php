@@ -23,7 +23,7 @@
                     @elseif($isCliente) {{ route('portal.index') }}
                     @else {{ route('portal-funcionario.index') }}
                     @endif
-                ">
+                " data-tab-link data-tab-label="Dashboard">
                     <x-application-logo class="h-6 w-auto text-gray-800" />
                 </a>
             </div>
