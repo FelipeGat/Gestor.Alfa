@@ -98,7 +98,7 @@ class CategoriaController extends Controller
 
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome',
-            'tipo' => 'nullable|string|max:50',
+            'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
             'ativo' => 'required|boolean',
         ]);
 
@@ -123,7 +123,7 @@ class CategoriaController extends Controller
 
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome,'.$categoria->id,
-            'tipo' => 'nullable|string|max:50',
+            'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
             'ativo' => 'required|boolean',
         ]);
 
