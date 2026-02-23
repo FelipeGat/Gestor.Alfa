@@ -123,6 +123,21 @@
                     </div>
                 </a>
 
+                <!-- Categorias Financeiras -->
+                <a href="{{ route('categorias.index') }}" class="card-cadastro group block p-6">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="p-3 icone-bg rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 icone-cor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Categorias Financeiras</div>
+                        <div class="text-xs text-gray-500">Gerencie categorias, subcategorias e contas</div>
+                    </div>
+                </a>
+
             </div>
         </div>
     </div>

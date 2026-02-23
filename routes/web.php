@@ -219,6 +219,22 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     // Assuntos
     Route::resource('assuntos', AssuntoController::class);
 
+    // Categorias Financeiras
+    Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias.index');
+    Route::post('/categorias', [\App\Http\Controllers\CategoriaController::class, 'storeCategoria'])->name('categorias.store');
+    Route::put('/categorias/{categoria}', [\App\Http\Controllers\CategoriaController::class, 'updateCategoria'])->name('categorias.update');
+    Route::delete('/categorias/{categoria}', [\App\Http\Controllers\CategoriaController::class, 'destroyCategoria'])->name('categorias.destroy');
+
+    // Subcategorias
+    Route::post('/subcategorias', [\App\Http\Controllers\CategoriaController::class, 'storeSubcategoria'])->name('subcategorias.store');
+    Route::put('/subcategorias/{subcategoria}', [\App\Http\Controllers\CategoriaController::class, 'updateSubcategoria'])->name('subcategorias.update');
+    Route::delete('/subcategorias/{subcategoria}', [\App\Http\Controllers\CategoriaController::class, 'destroySubcategoria'])->name('subcategorias.destroy');
+
+    // Contas
+    Route::post('/contas', [\App\Http\Controllers\CategoriaController::class, 'storeConta'])->name('contas.store');
+    Route::put('/contas/{conta}', [\App\Http\Controllers\CategoriaController::class, 'updateConta'])->name('contas.update');
+    Route::delete('/contas/{conta}', [\App\Http\Controllers\CategoriaController::class, 'destroyConta'])->name('contas.destroy');
+
     // Atendimentos
     Route::resource('atendimentos', AtendimentoController::class)
         ->except(['show']);
