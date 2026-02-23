@@ -49,6 +49,8 @@
         ]" />
     </x-slot>
 
+    <x-back-button :route="route('empresas.index')" />
+
     <div class="pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
