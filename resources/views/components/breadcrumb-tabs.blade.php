@@ -19,34 +19,31 @@ $tabs = !empty($tabs) ? $tabs : array_map(function($item) {
                 $tabUrl = $tab['url'];
             @endphp
 
-            <div class="tab-item group relative min-w-[80px]" data-tab-id="{{ $tabId }}" data-tab-url="{{ $tabUrl }}">
+            <div class="tab-item group relative flex-shrink-0" data-tab-id="{{ $tabId }}" data-tab-url="{{ $tabUrl }}">
                 @if ($isActive)
-                    <span class="relative bg-white px-3 py-2 text-sm font-semibold text-[#3f9cae]
-                                 rounded-t-lg border-2 border-[#3f9cae] flex items-center gap-1 truncate">
+                    <span class="relative bg-white px-4 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center">
                         {{ $tab['label'] }}
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.fecharTab('{{ $tabId }}')"
-                                class="ml-3 w-5 h-5 flex items-center justify-center rounded-full 
-                                       text-gray-400 hover:text-red-500 hover:bg-red-100 
-                                       transition-colors text-sm leading-none flex-shrink-0">
-                            X
-                        </button>
                     </span>
+                    <button type="button" 
+                            onclick="event.stopPropagation(); window.fecharTab('{{ $tabId }}')"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 ml-auto w-5 h-5 flex items-center justify-center rounded-full 
+                                   text-gray-400 hover:text-red-500 hover:bg-red-100 
+                                   transition-colors text-sm leading-none">
+                        X
+                    </button>
                 @else
                     <a href="{{ $tabUrl }}" 
                        onclick="event.preventDefault(); window.ativarTab('{{ $tabId }}')"
-                       class="relative bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-600
-                              rounded-t-lg border border-gray-300 flex items-center gap-1
-                              hover:bg-gray-300 hover:text-gray-800 transition-all truncate">
+                       class="relative bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center hover:bg-gray-300 hover:text-gray-800 transition-all">
                         {{ $tab['label'] }}
-                        <button type="button" 
-                                onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('{{ $tabId }}')"
-                                class="ml-3 w-5 h-5 flex items-center justify-center rounded-full 
-                                       text-gray-400 hover:text-red-500 hover:bg-red-100 
-                                       transition-colors text-sm leading-none opacity-0 group-hover:opacity-100 flex-shrink-0">
-                            X
-                        </button>
                     </a>
+                    <button type="button" 
+                            onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('{{ $tabId }}')"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 ml-auto w-5 h-5 flex items-center justify-center rounded-full 
+                                   text-gray-300 hover:text-red-500 hover:bg-red-100 
+                                   transition-colors text-sm leading-none">
+                        X
+                    </button>
                 @endif
             </div>
         @endforeach
