@@ -20,6 +20,33 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
+    <style>
+        /* Scrollbar mais fina e discreta */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+    </style>
+
 </head>
 
 <body class="font-sans antialiased">
