@@ -245,19 +245,19 @@
                 const tabsHtml = tabs.map(tab => {
                     const isActive = tab.id === activeId;
                     const closeButton = isActive 
-                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-0 top-1/2 -translate-y-1/2 ml-auto w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">X</button>`
-                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-0 top-1/2 -translate-y-1/2 ml-auto w-5 h-5 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">X</button>`;
+                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">x</button>`
+                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full font-semibold text-gray-600 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">x</button>`;
 
                     if (isActive) {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <span class="relative bg-white px-4 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center">
+                            <span class="relative bg-white px-4 pr-12 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center">
                                 ${tab.label}
                             </span>
                             ${closeButton}
                         </div>`;
                     } else {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center hover:bg-gray-300 hover:text-gray-800 transition-all">
+                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 pr-12 py-2 text-sm font-semibold font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center hover:bg-gray-300 hover:text-gray-800 transition-all">
                                 ${tab.label}
                             </a>
                             ${closeButton}
