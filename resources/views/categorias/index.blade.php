@@ -357,6 +357,7 @@
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-subcategoria-title">Nova Subcategoria</h3>
                         <input type="hidden" name="_method" id="subcategoria-method" value="POST">
+                        <input type="hidden" id="subcategoria-id" value="">
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
@@ -471,6 +472,7 @@
             } else if (id === 'modal-subcategoria') {
                 document.getElementById('form-subcategoria').reset();
                 document.getElementById('subcategoria-method').value = 'POST';
+                document.getElementById('subcategoria-id').value = '';
                 document.getElementById('modal-subcategoria-title').textContent = 'Nova Subcategoria';
                 document.getElementById('form-subcategoria').action = '{{ route("subcategorias.store") }}';
             } else if (id === 'modal-conta') {
@@ -493,6 +495,7 @@
         }
 
         function editSubcategoria(id, categoriaId, nome, ativo) {
+            document.getElementById('subcategoria-id').value = id;
             document.getElementById('subcategoria-categoria_id').value = categoriaId;
             document.getElementById('subcategoria-nome').value = nome;
             document.getElementById('subcategoria-ativo').value = ativo ? '1' : '0';
@@ -562,14 +565,23 @@
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
                 },
                 body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => {
-                if (r.ok) {
+            }).then(r => r.json().then(data => ({status: r.status, data})))
+            .then(result => {
+                if (result.status === 200 && result.data.success) {
                     window.location.reload();
+                } else if (result.status === 422) {
+                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
+                } else if (result.status === 403) {
+                    alert('Acesso negado');
                 } else {
-                    alert('Erro ao salvar categoria');
+                    alert('Erro ao salvar categoria: ' + (result.data.message || 'Erro desconhecido'));
                 }
+            }).catch(err => {
+                console.error(err);
+                alert('Erro ao salvar categoria');
             });
         });
 
@@ -577,21 +589,31 @@
             e.preventDefault();
             const form = this;
             const method = document.getElementById('subcategoria-method').value;
-            const url = form.action;
+            const url = method === 'POST' ? '{{ route("subcategorias.store") }}' : '/subcategorias/' + document.getElementById('subcategoria-id').value;
             
             fetch(url, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
                 },
                 body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => {
-                if (r.ok) {
+            }).then(r => r.json().then(data => ({status: r.status, data})))
+            .then(result => {
+                console.log('Resposta:', result);
+                if (result.status === 200 && result.data.success) {
                     window.location.reload();
+                } else if (result.status === 422) {
+                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
+                } else if (result.status === 403) {
+                    alert('Acesso negado');
                 } else {
-                    alert('Erro ao salvar subcategoria');
+                    alert('Erro ao salvar subcategoria: ' + (result.data.message || 'Erro desconhecido'));
                 }
+            }).catch(err => {
+                console.error(err);
+                alert('Erro ao salvar subcategoria');
             });
         });
 

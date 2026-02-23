@@ -8,6 +8,7 @@ use App\Models\Subcategoria;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CategoriaController extends Controller
 {
@@ -38,7 +39,7 @@ class CategoriaController extends Controller
     public function index(Request $request)
     {
         abort_if(
-            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'ler'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -98,17 +99,19 @@ class CategoriaController extends Controller
 
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome',
-            'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
+            'tipo' => 'nullable|string|in:FIXA,VARIAVEL,INVESTIMENTO',
             'ativo' => 'required|in:0,1',
         ]);
 
         Categoria::create([
             'nome' => $request->nome,
-            'tipo' => $request->tipo,
+            'tipo' => $request->tipo ?: 'FIXA',
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Categoria criada com sucesso.');
+        Log::info('Categoria criada com sucesso');
+
+        return response()->json(['success' => true, 'message' => 'Categoria criada com sucesso.']);
     }
 
     public function updateCategoria(Request $request, Categoria $categoria)
@@ -116,20 +119,20 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
 
         $request->validate([
             'nome' => 'required|string|max:255|unique:categorias,nome,'.$categoria->id,
-            'tipo' => 'required|string|in:FIXA,VARIAVEL,INVESTIMENTO',
+            'tipo' => 'nullable|string|in:FIXA,VARIAVEL,INVESTIMENTO',
             'ativo' => 'required|in:0,1',
         ]);
 
         $categoria->update([
             'nome' => $request->nome,
-            'tipo' => $request->tipo,
+            'tipo' => $request->tipo ?: 'FIXA',
             'ativo' => $request->ativo,
         ]);
 
@@ -141,7 +144,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
@@ -155,8 +158,13 @@ class CategoriaController extends Controller
     {
         $user = Auth::user();
 
+        $isAdmin = $this->isAdmin();
+        $hasPermissao = $user->canPermissao('categorias', 'incluir');
+
+        Log::info("Subcategoria - isAdmin: {$isAdmin}, hasPermissao: {$hasPermissao}");
+
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
+            ! $isAdmin && ! $hasPermissao,
             403,
             'Acesso não autorizado'
         );
@@ -167,13 +175,17 @@ class CategoriaController extends Controller
             'ativo' => 'required|in:0,1',
         ]);
 
+        Log::info('Dados recebidos para subcategoria:', $request->all());
+
         Subcategoria::create([
             'categoria_id' => $request->categoria_id,
             'nome' => $request->nome,
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Subcategoria criada com sucesso.');
+        \Log::info('Subcategoria criada com sucesso');
+
+        return response()->json(['success' => true, 'message' => 'Subcategoria criada com sucesso.']);
     }
 
     public function updateSubcategoria(Request $request, Subcategoria $subcategoria)
@@ -181,7 +193,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -206,7 +218,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
@@ -221,7 +233,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -246,7 +258,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -271,7 +283,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
