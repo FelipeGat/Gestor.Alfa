@@ -228,8 +228,21 @@
                     }
                 }).join('');
 
-                container.innerHTML = `<nav class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
+                container.innerHTML = `<nav id="tabs-nav" class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
             }
+
+            // Scroll horizontal das abas com mouse
+            document.addEventListener('DOMContentLoaded', function() {
+                const tabsNav = document.getElementById('tabs-nav');
+                if (tabsNav) {
+                    tabsNav.addEventListener('wheel', function(e) {
+                        if (e.deltaY !== 0) {
+                            e.preventDefault();
+                            this.scrollLeft += e.deltaY;
+                        }
+                    });
+                }
+            });
 
             // Inicializar aba atual se não existir
             function inicializarAbas() {
@@ -248,8 +261,22 @@
                 }
             }
 
+            // Scroll horizontal das abas com mouse
+            function initTabsScroll() {
+                const tabsNav = document.getElementById('tabs-nav');
+                if (tabsNav) {
+                    tabsNav.addEventListener('wheel', function(e) {
+                        if (Math.abs(e.deltaY) > 0) {
+                            e.preventDefault();
+                            tabsNav.scrollLeft += e.deltaY;
+                        }
+                    }, { passive: false });
+                }
+            }
+
             renderAbas();
             inicializarAbas();
+            setTimeout(initTabsScroll, 0);
         });
     </script>
 </body>

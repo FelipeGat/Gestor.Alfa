@@ -11,7 +11,7 @@ $tabs = !empty($tabs) ? $tabs : array_map(function($item) {
 @endphp
 
 <div class="w-full">
-    <nav class="flex items-end gap-1 overflow-x-auto">
+    <nav id="tabs-nav" class="flex items-end gap-1 overflow-x-auto">
         @foreach ($tabs as $tab)
             @php
                 $isActive = $activeId ? ($tab['id'] === $activeId) : ($loop->last ?? false);
@@ -49,3 +49,19 @@ $tabs = !empty($tabs) ? $tabs : array_map(function($item) {
         @endforeach
     </nav>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const tabsNav = document.getElementById('tabs-nav');
+            if (tabsNav) {
+                tabsNav.addEventListener('wheel', function(e) {
+                    if (Math.abs(e.deltaY) > 0) {
+                        e.preventDefault();
+                        tabsNav.scrollLeft += e.deltaY;
+                    }
+                }, { passive: false });
+            }
+        }, 100);
+    });
+</script>
