@@ -21,10 +21,16 @@
     @stack('styles')
 
     <style>
-        /* Scrollbar mais fina e discreta */
+        /* Scrollbar visível apenas no hover */
         ::-webkit-scrollbar {
             height: 6px;
             width: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        :hover::-webkit-scrollbar {
+            opacity: 1;
         }
         
         ::-webkit-scrollbar-track {
@@ -43,6 +49,10 @@
         /* Firefox */
         * {
             scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+        *:hover {
             scrollbar-color: #cbd5e1 transparent;
         }
     </style>
