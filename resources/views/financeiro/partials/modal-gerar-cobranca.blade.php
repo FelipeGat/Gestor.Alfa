@@ -184,19 +184,27 @@
             </div>
 
             {{-- ================= FOOTER ================= --}}
-            <div class="modal-cobranca-footer">
+            <div class="modal-cobranca-footer" style="padding: 12px; display: flex; flex-direction: column-reverse; gap: 8px; justify-content: flex-end;">
                 <button
                     type="button"
-                    class="modal-btn modal-btn-cancel"
-                    @click="$store.modalCobranca.fechar()">
+                    @click="$store.modalCobranca.fechar()"
+                    style="padding: 6px 16px; font-size: 13px; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; width: auto; min-width: 80px; display: inline-flex; align-items: center; justify-content: center; box-shadow: none; cursor: pointer;"
+                    onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'"
+                    onmouseout="this.style.boxShadow='none'">
+                    <svg style="width: 14px; height: 14px; margin-right: 6px;" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
                     Cancelar
                 </button>
 
                 <button
                     type="submit"
-                    class="modal-btn modal-btn-success"
-                    :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}">
-                    Salvar Cobrança
+                    :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}"
+                    style="padding: 6px 16px; font-size: 13px; line-height: 1.25rem; background: #3f9cae; color: white; border: none; border-radius: 9999px; width: auto; min-width: 80px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <svg style="width: 14px; height: 14px; margin-right: 6px;" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Salvar
                 </button>
             </div>
 

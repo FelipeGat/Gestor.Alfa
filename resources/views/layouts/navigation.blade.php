@@ -189,6 +189,12 @@
                         <x-nav-link :href="route('assuntos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
                             Assuntos
                         </x-nav-link>
+
+                        @if($isAdmin || $isFinanceiro)
+                        <x-nav-link :href="route('categorias.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'">
+                            Categorias
+                        </x-nav-link>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -344,6 +350,9 @@
                 <x-responsive-nav-link :href="route('fornecedores.index')">Fornecedores</x-responsive-nav-link>
                 @endif
                 <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
+                @if($isAdmin || $isFinanceiro)
+                <x-responsive-nav-link :href="route('categorias.index')">Categorias</x-responsive-nav-link>
+                @endif
             </div>
         </details>
         @endif

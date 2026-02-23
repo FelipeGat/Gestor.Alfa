@@ -11,12 +11,20 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoriaController extends Controller
 {
+    private function isAdmin(): bool
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user->tipo === 'admin' || $user->isAdminPanel();
+    }
+
     private function canEdit(): bool
     {
         /** @var User $user */
         $user = Auth::user();
 
-        return $user->isAdminPanel() || $user->canPermissao('categorias', 'editar');
+        return $this->isAdmin() || $user->canPermissao('categorias', 'editar');
     }
 
     private function canDelete(): bool
@@ -24,16 +32,13 @@ class CategoriaController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        return $user->isAdminPanel() || $user->canPermissao('categorias', 'excluir');
+        return $this->isAdmin() || $user->canPermissao('categorias', 'excluir');
     }
 
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'ler'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'ler'),
             403,
             'Acesso não autorizado'
         );
@@ -85,10 +90,8 @@ class CategoriaController extends Controller
 
     public function storeCategoria(Request $request)
     {
-        $user = Auth::user();
-
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'incluir'),
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -113,7 +116,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'editar'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -138,7 +141,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'excluir'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
@@ -153,7 +156,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'incluir'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -178,7 +181,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'editar'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -203,7 +206,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'excluir'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
@@ -218,7 +221,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'incluir'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
             403,
             'Acesso não autorizado'
         );
@@ -243,7 +246,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'editar'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
             403,
             'Acesso não autorizado'
         );
@@ -268,7 +271,7 @@ class CategoriaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->isAdminPanel() && ! $user->canPermissao('categorias', 'excluir'),
+            $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'excluir'),
             403,
             'Acesso não autorizado'
         );
