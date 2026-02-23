@@ -311,6 +311,7 @@
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-categoria-title">Nova Categoria</h3>
                         <input type="hidden" name="_method" id="categoria-method" value="POST">
+                        <input type="hidden" id="categoria-id" value="">
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
@@ -404,6 +405,7 @@
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-conta-title">Nova Conta</h3>
                         <input type="hidden" name="_method" id="conta-method" value="POST">
+                        <input type="hidden" id="conta-id" value="">
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
@@ -467,6 +469,7 @@
             if (id === 'modal-categoria') {
                 document.getElementById('form-categoria').reset();
                 document.getElementById('categoria-method').value = 'POST';
+                document.getElementById('categoria-id').value = '';
                 document.getElementById('modal-categoria-title').textContent = 'Nova Categoria';
                 document.getElementById('form-categoria').action = '{{ route("categorias.store") }}';
             } else if (id === 'modal-subcategoria') {
@@ -478,6 +481,7 @@
             } else if (id === 'modal-conta') {
                 document.getElementById('form-conta').reset();
                 document.getElementById('conta-method').value = 'POST';
+                document.getElementById('conta-id').value = '';
                 document.getElementById('modal-conta-title').textContent = 'Nova Conta';
                 document.getElementById('form-conta').action = '{{ route("contas.store") }}';
                 document.getElementById('conta-subcategoria_id').innerHTML = '<option value="">Selecione uma subcategoria</option>';
@@ -485,6 +489,7 @@
         }
 
         function editCategoria(id, nome, tipo, ativo) {
+            document.getElementById('categoria-id').value = id;
             document.getElementById('categoria-nome').value = nome;
             document.getElementById('categoria-tipo').value = tipo || '';
             document.getElementById('categoria-ativo').value = ativo ? '1' : '0';
@@ -524,6 +529,7 @@
                     });
                 });
             
+            document.getElementById('conta-id').value = id;
             document.getElementById('conta-nome').value = nome;
             document.getElementById('conta-ativo').value = ativo ? '1' : '0';
             document.getElementById('conta-method').value = 'PUT';
@@ -558,7 +564,7 @@
             e.preventDefault();
             const form = this;
             const method = document.getElementById('categoria-method').value;
-            const url = form.action;
+            const url = method === 'POST' ? '{{ route("categorias.store") }}' : '/categorias/' + document.getElementById('categoria-id').value;
             
             fetch(url, {
                 method: 'POST',
@@ -621,21 +627,30 @@
             e.preventDefault();
             const form = this;
             const method = document.getElementById('conta-method').value;
-            const url = form.action;
+            const url = method === 'POST' ? '{{ route("contas.store") }}' : '/contas/' + document.getElementById('conta-id').value;
             
             fetch(url, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
                 },
                 body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => {
-                if (r.ok) {
+            }).then(r => r.json().then(data => ({status: r.status, data})))
+            .then(result => {
+                if (result.status === 200 && result.data.success) {
                     window.location.reload();
+                } else if (result.status === 422) {
+                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
+                } else if (result.status === 403) {
+                    alert('Acesso negado');
                 } else {
-                    alert('Erro ao salvar conta');
+                    alert('Erro ao salvar conta: ' + (result.data.message || 'Erro desconhecido'));
                 }
+            }).catch(err => {
+                console.error(err);
+                alert('Erro ao salvar conta');
             });
         });
     </script>

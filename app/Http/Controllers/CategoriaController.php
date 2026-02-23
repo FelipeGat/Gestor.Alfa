@@ -136,7 +136,7 @@ class CategoriaController extends Controller
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Categoria atualizada com sucesso.');
+        return response()->json(['success' => true, 'message' => 'Categoria atualizada com sucesso.']);
     }
 
     public function destroyCategoria(Categoria $categoria)
@@ -210,7 +210,7 @@ class CategoriaController extends Controller
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Subcategoria atualizada com sucesso.');
+        return response()->json(['success' => true, 'message' => 'Subcategoria atualizada com sucesso.']);
     }
 
     public function destroySubcategoria(Subcategoria $subcategoria)
@@ -250,7 +250,7 @@ class CategoriaController extends Controller
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Conta criada com sucesso.');
+        return response()->json(['success' => true, 'message' => 'Conta criada com sucesso.']);
     }
 
     public function updateConta(Request $request, Conta $conta)
@@ -275,7 +275,7 @@ class CategoriaController extends Controller
             'ativo' => $request->ativo,
         ]);
 
-        return redirect()->route('categorias.index')->with('success', 'Conta atualizada com sucesso.');
+        return response()->json(['success' => true, 'message' => 'Conta atualizada com sucesso.']);
     }
 
     public function destroyConta(Conta $conta)
