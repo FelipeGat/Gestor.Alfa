@@ -88,7 +88,7 @@
                     <div id="tab-categorias" class="tab-content active">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Categorias</h3>
-                            @if(auth()->user()->canPermissao('categorias', 'incluir'))
+                            @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'incluir'))
                             <button type="button" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);" onclick="openModal('modal-categoria')">
                                 <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4 mr-1">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -160,7 +160,7 @@
                     <div id="tab-subcategorias" class="tab-content">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Subcategorias</h3>
-                            @if(auth()->user()->canPermissao('categorias', 'incluir'))
+                            @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'incluir'))
                             <button type="button" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);" onclick="openModal('modal-subcategoria')">
                                 <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4 mr-1">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -232,7 +232,7 @@
                     <div id="tab-contas" class="tab-content">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Contas</h3>
-                            @if(auth()->user()->canPermissao('categorias', 'incluir'))
+                            @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'incluir'))
                             <button type="button" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #22c55e; border-radius: 9999px; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);" onclick="openModal('modal-conta')">
                                 <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4 mr-1">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
