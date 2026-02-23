@@ -317,8 +317,13 @@
                                 <input type="text" name="nome" id="categoria-nome" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo (opcional)</label>
-                                <input type="text" name="tipo" id="categoria-tipo" placeholder="Ex: Receita, Despesa" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                                <select name="tipo" id="categoria-tipo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="FIXA">Fixa</option>
+                                    <option value="VARIAVEL">Variável</option>
+                                    <option value="INVESTIMENTO">Investimento</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
