@@ -81,6 +81,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .modal-cobranca-title {
@@ -95,6 +96,10 @@
     cursor: pointer;
     background: none;
     border: none;
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    padding: 12px 16px 12px 12px;
 }
 
 .modal-cobranca-close:hover {
