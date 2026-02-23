@@ -39,6 +39,8 @@
         ]" />
     </x-slot>
 
+    <x-back-button :route="route('usuarios.index')" />
+
     <div class="pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
 

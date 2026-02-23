@@ -41,6 +41,7 @@
         ]" />
     </x-slot>
 
+    <x-back-button :route="route('clientes.index')" />
 
     {{-- ================= JS ================= --}}
     <script>

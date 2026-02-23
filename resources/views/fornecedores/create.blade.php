@@ -40,6 +40,7 @@
         ]" />
     </x-slot>
 
+    <x-back-button :route="route('fornecedores.index')" />
 
     {{-- ================= JS ================= --}}
     <script>

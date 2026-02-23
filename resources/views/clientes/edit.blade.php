@@ -54,6 +54,8 @@
         ]" />
     </x-slot>
 
+    <x-back-button :route="route('clientes.index')" />
+
     {{-- ================= ESTILO SPINNER ================= --}}
     <style>
         .cnpj-spinner {
