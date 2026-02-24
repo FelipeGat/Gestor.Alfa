@@ -308,6 +308,12 @@
                 }
             }
 
+            // Função global para limpar abas no logout
+            window.limparAbasSessao = function() {
+                sessionStorage.removeItem(STORAGE_KEY);
+                sessionStorage.removeItem(ACTIVE_TAB_KEY);
+            };
+
             // Scroll horizontal das abas com mouse
             function initTabsScroll() {
                 const tabsNav = document.getElementById('tabs-nav');
@@ -323,6 +329,8 @@
 
             renderAbas();
             inicializarAbas();
+            // Re-renderizar após inicializar para garantir que as abas sejam exibidas
+            renderAbas();
             setTimeout(initTabsScroll, 0);
         });
     </script>

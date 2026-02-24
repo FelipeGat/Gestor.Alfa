@@ -213,6 +213,14 @@
 
     <!-- JavaScript for Login Animation -->
     <script>
+        // Limpar abas da sessão anterior ao carregar a página de login
+        try {
+            sessionStorage.removeItem('gestor_alfa_tabs');
+            sessionStorage.removeItem('gestor_alfa_active_tab');
+        } catch(e) {
+            console.error('Erro ao limpar sessionStorage:', e);
+        }
+
         function handleLogin(event) {
             const submitBtn = document.getElementById('submitBtn');
             const enterIcon = document.getElementById('enterIcon');
@@ -226,7 +234,7 @@
                 enterIcon.classList.add('opacity-0');
                 buttonText.classList.add('opacity-0');
                 loadingSpinner.classList.remove('opacity-0');
-                
+
                 setTimeout(() => { form.submit(); }, 400);
 
             }
