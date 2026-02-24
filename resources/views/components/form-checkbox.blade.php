@@ -10,7 +10,7 @@
     $id = $id ?? $name;
 @endphp
 
-<label for="{{ $id }}" class="flex items-center gap-2 cursor-pointer">
+<div class="flex items-center gap-2">
     <input 
         type="checkbox" 
         name="{{ $name }}" 
@@ -20,7 +20,13 @@
         class="rounded-full border-gray-300 text-[#3f9cae] focus:ring-[#3f9cae] shadow-sm"
     >
     @if($label)
-        <span class="text-sm text-gray-700">{{ $label }}</span>
+        <label for="{{ $id }}" class="text-sm text-gray-700 cursor-pointer">
+            {{ $label }}
+        </label>
     @endif
-    {{ $slot }}
-</label>
+    @if($slot->isEmpty() === false)
+        <label for="{{ $id }}" class="text-sm text-gray-700 cursor-pointer">
+            {{ $slot }}
+        </label>
+    @endif
+</div>
