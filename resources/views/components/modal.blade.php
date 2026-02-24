@@ -74,7 +74,7 @@ $maxWidth = [
         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
     >
-        @if($title)
+        @if($title || (isset($titleSlot) && $titleSlot))
             <div class="px-6 py-4 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
                 <div class="flex items-center gap-3">
                     @if($icon)

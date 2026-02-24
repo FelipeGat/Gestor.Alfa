@@ -216,27 +216,6 @@
 
     <!-- JavaScript for Login Animation -->
     <script>
-        // Limpar abas da sessão anterior ao carregar a página de login
-        function limparSessionStorage() {
-            try {
-                sessionStorage.removeItem('gestor_alfa_tabs');
-                sessionStorage.removeItem('gestor_alfa_active_tab');
-                sessionStorage.clear();
-            } catch(e) {
-                console.error('Erro ao limpar sessionStorage:', e);
-            }
-        }
-
-        // Limpar imediatamente
-        limparSessionStorage();
-
-        // Limpar se página vier do bfcache
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                limparSessionStorage();
-            }
-        });
-
         function handleLogin(event) {
             const submitBtn = document.getElementById('submitBtn');
             const enterIcon = document.getElementById('enterIcon');

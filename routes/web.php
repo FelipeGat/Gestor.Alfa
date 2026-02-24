@@ -298,9 +298,10 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             return view('financeiro.home');
         })->name('home');
 
-        // Dashboard financeiro
-        Route::get('/', [FinanceiroController::class, 'dashboard'])
-            ->name('index');
+        // Dashboard financeiro (redireciona para home)
+        Route::get('/', function () {
+            return redirect()->route('financeiro.home');
+        })->name('index');
 
         // Cobrar
         Route::get('/cobrar', [FinanceiroController::class, 'cobrar'])
