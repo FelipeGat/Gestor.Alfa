@@ -12,13 +12,13 @@
 
 @php
     $colors = [
-        'blue' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'border' => 'border-blue-500'],
-        'green' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'border' => 'border-green-500'],
-        'red' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'border' => 'border-red-500'],
-        'yellow' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-600', 'border' => 'border-yellow-500'],
-        'purple' => ['bg' => 'bg-purple-50', 'text' => 'text-purple-600', 'border' => 'border-purple-500'],
-        'gray' => ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'border' => 'border-gray-500'],
-        'teal' => ['bg' => 'bg-teal-50', 'text' => 'text-teal-600', 'border' => 'border-teal-500'],
+        'blue' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'border' => '#3b82f6'],
+        'green' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'border' => '#22c55e'],
+        'red' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'border' => '#ef4444'],
+        'yellow' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-600', 'border' => '#eab308'],
+        'purple' => ['bg' => 'bg-purple-50', 'text' => 'text-purple-600', 'border' => '#a855f7'],
+        'gray' => ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'border' => '#6b7280'],
+        'teal' => ['bg' => 'bg-teal-50', 'text' => 'text-teal-600', 'border' => '#14b8a6'],
     ];
     
     $colorData = $colors[$color] ?? $colors['blue'];
@@ -27,7 +27,8 @@
 
 @if($clickable || $href)
     <a href="{{ $href ?? '#' }}" 
-       class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} border-l-4 {{ $colorData['border'] }} border-t border-r border-b border-gray-200 shadow">
+       class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
+       style="border-left: 4px solid {{ $colorData['border'] }}; border-top: 1px solid {{ $colorData['border'] }}; border-right: 1px solid {{ $colorData['border'] }}; border-bottom: 1px solid {{ $colorData['border'] }};">
         <div class="flex items-start {{ $iconPosition === 'right' ? 'justify-between' : 'gap-3' }}">
             @if($icon && $iconPosition === 'left')
                 <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
@@ -53,7 +54,8 @@
         {{ $slot }}
     </a>
 @else
-    <div class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} border-l-4 {{ $colorData['border'] }} border-t border-r border-b border-gray-200 shadow">
+    <div class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
+         style="border-left: 4px solid {{ $colorData['border'] }}; border-top: 1px solid {{ $colorData['border'] }}; border-right: 1px solid {{ $colorData['border'] }}; border-bottom: 1px solid {{ $colorData['border'] }};">
         <div class="flex items-start {{ $iconPosition === 'right' ? 'justify-between' : 'gap-3' }}">
             @if($icon && $iconPosition === 'left')
                 <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
