@@ -113,23 +113,6 @@
             {{-- PAGINAÇÃO --}}
             <x-pagination :paginator="$usuarios" label="usuários" />
 
-            {{-- BOTÃO TESTE MODAL --}}
-            <div class="mt-6">
-                <x-button x-data="" x-on:click.prevent="$dispatch('open-modal', 'test-modal')" variant="secondary" size="sm">
-                    Testar Modal
-                </x-button>
-            </div>
-
-            {{-- MODAL DE TESTE --}}
-            <x-modal name="test-modal" title="Teste de Modal" :show="false">
-                <p class="text-gray-600">Este é um modal de teste com o novo visual!</p>
-                
-                <x-slot name="footer">
-                    <x-button variant="secondary" x-on:click="$dispatch('close-modal', 'test-modal')">Cancelar</x-button>
-                    <x-button variant="primary">Confirmar</x-button>
-                </x-slot>
-            </x-modal>
-
         </div>
     </div>
 </x-app-layout>
