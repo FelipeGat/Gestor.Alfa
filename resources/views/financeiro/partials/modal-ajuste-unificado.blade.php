@@ -17,8 +17,17 @@
         <form id="formAjusteUnificado" method="POST" action="{{ route('financeiro.contas-financeiras.ajuste-manual') }}" class="p-6">
             @csrf
             <input type="hidden" name="conta_id" id="ajusteUnificadoContaId">
+            <input type="hidden" name="saldo_atual" id="ajusteUnificadoSaldoAtual">
             
             <div class="space-y-5">
+                {{-- Saldo Atual --}}
+                <div class="p-4 rounded-xl border" style="background-color: #f0f9ff; border-color: #3f9cae;">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium" style="color: #3f9cae;">Saldo Atual</span>
+                        <span id="saldoAtualDisplay" class="text-lg font-bold" style="color: #1f2937;">R$ 0,00</span>
+                    </div>
+                </div>
+
                 {{-- Data do Lançamento --}}
                 <div class="group">
                     <label class="filter-label">Data do Lançamento <span class="text-red-500">*</span></label>
@@ -30,11 +39,26 @@
                     <label class="filter-label">Saldo Final da Conta <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm" style="z-index: 10;">R$</span>
-                        <input type="text" name="valor" step="0.01" required placeholder="0,00" 
+                        <input type="text" name="valor" id="valorAjuste" step="0.01" required placeholder="0,00" 
                             class="filter-select w-full" 
-                            style="padding-left: 3rem; font-size: 1rem;">
+                            style="padding-left: 3rem; font-size: 1rem;"
+                            oninput="calcularResumoAjuste()">
                     </div>
                     <p class="text-xs text-gray-500 mt-1">Informe o valor que a conta deve ter. O sistema ajustará automaticamente.</p>
+                </div>
+
+                {{-- Resumo do Ajuste --}}
+                <div id="resumoAjuste" class="p-4 rounded-xl border hidden" style="background-color: rgba(63, 156, 174, 0.1); border-color: #3f9cae;">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium" style="color: #6b7280;">Novo Saldo</span>
+                            <span id="novoSaldoDisplay" class="text-lg font-bold" style="color: #1f2937;">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium" style="color: #6b7280;">Diferença</span>
+                            <span id="diferencaDisplay" class="text-sm font-semibold">R$ 0,00</span>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Observação --}}
@@ -72,9 +96,45 @@
 </div>
 
 <script>
-function abrirModalAjusteUnificado(id, nome) {
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+}
+
+function parseMoeda(valor) {
+    if (!valor) return 0;
+    return parseFloat(valor.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function calcularResumoAjuste() {
+    const saldoAtual = parseMoeda(document.getElementById('ajusteUnificadoSaldoAtual').value);
+    const valorInput = document.getElementById('valorAjuste').value;
+    const valorInformado = parseMoeda(valorInput);
+    const resumoDiv = document.getElementById('resumoAjuste');
+    const novoSaldoDisplay = document.getElementById('novoSaldoDisplay');
+    const diferencaDisplay = document.getElementById('diferencaDisplay');
+
+    if (!valorInput || valorInformado === 0) {
+        resumoDiv.classList.add('hidden');
+        return;
+    }
+
+    const diferenca = valorInformado - saldoAtual;
+    const isEntrada = diferenca > 0;
+
+    resumoDiv.classList.remove('hidden');
+    novoSaldoDisplay.innerText = formatarMoeda(valorInformado);
+    
+    diferencaDisplay.innerText = (isEntrada ? '+' : '') + formatarMoeda(diferenca);
+    diferencaDisplay.style.color = isEntrada ? '#059669' : '#dc2626';
+}
+
+function abrirModalAjusteUnificado(id, nome, saldo) {
     document.getElementById('ajusteUnificadoContaId').value = id;
     document.getElementById('ajusteUnificadoContaNome').innerText = nome;
+    document.getElementById('ajusteUnificadoSaldoAtual').value = saldo;
+    document.getElementById('saldoAtualDisplay').innerText = formatarMoeda(saldo);
+    document.getElementById('valorAjuste').value = '';
+    document.getElementById('resumoAjuste').classList.add('hidden');
     document.getElementById('modalAjusteUnificado').classList.remove('hidden');
 }
 function fecharModal(modalId) {

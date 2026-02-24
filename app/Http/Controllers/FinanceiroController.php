@@ -185,7 +185,7 @@ class FinanceiroController extends Controller
     {
         $data = $request->validate([
             'conta_id' => 'required|exists:contas_financeiras,id',
-            'valor' => 'required|numeric',
+            'valor' => 'required|string',
             'data' => 'required|date',
             'observacao' => 'nullable|string|max:255',
         ]);
