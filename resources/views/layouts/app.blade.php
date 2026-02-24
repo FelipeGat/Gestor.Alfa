@@ -160,14 +160,24 @@
 
             window.abrirTab = function(url, label) {
                 let tabs = getTabs();
-                const tabId = generateTabId(url, label);
                 
-                tabs.push({ id: tabId, url: url, label: label });
+                // Verificar se já existe aba com mesma URL
+                const existingTab = tabs.find(t => t.url === url);
                 
-                saveTabs(tabs);
-                setActiveTabId(tabId);
-                
-                window.location.href = url;
+                if (existingTab) {
+                    // Se já existe, apenas ativar e navegar
+                    setActiveTabId(existingTab.id);
+                    window.location.href = url;
+                } else {
+                    // Se não existe, criar nova aba
+                    const tabId = generateTabId(url, label);
+                    tabs.push({ id: tabId, url: url, label: label });
+                    
+                    saveTabs(tabs);
+                    setActiveTabId(tabId);
+                    
+                    window.location.href = url;
+                }
             };
 
             window.fecharTab = function(tabId) {
