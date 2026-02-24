@@ -58,7 +58,6 @@
                 <x-filter-field name="search" label="Pesquisar" placeholder="Nome ou E-mail" colSpan="md:col-span-6" />
                 <x-filter-field name="status" label="Status" type="select" placeholder="Todos" colSpan="md:col-span-3">
                     <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
-                    <option value="inativo" @selected(request('status')=='inativo')>Inativo</option>
                     <option value="primeiro acesso" @selected(request('status')=='primeiro acesso')>Primeiro Acesso</option>
                 </x-filter-field>
             </x-filter>

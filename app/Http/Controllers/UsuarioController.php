@@ -37,7 +37,7 @@ class UsuarioController extends Controller
         if ($request->filled('status')) {
             if ($request->status === 'ativo') {
                 $query->where('primeiro_acesso', false);
-            } elseif ($request->status === 'inativo' || $request->status === 'primeiro acesso') {
+            } elseif ($request->status === 'primeiro acesso') {
                 $query->where('primeiro_acesso', true);
             }
         }

@@ -19,7 +19,7 @@
             class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20 px-3 py-2 text-sm bg-white"
         >
             <option value="">{{ $placeholder ?: 'Selecione...' }}</option>
-            {{ $options ?? '' }}
+            {{ $slot }}
         </select>
     @else
         <input 
