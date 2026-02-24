@@ -197,7 +197,7 @@ class FinanceiroController extends Controller
 
         if ($diferenca == 0) {
             return redirect()
-                ->route('financeiro.contas-financeiras')
+                ->route('financeiro.contas-financeiras.index')
                 ->with('info', 'O saldo informado é igual ao saldo atual. Nenhum ajuste necessário.');
         }
 
@@ -227,7 +227,7 @@ class FinanceiroController extends Controller
         ]);
 
         return redirect()
-            ->route('financeiro.contas-financeiras')
+            ->route('financeiro.contas-financeiras.index')
             ->with('success', 'Ajuste manual realizado com sucesso! Saldo ajustado de R$ '.number_format($saldoAtual, 2, ',', '.').' para R$ '.number_format($valorInformado, 2, ',', '.'));
     }
 
