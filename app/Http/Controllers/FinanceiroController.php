@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cobranca;
+use App\Models\ContaFinanceira;
 use App\Models\Empresa;
 use App\Models\Orcamento;
 use App\Models\User;
@@ -178,7 +179,7 @@ class FinanceiroController extends Controller
     }
 
     /**
-     * Ajuste manual de saldo bancário
+     * Ajuste direto de saldo bancário
      */
     public function ajusteManual(Request $request)
     {
@@ -186,28 +187,48 @@ class FinanceiroController extends Controller
             'conta_id' => 'required|exists:contas_financeiras,id',
             'valor' => 'required|numeric',
             'data' => 'required|date',
-            'tipo_ajuste' => 'required|in:ajuste_entrada,ajuste_saida',
             'observacao' => 'nullable|string|max:255',
         ]);
 
-        $valor = abs($data['valor']);
-        if ($data['tipo_ajuste'] === 'ajuste_saida') {
-            $valor *= -1;
+        $conta = ContaFinanceira::findOrFail($data['conta_id']);
+        $saldoAtual = (float) $conta->saldo;
+        $valorInformado = (float) str_replace(',', '.', str_replace('.', '', $data['valor']));
+        $diferenca = $valorInformado - $saldoAtual;
+
+        if ($diferenca == 0) {
+            return redirect()
+                ->route('financeiro.movimentacao', ['conta' => $conta->id])
+                ->with('info', 'O saldo informado é igual ao saldo atual. Nenhum ajuste necessário.');
+        }
+
+        $tipoAjuste = $diferenca > 0 ? 'ajuste_entrada' : 'ajuste_saida';
+        $valorAjuste = abs($diferenca);
+
+        $observacao = sprintf(
+            'Ajuste de saldo: de R$ %s para R$ %s (%sR$ %s)',
+            number_format($saldoAtual, 2, ',', '.'),
+            number_format($valorInformado, 2, ',', '.'),
+            $diferenca > 0 ? '+' : '-',
+            number_format($valorAjuste, 2, ',', '.')
+        );
+
+        if (! empty($data['observacao'])) {
+            $observacao .= ' - '.$data['observacao'];
         }
 
         (new MovimentacaoFinanceiraService)->registrar([
             'conta_origem_id' => $data['conta_id'],
             'conta_destino_id' => $data['conta_id'],
-            'tipo' => $data['tipo_ajuste'],
-            'valor' => $valor,
-            'observacao' => $data['observacao'] ?? '',
+            'tipo' => $tipoAjuste,
+            'valor' => $diferenca,
+            'observacao' => $observacao,
             'user_id' => auth()->id(),
             'data_movimentacao' => $data['data'],
         ]);
 
         return redirect()
-            ->route('financeiro.movimentacao')
-            ->with('success', 'Ajuste manual realizado com sucesso!');
+            ->route('financeiro.movimentacao', ['conta' => $conta->id])
+            ->with('success', 'Ajuste manual realizado com sucesso! Saldo ajustado de R$ '.number_format($saldoAtual, 2, ',', '.').' para R$ '.number_format($valorInformado, 2, ',', '.'));
     }
 
     public function cobrar(Request $request)

@@ -5,7 +5,7 @@
         {{-- Cabeçalho do Modal --}}
         <div class="px-6 py-4 flex items-center justify-between" style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
             <div class="flex items-center gap-3">
-                <h3 class="text-lg font-bold text-gray-800">Ajuste Manual - <span id="ajusteUnificadoContaNome" style="color: rgb(17, 24, 39);"></span></h3>
+                <h3 class="text-lg font-bold text-gray-800">Ajustar Saldo - <span id="ajusteUnificadoContaNome" style="color: rgb(17, 24, 39);"></span></h3>
             </div>
             <button type="button" onclick="fecharModal('modalAjusteUnificado')" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -25,63 +25,22 @@
                     <input type="date" name="data" required class="filter-select w-full">
                 </div>
 
-                {{-- Tipo de Operação --}}
+                {{-- Saldo Final --}}
                 <div class="group">
-                    <label class="filter-label">O que deseja fazer?</label>
-                    <select name="tipo_operacao" id="tipoOperacao" required onchange="atualizarCamposAjuste()" class="filter-select w-full">
-                        <option value="ajuste">Ajustar Saldo (Entrada/Saída)</option>
-                        <option value="transferencia">Transferir para outra Conta</option>
-                        <option value="injecao">Injeção de Receita (Aporte)</option>
-                    </select>
-                </div>
-
-                {{-- Campos Dinâmicos: Ajuste Manual --}}
-                <div id="camposAjusteManual" class="p-4 rounded-xl border space-y-3 transition-all" style="background-color: rgba(63, 156, 174, 0.05); border-color: #3f9cae;">
-                    <label class="filter-label" style="color: #3f9cae;">Tipo de Ajuste</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="relative flex items-center justify-center px-4 py-2 bg-white rounded-full cursor-pointer transition-all" style="border: 1px solid #d1d5db;" onmouseover="this.style.borderColor='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'" onmouseout="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                            <input type="radio" name="tipo_ajuste" value="ajuste_entrada" checked class="sr-only peer">
-                            <div class="peer-checked:text-emerald-600 peer-checked:font-semibold text-gray-600 text-sm flex items-center gap-2" style="font-weight: 600;">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                                Entrada
-                            </div>
-                        </label>
-                        <label class="relative flex items-center justify-center px-4 py-2 bg-white rounded-full cursor-pointer transition-all" style="border: 1px solid #d1d5db;" onmouseover="this.style.borderColor='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'" onmouseout="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                            <input type="radio" name="tipo_ajuste" value="ajuste_saida" class="sr-only peer">
-                            <div class="peer-checked:text-red-600 peer-checked:font-semibold text-red-600 text-sm flex items-center gap-2" style="font-weight: 600;">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-                                Saída
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                {{-- Campos Dinâmicos: Transferência --}}
-                <div id="camposTransferencia" style="display:none;" class="p-4 bg-amber-50 rounded-xl border border-amber-100 space-y-3 transition-all">
-                    <label class="filter-label" style="color: #b45309;">Conta de Destino</label>
-                    <select name="conta_destino_id" id="contaDestinoSelect" class="filter-select w-full">
-                        <option value="">Selecione a conta destino...</option>
-                        @foreach($contas as $conta)
-                            <option value="{{ $conta->id }}">{{ $conta->nome }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Valor --}}
-                <div class="group">
-                    <label class="filter-label">Valor da Operação <span class="text-red-500">*</span></label>
+                    <label class="filter-label">Saldo Final da Conta <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm" style="z-index: 10;">R$</span>
-                        <input type="text" name="valor" step="0.01" min="0.01" required placeholder="0,00" 
+                        <input type="text" name="valor" step="0.01" required placeholder="0,00" 
                             class="filter-select w-full" 
                             style="padding-left: 3rem; font-size: 1rem;">
                     </div>
+                    <p class="text-xs text-gray-500 mt-1">Informe o valor que a conta deve ter. O sistema ajustará automaticamente.</p>
                 </div>
 
                 {{-- Observação --}}
                 <div class="group">
                     <label class="filter-label">Observação / Motivo</label>
-                    <textarea name="observacao" rows="2" placeholder="Ex: Ajuste de tarifa bancária ou correção de saldo..." class="filter-select w-full"></textarea>
+                    <textarea name="observacao" rows="2" placeholder="Ex: Correção de saldo, ajuste de tarifas..." class="filter-select w-full"></textarea>
                 </div>
             </div>
 
@@ -113,31 +72,9 @@
 </div>
 
 <script>
-function atualizarCamposAjuste() {
-    const operacao = document.getElementById('tipoOperacao').value;
-    const divAjuste = document.getElementById('camposAjusteManual');
-    const divTransf = document.getElementById('camposTransferencia');
-    
-    divAjuste.style.display = 'none';
-    divTransf.style.display = 'none';
-    
-    if (operacao === 'ajuste') {
-        divAjuste.style.display = 'block';
-    } else if (operacao === 'transferencia') {
-        divTransf.style.display = 'block';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    atualizarCamposAjuste();
-});
-</script>
-<script>
 function abrirModalAjusteUnificado(id, nome) {
     document.getElementById('ajusteUnificadoContaId').value = id;
     document.getElementById('ajusteUnificadoContaNome').innerText = nome;
-    document.getElementById('tipoOperacao').value = 'ajuste';
-    atualizarCamposAjuste();
     document.getElementById('modalAjusteUnificado').classList.remove('hidden');
 }
 function fecharModal(modalId) {
