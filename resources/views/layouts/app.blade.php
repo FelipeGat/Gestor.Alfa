@@ -9,6 +9,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta name="cache-control" content="no-cache">
+    <meta name="expires" content="0">
+    <meta name="pragma" content="no-cache">
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
@@ -87,6 +90,9 @@
 
         <!-- Page Content -->
         <main>
+            <!-- Toast Notifications -->
+            <x-toast />
+
             @hasSection('content')
                 @yield('content')
             @else
@@ -134,44 +140,34 @@
             window.addEventListener('scroll', handleScroll);
             handleScroll();
 
-            // Limpar sessionStorage ao carregar página (evita restore de sessão anterior)
-            window.addEventListener('pageshow', function(event) {
-                if (event.persisted) {
-                    sessionStorage.removeItem('gestor_alfa_active_tab');
-                }
-            });
+            // ============================================
+            // Limpeza preventiva de sessionStorage
+            // ============================================
+            // Remove qualquer resquício de sessões anteriores
+            try {
+                sessionStorage.removeItem('gestor_alfa_tabs');
+                sessionStorage.removeItem('gestor_alfa_active_tab');
+            } catch(e) {}
 
             // ============================================
             // Gerenciamento de Abas (Browser Tabs)
             // ============================================
-            const ACTIVE_TAB_KEY = 'gestor_alfa_active_tab';
-
-            function getActiveTabId() {
-                return sessionStorage.getItem(ACTIVE_TAB_KEY);
-            }
-
-            function setActiveTabId(id) {
-                sessionStorage.setItem(ACTIVE_TAB_KEY, id);
-            }
+            // Apenas funções básicas - sem persistência entre sessões
 
             window.abrirTab = function(url, label) {
-                // Navegar para a URL (nova página vai gerenciar suas próprias abas via Blade)
                 window.location.href = url;
             };
 
             window.fecharTab = function(tabId) {
-                // Fechar aba = voltar para a página anterior ou ir para dashboard
                 const tabsNav = document.getElementById('tabs-nav');
                 if (!tabsNav) return;
 
                 const tabItems = tabsNav.querySelectorAll('.tab-item');
                 if (tabItems.length <= 1) {
-                    // Se é a única aba, vai para dashboard
                     window.location.href = '{{ route("dashboard") }}';
                     return;
                 }
 
-                // Encontrar aba anterior e navegar para ela
                 const currentIndex = Array.from(tabItems).findIndex(item => item.dataset.tabId === tabId);
                 if (currentIndex > 0) {
                     const previousTab = tabItems[currentIndex - 1];
@@ -183,7 +179,6 @@
             };
 
             window.ativarTab = function(tabId) {
-                setActiveTabId(tabId);
                 const tabsNav = document.getElementById('tabs-nav');
                 if (!tabsNav) return;
 
@@ -195,9 +190,7 @@
             };
 
             // Função global para limpar abas no logout
-            window.limparAbasSessao = function() {
-                sessionStorage.removeItem(ACTIVE_TAB_KEY);
-            };
+            window.limparAbasSessao = function() {};
 
             // Scroll horizontal das abas com mouse
             function initTabsScroll() {

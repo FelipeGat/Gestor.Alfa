@@ -1,9 +1,24 @@
 @props([
-    'key' => 'status',
+    'keys' => ['status', 'success', 'error', 'warning', 'info'],
 ])
 
 @php
-    $sessionKey = session($key);
+    $message = '';
+    $type = 'info';
+    
+    foreach ($keys as $key) {
+        $sessionValue = session($key);
+        if ($sessionValue) {
+            if (is_array($sessionValue)) {
+                $message = $sessionValue['message'] ?? $sessionValue[0] ?? '';
+                $type = $sessionValue['type'] ?? $key;
+            } else {
+                $message = $sessionValue;
+                $type = $key === 'status' ? 'info' : $key;
+            }
+            break;
+        }
+    }
     
     $types = [
         'success' => [
@@ -24,44 +39,24 @@
         ],
     ];
     
-    if (is_array($sessionKey)) {
-        $message = $sessionKey['message'] ?? '';
-        $type = $sessionKey['type'] ?? 'info';
-    } else {
-        $message = $sessionKey;
-        $type = 'info';
-    }
-    
     $typeData = $types[$type] ?? $types['info'];
 @endphp
 
 @if($message)
-<div x-data="{ show: true }"
-     x-show="show"
-     x-transition:leave="transition ease-in duration-300"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     class="fixed top-4 right-4 z-50 max-w-sm w-full {{ $typeData['bg'] }} text-white rounded-lg shadow-lg p-4 flex items-center"
-     style="display: none;"
-     role="alert">
-    <div class="flex-shrink-0 mr-3">
-        {!! $typeData['icon'] !!}
+    <div x-data="{ show: false }"
+         x-init="setTimeout(() => { show = true }, 100); setTimeout(() => { show = false }, 5000)"
+         x-show="show"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="show = false"
+         class="fixed top-4 right-4 z-50 max-w-sm w-full {{ $typeData['bg'] }} text-white rounded-lg shadow-lg p-4 flex items-center cursor-pointer"
+         role="alert">
+        <div class="flex-shrink-0 mr-3">
+            {!! $typeData['icon'] !!}
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-medium">{{ $message }}</p>
+        </div>
     </div>
-    <div class="flex-1">
-        <p class="text-sm font-medium">{{ $message }}</p>
-    </div>
-    <button type="button" 
-            @click="show = false" 
-            class="ml-4 text-white hover:text-gray-200 focus:outline-none">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-        </svg>
-    </button>
-</div>
-
-<script>
-    setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('close-toast'));
-    }, 5000);
-</script>
 @endif
