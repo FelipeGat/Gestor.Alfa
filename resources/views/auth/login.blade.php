@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Login - Grupo Soluções</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- Se o CSS não estiver no bundle, descomente a linha abaixo --}}
@@ -214,12 +217,25 @@
     <!-- JavaScript for Login Animation -->
     <script>
         // Limpar abas da sessão anterior ao carregar a página de login
-        try {
-            sessionStorage.removeItem('gestor_alfa_tabs');
-            sessionStorage.removeItem('gestor_alfa_active_tab');
-        } catch(e) {
-            console.error('Erro ao limpar sessionStorage:', e);
+        function limparSessionStorage() {
+            try {
+                sessionStorage.removeItem('gestor_alfa_tabs');
+                sessionStorage.removeItem('gestor_alfa_active_tab');
+                sessionStorage.clear();
+            } catch(e) {
+                console.error('Erro ao limpar sessionStorage:', e);
+            }
         }
+
+        // Limpar imediatamente
+        limparSessionStorage();
+
+        // Limpar se página vier do bfcache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                limparSessionStorage();
+            }
+        });
 
         function handleLogin(event) {
             const submitBtn = document.getElementById('submitBtn');

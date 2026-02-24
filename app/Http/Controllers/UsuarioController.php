@@ -180,4 +180,18 @@ class UsuarioController extends Controller
             ->route('usuarios.index')
             ->with('success', 'Usuário atualizado com sucesso.');
     }
+
+    public function destroy(Request $request, User $usuario)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
+
+        $usuario->delete();
+
+        return redirect()
+            ->route('usuarios.index')
+            ->with('success', 'Usuário excluído com sucesso.');
+    }
 }
