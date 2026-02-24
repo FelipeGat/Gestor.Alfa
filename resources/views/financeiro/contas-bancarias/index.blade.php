@@ -79,7 +79,7 @@
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $conta->nome }}</td>
                     <td class="px-4 py-3 text-left">
                         <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}">
-                            {{ strtoupper($conta->tipo) }}
+                            {{ $conta->tipo }}
                         </x-badge>
                     </td>
                     <td class="px-4 py-3 text-sm font-semibold text-gray-900">

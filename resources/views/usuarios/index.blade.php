@@ -26,20 +26,6 @@
             min-width: 40px;
             text-align: center;
         }
-        table thead th {
-            color: rgb(17, 24, 39) !important;
-        }
-        table tbody td {
-            font-weight: 400 !important;
-        }
-        table tbody td.font-medium {
-            font-weight: 400 !important;
-        }
-        table tbody td:nth-child(2) {
-            font-family: 'Inter', sans-serif !important;
-            font-weight: 500 !important;
-            color: rgb(17, 24, 39) !important;
-        }
     </style>
     @endpush
 
@@ -98,9 +84,9 @@
                     <td class="px-4 py-3 text-sm text-gray-600">{{ ucfirst($row->tipo) }}</td>
                     <td class="px-4 py-3 text-sm whitespace-nowrap">
                         @if(!$row->primeiro_acesso)
-                            <x-badge type="success" :icon="true">ATIVO</x-badge>
+                            <x-badge type="success" :icon="true">Ativo</x-badge>
                         @else
-                            <x-badge type="warning" :icon="true">PRIMEIRO ACESSO</x-badge>
+                            <x-badge type="warning" :icon="true">Primeiro Acesso</x-badge>
                         @endif
                     </td>
                     <td class="px-4 py-3">

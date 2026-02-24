@@ -51,7 +51,7 @@
     $sizeClasses = $sizes[$size] ?? $sizes['md'];
 @endphp
 
-<span class="inline-flex items-center font-semibold rounded-full {{ $typeData['bg'] }} {{ $typeData['text'] }} {{ $sizeClasses }}">
+<span class="inline-flex items-center font-semibold uppercase rounded-full {{ $typeData['bg'] }} {{ $typeData['text'] }} {{ $sizeClasses }}">
     @if($icon && $typeData['icon'])
         <span class="mr-1.5">{!! $typeData['icon'] !!}</span>
     @endif
