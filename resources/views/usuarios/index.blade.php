@@ -79,16 +79,16 @@
             <x-table :columns="$columns" :data="$usuarios" :actions="true" emptyMessage="Nenhum usuário encontrado">
                 @foreach($usuarios as $row)
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 text-sm text-gray-900">{{ $row->name }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">{{ $row->email }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">{{ ucfirst($row->tipo) }}</td>
-                    <td class="px-4 py-3 text-sm whitespace-nowrap">
+                    <x-table-cell>{{ $row->name }}</x-table-cell>
+                    <x-table-cell color="gray-600">{{ $row->email }}</x-table-cell>
+                    <x-table-cell color="gray-600">{{ ucfirst($row->tipo) }}</x-table-cell>
+                    <x-table-cell :nowrap="true">
                         @if(!$row->primeiro_acesso)
                             <x-badge type="success" :icon="true">Ativo</x-badge>
                         @else
                             <x-badge type="warning" :icon="true">Primeiro Acesso</x-badge>
                         @endif
-                    </td>
+                    </x-table-cell>
                     <td class="px-4 py-3">
                         <x-actions :edit-url="route('usuarios.edit', $row)" :delete-url="route('usuarios.destroy', $row)" :show-view="false" />
                     </td>

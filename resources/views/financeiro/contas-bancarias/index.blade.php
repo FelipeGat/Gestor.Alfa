@@ -74,25 +74,21 @@
                     $onclickAdjust = "abrirModalAjusteUnificado({$conta->id}, '" . addslashes($conta->nome) . "', {$conta->saldo})";
                 @endphp
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{{ $conta->id }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ $conta->empresa->nome_fantasia ?? '—' }}</td>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $conta->nome }}</td>
-                    <td class="px-4 py-3 text-left">
+                    <x-table-cell :nowrap="true" :bold="true">{{ $conta->id }}</x-table-cell>
+                    <x-table-cell color="gray-500">{{ $conta->empresa->nome_fantasia ?? '—' }}</x-table-cell>
+                    <x-table-cell :bold="true">{{ $conta->nome }}</x-table-cell>
+                    <x-table-cell align="left">
                         <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}">
                             {{ $conta->tipo }}
                         </x-badge>
-                    </td>
-                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">
-                        R$ {{ number_format($conta->saldo, 2, ',', '.') }}
-                    </td>
-                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">
-                        R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}
-                    </td>
-                    <td class="px-4 py-3 text-left">
+                    </x-table-cell>
+                    <x-table-cell :bold="true">R$ {{ number_format($conta->saldo, 2, ',', '.') }}</x-table-cell>
+                    <x-table-cell :bold="true">R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}</x-table-cell>
+                    <x-table-cell align="left">
                         <x-badge type="{{ $conta->ativo ? 'success' : 'danger' }}">
                             {{ $conta->ativo ? 'Ativo' : 'Inativo' }}
                         </x-badge>
-                    </td>
+                    </x-table-cell>
                     <td class="px-4 py-3">
                         <x-actions 
                             :edit-url="route('financeiro.contas-financeiras.edit', $conta)" 
