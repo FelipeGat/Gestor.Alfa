@@ -75,7 +75,7 @@
                 @endphp
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell :nowrap="true">{{ $conta->id }}</x-table-cell>
-                    <x-table-cell color="gray-500">{{ $conta->empresa->nome_fantasia ?? '—' }}</x-table-cell>
+                    <x-table-cell type="muted">{{ $conta->empresa->nome_fantasia ?? '—' }}</x-table-cell>
                     <x-table-cell>{{ $conta->nome }}</x-table-cell>
                     <x-table-cell align="left">
                         <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}">
