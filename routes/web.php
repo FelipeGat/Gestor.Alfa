@@ -660,7 +660,7 @@ Route::middleware('auth')->group(function () {
             $user->tipo === 'comercial'
                 ? 'dashboard.comercial'
                 : ($user->isAdminPanel()
-                    ? 'dashboard'
+                    ? 'financeiro.dashboard'
                     : ($user->tipo === 'cliente'
                         ? 'portal.index'
                         : 'portal-funcionario.index'))
