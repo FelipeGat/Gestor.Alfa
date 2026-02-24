@@ -106,7 +106,7 @@ function parseMoeda(valor) {
 }
 
 function calcularResumoAjuste() {
-    const saldoAtual = parseMoeda(document.getElementById('ajusteUnificadoSaldoAtual').value);
+    const saldoAtual = parseFloat(document.getElementById('ajusteUnificadoSaldoAtual').value) || 0;
     const valorInput = document.getElementById('valorAjuste').value;
     const valorInformado = parseMoeda(valorInput);
     const resumoDiv = document.getElementById('resumoAjuste');
@@ -132,7 +132,7 @@ function abrirModalAjusteUnificado(id, nome, saldo) {
     document.getElementById('ajusteUnificadoContaId').value = id;
     document.getElementById('ajusteUnificadoContaNome').innerText = nome;
     document.getElementById('ajusteUnificadoSaldoAtual').value = saldo;
-    document.getElementById('saldoAtualDisplay').innerText = formatarMoeda(saldo);
+    document.getElementById('saldoAtualDisplay').innerText = formatarMoeda(parseFloat(saldo));
     document.getElementById('valorAjuste').value = '';
     document.getElementById('resumoAjuste').classList.add('hidden');
     document.getElementById('modalAjusteUnificado').classList.remove('hidden');
