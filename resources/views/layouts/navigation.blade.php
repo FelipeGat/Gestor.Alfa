@@ -250,10 +250,9 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault(); this.closest('form').submit();">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 w-full text-left">
                                 Sair
-                            </x-dropdown-link>
+                            </button>
                         </form>
                     </x-slot>
                 </x-dropdown>
@@ -276,10 +275,9 @@
             </x-responsive-nav-link>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <x-responsive-nav-link :href="route('logout')"
-                    onclick="event.preventDefault(); this.closest('form').submit();">
+                <button type="submit" class="inline-flex items-center w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 text-left">
                     Sair
-                </x-responsive-nav-link>
+                </button>
             </form>
         </div>
     </div>
