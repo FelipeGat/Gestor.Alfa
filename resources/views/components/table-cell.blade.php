@@ -12,7 +12,7 @@
         'right' => 'text-right',
     ];
     
-    $classes = 'px-4 py-3 text-sm ' . ($alignClasses[$align] ?? 'text-left') . ' ' . ($bold ? 'font-semibold ' : 'font-normal ') . 'text-' . $color . ($nowrap ? ' whitespace-nowrap' : '');
+    $classes = 'px-4 py-3 text-sm ' . ($alignClasses[$align] ?? 'text-left') . ' ' . ($bold ? 'font-semibold ' : 'font-medium ') . 'text-' . $color . ($nowrap ? ' whitespace-nowrap' : '');
 @endphp
 
 <td class="{{ $classes }}">

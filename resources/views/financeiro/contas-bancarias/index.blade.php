@@ -74,16 +74,16 @@
                     $onclickAdjust = "abrirModalAjusteUnificado({$conta->id}, '" . addslashes($conta->nome) . "', {$conta->saldo})";
                 @endphp
                 <tr class="hover:bg-gray-50 transition">
-                    <x-table-cell :nowrap="true" :bold="true">{{ $conta->id }}</x-table-cell>
+                    <x-table-cell :nowrap="true">{{ $conta->id }}</x-table-cell>
                     <x-table-cell color="gray-500">{{ $conta->empresa->nome_fantasia ?? '—' }}</x-table-cell>
-                    <x-table-cell :bold="true">{{ $conta->nome }}</x-table-cell>
+                    <x-table-cell>{{ $conta->nome }}</x-table-cell>
                     <x-table-cell align="left">
                         <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}">
                             {{ $conta->tipo }}
                         </x-badge>
                     </x-table-cell>
-                    <x-table-cell :bold="true">R$ {{ number_format($conta->saldo, 2, ',', '.') }}</x-table-cell>
-                    <x-table-cell :bold="true">R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}</x-table-cell>
+                    <x-table-cell>R$ {{ number_format($conta->saldo, 2, ',', '.') }}</x-table-cell>
+                    <x-table-cell>R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}</x-table-cell>
                     <x-table-cell align="left">
                         <x-badge type="{{ $conta->ativo ? 'success' : 'danger' }}">
                             {{ $conta->ativo ? 'Ativo' : 'Inativo' }}
