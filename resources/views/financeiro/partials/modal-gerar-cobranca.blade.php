@@ -12,7 +12,6 @@
     <div
         class="modal-cobranca"
         @click.away="$store.modalCobranca.fechar()">
-        {{-- ================= HEADER ================= --}}
         <div class="modal-cobranca-header">
             <div class="modal-cobranca-title">
                 Gerar Cobrança —
@@ -28,7 +27,6 @@
             </button>
         </div>
 
-        {{-- ================= FORM ================= --}}
         <form
             method="POST"
             :action="`{{ url('/financeiro/orcamentos') }}/${$store.modalCobranca.orcamento?.id}/gerar-cobranca`"
@@ -37,20 +35,10 @@
             >
             @csrf
 
-            {{-- CAMPOS FIXOS --}}
-            <input
-                type="hidden"
-                name="valor"
-                :value="$store.modalCobranca.orcamento?.valor_total">
+            <input type="hidden" name="valor" :value="$store.modalCobranca.orcamento?.valor_total">
+            <input type="hidden" name="descricao" :value="`Cobrança do orçamento ${$store.modalCobranca.orcamento?.numero_orcamento}`">
 
-            <input
-                type="hidden"
-                name="descricao"
-                :value="`Cobrança do orçamento ${$store.modalCobranca.orcamento?.numero_orcamento}`">
-
-            {{-- ================= BODY ================= --}}
             <div class="modal-cobranca-body">
-                <!-- Feedback para pré-cliente -->
                 <template x-if="$store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id">
                     <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded shadow flex flex-col items-start gap-3">
                         <div class="flex items-center gap-2 text-yellow-800">
@@ -63,60 +51,37 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             Converter para Cliente
                         </a>
-                        
                     </div>
                 </template>
 
-                {{-- SEÇÃO 1: INFORMAÇÕES DO ORÇAMENTO --}}
                 <div class="modal-cobranca-section">
                     <h3 class="modal-cobranca-section-title">Informações do Orçamento</h3>
 
                     <div class="modal-grid">
-                        {{-- CLIENTE --}}
                         <div class="modal-field">
                             <label class="modal-label">Cliente</label>
-                            <input
-                                type="text"
-                                class="modal-input"
-                                :value="$store.modalCobranca.orcamento?.cliente?.nome_fantasia || 'N/A'"
-                                disabled>
+                            <input type="text" class="modal-input" :value="$store.modalCobranca.orcamento?.cliente?.nome_fantasia || 'N/A'" disabled>
                         </div>
-
-                        {{-- ORÇAMENTO --}}
                         <div class="modal-field">
                             <label class="modal-label">Orçamento</label>
-                            <input
-                                type="text"
-                                class="modal-input"
-                                :value="$store.modalCobranca.orcamento?.numero_orcamento"
-                                disabled>
+                            <input type="text" class="modal-input" :value="$store.modalCobranca.orcamento?.numero_orcamento" disabled>
                         </div>
                     </div>
                 </div>
 
-                {{-- SEÇÃO 2: FORMA DE PAGAMENTO --}}
                 <div class="modal-cobranca-section">
                     <h3 class="modal-cobranca-section-title">Forma de Pagamento</h3>
 
-                    <div class="modal-field">
-                        <label class="modal-label">Forma de Pagamento</label>
-                        <select
-                            name="forma_pagamento"
-                            x-model="forma"
-                            @change="atualizarForma()"
-                            class="modal-select"
-                            required>
-                            <option value="">Selecione</option>
-                            <option value="pix">Pix</option>
-                            <option value="debito">Cartão de Débito</option>
-                            <option value="credito">Cartão de Crédito</option>
-                            <option value="boleto">Boleto</option>
-                            <option value="faturado">Faturado</option>
-                        </select>
-                    </div>
+                    <x-form-select label="Forma de Pagamento" name="forma_pagamento" x-model="forma" @change="atualizarForma()" required>
+                        <option value="">Selecione</option>
+                        <option value="pix">Pix</option>
+                        <option value="debito">Cartão de Débito</option>
+                        <option value="credito">Cartão de Crédito</option>
+                        <option value="boleto">Boleto</option>
+                        <option value="faturado">Faturado</option>
+                    </x-form-select>
                 </div>
 
-                {{-- SEÇÃO 3: PARCELAS (Condicional) --}}
                 <template x-if="mostrarParcelas">
                     <div class="modal-cobranca-section">
                         <h3 class="modal-cobranca-section-title">Parcelas</h3>
@@ -134,7 +99,6 @@
                                 style="max-width:120px">
                         </div>
 
-                        {{-- VENCIMENTOS E VALORES --}}
                         <template x-if="vencimentos.length > 0">
                             <div class="modal-vencimentos">
                                 <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid #3b82f6;">
@@ -183,29 +147,20 @@
 
             </div>
 
-            {{-- ================= FOOTER ================= --}}
             <div class="modal-cobranca-footer" style="padding: 12px; display: flex; flex-direction: column-reverse; gap: 8px; justify-content: flex-end;">
-                <button
-                    type="button"
-                    @click="$store.modalCobranca.fechar()"
-                    style="padding: 6px 16px; font-size: 13px; line-height: 1.25rem; background: #ef4444; color: white; border: none; border-radius: 9999px; width: auto; min-width: 80px; display: inline-flex; align-items: center; justify-content: center; box-shadow: none; cursor: pointer;"
-                    onmouseover="this.style.boxShadow='0 4px 6px rgba(239, 68, 68, 0.4)'"
-                    onmouseout="this.style.boxShadow='none'">
+                <x-button type="button" variant="danger" @click="$store.modalCobranca.fechar()">
                     <svg style="width: 14px; height: 14px; margin-right: 6px;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                     Cancelar
-                </button>
+                </x-button>
 
-                <button
-                    type="submit"
-                    :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}"
-                    style="padding: 6px 16px; font-size: 13px; line-height: 1.25rem; background: #3f9cae; color: white; border: none; border-radius: 9999px; width: auto; min-width: 80px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                <x-button type="submit" :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}">
                     <svg style="width: 14px; height: 14px; margin-right: 6px;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                     Salvar
-                </button>
+                </x-button>
             </div>
 
         </form>

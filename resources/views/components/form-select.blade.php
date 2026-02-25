@@ -30,6 +30,7 @@
         id="{{ $name }}"
         @if($required) required @endif
         @if($disabled) disabled @endif
+        {{ $attributes->filter(fn($value, $key) => $key !== 'label' && $key !== 'options' && $key !== 'selected' && $key !== 'placeholder' && $key !== 'required' && $key !== 'disabled' && $key !== 'error' && $key !== 'help') }}
         class="w-full rounded-lg border shadow-sm px-3 py-2 text-sm transition-all duration-200
             {{ $hasError 
                 ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
