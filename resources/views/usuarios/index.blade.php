@@ -49,14 +49,14 @@
             </x-filter>
 
             {{-- RESUMO --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-kpi-card title="Total de Usuários" :value="$totalUsuarios" color="blue" />
                 <x-kpi-card title="Ativos" :value="$usuariosAtivos" color="green" />
                 <x-kpi-card title="Primeiro Acesso" :value="$usuariosInativos" color="red" />
             </div>
 
             @if(auth()->user()->canPermissao('clientes', 'incluir'))
-            <div class="flex justify-start" style="margin-bottom: -1rem;">
+            <div class="flex justify-start">
                 <x-button href="{{ route('usuarios.create') }}" variant="success" size="sm" class="min-w-[130px]">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
