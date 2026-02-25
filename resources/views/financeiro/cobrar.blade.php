@@ -71,15 +71,15 @@
                         {{ $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? '—' }}
                     </x-table-cell>
                     <x-table-cell align="center">
-                        @if($orcamento->status === 'financeiro')
-                            <x-badge type="warning">Pendente</x-badge>
-                        @elseif($orcamento->status === 'aprovado')
-                            <x-badge type="success">Aprovado</x-badge>
-                        @elseif($orcamento->status === 'reprovado')
-                            <x-badge type="danger">Reprovado</x-badge>
-                        @else
-                            <x-badge type="default">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
-                        @endif
+                            @if($orcamento->status === 'financeiro')
+                                <x-badge type="warning" size="xs">Pendente</x-badge>
+                            @elseif($orcamento->status === 'aprovado')
+                                <x-badge type="success" size="xs">Aprovado</x-badge>
+                            @elseif($orcamento->status === 'reprovado')
+                                <x-badge type="danger" size="xs">Reprovado</x-badge>
+                            @else
+                                <x-badge type="default" size="xs">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
+                            @endif
                     </x-table-cell>
                     <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
                     <td class="px-4 py-3 text-center">
@@ -94,10 +94,7 @@
                                 </form>
                             @else
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs" style="font-weight: 400;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                        Agendado para {{ \Carbon\Carbon::parse($orcamento->data_agendamento)->format('d/m/Y') }}
-                                    </span>
+                                    <x-badge type="success" size="xs">Agendado para {{ \Carbon\Carbon::parse($orcamento->data_agendamento)->format('d/m/Y') }}</x-badge>
                                     <form method="POST" action="{{ route('financeiro.cancelar-agendamento', $orcamento->id) }}" onsubmit="return confirm('Deseja cancelar o agendamento?');">
                                         @csrf
                                         @method('DELETE')
