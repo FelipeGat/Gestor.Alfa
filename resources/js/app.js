@@ -194,24 +194,23 @@ document.addEventListener('click', function (e) {
             obj.pre_cliente_id = null;
         }
 
-        function callStore() {
+        function abrirModalCobranca() {
             try {
+                // Atualizar store com os dados do orçamento
                 if (window.Alpine && typeof window.Alpine.store === 'function') {
                     window.Alpine.store('modalCobranca').abrir(obj);
-                    console.log('financeiro: called Alpine.store modalCobranca.abrir', obj);
-                    return true;
                 }
+                // Disparar evento para abrir o modal
+                window.dispatchEvent(new CustomEvent('open-modal', { detail: 'modal-gerar-cobranca' }));
             } catch (err) {
-                console.error('financeiro: error calling Alpine.store', err);
+                console.error('financeiro: error opening modal', err);
             }
-            return false;
         }
 
-        if (!callStore()) {
-            // se Alpine ainda não inicializou, aguardar evento
-            document.addEventListener('alpine:initialized', function () {
-                callStore();
-            }, { once: true });
+        if (window.Alpine && window.Alpine.store) {
+            abrirModalCobranca();
+        } else {
+            document.addEventListener('alpine:initialized', abrirModalCobranca, { once: true });
         }
     } catch (err) {
         console.error('financeiro: error parsing data-orc', err);
