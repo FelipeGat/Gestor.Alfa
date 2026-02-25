@@ -70,7 +70,7 @@
                     <x-table-cell type="muted">
                         {{ $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? '—' }}
                     </x-table-cell>
-                    <x-table-cell>
+                    <x-table-cell align="left">
                             @if($orcamento->status === 'financeiro')
                                 <x-badge type="warning">Pendente</x-badge>
                             @elseif($orcamento->status === 'aprovado')
@@ -82,7 +82,7 @@
                             @endif
                     </x-table-cell>
                     <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
-                    <x-table-cell>
+                    <x-table-cell align="left">
                         <div class="flex flex-col items-start gap-1">
                             @if(empty($orcamento->data_agendamento))
                                 <x-button size="sm" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">
