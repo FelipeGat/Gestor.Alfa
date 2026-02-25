@@ -72,13 +72,13 @@
                     </x-table-cell>
                     <x-table-cell align="center">
                             @if($orcamento->status === 'financeiro')
-                                <x-badge type="warning" size="xs">Pendente</x-badge>
+                                <x-badge type="warning">Pendente</x-badge>
                             @elseif($orcamento->status === 'aprovado')
-                                <x-badge type="success" size="xs">Aprovado</x-badge>
+                                <x-badge type="success">Aprovado</x-badge>
                             @elseif($orcamento->status === 'reprovado')
-                                <x-badge type="danger" size="xs">Reprovado</x-badge>
+                                <x-badge type="danger">Reprovado</x-badge>
                             @else
-                                <x-badge type="default" size="xs">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
+                                <x-badge type="default">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
                             @endif
                     </x-table-cell>
                     <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
@@ -94,7 +94,7 @@
                                 </form>
                             @else
                                 <div class="flex items-center gap-2 mt-1">
-                                    <x-badge type="success" size="xs">Agendado para {{ \Carbon\Carbon::parse($orcamento->data_agendamento)->format('d/m/Y') }}</x-badge>
+                                    <x-badge type="success">Agendado para {{ \Carbon\Carbon::parse($orcamento->data_agendamento)->format('d/m/Y') }}</x-badge>
                                     <form method="POST" action="{{ route('financeiro.cancelar-agendamento', $orcamento->id) }}" onsubmit="return confirm('Deseja cancelar o agendamento?');">
                                         @csrf
                                         @method('DELETE')
