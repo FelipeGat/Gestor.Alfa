@@ -18,13 +18,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             @if ($errors->any())
-                <x-alert type="error" title="Erros encontrados">
-                    <ul class="mt-2 list-disc pl-5">
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
+                    <h3 class="font-medium mb-2">Erros encontrados:</h3>
+                    <ul class="list-disc list-inside text-sm">
                         @foreach ($errors->all() as $erro)
                             <li>{{ $erro }}</li>
                         @endforeach
                     </ul>
-                </x-alert>
+                </div>
             @endif
 
             <form method="POST" action="{{ route('financeiro.contas-financeiras.store') }}">

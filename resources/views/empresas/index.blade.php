@@ -25,15 +25,15 @@
 
             {{-- ================= RESUMO (KPIs) ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #3b82f6; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6;">
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #3b82f6; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Empresas</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totais['total'] }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e;">
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Empresas Ativas</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">{{ $totais['ativos'] }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #ef4444; border-top: 1px solid #ef4444; border-right: 1px solid #ef4444; border-bottom: 1px solid #ef4444;">
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #ef4444; border-top: 1px solid #ef4444; border-right: 1px solid #ef4444; border-bottom: 1px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Empresas Inativas</p>
                     <p class="text-3xl font-bold text-red-600 mt-2">{{ $totais['inativos'] }}</p>
                 </div>
@@ -62,7 +62,7 @@
             @endphp
 
             @if($empresas->count())
-            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px;">
+            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
                         <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
@@ -104,7 +104,7 @@
             </div>
 
             @if($empresas->hasPages())
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-white rounded-lg p-4 flex justify-between items-center" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="text-sm text-gray-500">
                     Mostrando {{ $empresas->count() }} de {{ $empresas->total() }} empresas
                 </div>
@@ -123,7 +123,7 @@
             </div>
             @endif
             @else
-            <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px;">
+            <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <h3 class="text-lg font-medium text-gray-900">Nenhuma empresa cadastrada</h3>
             </div>
             @endif
