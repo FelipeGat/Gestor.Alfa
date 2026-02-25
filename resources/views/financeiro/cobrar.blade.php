@@ -82,7 +82,7 @@
                         @endif
                     </x-table-cell>
                     <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
-                    <x-table-cell align="center">
+                    <td class="px-4 py-3 text-center">
                         <div class="flex flex-col items-center gap-1">
                             @if(empty($orcamento->data_agendamento))
                                 <button type="button" class="px-2 py-1 text-xs bg-[#3f9cae] hover:bg-[#2d7a8a] text-white rounded-full transition" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">Agendar</button>
@@ -108,22 +108,7 @@
                                 </div>
                             @endif
                         </div>
-                    <script>
-                    function abrirCalendarioAgendamento(id) {
-                        document.getElementById('form-agendar-' + id).style.display = 'flex';
-                        event.target.style.display = 'none';
-                    }
-                    function fecharCalendarioAgendamento(id) {
-                        document.getElementById('form-agendar-' + id).style.display = 'none';
-                        const btns = document.querySelectorAll('[onclick^="abrirCalendarioAgendamento"]');
-                        btns.forEach(btn => {
-                            if (btn.getAttribute('onclick').includes(id)) {
-                                btn.style.display = '';
-                            }
-                        });
-                    }
-                    </script>
-                    </x-table-cell>
+                    </td>
                     <td class="px-4 py-3 text-left">
                         <div class="flex gap-1 items-center justify-start">
                             @if($orcamento->status === 'financeiro')
@@ -184,6 +169,22 @@
 
         </div>
     </div>
+
+    <script>
+    function abrirCalendarioAgendamento(id) {
+        document.getElementById('form-agendar-' + id).style.display = 'flex';
+        event.target.style.display = 'none';
+    }
+    function fecharCalendarioAgendamento(id) {
+        document.getElementById('form-agendar-' + id).style.display = 'none';
+        const btns = document.querySelectorAll('[onclick^="abrirCalendarioAgendamento"]');
+        btns.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(id)) {
+                btn.style.display = '';
+            }
+        });
+    }
+    </script>
 
     @include('financeiro.partials.modal-gerar-cobranca')
 </x-app-layout>

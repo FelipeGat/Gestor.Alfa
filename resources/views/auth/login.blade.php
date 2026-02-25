@@ -14,6 +14,13 @@
 </head>
 
 <body class="min-h-screen flex items-center justify-center px-4 py-6 sm:py-12 relative overflow-x-hidden bg-gray-50">
+    <script>
+        // Limpar sessionStorage ao carregar página de login
+        try {
+            sessionStorage.removeItem('gestor_alfa_tabs');
+            sessionStorage.removeItem('gestor_alfa_active_tab');
+        } catch(e) {}
+    </script>
 
     <!-- Decorative Background Elements -->
     <div class="hidden sm:block absolute top-0 left-0 w-72 h-72 lg:w-96 lg:h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>

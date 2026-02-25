@@ -152,45 +152,168 @@
             // ============================================
             // Gerenciamento de Abas (Browser Tabs)
             // ============================================
-            // Apenas funções básicas - sem persistência entre sessões
+            const STORAGE_KEY = 'gestor_alfa_tabs';
+            const ACTIVE_TAB_KEY = 'gestor_alfa_active_tab';
+
+            function getTabs() {
+                const data = sessionStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            }
+
+            function saveTabs(tabs) {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+            }
+
+            function getActiveTabId() {
+                return sessionStorage.getItem(ACTIVE_TAB_KEY);
+            }
+
+            function setActiveTabId(id) {
+                sessionStorage.setItem(ACTIVE_TAB_KEY, id);
+            }
+
+            function generateTabId(url, label) {
+                return 'tab_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+            }
 
             window.abrirTab = function(url, label) {
-                window.location.href = url;
+                // Abrir em nova aba
+                window.open(url, '_blank');
             };
 
             window.fecharTab = function(tabId) {
-                const tabsNav = document.getElementById('tabs-nav');
-                if (!tabsNav) return;
-
-                const tabItems = tabsNav.querySelectorAll('.tab-item');
-                if (tabItems.length <= 1) {
-                    window.location.href = '{{ route("dashboard") }}';
-                    return;
-                }
-
-                const currentIndex = Array.from(tabItems).findIndex(item => item.dataset.tabId === tabId);
-                if (currentIndex > 0) {
-                    const previousTab = tabItems[currentIndex - 1];
-                    const previousUrl = previousTab.dataset.tabUrl;
-                    window.location.href = previousUrl;
+                let tabs = getTabs();
+                const activeId = getActiveTabId();
+                
+                const tabIndex = tabs.findIndex(t => t.id === tabId);
+                if (tabIndex === -1) return;
+                
+                tabs.splice(tabIndex, 1);
+                saveTabs(tabs);
+                
+                if (tabId === activeId) {
+                    if (tabs.length > 0) {
+                        const newActiveIndex = Math.min(tabIndex, tabs.length - 1);
+                        const newActive = tabs[newActiveIndex];
+                        setActiveTabId(newActive.id);
+                        window.location.href = newActive.url;
+                    } else {
+                        sessionStorage.removeItem(ACTIVE_TAB_KEY);
+                        window.location.href = '{{ route("dashboard") }}';
+                    }
                 } else {
-                    window.location.href = '{{ route("dashboard") }}';
+                    window.location.reload();
                 }
             };
 
             window.ativarTab = function(tabId) {
-                const tabsNav = document.getElementById('tabs-nav');
-                if (!tabsNav) return;
-
-                const tabItem = tabsNav.querySelector(`[data-tab-id="${tabId}"]`);
-                if (tabItem) {
-                    const tabUrl = tabItem.dataset.tabUrl;
-                    window.location.href = tabUrl;
+                let tabs = getTabs();
+                const tab = tabs.find(t => t.id === tabId);
+                
+                if (tab) {
+                    setActiveTabId(tabId);
+                    window.location.href = tab.url;
                 }
             };
 
+            // Renderizar abas do sessionStorage
+            function renderAbas() {
+                // Primeiro, verificar se já existe o container de abas
+                let tabsContainer = document.getElementById('tabs-container');
+                
+                const tabs = getTabs();
+                const activeId = getActiveTabId();
+                const currentUrl = window.location.href;
+
+                if (tabs.length === 0) {
+                    if (tabsContainer) tabsContainer.innerHTML = '';
+                    return;
+                }
+
+                const tabsHtml = tabs.map(tab => {
+                    const isActive = tab.id === activeId || tab.url === currentUrl;
+                    const closeButton = isActive 
+                        ? `<button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none">×</button>`
+                        : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none opacity-0 group-hover:opacity-100">×</button>`;
+
+                    if (isActive) {
+                        return `<div class="tab-item group relative" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
+                            <span class="relative bg-white px-4 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center gap-2">
+                                ${tab.label}
+                                ${closeButton}
+                            </span>
+                        </div>`;
+                    } else {
+                        return `<div class="tab-item group relative" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
+                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center gap-2 hover:bg-gray-300 hover:text-gray-800 transition-all">
+                                ${tab.label}
+                                ${closeButton}
+                            </a>
+                        </div>`;
+                    }
+                }).join('');
+
+                const html = `<nav id="tabs-nav" class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
+
+                // Se o container não existir, criar
+                if (!tabsContainer) {
+                    const wrapper = document.createElement('div');
+                    wrapper.id = 'tabs-container';
+                    wrapper.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
+                    wrapper.innerHTML = html;
+                    
+                    // Inserir após o header ou antes do breadcrumb
+                    const header = document.getElementById('page-header');
+                    const breadcrumbContainer = document.getElementById('breadcrumb-container');
+                    
+                    if (header && header.parentNode) {
+                        header.parentNode.insertBefore(wrapper, header.nextSibling);
+                    } else if (breadcrumbContainer && breadcrumbContainer.parentNode) {
+                        breadcrumbContainer.parentNode.insertBefore(wrapper, breadcrumbContainer);
+                    }
+                } else {
+                    tabsContainer.innerHTML = html;
+                }
+            }
+
+            // Inicializar aba atual se não existir
+            function inicializarAbas() {
+                let tabs = getTabs();
+                const activeId = getActiveTabId();
+
+                if (tabs.length === 0) {
+                    const currentLabel = document.querySelector('h2')?.textContent?.trim() || 'Página';
+                    const currentUrl = window.location.href;
+                    const tabId = generateTabId(currentUrl, currentLabel);
+                    tabs = [{ id: tabId, url: currentUrl, label: currentLabel }];
+                    saveTabs(tabs);
+                    setActiveTabId(tabId);
+                } else if (!activeId && tabs.length > 0) {
+                    setActiveTabId(tabs[0].id);
+                }
+            }
+
+            // Interceptor de cliques nos links do menu
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('[data-tab-link]');
+                if (link) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    const url = link.getAttribute('href');
+                    const label = link.getAttribute('data-tab-label') || link.textContent.trim();
+                    if (url && url !== '#') {
+                        window.abrirTab(url, label);
+                        return false;
+                    }
+                }
+            }, true);
+
             // Função global para limpar abas no logout
-            window.limparAbasSessao = function() {};
+            window.limparAbasSessao = function() {
+                sessionStorage.removeItem(STORAGE_KEY);
+                sessionStorage.removeItem(ACTIVE_TAB_KEY);
+            };
 
             // Scroll horizontal das abas com mouse
             function initTabsScroll() {
@@ -205,6 +328,8 @@
                 }
             }
 
+            renderAbas();
+            inicializarAbas();
             setTimeout(initTabsScroll, 0);
         });
     </script>

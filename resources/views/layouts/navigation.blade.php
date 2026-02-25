@@ -248,7 +248,7 @@
                             Editar Usuário
                         </x-dropdown-link>
 
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                             @csrf
                             <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 w-full text-left">
                                 Sair
@@ -273,7 +273,7 @@
             <x-responsive-nav-link :href="route('profile.edit')">
                 Editar Usuário
             </x-responsive-nav-link>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                 @csrf
                 <button type="submit" class="inline-flex items-center w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 text-left">
                     Sair
