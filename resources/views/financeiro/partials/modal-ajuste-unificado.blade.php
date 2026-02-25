@@ -67,10 +67,10 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-            <x-button variant="danger" size="sm" onclick="window.dispatchEvent(new CustomEvent('close-modal', { detail: 'modal-ajuste-unificado' }))">
+            <x-button class="min-w-[130px]" variant="danger" size="sm" onclick="window.dispatchEvent(new CustomEvent('close-modal', { detail: 'modal-ajuste-unificado' }))">
                 Cancelar
             </x-button>
-            <x-button variant="primary" size="sm" type="submit" form="formAjusteUnificado">
+            <x-button class="min-w-[130px]" variant="primary" size="sm" type="submit" form="formAjusteUnificado">
                 Confirmar
             </x-button>
         </div>

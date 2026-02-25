@@ -141,10 +141,10 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-            <x-button variant="danger" size="sm" onclick="window.dispatchEvent(new CustomEvent('close-modal', { detail: 'modal-gerar-cobranca' }))">
+            <x-button class="min-w-[130px]" variant="danger" size="sm" onclick="window.dispatchEvent(new CustomEvent('close-modal', { detail: 'modal-gerar-cobranca' }))">
                 Cancelar
             </x-button>
-            <x-button variant="primary" size="sm" type="submit" form="formGerarCobranca">
+            <x-button class="min-w-[130px]" variant="primary" size="sm" type="submit" form="formGerarCobranca">
                 Salvar
             </x-button>
         </div>
