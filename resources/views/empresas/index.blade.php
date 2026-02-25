@@ -84,9 +84,9 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">{{ $empresa->cnpj }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $empresa->ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    <x-badge type="{{ $empresa->ativo ? 'success' : 'danger' }}">
                                         {{ $empresa->ativo ? 'Ativa' : 'Inativa' }}
-                                    </span>
+                                    </x-badge>
                                 </td>
                                 <td class="px-4 py-3">
                                     <x-actions 
