@@ -9,9 +9,10 @@
     'actions' => false,
     'actionsLabel' => 'Ações',
     'title' => null,
+    'class' => '',
 ])
 
-<div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+<div class="bg-white rounded-lg overflow-hidden {{ $class }}" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
     @if($title)
         <div class="px-4 py-3 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
             <h3 class="text-sm font-semibold text-gray-700">{{ $title }}</h3>

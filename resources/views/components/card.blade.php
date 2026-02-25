@@ -4,6 +4,7 @@
     'href' => null,
     'clickable' => false,
     'padding' => true,
+    'class' => '',
 ])
 
 @php
@@ -12,7 +13,7 @@
 
 @if($href || $clickable)
     <a href="{{ $href ?? '#' }}" 
-       class="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+       class="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 {{ $class }}"
        style="border: 1px solid #3f9cae; border-top-width: 4px;"
        {{ $clickable ? 'style=cursor:pointer' : '' }}
        {{ $attributes->except(['class']) }}>
@@ -29,7 +30,7 @@
         </div>
     </a>
 @else
-    <div class="bg-white rounded-lg shadow-sm" 
+    <div class="bg-white rounded-lg shadow-sm {{ $class }}" 
          style="border: 1px solid #3f9cae; border-top-width: 4px;"
          {{ $attributes->except(['class']) }}>
         @if($title)

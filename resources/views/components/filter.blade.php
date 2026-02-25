@@ -3,6 +3,7 @@
     'action' => null,
     'route' => null,
     'showClearButton' => true,
+    'class' => '',
 ])
 
 @php
@@ -14,7 +15,7 @@
 <form 
     method="{{ $method }}" 
     action="{{ $action }}"
-    class="bg-white rounded-lg p-6"
+    class="bg-white rounded-lg p-6 {{ $class }}"
     style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);"
 >
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
