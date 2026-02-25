@@ -91,8 +91,8 @@
                                 <form method="POST" action="{{ route('financeiro.agendar-cobranca', $orcamento->id) }}" id="form-agendar-{{ $orcamento->id }}" style="display:none; margin-top:4px;" class="flex items-center gap-2">
                                     @csrf
                                     <input type="date" name="data_agendamento" min="{{ now()->toDateString() }}" class="rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-2 py-1 text-sm w-36" required>
-                                    <x-button size="sm" type="submit">Salvar</x-button>
-                                    <x-button size="sm" variant="secondary" type="button" onclick="fecharCalendarioAgendamento({{ $orcamento->id }})">Cancelar</x-button>
+                                    <x-button class="min-w-[130px]" size="sm" type="submit">Salvar</x-button>
+                                    <x-button class="min-w-[130px]" size="sm" variant="secondary" type="button" onclick="fecharCalendarioAgendamento({{ $orcamento->id }})">Cancelar</x-button>
                                 </form>
                             @else
                                 <div class="flex items-center gap-2 mt-1">
