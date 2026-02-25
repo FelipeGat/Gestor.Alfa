@@ -57,11 +57,10 @@
                     ['label' => 'Nome'],
                     ['label' => 'Email'],
                     ['label' => 'Status'],
-                    ['label' => 'Ações'],
                 ];
             @endphp
 
-            <x-table :columns="$columns" :data="$funcionarios" :actions="true" emptyMessage="Nenhum funcionário cadastrado">
+            <x-table :columns="$columns" :data="$funcionarios" emptyMessage="Nenhum funcionário cadastrado">
                 @foreach($funcionarios as $funcionario)
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell>{{ $funcionario->id }}</x-table-cell>
