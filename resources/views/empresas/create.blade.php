@@ -42,9 +42,7 @@
                 @csrf
 
                 {{-- SEÇÃO 1: DADOS DA EMPRESA --}}
-                <div class="bg-white rounded-lg p-6 border" style="border: 1px solid #3f9cae; border-top-width: 4px;">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Dados da Empresa</h3>
-                    
+                <x-card title="Dados da Empresa">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-input name="razao_social" label="Razão Social" required placeholder="Razão Social da empresa" />
                         <x-form-input name="nome_fantasia" label="Nome Fantasia" placeholder="Nome fantasia (opcional)" />
@@ -54,29 +52,25 @@
                         <x-form-input name="cnpj" label="CNPJ" required placeholder="00.000.000/0000-00" />
                         <x-form-input name="endereco" label="Endereço" placeholder="Endereço completo" />
                     </div>
-                </div>
+                </x-card>
 
                 {{-- SEÇÃO 2: CONTATOS --}}
-                <div class="bg-white rounded-lg p-6 border" style="border: 1px solid #3f9cae; border-top-width: 4px;">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Contatos</h3>
-
+                <x-card title="Contatos">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-input name="email_comercial" label="Email Comercial" type="email" placeholder="comercial@empresa.com" />
                         <x-form-input name="email_administrativo" label="Email Administrativo" type="email" placeholder="adm@empresa.com" />
                     </div>
-                </div>
+                </x-card>
 
                 {{-- SEÇÃO 3: STATUS --}}
-                <div class="bg-white rounded-lg p-6 border" style="border: 1px solid #3f9cae; border-top-width: 4px;">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Status</h3>
-
+                <x-card title="Status">
                     <div class="max-w-xs">
                         <x-form-select name="ativo" label="Situação da Empresa" placeholder="Selecione">
                             <option value="1" selected>Ativa</option>
                             <option value="0">Inativa</option>
                         </x-form-select>
                     </div>
-                </div>
+                </x-card>
 
                 {{-- AÇÕES --}}
                 <div class="flex justify-end gap-3 mt-6">

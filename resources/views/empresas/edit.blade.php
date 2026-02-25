@@ -23,9 +23,6 @@
         </div>
     </div>
 
-        </div>
-    </div>
-
     <div class="pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -46,9 +43,7 @@
                 @method('PUT')
 
                 {{-- SEÇÃO 1: DADOS DA EMPRESA --}}
-                <x-card>
-                    <x-slot name="title">Dados da Empresa</x-slot>
-
+                <x-card title="Dados da Empresa">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-input name="razao_social" label="Razão Social" required placeholder="Razão Social da empresa" :value="old('razao_social', $empresa->razao_social)" />
                         <x-form-input name="nome_fantasia" label="Nome Fantasia" placeholder="Nome fantasia (opcional)" :value="old('nome_fantasia', $empresa->nome_fantasia)" />
@@ -61,9 +56,7 @@
                 </x-card>
 
                 {{-- SEÇÃO 2: CONTATOS --}}
-                <x-card>
-                    <x-slot name="title">Contatos</x-slot>
-
+                <x-card title="Contatos">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-input name="email_comercial" label="Email Comercial" type="email" placeholder="comercial@empresa.com" :value="old('email_comercial', $empresa->email_comercial)" />
                         <x-form-input name="email_administrativo" label="Email Administrativo" type="email" placeholder="adm@empresa.com" :value="old('email_administrativo', $empresa->email_administrativo)" />
@@ -71,9 +64,7 @@
                 </x-card>
 
                 {{-- SEÇÃO 3: STATUS --}}
-                <x-card>
-                    <x-slot name="title">Status</x-slot>
-
+                <x-card title="Status">
                     <div class="max-w-xs">
                         <x-form-select name="ativo" label="Situação da Empresa" placeholder="Selecione" :selected="old('ativo', $empresa->ativo)">
                             <option value="1">Ativa</option>
