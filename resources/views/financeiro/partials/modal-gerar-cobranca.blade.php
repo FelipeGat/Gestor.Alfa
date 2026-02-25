@@ -158,7 +158,7 @@
                     Cancelar
                 </x-button>
 
-                <x-button type="submit" :class="{'opacity-50 cursor-not-allowed pointer-events-none': $store.modalCobranca.orcamento && $store.modalCobranca.orcamento.pre_cliente_id}">
+                <x-button type="submit">
                     <svg style="width: 14px; height: 14px; margin-right: 6px;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>

@@ -141,16 +141,7 @@
             handleScroll();
 
             // ============================================
-            // Limpeza preventiva de sessionStorage
-            // ============================================
-            // Remove qualquer resquício de sessões anteriores
-            try {
-                sessionStorage.removeItem('gestor_alfa_tabs');
-                sessionStorage.removeItem('gestor_alfa_active_tab');
-            } catch(e) {}
-
-            // ============================================
-            // Gerenciamento de Abas (Browser Tabs)
+            // Gerenciamento de Abas (Sistema de Abas Internas)
             // ============================================
             const STORAGE_KEY = 'gestor_alfa_tabs';
             const ACTIVE_TAB_KEY = 'gestor_alfa_active_tab';
@@ -176,11 +167,30 @@
                 return 'tab_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
             }
 
+            // Abrir aba interna - cria nova ou focaliza existente
             window.abrirTab = function(url, label) {
-                // Abrir em nova aba
-                window.open(url, '_blank');
+                let tabs = getTabs();
+                
+                // Verificar se já existe aba com mesma URL
+                const existingTab = tabs.find(t => t.url === url);
+                
+                if (existingTab) {
+                    // Se já existe, apenas ativar e navegar
+                    setActiveTabId(existingTab.id);
+                    window.location.href = url;
+                } else {
+                    // Se não existe, criar nova aba
+                    const tabId = generateTabId(url, label);
+                    tabs.push({ id: tabId, url: url, label: label });
+                    
+                    saveTabs(tabs);
+                    setActiveTabId(tabId);
+                    
+                    window.location.href = url;
+                }
             };
 
+            // Fechar aba interna
             window.fecharTab = function(tabId) {
                 let tabs = getTabs();
                 const activeId = getActiveTabId();
@@ -206,6 +216,7 @@
                 }
             };
 
+            // Ativar aba existente
             window.ativarTab = function(tabId) {
                 let tabs = getTabs();
                 const tab = tabs.find(t => t.id === tabId);
@@ -216,9 +227,8 @@
                 }
             };
 
-            // Renderizar abas do sessionStorage
+            // Renderizar abas visuais
             function renderAbas() {
-                // Primeiro, verificar se já existe o container de abas
                 let tabsContainer = document.getElementById('tabs-container');
                 
                 const tabs = getTabs();
@@ -259,10 +269,9 @@
                 if (!tabsContainer) {
                     const wrapper = document.createElement('div');
                     wrapper.id = 'tabs-container';
-                    wrapper.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
+                    wrapper.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2';
                     wrapper.innerHTML = html;
                     
-                    // Inserir após o header ou antes do breadcrumb
                     const header = document.getElementById('page-header');
                     const breadcrumbContainer = document.getElementById('breadcrumb-container');
                     
@@ -298,8 +307,6 @@
                 const link = e.target.closest('[data-tab-link]');
                 if (link) {
                     e.preventDefault();
-                    e.stopImmediatePropagation();
-                    e.stopPropagation();
                     const url = link.getAttribute('href');
                     const label = link.getAttribute('data-tab-label') || link.textContent.trim();
                     if (url && url !== '#') {
@@ -307,7 +314,7 @@
                         return false;
                     }
                 }
-            }, true);
+            });
 
             // Função global para limpar abas no logout
             window.limparAbasSessao = function() {
