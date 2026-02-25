@@ -227,7 +227,7 @@
                 }
             };
 
-            // Renderizar abas visuais
+            // Renderizar abas visuais no topo da página
             function renderAbas() {
                 let tabsContainer = document.getElementById('tabs-container');
                 
