@@ -23,7 +23,11 @@
                     @elseif($isCliente) {{ route('portal.index') }}
                     @else {{ route('portal-funcionario.index') }}
                     @endif
-                " data-tab-link data-tab-label="Dashboard" data-tab-icon="dashboard">
+                " data-tab-link data-tab-label="Dashboard" 
+                    @if($isCliente) data-tab-icon="portal"
+                    @elseif(!$isAdmin && !$isFinanceiro && !$isComercial) data-tab-icon="portal-funcionario"
+                    @else data-tab-icon="dashboard"
+                    @endif>
                     <x-application-logo class="h-6 w-auto text-gray-800" />
                 </a>
             </div>
@@ -291,19 +295,19 @@
             <summary class="font-semibold text-gray-700">Gestão</summary>
             <div class="pl-4 space-y-1">
                 @if($isAdmin)
-                <x-responsive-nav-link :href="route('dashboard')">Dashboard Operacional</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dashboard')" data-tab-icon="dashboard">Dashboard Operacional</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isComercial)
-                <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dashboard.comercial')" data-tab-icon="dashboard-comercial">Dashboard Comercial</x-responsive-nav-link>
                 @endif
                 @if($isFuncionario)
-                <x-responsive-nav-link :href="route('portal-funcionario.index')">Portal do Funcionário</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">Portal do Funcionário</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Financeiro</x-responsive-nav-link>
                 @endif
                 @if($isAdmin)
-                <x-responsive-nav-link :href="route('atendimentos.index')">Atendimentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('atendimentos.index')" data-tab-icon="atendimentos">Atendimentos</x-responsive-nav-link>
                 @endif
             </div>
         </details>
@@ -314,8 +318,8 @@
         <details>
             <summary class="font-semibold text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('financeiro.dashboard')">Financeiro</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('cobrancas.index')">Cobranças</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('cobrancas.index')" data-tab-icon="cobras">Cobranças</x-responsive-nav-link>
             </div>
         </details>
         @endif
@@ -325,10 +329,10 @@
         <details>
             <summary class="font-semibold text-gray-700">Comercial</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('dashboard.comercial')">Dashboard Comercial</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('orcamentos.index')">Orçamentos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('itemcomercial.index')">Produtos / Serviços</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('pre-clientes.index')">Pré-Clientes</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dashboard.comercial')" data-tab-icon="dashboard-comercial">Dashboard Comercial</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('orcamentos.index')" data-tab-icon="orcamentos">Orçamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('itemcomercial.index')" data-tab-icon="produtos">Produtos / Serviços</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pre-clientes.index')" data-tab-icon="pre-clientes">Pré-Clientes</x-responsive-nav-link>
             </div>
         </details>
         @endif
@@ -339,17 +343,17 @@
             <summary class="font-semibold text-gray-700">Cadastros</summary>
             <div class="pl-4 space-y-1">
                 @if($isAdmin)
-                <x-responsive-nav-link :href="route('empresas.index')">Empresas</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('funcionarios.index')">Funcionários</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('usuarios.index')">Usuários</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('empresas.index')" data-tab-icon="empresas">Empresas</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('usuarios.index')" data-tab-icon="usuarios">Usuários</x-responsive-nav-link>
                 @endif
-                <x-responsive-nav-link :href="route('clientes.index')">Clientes</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('clientes.index')" data-tab-icon="clientes">Clientes</x-responsive-nav-link>
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('fornecedores.index')">Fornecedores</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('fornecedores.index')" data-tab-icon="fornecedores">Fornecedores</x-responsive-nav-link>
                 @endif
-                <x-responsive-nav-link :href="route('assuntos.index')">Assuntos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('assuntos.index')" data-tab-icon="assuntos">Assuntos</x-responsive-nav-link>
                 @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('categorias.index')">Categorias</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>
                 @endif
             </div>
         </details>
@@ -360,10 +364,10 @@
         <details>
             <summary class="font-semibold text-gray-700">Relatórios</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')">Custos x Orçamentos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.custos-gerencial')">Gerencial de Custos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.contas-receber')">Contas a Receber</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.contas-pagar')">Contas a Pagar</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')" data-tab-icon="relatorios">Custos x Orçamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.custos-gerencial')" data-tab-icon="relatorios">Gerencial de Custos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.contas-receber')" data-tab-icon="relatorios">Contas a Receber</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('relatorios.contas-pagar')" data-tab-icon="relatorios">Contas a Pagar</x-responsive-nav-link>
             </div>
         </details>
         @endif

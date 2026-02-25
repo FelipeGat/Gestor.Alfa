@@ -152,7 +152,7 @@
 <body>
     {{-- HEADER --}}
     <div class="header">
-        <h1>📊 Dashboard Técnico</h1>
+        <h1>Dashboard Técnico</h1>
         <div class="subtitle">Relatório de Atendimentos</div>
         <div class="subtitle">{{ $statusTexto }}</div>
     </div>

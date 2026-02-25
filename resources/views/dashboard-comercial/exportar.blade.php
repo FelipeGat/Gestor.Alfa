@@ -175,7 +175,7 @@
 
 <body>
     <div class="header">
-        <h1>📊 Dashboard Comercial</h1>
+        <h1>Dashboard Comercial</h1>
         <div class="subtitle">{{ $tituloStatus }}</div>
         @if($empresa)
         <div class="subtitle">{{ $empresa->nome_fantasia }}</div>
