@@ -73,38 +73,6 @@
                     </div>
                 </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                        <x-form-input name="cnpj" label="CNPJ" required placeholder="00.000.000/0000-00" />
-                        <x-form-input name="endereco" label="Endereço" placeholder="Endereço completo" />
-                    </div>
-                </div>
-
-                {{-- SEÇÃO 2: CONTATOS --}}
-                <div class="bg-white rounded-lg p-6 border" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200">
-                        Contatos
-                    </h3>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <x-form-input name="email_comercial" label="Email Comercial" type="email" placeholder="comercial@empresa.com" />
-                        <x-form-input name="email_administrativo" label="Email Administrativo" type="email" placeholder="adm@empresa.com" />
-                    </div>
-                </div>
-
-                {{-- SEÇÃO 3: STATUS --}}
-                <div class="bg-white rounded-lg p-6 border" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200">
-                        Status
-                    </h3>
-
-                    <div class="max-w-xs">
-                        <x-form-select name="ativo" label="Situação da Empresa" placeholder="Selecione">
-                            <option value="1" selected>Ativa</option>
-                            <option value="0">Inativa</option>
-                        </x-form-select>
-                    </div>
-                </div>
-
                 {{-- AÇÕES --}}
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                     <x-button href="{{ route('empresas.index') }}" variant="danger" size="md" class="min-w-[130px]">
