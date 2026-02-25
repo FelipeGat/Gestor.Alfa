@@ -91,8 +91,8 @@
                                 <form method="POST" action="{{ route('financeiro.agendar-cobranca', $orcamento->id) }}" id="form-agendar-{{ $orcamento->id }}" style="display:none; margin-top:4px;" class="flex items-center gap-2">
                                     @csrf
                                     <input type="date" name="data_agendamento" min="{{ now()->toDateString() }}" class="rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-2 py-1 text-sm w-36" required>
-                                    <x-button size="xs" type="submit">Salvar</x-button>
-                                    <x-button size="xs" variant="secondary" type="button" onclick="fecharCalendarioAgendamento({{ $orcamento->id }})">Cancelar</x-button>
+                                    <x-button size="sm" type="submit">Salvar</x-button>
+                                    <x-button size="sm" variant="secondary" type="button" onclick="fecharCalendarioAgendamento({{ $orcamento->id }})">Cancelar</x-button>
                                 </form>
                             @else
                                 <div class="flex items-center gap-2 mt-1">
@@ -100,7 +100,7 @@
                                     <form method="POST" action="{{ route('financeiro.cancelar-agendamento', $orcamento->id) }}" onsubmit="return confirm('Deseja cancelar o agendamento?');">
                                         @csrf
                                         @method('DELETE')
-                                        <x-button size="xs" variant="danger" type="submit" title="Cancelar agendamento">
+                                        <x-button size="sm" variant="secondary" type="submit" title="Cancelar agendamento">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </x-button>
                                     </form>
