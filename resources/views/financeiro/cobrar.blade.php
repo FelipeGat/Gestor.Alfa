@@ -85,7 +85,9 @@
                     <td class="px-4 py-3 text-center">
                         <div class="flex flex-col items-center gap-1">
                             @if(empty($orcamento->data_agendamento))
-                                <button type="button" class="px-2 py-1 text-xs bg-[#3f9cae] hover:bg-[#2d7a8a] text-white rounded-full transition" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">Agendar</button>
+                                <x-button size="xs" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">
+                                    Agendar
+                                </x-button>
                                 <form method="POST" action="{{ route('financeiro.agendar-cobranca', $orcamento->id) }}" id="form-agendar-{{ $orcamento->id }}" style="display:none; margin-top:4px;" class="flex items-center gap-2">
                                     @csrf
                                     <input type="date" name="data_agendamento" min="{{ now()->toDateString() }}" class="rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-2 py-1 text-sm w-36" required>
