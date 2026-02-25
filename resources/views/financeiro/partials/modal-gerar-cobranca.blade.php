@@ -72,14 +72,17 @@
                 <div class="modal-cobranca-section">
                     <h3 class="modal-cobranca-section-title">Forma de Pagamento</h3>
 
-                    <x-form-select label="Forma de Pagamento" name="forma_pagamento" x-model="forma" @change="atualizarForma()" required>
-                        <option value="">Selecione</option>
-                        <option value="pix">Pix</option>
-                        <option value="debito">Cartão de Débito</option>
-                        <option value="credito">Cartão de Crédito</option>
-                        <option value="boleto">Boleto</option>
-                        <option value="faturado">Faturado</option>
-                    </x-form-select>
+                    <div class="modal-field">
+                        <label class="modal-label">Forma de Pagamento</label>
+                        <select name="forma_pagamento" x-model="forma" @change="atualizarForma()" class="modal-select" required>
+                            <option value="">Selecione</option>
+                            <option value="pix">Pix</option>
+                            <option value="debito">Cartão de Débito</option>
+                            <option value="credito">Cartão de Crédito</option>
+                            <option value="boleto">Boleto</option>
+                            <option value="faturado">Faturado</option>
+                        </select>
+                    </div>
                 </div>
 
                 <template x-if="mostrarParcelas">
