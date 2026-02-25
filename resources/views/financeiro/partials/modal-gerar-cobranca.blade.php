@@ -54,32 +54,43 @@
                 </div>
             </div>
 
-            <x-form-select 
-                name="forma_pagamento" 
-                label="Forma de Pagamento" 
-                required 
-                placeholder="Selecione"
-                x-model="forma"
-                @change="atualizarForma()"
-            >
-                <option value="pix">Pix</option>
-                <option value="debito">Cartão de Débito</option>
-                <option value="credito">Cartão de Crédito</option>
-                <option value="boleto">Boleto</option>
-                <option value="faturado">Faturado</option>
-            </x-form-select>
+            <div class="flex flex-col">
+                <label for="forma_pagamento" class="text-sm font-medium text-gray-700 mb-1">
+                    Forma de Pagamento <span class="text-red-500">*</span>
+                </label>
+                <select 
+                    name="forma_pagamento" 
+                    id="forma_pagamento"
+                    x-model="forma"
+                    @change="atualizarForma()"
+                    class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20"
+                    required
+                >
+                    <option value="">Selecione</option>
+                    <option value="pix">Pix</option>
+                    <option value="debito">Cartão de Débito</option>
+                    <option value="credito">Cartão de Crédito</option>
+                    <option value="boleto">Boleto</option>
+                    <option value="faturado">Faturado</option>
+                </select>
+            </div>
 
             <template x-if="mostrarParcelas">
                 <div class="space-y-4">
-                    <x-form-input 
-                        name="parcelas" 
-                        label="Quantidade de Parcelas" 
-                        type="number" 
-                        min="1" 
-                        max="12"
-                        x-model.number="parcelas"
-                        @input="gerarVencimentos()"
-                    />
+                    <div>
+                        <label for="parcelas" class="text-sm font-medium text-gray-700 mb-1">Quantidade de Parcelas</label>
+                        <input 
+                            type="number" 
+                            name="parcelas" 
+                            id="parcelas"
+                            min="1" 
+                            max="12"
+                            x-model.number="parcelas"
+                            @input="gerarVencimentos()"
+                            class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20"
+                            style="max-width: 120px;"
+                        >
+                    </div>
 
                     <template x-if="vencimentos.length > 0">
                         <div class="p-4 rounded-xl border" style="background-color: #f0f9ff; border-color: #3f9cae;">
@@ -94,25 +105,31 @@
                                 <template x-for="(v, index) in vencimentos" :key="index">
                                     <div class="p-3 rounded-lg border" style="background-color: #f9fafb; border-color: #e5e7eb;">
                                         <div class="grid grid-cols-2 gap-3">
-                                            <x-form-input 
-                                                :name="`vencimentos[${index}]`" 
-                                                label="Vencimento" 
-                                                type="date"
-                                                x-model="vencimentos[index]"
-                                                @change="recalcularDatas(index)"
-                                                required
-                                            />
-                                            <x-form-input 
-                                                :name="`valores_parcelas[${index}]`" 
-                                                label="Valor (R$)" 
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                x-model="valoresParcelas[index]"
-                                                @focus="salvarValorOriginal(index)"
-                                                @blur="ajustarValores(index)"
-                                                required
-                                            />
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-700 mb-1">Vencimento</label>
+                                                <input 
+                                                    type="date" 
+                                                    :name="`vencimentos[${index}]`"
+                                                    x-model="vencimentos[index]"
+                                                    @change="recalcularDatas(index)"
+                                                    class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20"
+                                                    required
+                                                >
+                                            </div>
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-700 mb-1">Valor (R$)</label>
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    min="0"
+                                                    :name="`valores_parcelas[${index}]`"
+                                                    x-model="valoresParcelas[index]"
+                                                    @focus="salvarValorOriginal(index)"
+                                                    @blur="ajustarValores(index)"
+                                                    class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20"
+                                                    required
+                                                >
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
