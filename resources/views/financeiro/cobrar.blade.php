@@ -81,7 +81,7 @@
                                 <x-badge type="default">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
                             @endif
                     </x-table-cell>
-                    <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
+                    <x-table-cell align="left">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
                     <x-table-cell align="left">
                         <div class="flex flex-col items-start gap-1">
                             @if(empty($orcamento->data_agendamento))
