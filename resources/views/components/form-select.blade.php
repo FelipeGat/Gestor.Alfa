@@ -40,21 +40,25 @@
             <option value="">{{ $placeholder }}</option>
         @endif
         
-        @foreach($options as $optionValue => $optionLabel)
-            @if(is_array($optionLabel))
-                <optgroup label="{{ $optionValue }}">
-                    @foreach($optionLabel as $optValue => $optLabel)
-                        <option value="{{ $optValue }}" @selected(old($name, $selected) == $optValue)>
-                            {{ $optLabel }}
-                        </option>
-                    @endforeach
-                </optgroup>
-            @else
-                <option value="{{ $optionValue }}" @selected(old($name, $selected) == $optionValue)>
-                    {{ $optionLabel }}
-                </option>
-            @endif
-        @endforeach
+        @if(count($options) > 0)
+            @foreach($options as $optionValue => $optionLabel)
+                @if(is_array($optionLabel))
+                    <optgroup label="{{ $optionValue }}">
+                        @foreach($optionLabel as $optValue => $optLabel)
+                            <option value="{{ $optValue }}" @selected(old($name, $selected) == $optValue)>
+                                {{ $optLabel }}
+                            </option>
+                        @endforeach
+                    </optgroup>
+                @else
+                    <option value="{{ $optionValue }}" @selected(old($name, $selected) == $optionValue)>
+                        {{ $optionLabel }}
+                    </option>
+                @endif
+            @endforeach
+        @else
+            {{ $slot }}
+        @endif
     </select>
     
     @if($help && !$hasError)

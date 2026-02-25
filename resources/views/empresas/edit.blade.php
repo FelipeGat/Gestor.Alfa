@@ -69,10 +69,13 @@
                     </h3>
 
                     <div class="max-w-xs">
-                        <x-form-select name="ativo" label="Situação da Empresa" placeholder="Selecione" :selected="old('ativo', $empresa->ativo)">
-                            <option value="1">Ativa</option>
-                            <option value="0">Inativa</option>
-                        </x-form-select>
+                        <x-form-select 
+                            name="ativo" 
+                            label="Situação da Empresa" 
+                            placeholder="Selecione" 
+                            :selected="old('ativo', $empresa->ativo)"
+                            :options="[1 => 'Ativa', 0 => 'Inativa']"
+                        />
                     </div>
                 </div>
 

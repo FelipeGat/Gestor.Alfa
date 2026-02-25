@@ -67,7 +67,7 @@
 
                     <div class="max-w-xs">
                         <x-form-select name="ativo" label="Situação da Empresa" placeholder="Selecione">
-                            <option value="1" selected>Ativa</option>
+                            <option value="1">Ativa</option>
                             <option value="0">Inativa</option>
                         </x-form-select>
                     </div>
