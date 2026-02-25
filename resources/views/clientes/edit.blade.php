@@ -54,7 +54,7 @@
         ]" />
     </x-slot>
 
-    <x-back-button :route="route('clientes.index')" />
+    <x-page-title title="Editar Cliente" :route="route('clientes.index')" />
 
     {{-- ================= ESTILO SPINNER ================= --}}
     <style>
