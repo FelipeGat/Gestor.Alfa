@@ -123,6 +123,12 @@
         ]" />
     </x-slot>
 
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            📊 Dashboard Comercial
+        </h2>
+    </x-slot>
+
     <!-- FILTROS -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <form action="{{ url()->current() }}" method="GET" class="filters-card p-6">
