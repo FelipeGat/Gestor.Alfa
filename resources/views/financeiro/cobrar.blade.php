@@ -24,7 +24,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- ================= FILTROS ================= --}}
-            <x-filter :action="route('financeiro.cobrar')" :show-clear-button="true">
+            <x-filter :action="route('financeiro.cobrar')" :show-clear-button="true" class="mb-4">
                 <x-filter-field name="search" label="Buscar por Cliente ou Descrição" placeholder="Ex: Invest, Manutenção..." colSpan="lg:col-span-4" />
                 <x-filter-field name="empresa_id" label="Empresa" type="select" placeholder="Todas as Empresas" colSpan="lg:col-span-3">
                     @foreach($empresas as $empresa)
@@ -58,7 +58,7 @@
             @endphp
 
             @if($orcamentos->count())
-            <x-table :columns="$columns" :data="$orcamentos" :actions="false" emptyMessage="Nenhum orçamento encontrado">
+            <x-table :columns="$columns" :data="$orcamentos" :actions="false" emptyMessage="Nenhum orçamento encontrado" class="mb-4">
                 @php $totalPagina = 0; @endphp
                 @foreach($orcamentos as $orcamento)
                 @php $totalPagina += $orcamento->valor_total; @endphp
@@ -148,7 +148,7 @@
             </x-table>
 
             {{-- ================= TOTAL ================= --}}
-            <x-card class="mt-4">
+            <x-card class="mt-4 mb-6">
                 <div class="p-4 flex justify-end">
                     <div class="text-right">
                         <span class="text-sm text-gray-600 uppercase tracking-wide">Total da Página:</span>
