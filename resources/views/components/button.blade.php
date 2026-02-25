@@ -52,11 +52,11 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
         @elseif($icon || $iconLeft)
-            {{ $iconLeft ?? '' }}
+            {!! $iconLeft ?? '' !!}
         @endif
         {{ $slot }}
         @if($iconRight && !$icon && !$iconLeft)
-            {{ $iconRight }}
+            {!! $iconRight !!}
         @endif
     </a>
 @else
@@ -71,11 +71,11 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
         @elseif($icon || $iconLeft)
-            {{ $iconLeft ?? '' }}
+            {!! $iconLeft ?? '' !!}
         @endif
         {{ $slot }}
         @if($iconRight && !$icon && !$iconLeft)
-            {{ $iconRight }}
+            {!! $iconRight !!}
         @endif
     </button>
 @endif
