@@ -57,51 +57,37 @@
                     ['label' => 'Empresa'],
                     ['label' => 'CNPJ'],
                     ['label' => 'Status'],
-                    ['label' => 'Ações'],
                 ];
             @endphp
 
             @if($empresas->count())
-            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                <div class="overflow-x-auto">
-                    <table class="w-full table-auto">
-                        <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
-                            <tr>
-                                @foreach($columns as $column)
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold text-gray-700">{{ $column['label'] }}</th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @foreach($empresas as $empresa)
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 text-sm text-gray-900">{{ $empresa->id }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    {{ $empresa->razao_social }}
-                                    @if($empresa->nome_fantasia)
-                                    <div class="text-xs text-gray-500">{{ $empresa->nome_fantasia }}</div>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-600">{{ $empresa->cnpj }}</td>
-                                <td class="px-4 py-3">
-                                    <x-badge type="{{ $empresa->ativo ? 'success' : 'danger' }}" :icon="true">
-                                        {{ $empresa->ativo ? 'Ativa' : 'Inativa' }}
-                                    </x-badge>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <x-actions 
-                                        :edit-url="route('empresas.edit', $empresa)" 
-                                        :delete-url="route('empresas.destroy', $empresa)"
-                                        :show-view="false"
-                                        confirm-delete-message="Deseja excluir esta Empresa?"
-                                    />
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <x-table :columns="$columns" :data="$empresas" :actions="false">
+                @foreach($empresas as $empresa)
+                <tr class="hover:bg-gray-50 transition">
+                    <x-table-cell>{{ $empresa->id }}</x-table-cell>
+                    <x-table-cell>
+                        {{ $empresa->razao_social }}
+                        @if($empresa->nome_fantasia)
+                        <div class="text-xs text-gray-500"> {{ $empresa->nome_fantasia }}</div>
+                        @endif
+                    </x-table-cell>
+                    <x-table-cell type="muted">{{ $empresa->cnpj }}</x-table-cell>
+                    <x-table-cell>
+                        <x-badge type="{{ $empresa->ativo ? 'success' : 'danger' }}" :icon="true">
+                            {{ $empresa->ativo ? 'Ativa' : 'Inativa' }}
+                        </x-badge>
+                    </x-table-cell>
+                    <x-table-cell>
+                        <x-actions 
+                            :edit-url="route('empresas.edit', $empresa)" 
+                            :delete-url="route('empresas.destroy', $empresa)"
+                            :show-view="false"
+                            confirm-delete-message="Deseja excluir esta Empresa?"
+                        />
+                    </x-table-cell>
+                </tr>
+                @endforeach
+            </x-table>
 
             @if($empresas->hasPages())
             <div class="bg-white rounded-lg p-4 flex justify-between items-center" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">

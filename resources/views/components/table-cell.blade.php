@@ -22,7 +22,7 @@
     ];
     
     $typeClasses = $types[$type] ?? $types['default'];
-    $classes = 'px-4 py-3 text-sm ' . ($alignClasses[$align] ?? 'text-left') . ' ' . ($bold ? 'font-semibold ' : 'font-medium ') . $typeClasses . ($nowrap ? ' whitespace-nowrap' : '');
+    $classes = 'px-4 py-3 text-sm ' . ($alignClasses[$align] ?? 'text-left') . ' font-semibold ' . $typeClasses . ($nowrap ? ' whitespace-nowrap' : '');
 @endphp
 
 <td class="{{ $classes }}">

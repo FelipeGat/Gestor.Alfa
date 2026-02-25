@@ -80,7 +80,7 @@
                 @foreach($usuarios as $row)
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell>{{ $row->name }}</x-table-cell>
-                    <x-table-cell>{{ $row->email }}</x-table-cell>
+                    <x-table-cell type="muted">{{ $row->email }}</x-table-cell>
                     <x-table-cell>{{ ucfirst($row->tipo) }}</x-table-cell>
                     <x-table-cell :nowrap="true">
                         @if(!$row->primeiro_acesso)
@@ -89,9 +89,6 @@
                             <x-badge type="warning" :icon="true">Primeiro Acesso</x-badge>
                         @endif
                     </x-table-cell>
-                    <td class="px-4 py-3">
-                        <x-actions :edit-url="route('usuarios.edit', $row)" :delete-url="route('usuarios.destroy', $row)" :show-view="false" />
-                    </td>
                 </tr>
                 @endforeach
             </x-table>
