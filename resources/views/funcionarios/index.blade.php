@@ -57,6 +57,7 @@
                     ['label' => 'Nome'],
                     ['label' => 'Email'],
                     ['label' => 'Status'],
+                    ['label' => 'Ações'],
                 ];
             @endphp
 
