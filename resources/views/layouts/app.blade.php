@@ -245,14 +245,14 @@
 
                     if (isActive) {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <span class="relative bg-white px-4 pr-8 py-3 text-sm font-semibold text-[#3f9cae] whitespace-nowrap leading-relaxed" style="border: 2px solid #3f9cae; border-radius: 8px 8px 0 0;">
+                            <span class="relative bg-white px-4 pr-8 py-3 text-sm font-semibold text-[#3f9cae] whitespace-nowrap leading-relaxed" style="border: 2px solid #3f9cae !important; border-radius: 8px 8px 0 0 !important;">
                                 ${tab.label}
                                 <button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none">×</button>
                             </span>
                         </div>`;
                     } else {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 pr-8 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap hover:bg-gray-300 hover:text-gray-800 transition-all leading-relaxed" style="border: 1px solid #d1d5db; border-radius: 8px 8px 0 0;">
+                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 pr-8 py-3 text-sm font-semibold text-gray-600 whitespace-nowrap hover:bg-gray-300 hover:text-gray-800 transition-all leading-relaxed" style="border: 1px solid #000000 !important; border-radius: 8px 8px 0 0 !important;">
                                 ${tab.label}
                                 <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-xs leading-none opacity-0 group-hover:opacity-100">×</button>
                             </a>
