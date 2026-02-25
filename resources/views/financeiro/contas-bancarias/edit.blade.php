@@ -31,7 +31,11 @@
                 @csrf
                 @method('PUT')
 
-                <x-form-section title="Dados da Conta">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Dados da Conta
+                    </h3>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <x-form-select name="empresa_id" label="Empresa" required placeholder="Selecione a empresa" :selected="old('empresa_id', $contaFinanceira->empresa_id)">
                             @foreach($empresas as $empresa)
@@ -65,7 +69,7 @@
                             <option value="0" @selected(old('ativo', $contaFinanceira->ativo) == 0)>Não</option>
                         </x-form-select>
                     </div>
-                </x-form-section>
+                </div>
 
                 <div class="flex justify-end gap-3 mt-6">
                     <x-button href="{{ route('financeiro.contas-financeiras.index') }}" variant="danger" size="md" class="min-w-[130px]">
