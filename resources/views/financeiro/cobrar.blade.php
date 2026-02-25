@@ -85,7 +85,7 @@
                     <td class="px-4 py-3 text-center">
                         <div class="flex flex-col items-center gap-1">
                             @if(empty($orcamento->data_agendamento))
-                                <x-button size="xs" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">
+                                <x-button size="sm" onclick="abrirCalendarioAgendamento({{ $orcamento->id }})">
                                     Agendar
                                 </x-button>
                                 <form method="POST" action="{{ route('financeiro.agendar-cobranca', $orcamento->id) }}" id="form-agendar-{{ $orcamento->id }}" style="display:none; margin-top:4px;" class="flex items-center gap-2">
