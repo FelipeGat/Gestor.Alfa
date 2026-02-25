@@ -14,104 +14,97 @@
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-            {{-- TESTE: sem x-filter --}}
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px;">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                    <div class="flex flex-col lg:col-span-6">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Pesquisar Empresa</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Razão social ou nome fantasia" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
-                    </div>
-                    <div class="flex flex-col lg:col-span-3">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
-                            <option value="">Todas</option>
-                            <option value="ativo" @selected(request('status')=='ativo')>Ativa</option>
-                            <option value="inativo" @selected(request('status')=='inativo')>Inativa</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end lg:col-span-3 gap-2">
-                        <button type="submit" class="px-4 py-2 text-white rounded-full" style="background: #3f9cae;">Filtrar</button>
-                        <a href="{{ route('empresas.index') }}" class="px-4 py-2 text-white rounded-full" style="background: #9ca3af;">Limpar</a>
-                    </div>
-                </div>
-            </form>
+            <x-filter :action="route('empresas.index')" :show-clear-button="true" class="mb-4">
+                <x-filter-field name="search" label="Pesquisar Empresa" placeholder="Razão social ou nome fantasia" colSpan="lg:col-span-6" />
+                <x-filter-field name="status" label="Status" type="select" placeholder="Todas" colSpan="lg:col-span-3">
+                    <option value="ativo" @selected(request('status')=='ativo')>Ativa</option>
+                    <option value="inativo" @selected(request('status')=='inativo')>Inativa</option>
+                </x-filter-field>
+            </x-filter>
 
             {{-- ================= RESUMO (KPIs) ================= --}}
-            {{-- TESTE: sem x-kpi-card --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-600" style="border: 1px solid #3f9cae; border-top: 1px solid #3f9cae;">
-                    <p class="text-xs text-gray-600 uppercase">Total de Empresas</p>
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #3b82f6; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6;">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Empresas</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totais['total'] }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4 border-green-600" style="border: 1px solid #16a34a;">
-                    <p class="text-xs text-gray-600 uppercase">Empresas Ativas</p>
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e;">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Empresas Ativas</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">{{ $totais['ativos'] }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4 border-red-600" style="border: 1px solid #dc2626;">
-                    <p class="text-xs text-gray-600 uppercase">Empresas Inativas</p>
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #ef4444; border-top: 1px solid #ef4444; border-right: 1px solid #ef4444; border-bottom: 1px solid #ef4444;">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Empresas Inativas</p>
                     <p class="text-3xl font-bold text-red-600 mt-2">{{ $totais['inativos'] }}</p>
                 </div>
             </div>
 
             @if(auth()->user()->canPermissao('clientes', 'incluir'))
             <div class="flex justify-start">
-                <a href="{{ route('empresas.create') }}" class="px-4 py-2 text-white rounded-full" style="background: #22c55e;">+ Adicionar</a>
+                <x-button href="{{ route('empresas.create') }}" variant="success" size="sm" class="min-w-[130px]">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Adicionar
+                </x-button>
             </div>
             @endif
 
             {{-- ================= TABELA ================= --}}
-            {{-- TESTE: sem x-table --}}
+            @php
+                $columns = [
+                    ['label' => 'ID'],
+                    ['label' => 'Empresa'],
+                    ['label' => 'CNPJ'],
+                    ['label' => 'Status'],
+                    ['label' => 'Ações'],
+                ];
+            @endphp
+
+            @if($empresas->count())
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px;">
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
                         <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                             <tr>
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold">ID</th>
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold">Empresa</th>
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold">CNPJ</th>
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold">Status</th>
-                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold">Ações</th>
+                                @foreach($columns as $column)
+                                <th class="px-4 py-3 text-left uppercase text-sm font-semibold text-gray-700">{{ $column['label'] }}</th>
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            @forelse($empresas as $empresa)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 text-sm">{{ $empresa->id }}</td>
-                                <td class="px-4 py-3 text-sm">
+                            @foreach($empresas as $empresa)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ $empresa->id }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ $empresa->razao_social }}
                                     @if($empresa->nome_fantasia)
                                     <div class="text-xs text-gray-500">{{ $empresa->nome_fantasia }}</div>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $empresa->cnpj }}</td>
-                                <td class="px-4 py-3 text-sm">
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ $empresa->cnpj }}</td>
+                                <td class="px-4 py-3">
                                     <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $empresa->ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $empresa->ativo ? 'Ativa' : 'Inativa' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <a href="{{ route('empresas.edit', $empresa) }}" class="text-blue-600 hover:text-blue-800 mr-2">Editar</a>
-                                    <form action="{{ route('empresas.destroy', $empresa) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800" onclick="return confirm('Excluir?')">Excluir</button>
-                                    </form>
+                                    <x-actions 
+                                        :edit-url="route('empresas.edit', $empresa)" 
+                                        :delete-url="route('empresas.destroy', $empresa)"
+                                        :show-view="false"
+                                        confirm-delete-message="Deseja excluir esta Empresa?"
+                                    />
                                 </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-gray-500">Nenhuma empresa cadastrada</td>
-                            </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {{-- TESTE: sem x-pagination --}}
             @if($empresas->hasPages())
-            <div class="flex justify-between items-center p-4 bg-white rounded-lg">
+            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
                 <div class="text-sm text-gray-500">
                     Mostrando {{ $empresas->count() }} de {{ $empresas->total() }} empresas
                 </div>
@@ -127,6 +120,11 @@
                         <span class="px-3 py-1 text-gray-400">Próximo</span>
                     @endif
                 </div>
+            </div>
+            @endif
+            @else
+            <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px;">
+                <h3 class="text-lg font-medium text-gray-900">Nenhuma empresa cadastrada</h3>
             </div>
             @endif
 
