@@ -78,7 +78,7 @@
                         @elseif($orcamento->status === 'reprovado')
                             <x-badge type="danger">Reprovado</x-badge>
                         @else
-                            <x-badge>{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
+                            <x-badge type="default">{{ ucfirst(str_replace('_', ' ', $orcamento->status)) }}</x-badge>
                         @endif
                     </x-table-cell>
                     <x-table-cell align="right">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</x-table-cell>
