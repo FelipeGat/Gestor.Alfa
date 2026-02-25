@@ -164,7 +164,7 @@
     </script>
 
     <div class="pb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             @if ($errors->any())
             <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
