@@ -69,6 +69,36 @@ class EmpresaController extends Controller
         return view('empresas.create');
     }
 
+    public function ajaxCreate()
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel() &&
+                ! $user->canPermissao('empresas', 'incluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        return view('empresas._form');
+    }
+
+    public function ajaxEdit(Empresa $empresa)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel() &&
+                ! $user->canPermissao('empresas', 'editar'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        return view('empresas._form', compact('empresa'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -98,7 +128,8 @@ class EmpresaController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! $user->canPermissao('empresas', 'incluir'),
+            ! $user->isAdminPanel() &&
+                ! $user->canPermissao('empresas', 'editar'),
             403
         );
 

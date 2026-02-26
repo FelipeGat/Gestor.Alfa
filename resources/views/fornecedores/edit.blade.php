@@ -3,18 +3,6 @@
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
     <style>
-        .form-section {
-            background: white;
-            border: 1px solid #3f9cae;
-            border-top-width: 4px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border-radius: 0.5rem;
-        }
-        .form-section h3 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            color: #111827;
-        }
         input[type="text"],
         input[type="email"],
         input[type="date"],
@@ -208,7 +196,7 @@
 
 
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
-                <div class="form-section p-6 sm:p-8" style="margin-top: 0 !important;">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Dados Básicos
                     </h3>
@@ -265,7 +253,7 @@
                 </div>
 
                 {{-- SEÇÃO 2: ENDEREÇO --}}
-                <div class="form-section p-6 sm:p-8">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Endereço
                     </h3>
@@ -321,7 +309,7 @@
                 </div>
 
                 {{-- SEÇÃO 3: CONTATOS --}}
-                <div class="form-section p-6 sm:p-8">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Contatos
                     </h3>
@@ -461,7 +449,7 @@
                 </div>
 
                 {{-- SEÇÃO 4: STATUS --}}
-                <div class="form-section p-6 sm:p-8">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Status
                     </h3>
@@ -479,7 +467,7 @@
                 </div>
 
                 {{-- SEÇÃO 5: OBSERVAÇÕES --}}
-                <div class="form-section p-6 sm:p-8">
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                         Observações
                     </h3>
