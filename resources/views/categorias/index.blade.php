@@ -37,13 +37,19 @@
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex gap-2 p-4" aria-label="Tabs">
-                        <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="categorias">
+                        <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="categorias" onclick="switchTab('categorias')">
                             Categorias ({{ $categorias->total() }})
                         </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias">
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias" onclick="switchTab('subcategorias')">
                             Subcategorias ({{ $subcategorias->total() }})
                         </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas">
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas" onclick="switchTab('contas')">
+                            Contas ({{ $contas->total() }})
+                        </button>
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias" onclick="switchTab('subcategorias')">
+                            Subcategorias ({{ $subcategorias->                        </button>
+total() }})
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas" onclick="switchTab('contas')">
                             Contas ({{ $contas->total() }})
                         </button>
                     </nav>
@@ -115,7 +121,7 @@
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $categorias->links() }}</div>
+                        <div class="mt-4">{{ $categorias->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma categoria encontrada.</div>
                         @endif
@@ -186,7 +192,7 @@
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $subcategorias->links() }}</div>
+                        <div class="mt-4">{{ $subcategorias->setPageName('page_subcategorias')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma subcategoria encontrada.</div>
                         @endif
@@ -253,7 +259,7 @@
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $contas->links() }}</div>
+                        <div class="mt-4">{{ $contas->setPageName('page_contas')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma conta encontrada.</div>
                         @endif

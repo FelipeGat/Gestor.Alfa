@@ -54,7 +54,7 @@ class CategoriaController extends Controller
             $categoriasQuery->where('ativo', false);
         }
 
-        $categorias = $categoriasQuery->orderBy('nome')->paginate(10);
+        $categorias = $categoriasQuery->orderBy('nome')->paginate(10, ['*'], 'page');
 
         $subcategoriasQuery = Subcategoria::with('categoria', 'contas');
 
@@ -64,7 +64,7 @@ class CategoriaController extends Controller
             $subcategoriasQuery->where('ativo', false);
         }
 
-        $subcategorias = $subcategoriasQuery->orderBy('nome')->paginate(10);
+        $subcategorias = $subcategoriasQuery->orderBy('nome')->paginate(10, ['*'], 'page_subcategorias');
 
         $contasQuery = Conta::with('subcategoria.categoria');
 
@@ -74,7 +74,7 @@ class CategoriaController extends Controller
             $contasQuery->where('ativo', false);
         }
 
-        $contas = $contasQuery->orderBy('nome')->paginate(10);
+        $contas = $contasQuery->orderBy('nome')->paginate(10, ['*'], 'page_contas');
 
         $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
         $todasSubcategorias = Subcategoria::where('ativo', true)->orderBy('nome')->get();
