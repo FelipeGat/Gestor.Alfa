@@ -70,11 +70,7 @@
                         <x-table-cell>{{ $categoria->id }}</x-table-cell>
                         <x-table-cell>{{ $categoria->nome }}</x-table-cell>
                         <x-table-cell>{{ $categoria->tipo ?? '—' }}</x-table-cell>
-                        <x-table-cell>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $categoria->subcategorias->count() }}
-                            </span>
-                        </x-table-cell>
+                        <x-table-cell>{{ $categoria->subcategorias->count() }}</x-table-cell>
                         <x-table-cell>
                             <x-status-badge :ativo="$categoria->ativo" />
                         </x-table-cell>
@@ -130,11 +126,7 @@
                         <x-table-cell>{{ $subcategoria->id }}</x-table-cell>
                         <x-table-cell>{{ $subcategoria->categoria->nome ?? '—' }}</x-table-cell>
                         <x-table-cell>{{ $subcategoria->nome }}</x-table-cell>
-                        <x-table-cell>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $subcategoria->contas->count() }}
-                            </span>
-                        </x-table-cell>
+                        <x-table-cell>{{ $subcategoria->contas->count() }}</x-table-cell>
                         <x-table-cell>
                             <x-status-badge :ativo="$subcategoria->ativo" />
                         </x-table-cell>
