@@ -67,7 +67,7 @@
                         {{ $orcamento->numero_orcamento }}
                         <div class="text-xs text-gray-500">{{ $orcamento->empresa->nome_fantasia ?? '—' }}</div>
                     </x-table-cell>
-                    <x-table-cell type="muted">
+                    <x-table-cell>
                         {{ $orcamento->cliente?->nome_fantasia ?? $orcamento->cliente?->razao_social ?? $orcamento->preCliente?->nome_fantasia ?? $orcamento->preCliente?->razao_social ?? '—' }}
                     </x-table-cell>
                     <x-table-cell align="left">

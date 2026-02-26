@@ -80,7 +80,7 @@
                 @foreach($usuarios as $row)
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell>{{ $row->name }}</x-table-cell>
-                    <x-table-cell type="muted">{{ $row->email }}</x-table-cell>
+                    <x-table-cell>{{ $row->email }}</x-table-cell>
                     <x-table-cell>{{ ucfirst($row->tipo) }}</x-table-cell>
                     <x-table-cell :nowrap="true">
                         @if(!$row->primeiro_acesso)

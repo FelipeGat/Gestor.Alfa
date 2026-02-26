@@ -71,7 +71,7 @@
                         <div class="text-xs text-gray-500"> {{ $empresa->nome_fantasia }}</div>
                         @endif
                     </x-table-cell>
-                    <x-table-cell type="muted">{{ $empresa->cnpj }}</x-table-cell>
+                    <x-table-cell>{{ $empresa->cnpj }}</x-table-cell>
                     <x-table-cell>
                         <x-badge type="{{ $empresa->ativo ? 'success' : 'danger' }}" :icon="true">
                             {{ $empresa->ativo ? 'Ativa' : 'Inativa' }}

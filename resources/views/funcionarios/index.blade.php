@@ -66,7 +66,7 @@
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell>{{ $funcionario->id }}</x-table-cell>
                     <x-table-cell>{{ $funcionario->nome }}</x-table-cell>
-                    <x-table-cell type="muted">{{ $funcionario->user->email ?? '—' }}</x-table-cell>
+                    <x-table-cell>{{ $funcionario->user->email ?? '—' }}</x-table-cell>
                     <x-table-cell align="left">
                         <x-badge type="{{ $funcionario->ativo ? 'success' : 'danger' }}" :icon="true">
                             {{ $funcionario->ativo ? 'Ativo' : 'Inativo' }}

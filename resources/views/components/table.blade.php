@@ -26,12 +26,12 @@
             <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
                 <tr>
                     @foreach($columns as $column)
-                        <th class="px-4 py-3 text-left uppercase text-sm font-semibold text-gray-700">
+                        <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
                             {{ $column['label'] ?? '' }}
                         </th>
                     @endforeach
                     @if($actions)
-                        <th class="px-4 py-3 text-left uppercase text-sm font-semibold text-gray-700">Ações</th>
+                        <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Ações</th>
                     @endif
                 </tr>
             </thead>

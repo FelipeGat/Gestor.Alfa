@@ -75,7 +75,7 @@
                 @endphp
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell :nowrap="true">{{ $cliente->id }}</x-table-cell>
-                    <x-table-cell type="muted" :nowrap="true">{{ \App\Helpers\FormatHelper::cpfCnpj($cliente->cpf_cnpj) }}</x-table-cell>
+                    <x-table-cell :nowrap="true">{{ \App\Helpers\FormatHelper::cpfCnpj($cliente->cpf_cnpj) }}</x-table-cell>
                     <x-table-cell>{{ $cliente->nome }}</x-table-cell>
                     <x-table-cell :nowrap="true">
                         @if($tel)
