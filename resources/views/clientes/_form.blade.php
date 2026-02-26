@@ -27,7 +27,7 @@ $method = $isEdit ? 'PUT' : 'POST';
     </div>
     <div class="pb-4"></div>
 
-    <div class="w-full mb-4">
+    <div class="w-full mb-4 pb-8">
         <div class="flex items-center justify-between">
             <template x-for="(s, index) in steps" :key="index">
                 <div class="flex items-center" :class="index < steps.length - 1 ? 'flex-1' : ''">
@@ -67,7 +67,7 @@ $method = $isEdit ? 'PUT' : 'POST';
                 <div class="flex gap-2">
                     <input type="text" name="cpf_cnpj" value="{{ old('cpf_cnpj', $cliente->cpf_cnpj ?? '') }}" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] px-3 py-2" placeholder="000.000.000-00" required>
                     <x-button variant="info" size="sm" onclick="buscarCNPJ(this.previousElementSibling.value)">
-                        Buscar
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </x-button>
                 </div>
                 <div id="cnpj-status" class="hidden mt-1"></div>
@@ -132,7 +132,10 @@ $method = $isEdit ? 'PUT' : 'POST';
         <div class="mb-4">
             <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-medium text-gray-700">Emails <span class="text-red-500">*</span></label>
-                <button type="button" onclick="addEmail()" class="text-sm px-2 py-1 bg-green-500 text-white rounded-full hover:bg-green-600">+ Adicionar</button>
+                <button type="button" onclick="addEmail()" class="text-sm px-2 py-1 bg-green-500 text-white rounded-full hover:bg-green-600">
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    Adicionar
+                </button>
             </div>
             <div id="emails-container" class="space-y-2">
                 @if($isEdit && $cliente->emails->count())
@@ -159,7 +162,10 @@ $method = $isEdit ? 'PUT' : 'POST';
         <div>
             <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-medium text-gray-700">Telefones</label>
-                <button type="button" onclick="addTelefone()" class="text-sm px-2 py-1 bg-green-500 text-white rounded-full hover:bg-green-600">+ Adicionar</button>
+                <button type="button" onclick="addTelefone()" class="text-sm px-2 py-1 bg-green-500 text-white rounded-full hover:bg-green-600">
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    Adicionar
+                </button>
             </div>
             <div id="telefones-container" class="space-y-2">
                 @if($isEdit && $cliente->telefones->count())
@@ -308,7 +314,7 @@ $method = $isEdit ? 'PUT' : 'POST';
 </form>
 
 <script>
-function addEmail() {
+window.addEmail = function() {
     const container = document.getElementById('emails-container');
     const count = container.children.length;
     container.insertAdjacentHTML('beforeend', `
@@ -320,9 +326,9 @@ function addEmail() {
             <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">✕</button>
         </div>
     `);
-}
+};
 
-function addTelefone() {
+window.addTelefone = function() {
     const container = document.getElementById('telefones-container');
     const count = container.children.length;
     container.insertAdjacentHTML('beforeend', `
@@ -334,21 +340,21 @@ function addTelefone() {
             <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm">✕</button>
         </div>
     `);
-    applyTelefoneMask(container.lastElementChild.querySelector('.telefone'));
-}
+    window.applyTelefoneMask(container.lastElementChild.querySelector('.telefone'));
+};
 
-function applyTelefoneMask(input) {
+window.applyTelefoneMask = function(input) {
     input.addEventListener('input', function(e) {
         let v = e.target.value.replace(/\D/g, '');
         e.target.value = v.length <= 10 ?
             v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3') :
             v.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2.$3-$4');
     });
-}
+};
 
-document.querySelectorAll('.telefone').forEach(applyTelefoneMask);
+document.querySelectorAll('.telefone').forEach(window.applyTelefoneMask);
 
-async function buscarCNPJ(cnpj) {
+window.buscarCNPJ = async function(cnpj) {
     cnpj = cnpj.replace(/\D/g, '');
     if (cnpj.length !== 14) return;
     
