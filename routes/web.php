@@ -199,11 +199,6 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])
         ->name('clientes.buscar');
 
-    Route::get('/clientes/create/modal', [ClienteController::class, 'ajaxCreate'])
-        ->name('clientes.ajaxCreate');
-    Route::get('/clientes/{cliente}/edit/modal', [ClienteController::class, 'ajaxEdit'])
-        ->name('clientes.ajaxEdit');
-
     Route::resource('clientes', ClienteController::class);
 
     // Pré-Clientes (Admin e Comercial)
@@ -216,10 +211,6 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     )->name('pre-clientes.converter');
 
     // Empresas
-    Route::get('/empresas/create/modal', [EmpresaController::class, 'ajaxCreate'])
-        ->name('empresas.ajaxCreate');
-    Route::get('/empresas/{empresa}/edit/modal', [EmpresaController::class, 'ajaxEdit'])
-        ->name('empresas.ajaxEdit');
     Route::resource('empresas', EmpresaController::class);
 
     // Funcionários

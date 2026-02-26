@@ -74,40 +74,6 @@ class ClienteController extends Controller
         return view('clientes.create');
     }
 
-    public function ajaxCreate()
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        abort_if(
-            ! $user->isAdminPanel() &&
-                ! $user->canPermissao('clientes', 'incluir'),
-            403,
-            'Acesso não autorizado'
-        );
-
-        return view('clientes._form');
-    }
-
-    public function ajaxEdit(Cliente $cliente)
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        abort_if(
-            ! $user->isAdminPanel() &&
-                ! $user->canPermissao('clientes', 'editar'),
-            403,
-            'Acesso não autorizado'
-        );
-
-        $usuarios = User::where('tipo', 'cliente')->orderBy('name')->get();
-        $usuariosVinculados = $cliente->users->pluck('id')->toArray();
-        $cliente->load(['emails', 'telefones']);
-
-        return view('clientes._form', compact('cliente', 'usuarios', 'usuariosVinculados'));
-    }
-
     public function store(Request $request)
     {
         // Validação extra: impedir cadastro duplicado após busca Receita
