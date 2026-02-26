@@ -115,6 +115,11 @@
                             </tr>
                             @endforeach
                         </x-table>
+                        @if($categorias->hasPages())
+                        <div class="mt-4">
+                            {{ $categorias->appends(request()->query())->links() }}
+                        </div>
+                        @endif
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma categoria encontrada.</div>
                         @endif
@@ -185,6 +190,11 @@
                             </tr>
                             @endforeach
                         </x-table>
+                        @if($subcategorias->hasPages())
+                        <div class="mt-4">
+                            {{ $subcategorias->appends(request()->query())->links() }}
+                        </div>
+                        @endif
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma subcategoria encontrada.</div>
                         @endif
@@ -251,6 +261,11 @@
                             </tr>
                             @endforeach
                         </x-table>
+                        @if($contas->hasPages())
+                        <div class="mt-4">
+                            {{ $contas->appends(request()->query())->links() }}
+                        </div>
+                        @endif
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma conta encontrada.</div>
                         @endif
