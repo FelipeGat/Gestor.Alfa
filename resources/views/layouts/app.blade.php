@@ -363,7 +363,7 @@
                     }
                 }).join('');
 
-                const html = `<nav class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
+                const html = `<nav id="tabs-nav" class="flex items-end gap-1 overflow-x-auto">${tabsHtml}</nav>`;
 
                 // Se o container não existir, criar
                 if (!tabsContainer) {
