@@ -407,7 +407,6 @@
         </div>
     </div>
 
-    @push('scripts')
     <script>
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -481,14 +480,6 @@
             document.getElementById('form-conta').action = '/contas/' + id;
             openModal('modal-conta');
         }
-            updateSubcategorias(categoria_id, subcategoria_id);
-            document.getElementById('conta-nome').value = nome;
-            document.getElementById('conta-ativo').checked = ativo;
-            document.getElementById('conta-method').value = 'PUT';
-            document.getElementById('modal-conta-title').textContent = 'Editar Conta';
-            document.getElementById('form-conta').action = '/contas/' + id;
-            openModal('modal-conta');
-        }
 
         function updateSubcategorias(categoriaId, selectedSubcategoriaId = null) {
             const subcategoriaSelect = document.getElementById('conta-subcategoria_id');
@@ -515,5 +506,4 @@
             updateSubcategorias(this.value);
         });
     </script>
-    @endpush
 </x-app-layout>
