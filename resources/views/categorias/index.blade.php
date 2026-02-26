@@ -260,6 +260,153 @@
         </div>
     </div>
 
+    <div id="modal-categoria" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-categoria')"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <form id="form-categoria" method="POST">
+                    @csrf
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-categoria-title">Nova Categoria</h3>
+                        <input type="hidden" name="_method" id="categoria-method" value="POST">
+                        <input type="hidden" id="categoria-id" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                                <input type="text" name="nome" id="categoria-nome" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                                <select name="tipo" id="categoria-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="FIXA">Fixa</option>
+                                    <option value="VARIAVEL">Variável</option>
+                                    <option value="INVESTIMENTO">Investimento</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="ativo" id="categoria-ativo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#3f9cae] text-base font-medium text-white hover:bg-[#35858e] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            Salvar
+                        </button>
+                        <button type="button" onclick="closeModal('modal-categoria')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-subcategoria" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-subcategoria')"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <form id="form-subcategoria" method="POST">
+                    @csrf
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-subcategoria-title">Nova Subcategoria</h3>
+                        <input type="hidden" name="_method" id="subcategoria-method" value="POST">
+                        <input type="hidden" id="subcategoria-id" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                <select name="categoria_id" id="subcategoria-categoria_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Selecione uma categoria</option>
+                                    @foreach($todasCategorias as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nome }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                                <input type="text" name="nome" id="subcategoria-nome" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="ativo" id="subcategoria-ativo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#3f9cae] text-base font-medium text-white hover:bg-[#35858e] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            Salvar
+                        </button>
+                        <button type="button" onclick="closeModal('modal-subcategoria')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-conta" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-conta')"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <form id="form-conta" method="POST">
+                    @csrf
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-conta-title">Nova Conta</h3>
+                        <input type="hidden" name="_method" id="conta-method" value="POST">
+                        <input type="hidden" id="conta-id" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                                <select name="categoria_id" id="conta-categoria_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]" onchange="updateSubcategorias(this.value)">
+                                    <option value="">Selecione uma categoria</option>
+                                    @foreach($todasCategorias as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nome }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Subcategoria</label>
+                                <select name="subcategoria_id" id="conta-subcategoria_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Selecione uma subcategoria</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                                <input type="text" name="nome" id="conta-nome" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="ativo" id="conta-ativo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#3f9cae] text-base font-medium text-white hover:bg-[#35858e] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            Salvar
+                        </button>
+                        <button type="button" onclick="closeModal('modal-conta')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -296,14 +443,15 @@
                 document.getElementById('conta-id').value = '';
                 document.getElementById('modal-conta-title').textContent = 'Nova Conta';
                 document.getElementById('form-conta').action = '{{ route("contas.store") }}';
+                document.getElementById('conta-subcategoria_id').innerHTML = '<option value="">Selecione uma subcategoria</option>';
             }
         }
 
         function editCategoria(id, nome, tipo, ativo) {
             document.getElementById('categoria-id').value = id;
             document.getElementById('categoria-nome').value = nome;
-            document.getElementById('categoria-tipo').value = tipo;
-            document.getElementById('categoria-ativo').checked = ativo;
+            document.getElementById('categoria-tipo').value = tipo || '';
+            document.getElementById('categoria-ativo').value = ativo ? '1' : '0';
             document.getElementById('categoria-method').value = 'PUT';
             document.getElementById('modal-categoria-title').textContent = 'Editar Categoria';
             document.getElementById('form-categoria').action = '/categorias/' + id;
@@ -314,7 +462,7 @@
             document.getElementById('subcategoria-id').value = id;
             document.getElementById('subcategoria-categoria_id').value = categoria_id;
             document.getElementById('subcategoria-nome').value = nome;
-            document.getElementById('subcategoria-ativo').checked = ativo;
+            document.getElementById('subcategoria-ativo').value = ativo ? '1' : '0';
             document.getElementById('subcategoria-method').value = 'PUT';
             document.getElementById('modal-subcategoria-title').textContent = 'Editar Subcategoria';
             document.getElementById('form-subcategoria').action = '/subcategorias/' + id;
@@ -325,6 +473,14 @@
             document.getElementById('conta-id').value = id;
             document.getElementById('conta-subcategoria_id').value = subcategoria_id;
             document.getElementById('conta-categoria_id').value = categoria_id;
+            updateSubcategorias(categoria_id, subcategoria_id);
+            document.getElementById('conta-nome').value = nome;
+            document.getElementById('conta-ativo').value = ativo ? '1' : '0';
+            document.getElementById('conta-method').value = 'PUT';
+            document.getElementById('modal-conta-title').textContent = 'Editar Conta';
+            document.getElementById('form-conta').action = '/contas/' + id;
+            openModal('modal-conta');
+        }
             updateSubcategorias(categoria_id, subcategoria_id);
             document.getElementById('conta-nome').value = nome;
             document.getElementById('conta-ativo').checked = ativo;
