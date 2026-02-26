@@ -90,7 +90,7 @@
                                 <x-table-cell>
                                     <x-status-badge :ativo="$categoria->ativo" />
                                 </x-table-cell>
-                                <x-actions>
+                                <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
                                     <x-button type="button" variant="primary" size="sm" onclick="editCategoria({{ $categoria->id }}, '{{ $categoria->nome }}', '{{ $categoria->tipo }}', {{ $categoria->ativo }})">
                                         <x-slot name="iconLeft">
@@ -113,7 +113,7 @@
                                         @method('DELETE')
                                     </form>
                                     @endif
-                                </x-actions>
+                                </x-table-cell>
                             </tr>
                             @endforeach
                         </x-table>
@@ -162,7 +162,7 @@
                                 <x-table-cell>
                                     <x-status-badge :ativo="$subcategoria->ativo" />
                                 </x-table-cell>
-                                <x-actions>
+                                <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
                                     <x-button type="button" variant="primary" size="sm" onclick="editSubcategoria({{ $subcategoria->id }}, {{ $subcategoria->categoria_id }}, '{{ $subcategoria->nome }}', {{ $subcategoria->ativo }})">
                                         <x-slot name="iconLeft">
@@ -185,7 +185,7 @@
                                         @method('DELETE')
                                     </form>
                                     @endif
-                                </x-actions>
+                                </x-table-cell>
                             </tr>
                             @endforeach
                         </x-table>
@@ -230,7 +230,7 @@
                                 <x-table-cell>
                                     <x-status-badge :ativo="$conta->ativo" />
                                 </x-table-cell>
-                                <x-actions>
+                                <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
                                     <x-button type="button" variant="primary" size="sm" onclick="editConta({{ $conta->id }}, {{ $conta->subcategoria_id }}, {{ $conta->subcategoria->categoria_id ?? 0 }}, '{{ $conta->nome }}', {{ $conta->ativo }})">
                                         <x-slot name="iconLeft">
@@ -253,7 +253,7 @@
                                         @method('DELETE')
                                     </form>
                                     @endif
-                                </x-actions>
+                                </x-table-cell>
                             </tr>
                             @endforeach
                         </x-table>
