@@ -89,6 +89,86 @@ class CategoriaController extends Controller
         ));
     }
 
+    public function create()
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('categorias.create', compact('todasCategorias'));
+    }
+
+    public function edit(Categoria $categoria)
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('categorias.edit', compact('categoria', 'todasCategorias'));
+    }
+
+    public function createSubcategoria()
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('subcategorias.create', compact('todasCategorias'));
+    }
+
+    public function editSubcategoria(Subcategoria $subcategoria)
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('subcategorias.edit', compact('subcategoria', 'todasCategorias'));
+    }
+
+    public function createConta()
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'incluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+        $todasSubcategorias = Subcategoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('contas.create', compact('todasCategorias', 'todasSubcategorias'));
+    }
+
+    public function editConta(Conta $conta)
+    {
+        abort_if(
+            ! $this->isAdmin() && ! Auth::user()->canPermissao('categorias', 'editar'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $todasCategorias = Categoria::where('ativo', true)->orderBy('nome')->get();
+        $todasSubcategorias = Subcategoria::where('ativo', true)->orderBy('nome')->get();
+
+        return view('contas.edit', compact('conta', 'todasCategorias', 'todasSubcategorias'));
+    }
+
     public function storeCategoria(Request $request)
     {
         abort_if(

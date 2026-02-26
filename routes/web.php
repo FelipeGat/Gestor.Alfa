@@ -221,17 +221,23 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Categorias Financeiras
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias.index');
+    Route::get('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'create'])->name('categorias.create');
     Route::post('/categorias', [\App\Http\Controllers\CategoriaController::class, 'storeCategoria'])->name('categorias.store');
+    Route::get('/categorias/{categoria}/editar', [\App\Http\Controllers\CategoriaController::class, 'edit'])->name('categorias.edit');
     Route::put('/categorias/{categoria}', [\App\Http\Controllers\CategoriaController::class, 'updateCategoria'])->name('categorias.update');
     Route::delete('/categorias/{categoria}', [\App\Http\Controllers\CategoriaController::class, 'destroyCategoria'])->name('categorias.destroy');
 
     // Subcategorias
+    Route::get('/subcategorias/criar', [\App\Http\Controllers\CategoriaController::class, 'createSubcategoria'])->name('subcategorias.create');
     Route::post('/subcategorias', [\App\Http\Controllers\CategoriaController::class, 'storeSubcategoria'])->name('subcategorias.store');
+    Route::get('/subcategorias/{subcategoria}/editar', [\App\Http\Controllers\CategoriaController::class, 'editSubcategoria'])->name('subcategorias.edit');
     Route::put('/subcategorias/{subcategoria}', [\App\Http\Controllers\CategoriaController::class, 'updateSubcategoria'])->name('subcategorias.update');
     Route::delete('/subcategorias/{subcategoria}', [\App\Http\Controllers\CategoriaController::class, 'destroySubcategoria'])->name('subcategorias.destroy');
 
     // Contas
+    Route::get('/contas/criar', [\App\Http\Controllers\CategoriaController::class, 'createConta'])->name('contas.create');
     Route::post('/contas', [\App\Http\Controllers\CategoriaController::class, 'storeConta'])->name('contas.store');
+    Route::get('/contas/{conta}/editar', [\App\Http\Controllers\CategoriaController::class, 'editConta'])->name('contas.edit');
     Route::put('/contas/{conta}', [\App\Http\Controllers\CategoriaController::class, 'updateConta'])->name('contas.update');
     Route::delete('/contas/{conta}', [\App\Http\Controllers\CategoriaController::class, 'destroyConta'])->name('contas.destroy');
 
