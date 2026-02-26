@@ -92,25 +92,21 @@
                                 </x-table-cell>
                                 <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
-                                    <x-button type="button" variant="primary" size="sm" onclick="editCategoria({{ $categoria->id }}, '{{ $categoria->nome }}', '{{ $categoria->tipo }}', {{ $categoria->ativo }})">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
+                                    <button type="button" class="p-2 rounded-full inline-flex items-center justify-center text-[#3f9cae] hover:bg-[#3f9cae]/10 transition" onclick="editCategoria({{ $categoria->id }}, '{{ $categoria->nome }}', '{{ $categoria->tipo }}', {{ $categoria->ativo }})">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
                                     @endif
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'excluir'))
-                                    <x-button type="submit" variant="danger" size="sm" form="form-categoria-delete-{{ $categoria->id }}">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
                                     <form id="form-categoria-delete-{{ $categoria->id }}" action="{{ route('categorias.destroy', $categoria) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta Categoria? Isso excluirá todas as subcategorias e contas vinculadas.')">
                                         @csrf
                                         @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-full inline-flex items-center justify-center text-red-600 hover:bg-red-50 transition">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
                                     </form>
                                     @endif
                                 </x-table-cell>
@@ -164,25 +160,21 @@
                                 </x-table-cell>
                                 <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
-                                    <x-button type="button" variant="primary" size="sm" onclick="editSubcategoria({{ $subcategoria->id }}, {{ $subcategoria->categoria_id }}, '{{ $subcategoria->nome }}', {{ $subcategoria->ativo }})">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
+                                    <button type="button" class="p-2 rounded-full inline-flex items-center justify-center text-[#3f9cae] hover:bg-[#3f9cae]/10 transition" onclick="editSubcategoria({{ $subcategoria->id }}, {{ $subcategoria->categoria_id }}, '{{ $subcategoria->nome }}', {{ $subcategoria->ativo }})">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
                                     @endif
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'excluir'))
-                                    <x-button type="submit" variant="danger" size="sm" form="form-subcategoria-delete-{{ $subcategoria->id }}">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
                                     <form id="form-subcategoria-delete-{{ $subcategoria->id }}" action="{{ route('subcategorias.destroy', $subcategoria) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta Subcategoria? Isso excluirá todas as contas vinculadas.')">
                                         @csrf
                                         @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-full inline-flex items-center justify-center text-red-600 hover:bg-red-50 transition">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
                                     </form>
                                     @endif
                                 </x-table-cell>
@@ -232,25 +224,21 @@
                                 </x-table-cell>
                                 <x-table-cell>
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'editar'))
-                                    <x-button type="button" variant="primary" size="sm" onclick="editConta({{ $conta->id }}, {{ $conta->subcategoria_id }}, {{ $conta->subcategoria->categoria_id ?? 0 }}, '{{ $conta->nome }}', {{ $conta->ativo }})">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
+                                    <button type="button" class="p-2 rounded-full inline-flex items-center justify-center text-[#3f9cae] hover:bg-[#3f9cae]/10 transition" onclick="editConta({{ $conta->id }}, {{ $conta->subcategoria_id }}, {{ $conta->subcategoria->categoria_id ?? 0 }}, '{{ $conta->nome }}', {{ $conta->ativo }})">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
                                     @endif
                                     @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('categorias', 'excluir'))
-                                    <x-button type="submit" variant="danger" size="sm" form="form-conta-delete-{{ $conta->id }}">
-                                        <x-slot name="iconLeft">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                            </svg>
-                                        </x-slot>
-                                    </x-button>
                                     <form id="form-conta-delete-{{ $conta->id }}" action="{{ route('contas.destroy', $conta) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta Conta?')">
                                         @csrf
                                         @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-full inline-flex items-center justify-center text-red-600 hover:bg-red-50 transition">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
                                     </form>
                                     @endif
                                 </x-table-cell>
