@@ -37,20 +37,14 @@
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex gap-2 p-4" aria-label="Tabs">
-                        <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="categorias" onclick="switchTab('categorias')">
-                            Categorias ({{ $categorias->total() }})
+                        <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="categorias">
+                            Categorias ({{ $categorias->count() }})
                         </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias" onclick="switchTab('subcategorias')">
-                            Subcategorias ({{ $subcategorias->total() }})
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias">
+                            Subcategorias ({{ $subcategorias->count() }})
                         </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas" onclick="switchTab('contas')">
-                            Contas ({{ $contas->total() }})
-                        </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias" onclick="switchTab('subcategorias')">
-                            Subcategorias ({{ $subcategorias->                        </button>
-total() }})
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas" onclick="switchTab('contas')">
-                            Contas ({{ $contas->total() }})
+                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas">
+                            Contas ({{ $contas->count() }})
                         </button>
                     </nav>
                 </div>
@@ -121,7 +115,6 @@ total() }})
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $categorias->setPageName('page')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma categoria encontrada.</div>
                         @endif
@@ -192,7 +185,6 @@ total() }})
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $subcategorias->setPageName('page_subcategorias')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma subcategoria encontrada.</div>
                         @endif
@@ -259,7 +251,6 @@ total() }})
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $contas->setPageName('page_contas')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma conta encontrada.</div>
                         @endif
@@ -268,329 +259,4 @@ total() }})
             </div>
         </div>
     </div>
-
-    <div id="modal-categoria" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-categoria')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                <form id="form-categoria" method="POST">
-                    @csrf
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-categoria-title">Nova Categoria</h3>
-                        <input type="hidden" name="_method" id="categoria-method" value="POST">
-                        <input type="hidden" id="categoria-id" value="">
-                        <div class="space-y-4">
-                            <x-form-input name="nome" id="categoria-nome" label="Nome" required />
-                            <x-form-select name="tipo" id="categoria-tipo" label="Tipo" required placeholder="Selecione o tipo">
-                                <option value="">Selecione o tipo</option>
-                                <option value="FIXA">Fixa</option>
-                                <option value="VARIAVEL">Variável</option>
-                                <option value="INVESTIMENTO">Investimento</option>
-                            </x-form-select>
-                            <x-form-select name="ativo" id="categoria-ativo" label="Status" required placeholder="Selecione">
-                                <option value="1">Ativo</option>
-                                <option value="0">Inativo</option>
-                            </x-form-select>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <x-button type="submit" variant="primary" class="w-full sm:w-auto">
-                            Salvar
-                        </x-button>
-                        <x-button type="button" variant="secondary" class="mt-3 sm:mt-0 sm:ml-3 w-full sm:w-auto" onclick="closeModal('modal-categoria')">
-                            Cancelar
-                        </x-button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-subcategoria" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-subcategoria')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                <form id="form-subcategoria" method="POST">
-                    @csrf
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-subcategoria-title">Nova Subcategoria</h3>
-                        <input type="hidden" name="_method" id="subcategoria-method" value="POST">
-                        <input type="hidden" id="subcategoria-id" value="">
-                        <div class="space-y-4">
-                            <x-form-select name="categoria_id" id="subcategoria-categoria_id" label="Categoria" required placeholder="Selecione uma categoria">
-                                <option value="">Selecione uma categoria</option>
-                                @foreach($todasCategorias as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->nome }}</option>
-                                @endforeach
-                            </x-form-select>
-                            <x-form-input name="nome" id="subcategoria-nome" label="Nome" required />
-                            <x-form-select name="ativo" id="subcategoria-ativo" label="Status" required placeholder="Selecione">
-                                <option value="1">Ativo</option>
-                                <option value="0">Inativo</option>
-                            </x-form-select>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <x-button type="submit" variant="primary" class="w-full sm:w-auto">
-                            Salvar
-                        </x-button>
-                        <x-button type="button" variant="secondary" class="mt-3 sm:mt-0 sm:ml-3 w-full sm:w-auto" onclick="closeModal('modal-subcategoria')">
-                            Cancelar
-                        </x-button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-conta" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('modal-conta')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                <form id="form-conta" method="POST">
-                    @csrf
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-conta-title">Nova Conta</h3>
-                        <input type="hidden" name="_method" id="conta-method" value="POST">
-                        <input type="hidden" id="conta-id" value="">
-                        <div class="space-y-4">
-                            <x-form-select name="categoria_id" id="conta-categoria_id" label="Categoria" required placeholder="Selecione uma categoria" onchange="loadSubcategoriasForConta()">
-                                <option value="">Selecione uma categoria</option>
-                                @foreach($todasCategorias as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->nome }}</option>
-                                @endforeach
-                            </x-form-select>
-                            <x-form-select name="subcategoria_id" id="conta-subcategoria_id" label="Subcategoria" required placeholder="Selecione uma subcategoria">
-                                <option value="">Selecione uma subcategoria</option>
-                            </x-form-select>
-                            <x-form-input name="nome" id="conta-nome" label="Nome" required />
-                            <x-form-select name="ativo" id="conta-ativo" label="Status" required placeholder="Selecione">
-                                <option value="1">Ativo</option>
-                                <option value="0">Inativo</option>
-                            </x-form-select>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <x-button type="submit" variant="primary" class="w-full sm:w-auto">
-                            Salvar
-                        </x-button>
-                        <x-button type="button" variant="secondary" class="mt-3 sm:mt-0 sm:ml-3 w-full sm:w-auto" onclick="closeModal('modal-conta')">
-                            Cancelar
-                        </x-button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    @push('scripts')
-    <script>
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-            });
-        });
-
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-            if (id === 'modal-categoria') {
-                document.getElementById('form-categoria').reset();
-                document.getElementById('categoria-method').value = 'POST';
-                document.getElementById('categoria-id').value = '';
-                document.getElementById('modal-categoria-title').textContent = 'Nova Categoria';
-                document.getElementById('form-categoria').action = '{{ route("categorias.store") }}';
-            } else if (id === 'modal-subcategoria') {
-                document.getElementById('form-subcategoria').reset();
-                document.getElementById('subcategoria-method').value = 'POST';
-                document.getElementById('subcategoria-id').value = '';
-                document.getElementById('modal-subcategoria-title').textContent = 'Nova Subcategoria';
-                document.getElementById('form-subcategoria').action = '{{ route("subcategorias.store") }}';
-            } else if (id === 'modal-conta') {
-                document.getElementById('form-conta').reset();
-                document.getElementById('conta-method').value = 'POST';
-                document.getElementById('conta-id').value = '';
-                document.getElementById('modal-conta-title').textContent = 'Nova Conta';
-                document.getElementById('form-conta').action = '{{ route("contas.store") }}';
-                document.getElementById('conta-subcategoria_id').innerHTML = '<option value="">Selecione uma subcategoria</option>';
-            }
-        }
-
-        function editCategoria(id, nome, tipo, ativo) {
-            document.getElementById('categoria-id').value = id;
-            document.getElementById('categoria-nome').value = nome;
-            document.getElementById('categoria-tipo').value = tipo || '';
-            document.getElementById('categoria-ativo').value = ativo ? '1' : '0';
-            document.getElementById('categoria-method').value = 'PUT';
-            document.getElementById('modal-categoria-title').textContent = 'Editar Categoria';
-            document.getElementById('form-categoria').action = '/categorias/' + id;
-            openModal('modal-categoria');
-        }
-
-        function editSubcategoria(id, categoriaId, nome, ativo) {
-            document.getElementById('subcategoria-id').value = id;
-            document.getElementById('subcategoria-categoria_id').value = categoriaId;
-            document.getElementById('subcategoria-nome').value = nome;
-            document.getElementById('subcategoria-ativo').value = ativo ? '1' : '0';
-            document.getElementById('subcategoria-method').value = 'PUT';
-            document.getElementById('modal-subcategoria-title').textContent = 'Editar Subcategoria';
-            document.getElementById('form-subcategoria').action = '/subcategorias/' + id;
-            openModal('modal-subcategoria');
-        }
-
-        function editConta(id, subcategoriaId, categoriaId, nome, ativo) {
-            const categoriaSelect = document.getElementById('conta-categoria_id');
-            const subcategoriaSelect = document.getElementById('conta-subcategoria_id');
-            
-            categoriaSelect.value = categoriaId;
-            
-            fetch('/financeiro/api/subcategorias/' + categoriaId)
-                .then(r => r.json())
-                .then(data => {
-                    subcategoriaSelect.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-                    data.forEach(sub => {
-                        const option = document.createElement('option');
-                        option.value = sub.id;
-                        option.textContent = sub.nome;
-                        if (sub.id === subcategoriaId) option.selected = true;
-                        subcategoriaSelect.appendChild(option);
-                    });
-                });
-            
-            document.getElementById('conta-id').value = id;
-            document.getElementById('conta-nome').value = nome;
-            document.getElementById('conta-ativo').value = ativo ? '1' : '0';
-            document.getElementById('conta-method').value = 'PUT';
-            document.getElementById('modal-conta-title').textContent = 'Editar Conta';
-            document.getElementById('form-conta').action = '/contas/' + id;
-            openModal('modal-conta');
-        }
-
-        function loadSubcategoriasForConta() {
-            const categoriaId = document.getElementById('conta-categoria_id').value;
-            const subcategoriaSelect = document.getElementById('conta-subcategoria_id');
-            
-            if (!categoriaId) {
-                subcategoriaSelect.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-                return;
-            }
-
-            fetch('/financeiro/api/subcategorias/' + categoriaId)
-                .then(r => r.json())
-                .then(data => {
-                    subcategoriaSelect.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-                    data.forEach(sub => {
-                        const option = document.createElement('option');
-                        option.value = sub.id;
-                        option.textContent = sub.nome;
-                        subcategoriaSelect.appendChild(option);
-                    });
-                });
-        }
-
-        document.getElementById('form-categoria').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const method = document.getElementById('categoria-method').value;
-            const url = method === 'POST' ? '{{ route("categorias.store") }}' : '/categorias/' + document.getElementById('categoria-id').value;
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json',
-                },
-                body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => r.json().then(data => ({status: r.status, data})))
-            .then(result => {
-                if (result.status === 200 && result.data.success) {
-                    window.location.reload();
-                } else if (result.status === 422) {
-                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
-                } else if (result.status === 403) {
-                    alert('Acesso negado');
-                } else {
-                    alert('Erro ao salvar categoria: ' + (result.data.message || 'Erro desconhecido'));
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Erro ao salvar categoria');
-            });
-        });
-
-        document.getElementById('form-subcategoria').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const method = document.getElementById('subcategoria-method').value;
-            const url = method === 'POST' ? '{{ route("subcategorias.store") }}' : '/subcategorias/' + document.getElementById('subcategoria-id').value;
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json',
-                },
-                body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => r.json().then(data => ({status: r.status, data})))
-            .then(result => {
-                console.log('Resposta:', result);
-                if (result.status === 200 && result.data.success) {
-                    window.location.reload();
-                } else if (result.status === 422) {
-                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
-                } else if (result.status === 403) {
-                    alert('Acesso negado');
-                } else {
-                    alert('Erro ao salvar subcategoria: ' + (result.data.message || 'Erro desconhecido'));
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Erro ao salvar subcategoria');
-            });
-        });
-
-        document.getElementById('form-conta').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const method = document.getElementById('conta-method').value;
-            const url = method === 'POST' ? '{{ route("contas.store") }}' : '/contas/' + document.getElementById('conta-id').value;
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json',
-                },
-                body: new URLSearchParams(new FormData(form)) + '&_method=' + method
-            }).then(r => r.json().then(data => ({status: r.status, data})))
-            .then(result => {
-                if (result.status === 200 && result.data.success) {
-                    window.location.reload();
-                } else if (result.status === 422) {
-                    alert('Erro de validação: ' + JSON.stringify(result.data.errors));
-                } else if (result.status === 403) {
-                    alert('Acesso negado');
-                } else {
-                    alert('Erro ao salvar conta: ' + (result.data.message || 'Erro desconhecido'));
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Erro ao salvar conta');
-            });
-        });
-    </script>
-    @endpush
 </x-app-layout>
