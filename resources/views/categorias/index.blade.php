@@ -259,4 +259,105 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            if (id === 'modal-categoria') {
+                document.getElementById('form-categoria').reset();
+                document.getElementById('categoria-method').value = 'POST';
+                document.getElementById('categoria-id').value = '';
+                document.getElementById('modal-categoria-title').textContent = 'Nova Categoria';
+                document.getElementById('form-categoria').action = '{{ route("categorias.store") }}';
+            } else if (id === 'modal-subcategoria') {
+                document.getElementById('form-subcategoria').reset();
+                document.getElementById('subcategoria-method').value = 'POST';
+                document.getElementById('subcategoria-id').value = '';
+                document.getElementById('modal-subcategoria-title').textContent = 'Nova Subcategoria';
+                document.getElementById('form-subcategoria').action = '{{ route("subcategorias.store") }}';
+            } else if (id === 'modal-conta') {
+                document.getElementById('form-conta').reset();
+                document.getElementById('conta-method').value = 'POST';
+                document.getElementById('conta-id').value = '';
+                document.getElementById('modal-conta-title').textContent = 'Nova Conta';
+                document.getElementById('form-conta').action = '{{ route("contas.store") }}';
+            }
+        }
+
+        function editCategoria(id, nome, tipo, ativo) {
+            document.getElementById('categoria-id').value = id;
+            document.getElementById('categoria-nome').value = nome;
+            document.getElementById('categoria-tipo').value = tipo;
+            document.getElementById('categoria-ativo').checked = ativo;
+            document.getElementById('categoria-method').value = 'PUT';
+            document.getElementById('modal-categoria-title').textContent = 'Editar Categoria';
+            document.getElementById('form-categoria').action = '/categorias/' + id;
+            openModal('modal-categoria');
+        }
+
+        function editSubcategoria(id, categoria_id, nome, ativo) {
+            document.getElementById('subcategoria-id').value = id;
+            document.getElementById('subcategoria-categoria_id').value = categoria_id;
+            document.getElementById('subcategoria-nome').value = nome;
+            document.getElementById('subcategoria-ativo').checked = ativo;
+            document.getElementById('subcategoria-method').value = 'PUT';
+            document.getElementById('modal-subcategoria-title').textContent = 'Editar Subcategoria';
+            document.getElementById('form-subcategoria').action = '/subcategorias/' + id;
+            openModal('modal-subcategoria');
+        }
+
+        function editConta(id, subcategoria_id, categoria_id, nome, ativo) {
+            document.getElementById('conta-id').value = id;
+            document.getElementById('conta-subcategoria_id').value = subcategoria_id;
+            document.getElementById('conta-categoria_id').value = categoria_id;
+            updateSubcategorias(categoria_id, subcategoria_id);
+            document.getElementById('conta-nome').value = nome;
+            document.getElementById('conta-ativo').checked = ativo;
+            document.getElementById('conta-method').value = 'PUT';
+            document.getElementById('modal-conta-title').textContent = 'Editar Conta';
+            document.getElementById('form-conta').action = '/contas/' + id;
+            openModal('modal-conta');
+        }
+
+        function updateSubcategorias(categoriaId, selectedSubcategoriaId = null) {
+            const subcategoriaSelect = document.getElementById('conta-subcategoria_id');
+            subcategoriaSelect.innerHTML = '<option value="">Selecione uma Subcategoria</option>';
+            
+            if (!categoriaId) return;
+
+            fetch('/financeiro/api/subcategorias/' + categoriaId)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(subcategoria => {
+                        const option = document.createElement('option');
+                        option.value = subcategoria.id;
+                        option.textContent = subcategoria.nome;
+                        if (selectedSubcategoriaId && subcategoria.id == selectedSubcategoriaId) {
+                            option.selected = true;
+                        }
+                        subcategoriaSelect.appendChild(option);
+                    });
+                });
+        }
+
+        document.getElementById('conta-categoria_id')?.addEventListener('change', function() {
+            updateSubcategorias(this.value);
+        });
+    </script>
+    @endpush
 </x-app-layout>
