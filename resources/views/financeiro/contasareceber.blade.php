@@ -18,61 +18,59 @@
             {{-- ================= FILTROS ================= --}}
             <x-filter :action="route('financeiro.contasareceber')" :show-clear-button="false">
                 {{-- Busca --}}
-                <div class="relative">
-                    <x-filter-field name="search" label="Buscar" placeholder="Cliente ou descrição..." colSpan="md:col-span-2" />
-                    <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
-                    <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden" style="top: 70px;"></div>
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const inputBusca = document.getElementById('search');
-                        const lista = document.getElementById('autocomplete-cliente');
-                        const inputHidden = document.getElementById('busca-cliente-id');
-                        let clientes = [];
+                <x-filter-field name="search" label="Buscar" placeholder="Cliente ou descrição..." colSpan="md:col-span-2" />
+                <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
+                <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden" style="top: 70px; left: 15px;"></div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const inputBusca = document.getElementById('search');
+                    const lista = document.getElementById('autocomplete-cliente');
+                    const inputHidden = document.getElementById('busca-cliente-id');
+                    let clientes = [];
 
-                        clientes = [
-                            @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get() as $cliente)
-                            { id: {{ $cliente->id }}, nome: @json($cliente->nome_fantasia ?? $cliente->nome ?? $cliente->razao_social) },
-                            @endforeach
-                        ];
+                    clientes = [
+                        @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get() as $cliente)
+                        { id: {{ $cliente->id }}, nome: @json($cliente->nome_fantasia ?? $cliente->nome ?? $cliente->razao_social) },
+                        @endforeach
+                    ];
 
-                        function renderLista(filtro = '') {
-                            lista.innerHTML = '';
-                            if (!filtro || filtro.length < 2) {
-                                lista.classList.add('hidden');
-                                return;
-                            }
-                            const filtrados = clientes.filter(c => c.nome && c.nome.toLowerCase().includes(filtro.toLowerCase()));
-                            if (filtrados.length === 0) {
-                                lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum cliente encontrado</span>';
-                                lista.classList.remove('hidden');
-                                return;
-                            }
-                            filtrados.forEach(c => {
-                                const div = document.createElement('div');
-                                div.className = 'px-3 py-2 cursor-pointer hover:bg-emerald-50 text-sm';
-                                div.textContent = c.nome;
-                                div.onclick = () => {
-                                    inputHidden.value = c.id;
-                                    inputBusca.value = c.nome;
-                                    lista.classList.add('hidden');
-                                    setTimeout(() => { inputBusca.form.submit(); }, 100);
-                                };
-                                lista.appendChild(div);
-                            });
-                            lista.classList.remove('hidden');
+                    function renderLista(filtro = '') {
+                        lista.innerHTML = '';
+                        if (!filtro || filtro.length < 2) {
+                            lista.classList.add('hidden');
+                            return;
                         }
-
-                        inputBusca.addEventListener('input', e => {
-                            renderLista(e.target.value);
-                            if (!clientes.some(c => c.nome && c.nome.toLowerCase() === e.target.value.toLowerCase())) {
-                                inputHidden.value = '';
-                            }
+                        const filtrados = clientes.filter(c => c.nome && c.nome.toLowerCase().includes(filtro.toLowerCase()));
+                        if (filtrados.length === 0) {
+                            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum cliente encontrado</span>';
+                            lista.classList.remove('hidden');
+                            return;
+                        }
+                        filtrados.forEach(c => {
+                            const div = document.createElement('div');
+                            div.className = 'px-3 py-2 cursor-pointer hover:bg-emerald-50 text-sm';
+                            div.textContent = c.nome;
+                            div.onclick = () => {
+                                inputHidden.value = c.id;
+                                inputBusca.value = c.nome;
+                                lista.classList.add('hidden');
+                                setTimeout(() => { inputBusca.form.submit(); }, 100);
+                            };
+                            lista.appendChild(div);
                         });
-                        inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
-                        inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+                        lista.classList.remove('hidden');
+                    }
+
+                    inputBusca.addEventListener('input', e => {
+                        renderLista(e.target.value);
+                        if (!clientes.some(c => c.nome && c.nome.toLowerCase() === e.target.value.toLowerCase())) {
+                            inputHidden.value = '';
+                        }
                     });
-                    </script>
-                </div>
+                    inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+                    inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+                });
+                </script>
 
                 {{-- Empresa --}}
                 <x-filter-field name="empresa_id" label="Empresa" type="select" placeholder="Todas as Empresas" colSpan="md:col-span-2">
