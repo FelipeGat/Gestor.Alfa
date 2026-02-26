@@ -40,7 +40,7 @@
         ]" />
     </x-slot>
 
-    <x-back-button :route="route('fornecedores.index')" />
+    <x-page-title title="Novo Fornecedor" :route="route('fornecedores.index')" />
 
     {{-- ================= JS ================= --}}
     <script>
