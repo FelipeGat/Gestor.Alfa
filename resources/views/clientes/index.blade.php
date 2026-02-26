@@ -4,6 +4,68 @@
     @vite('resources/css/atendimentos/index.css')
     @endpush
 
+    @push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form.action.includes('clientes')) return;
+            if (!form.method.toLowerCase().includes('post')) return;
+            
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+            
+            fetch(form.action, {
+                method: form.method,
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.dispatchEvent(new CustomEvent('close-modal', { detail: 'cliente-modal' }));
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                
+                if (error.errors) {
+                    // Erros de validação - mostrar no formulário
+                    let errorHtml = '<div class="mb-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg"><ul class="list-disc list-inside text-sm space-y-1">';
+                    Object.values(error.errors).forEach(messages => {
+                        messages.forEach(msg => {
+                            errorHtml += `<li>${msg}</li>`;
+                        });
+                    });
+                    errorHtml += '</ul></div>';
+                    
+                    // Inserir erros no topo do formulário
+                    const existingError = form.querySelector('.validation-errors');
+                    if (existingError) existingError.remove();
+                    form.insertAdjacentHTML('afterbegin', `<div class="validation-errors">${errorHtml}</div>`);
+                } else {
+                    console.error('Error:', error);
+                    alert('Erro ao salvar. Tente novamente.');
+                }
+            });
+        });
+    });
+    </script>
+    @endpush
+
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
             ['label' => 'Cadastros', 'url' => route('cadastros.index')],
@@ -45,7 +107,7 @@
 
             @if(auth()->user()->canPermissao('clientes', 'incluir'))
             <div class="flex justify-start">
-                <x-button href="{{ route('clientes.create') }}" variant="success" size="sm" class="min-w-[130px]">
+                <x-button x-data="" x-on:click.prevent="openClientModal('{{ route('clientes.ajaxCreate') }}', 'Novo Cliente')" variant="success" size="sm" class="min-w-[130px]">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
@@ -92,10 +154,17 @@
                         </x-badge>
                     </x-table-cell>
                     <x-table-cell>
+                        <button type="button" x-data="" x-on:click.prevent="openClientModal('{{ route('clientes.ajaxEdit', $cliente) }}', 'Editar Cliente')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar
+                        </button>
                         <x-actions 
                             :edit-url="route('clientes.edit', $cliente)" 
                             :delete-url="route('clientes.destroy', $cliente)"
                             :show-view="false"
+                            :show-edit="false"
                             confirm-delete-message="Tem certeza que deseja excluir este cliente?"
                         />
                     </x-table-cell>
@@ -109,6 +178,121 @@
             <x-table :columns="$columns" :data="$clientes" emptyMessage="Nenhum cliente encontrado" />
             @endif
 
+            {{-- MODAL --}}
+            <div x-data="{ openModal: false }" 
+                 @open-modal.window="if ($event.detail === 'cliente-modal') openModal = true"
+                 @close-modal.window="if ($event.detail === 'cliente-modal') openModal = false"
+                 x-show="openModal"
+                 :style="openModal ? 'display: flex' : 'display: none'"
+                 class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50">
+                 <div class="fixed inset-0 bg-gray-500 opacity-75" @click="openModal = false"></div>
+                 <div class="relative bg-white rounded-lg shadow-xl max-w-4xl mx-auto w-full" style="border: 1px solid #3f9cae; border-top-width: 4px;">
+                     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center" style="background-color: rgba(63, 156, 174, 0.05);">
+                         <h3 class="text-lg font-semibold text-gray-900" id="cliente-modal-title">Novo Cliente</h3>
+                         <button @click="openModal = false" class="text-gray-400 hover:text-gray-600">
+                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                             </svg>
+                         </button>
+                     </div>
+                      <div class="p-6 overflow-y-auto" id="cliente-modal-content" style="max-height: calc(85vh - 140px);">
+                          <div class="text-center py-8 text-gray-500">Carregando...</div>
+                      </div>
+                 </div>
+             </div>
+
         </div>
     </div>
 </x-app-layout>
+
+<script>
+window.clienteForm = function() {
+    return {
+        step: 1,
+        steps: [
+            { label: 'Dados', title: 'Dados Básicos', description: 'Informe os dados principais do cliente' },
+            { label: 'Endereço', title: 'Endereço', description: 'Endereço de localização' },
+            { label: 'Contatos', title: 'Contatos', description: 'Emails e telefones para contato' },
+            { label: 'Info', title: 'Informações', description: 'Dados adicionais e configurações' }
+        ],
+        nextStep() {
+            if (this.validateStep(this.step)) {
+                this.step++;
+            }
+        },
+        prevStep() {
+            this.step--;
+        },
+        goToStep(s) {
+            if (s <= this.step || this.validateStep(s - 1)) {
+                this.step = s;
+            }
+        },
+        validateStep(stepNum) {
+            // Buscar o formulário diretamente no documento
+            const form = document.querySelector('#cliente-modal-content form');
+            if (!form) return true;
+            
+            let valid = true;
+            let firstInvalid = null;
+            
+            // Verificar se é modo de edição pelo campo hidden
+            const isEditField = form.querySelector('input[name="is_edit"]');
+            console.log('is_edit field:', isEditField, 'value:', isEditField?.value);
+            
+            // No modo edição, permitir avanço livre
+            if (isEditField && isEditField.value === '1') {
+                return true;
+            }
+            
+            if (stepNum === 1) {
+                const campos = ['tipo_pessoa', 'cpf_cnpj', 'data_cadastro', 'razao_social'];
+                campos.forEach(name => {
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        input.classList.remove('border-red-500');
+                        if (!input.value || !input.value.trim()) {
+                            valid = false;
+                            input.classList.add('border-red-500');
+                            if (!firstInvalid) firstInvalid = input;
+                        }
+                    }
+                });
+            }
+            
+            if (stepNum === 3) {
+                const emails = form.querySelectorAll('[name="emails[]"]');
+                if (!emails || emails.length === 0) {
+                    valid = false;
+                }
+            }
+            
+            if (!valid) {
+                alert('Preencha os campos obrigatórios antes de continuar.');
+                if (firstInvalid) firstInvalid.focus();
+            }
+            
+            return valid;
+        }
+    };
+};
+
+window.openClientModal = function(url, title) {
+    document.getElementById('cliente-modal-title').textContent = title || 'Novo Cliente';
+    document.getElementById('cliente-modal-content').innerHTML = '<div class="text-center py-8 text-gray-500">Carregando...</div>';
+    window.dispatchEvent(new CustomEvent('open-modal', { detail: 'cliente-modal' }));
+    
+    fetch(url)
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('cliente-modal-content').innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('cliente-modal-content').innerHTML = '<div class="text-red-500 p-4">Erro ao carregar formulário</div>';
+        });
+};
+
+window.closeClientModal = function() {
+    window.dispatchEvent(new CustomEvent('close-modal', { detail: 'cliente-modal' }));
+};
+</script>
