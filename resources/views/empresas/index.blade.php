@@ -57,6 +57,7 @@
                     ['label' => 'Empresa'],
                     ['label' => 'CNPJ'],
                     ['label' => 'Status'],
+                    ['label' => 'Ações'],
                 ];
             @endphp
 
