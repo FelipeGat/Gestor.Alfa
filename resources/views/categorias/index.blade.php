@@ -38,13 +38,13 @@
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex gap-2 p-4" aria-label="Tabs">
                         <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="categorias">
-                            Categorias ({{ $categorias->count() }})
+                            Categorias ({{ $categorias->total() }})
                         </button>
                         <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="subcategorias">
-                            Subcategorias ({{ $subcategorias->count() }})
+                            Subcategorias ({{ $subcategorias->total() }})
                         </button>
                         <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="contas">
-                            Contas ({{ $contas->count() }})
+                            Contas ({{ $contas->total() }})
                         </button>
                     </nav>
                 </div>
