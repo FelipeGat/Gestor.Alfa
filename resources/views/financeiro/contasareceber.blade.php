@@ -100,7 +100,8 @@
             </div>
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" action="{{ route('financeiro.contasareceber') }}" class="filters-card">
+            <x-card class="mb-6">
+                <form method="GET" action="{{ route('financeiro.contasareceber') }}">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
 
                     {{-- Busca --}}
@@ -350,6 +351,7 @@
                     </div>
                 </div>
             </form>
+            </x-card>
 
 
             @if(request('vencimento_inicio') || request('vencimento_fim'))
@@ -364,23 +366,31 @@
             @endif
 
             {{-- ================= KPIs ================= --}}
-            <div class="kpi-grid mb-6">
-                <div class="kpi-card border-blue">
-                    <div class="label">A Receber (no período)</div>
-                    <div class="value">R$ {{ number_format($kpis['a_receber'], 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card border-green">
-                    <div class="label">Recebido (no período)</div>
-                    <div class="value">R$ {{ number_format($kpis['recebido'], 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card border-red">
-                    <div class="label">Vencido (no período)</div>
-                    <div class="value">R$ {{ number_format($kpis['vencido'], 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card border-yellow">
-                    <div class="label">Vence Hoje</div>
-                    <div class="value">R$ {{ number_format($kpis['vence_hoje'], 2, ',', '.') }}</div>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <x-card :padding="false" class="border-l-4 border-blue">
+                    <div class="p-4">
+                        <div class="text-sm text-gray-500">A Receber (no período)</div>
+                        <div class="text-xl font-bold text-blue-600">R$ {{ number_format($kpis['a_receber'], 2, ',', '.') }}</div>
+                    </div>
+                </x-card>
+                <x-card :padding="false" class="border-l-4 border-green">
+                    <div class="p-4">
+                        <div class="text-sm text-gray-500">Recebido (no período)</div>
+                        <div class="text-xl font-bold text-green-600">R$ {{ number_format($kpis['recebido'], 2, ',', '.') }}</div>
+                    </div>
+                </x-card>
+                <x-card :padding="false" class="border-l-4 border-red">
+                    <div class="p-4">
+                        <div class="text-sm text-gray-500">Vencido (no período)</div>
+                        <div class="text-xl font-bold text-red-600">R$ {{ number_format($kpis['vencido'], 2, ',', '.') }}</div>
+                    </div>
+                </x-card>
+                <x-card :padding="false" class="border-l-4 border-yellow">
+                    <div class="p-4">
+                        <div class="text-sm text-gray-500">Vence Hoje</div>
+                        <div class="text-xl font-bold text-yellow-600">R$ {{ number_format($kpis['vence_hoje'], 2, ',', '.') }}</div>
+                    </div>
+                </x-card>
             </div>
 
             {{-- ================= TABELA ================= --}}
