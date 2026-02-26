@@ -68,7 +68,7 @@
                 ];
             @endphp
 
-            <x-table :columns="$columns" :data="$contas" :actions="true" emptyMessage="Nenhuma conta cadastrada">
+            <x-table :columns="$columns" :data="$contas" :actions="false" emptyMessage="Nenhuma conta cadastrada">
                 @foreach($contas as $conta)
                 @php
                     $onclickAdjust = "abrirModalAjusteUnificado({$conta->id}, '" . addslashes($conta->nome) . "', {$conta->saldo})";
@@ -77,19 +77,19 @@
                     <x-table-cell :nowrap="true">{{ $conta->id }}</x-table-cell>
                     <x-table-cell>{{ $conta->empresa->nome_fantasia ?? '—' }}</x-table-cell>
                     <x-table-cell>{{ $conta->nome }}</x-table-cell>
-                    <x-table-cell align="left">
-                        <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}">
+                    <x-table-cell>
+                        <x-badge type="{{ $conta->tipo === 'credito' ? 'primary' : 'default' }}" :icon="true">
                             {{ $conta->tipo }}
                         </x-badge>
                     </x-table-cell>
                     <x-table-cell>R$ {{ number_format($conta->saldo, 2, ',', '.') }}</x-table-cell>
                     <x-table-cell>R$ {{ number_format($conta->saldo_total, 2, ',', '.') }}</x-table-cell>
-                    <x-table-cell align="left">
-                        <x-badge type="{{ $conta->ativo ? 'success' : 'danger' }}">
+                    <x-table-cell>
+                        <x-badge type="{{ $conta->ativo ? 'success' : 'danger' }}" :icon="true">
                             {{ $conta->ativo ? 'Ativo' : 'Inativo' }}
                         </x-badge>
                     </x-table-cell>
-                    <td class="px-4 py-3">
+                    <x-table-cell>
                         <x-actions 
                             :edit-url="route('financeiro.contas-financeiras.edit', $conta)" 
                             :delete-url="route('financeiro.contas-financeiras.destroy', $conta)"
@@ -98,7 +98,7 @@
                             :onclick-adjust="$onclickAdjust"
                             confirm-delete-message="Deseja remover esta conta?"
                         />
-                    </td>
+                    </x-table-cell>
                 </tr>
                 @endforeach
             </x-table>
