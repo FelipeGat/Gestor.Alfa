@@ -270,12 +270,24 @@
             // Abrir aba interna - cria nova ou focaliza existente
             window.abrirTab = function(url, label, icon = null) {
                 let tabs = getTabs();
+                const activeId = getActiveTabId();
                 
                 // Verificar se já existe aba com mesma URL
                 const existingTab = tabs.find(t => t.url === url);
                 
                 if (existingTab) {
-                    // Se já existe, apenas ativar e navegar
+                    // Se já existe e é a ativa, apenas fazer scroll
+                    if (existingTab.id === activeId) {
+                        const tabsNav = document.getElementById('tabs-nav');
+                        if (tabsNav) {
+                            const activeTab = tabsNav.querySelector(`[data-tab-id="${existingTab.id}"]`);
+                            if (activeTab) {
+                                activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                            }
+                        }
+                        return;
+                    }
+                    // Se já existe mas não é a ativa, ativar e navegar
                     setActiveTabId(existingTab.id);
                     window.location.href = url;
                 } else {
@@ -320,8 +332,21 @@
             window.ativarTab = function(tabId) {
                 let tabs = getTabs();
                 const tab = tabs.find(t => t.id === tabId);
+                const activeId = getActiveTabId();
                 
                 if (tab) {
+                    // Se já estiver ativa, apenas fazer scroll para ela
+                    if (tabId === activeId) {
+                        const tabsNav = document.getElementById('tabs-nav');
+                        if (tabsNav) {
+                            const activeTab = tabsNav.querySelector(`[data-tab-id="${tabId}"]`);
+                            if (activeTab) {
+                                activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                            }
+                        }
+                        return;
+                    }
+                    
                     setActiveTabId(tabId);
                     window.location.href = tab.url;
                 }
@@ -382,6 +407,15 @@
                     }
                 } else {
                     tabsContainer.innerHTML = html;
+                }
+
+                // Scroll para a aba ativa
+                const tabsNav = document.getElementById('tabs-nav');
+                if (tabsNav) {
+                    const activeTab = tabsNav.querySelector(`[data-tab-id="${activeId}"]`);
+                    if (activeTab) {
+                        activeTab.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+                    }
                 }
             }
 
