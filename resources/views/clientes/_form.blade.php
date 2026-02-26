@@ -25,7 +25,7 @@ $method = $isEdit ? 'PUT' : 'POST';
         <p class="text-sm text-gray-500" x-text="steps[step - 1].description"></p>
         <div class="border-b border-gray-200 pb-2"></div>
     </div>
-    <div class="pb-7"></div>
+    <div class="pb-4"></div>
 
     <div class="w-full mb-4">
         <div class="flex items-center justify-between">
