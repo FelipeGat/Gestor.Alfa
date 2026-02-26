@@ -121,7 +121,7 @@ total() }})
                             </tr>
                             @endforeach
                         </x-table>
-                        <div class="mt-4">{{ $categorias->onEachSide(0)->links() }}</div>
+                        <div class="mt-4">{{ $categorias->setPageName('page')->onEachSide(0)->links() }}</div>
                         @else
                         <div class="text-center py-8 text-gray-500">Nenhuma categoria encontrada.</div>
                         @endif
