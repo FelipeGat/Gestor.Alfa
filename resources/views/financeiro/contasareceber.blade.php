@@ -103,20 +103,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
 
                     {{-- Busca --}}
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                        <div class="relative">
-                            <input type="text" name="search" id="busca-cliente" value="{{ request('search') }}"
-                                placeholder="Cliente ou descrição..."
-                                autocomplete="off"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                            <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
-                            <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
-                        </div>
+                    <div class="filter-group relative">
+                        <x-form-input name="search" label="Buscar" placeholder="Cliente ou descrição..." :value="request('search')" />
+                        <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
+                        <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden" style="top: 70px;"></div>
                         <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // Busca cliente dentro do campo Buscar
-                            const inputBusca = document.getElementById('busca-cliente');
+                            const inputBusca = document.getElementById('search');
                             const lista = document.getElementById('autocomplete-cliente');
                             const inputHidden = document.getElementById('busca-cliente-id');
                             let clientes = [];
@@ -169,16 +163,13 @@
 
                     {{-- Empresa --}}
                     <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                        <select name="empresa_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                            <option value="">Todas as Empresas</option>
+                        <x-form-select name="empresa_id" label="Empresa" placeholder="Todas as Empresas" onchange="this.form.submit()">
                             @foreach($empresas as $empresa)
                             <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
                                 {{ $empresa->nome_fantasia }}
                             </option>
                             @endforeach
-                        </select>
+                        </x-form-select>
                     </div>
 
                     {{-- Navegação de Meses --}}
@@ -415,19 +406,19 @@
             }' class="table-card">
                 <div class="flex justify-end mb-2">
                     <template x-if="selecionadas.length >= 2">
-                        <button
-                            type="button"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+                        <x-button variant="success" size="sm"
                             x-on:click="$dispatch('confirmar-baixa', {
                                 action: '{{ route('financeiro.contasareceber.baixa-multipla') }}',
                                 empresaId: null,
                                 cobrancaIds: selecionadas
                             })">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                            <x-slot name="iconLeft">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </x-slot>
                             Receber Selecionadas
-                        </button>
+                        </x-button>
                     </template>
                 </div>
                 <div class="table-wrapper">
@@ -616,9 +607,9 @@
 
             {{ $cobrancas->links() }}
             @else
-            <div class="empty-state">
-                <h3 class="empty-state-title">Nenhuma cobrança encontrada</h3>
-            </div>
+            <x-card :padding="false" class="text-center py-12">
+                <p class="text-gray-500">Nenhuma cobrança encontrada para os filtros aplicados.</p>
+            </x-card>
             @endif
 
         </div>
