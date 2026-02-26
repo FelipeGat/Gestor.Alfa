@@ -193,53 +193,37 @@
                                 $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
                             @endphp
 
-                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
-                                'vencimento_inicio' => $ontem->format('Y-m-d'),
-                                'vencimento_fim' => $ontem->format('Y-m-d')
-                            ])) }}"
-                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                            <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $ontem->format('Y-m-d'), 'vencimento_fim' => $ontem->format('Y-m-d')])) }}"
+                                size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'primary' : 'light'">
                                 Ontem
-                            </a>
-                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
-                                'vencimento_inicio' => $hoje->format('Y-m-d'),
-                                'vencimento_fim' => $hoje->format('Y-m-d')
-                            ])) }}"
-                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                            </x-button>
+                            <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $hoje->format('Y-m-d'), 'vencimento_fim' => $hoje->format('Y-m-d')])) }}"
+                                size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'primary' : 'light'">
                                 Hoje
-                            </a>
-                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
-                                'vencimento_inicio' => $amanha->format('Y-m-d'),
-                                'vencimento_fim' => $amanha->format('Y-m-d')
-                            ])) }}"
-                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('vencimento_inicio') == $amanha->format('Y-m-d') && request('vencimento_fim') == $amanha->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                            </x-button>
+                            <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $amanha->format('Y-m-d'), 'vencimento_fim' => $amanha->format('Y-m-d')])) }}"
+                                size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $amanha->format('Y-m-d') && request('vencimento_fim') == $amanha->format('Y-m-d') ? 'primary' : 'light'">
                                 Amanhã
-                            </a>
-                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
-                                'vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'),
-                                'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')
-                            ])) }}"
-                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
-                                title="Mês Anterior">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </a>
+                            </x-button>
+                            <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
+                                variant="light" size="sm" title="Mês Anterior">
+                                <x-slot name="iconLeft">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </x-slot>
+                            </x-button>
                             <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
                                 {{ $mesAtualNome }}
                             </div>
-                            <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), [
-                                'vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'),
-                                'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')
-                            ])) }}"
-                                class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
-                                title="Próximo Mês">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </a>
+                            <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
+                                variant="light" size="sm" title="Próximo Mês">
+                                <x-slot name="iconLeft">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </x-slot>
+                            </x-button>
                         </div>
                     </div>
                 </div>
@@ -263,16 +247,8 @@
                         $vencimentoFim = request('vencimento_fim') ?? $fimPadrao;
                     @endphp
                     <div x-show="mostrarPeriodo" x-transition class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
-                            <input type="date" name="vencimento_inicio" id="vencimento_inicio_receber" value="{{ $vencimentoInicio }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
-                            <input type="date" name="vencimento_fim" id="vencimento_fim_receber" value="{{ $vencimentoFim }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
+                        <x-form-input type="date" name="vencimento_inicio" id="vencimento_inicio_receber" label="Data Início" :value="$vencimentoInicio" />
+                        <x-form-input type="date" name="vencimento_fim" id="vencimento_fim_receber" label="Data Fim" :value="$vencimentoFim" />
                     </div>
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
@@ -325,18 +301,22 @@
 
                     {{-- Grupo de Botões (Direita) --}}
                     <div class="flex flex-wrap gap-2 lg:justify-end">
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
-                        <a href="{{ route('financeiro.contasareceber') }}" class="btn btn-secondary">Limpar</a>
-                        <button
-                            type="button"
+                        <x-button type="submit" variant="primary" size="sm" class="min-w-[130px]">
+                            Filtrar
+                        </x-button>
+                        <x-button href="{{ route('financeiro.contasareceber') }}" variant="secondary" size="sm" class="min-w-[130px]">
+                            Limpar
+                        </x-button>
+                        <x-button type="button" variant="success" size="sm" class="min-w-[130px]"
                             x-data
-                            @click="$dispatch('abrir-modal-conta-fixa')"
-                            class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition shadow-md border border-purple-700/30">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                            @click="$dispatch('abrir-modal-conta-fixa')">
+                            <x-slot name="iconLeft">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </x-slot>
                             Receitas Fixas
-                        </button>
+                        </x-button>
                     </div>
                 </div>
             </form>
