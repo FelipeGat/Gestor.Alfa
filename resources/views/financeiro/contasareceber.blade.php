@@ -355,31 +355,11 @@
             @endif
 
             {{-- ================= KPIs ================= --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <x-card :padding="false" class="border-l-4 border-blue">
-                    <div class="p-4">
-                        <div class="text-sm text-gray-500">A Receber (no período)</div>
-                        <div class="text-xl font-bold text-blue-600">R$ {{ number_format($kpis['a_receber'], 2, ',', '.') }}</div>
-                    </div>
-                </x-card>
-                <x-card :padding="false" class="border-l-4 border-green">
-                    <div class="p-4">
-                        <div class="text-sm text-gray-500">Recebido (no período)</div>
-                        <div class="text-xl font-bold text-green-600">R$ {{ number_format($kpis['recebido'], 2, ',', '.') }}</div>
-                    </div>
-                </x-card>
-                <x-card :padding="false" class="border-l-4 border-red">
-                    <div class="p-4">
-                        <div class="text-sm text-gray-500">Vencido (no período)</div>
-                        <div class="text-xl font-bold text-red-600">R$ {{ number_format($kpis['vencido'], 2, ',', '.') }}</div>
-                    </div>
-                </x-card>
-                <x-card :padding="false" class="border-l-4 border-yellow">
-                    <div class="p-4">
-                        <div class="text-sm text-gray-500">Vence Hoje</div>
-                        <div class="text-xl font-bold text-yellow-600">R$ {{ number_format($kpis['vence_hoje'], 2, ',', '.') }}</div>
-                    </div>
-                </x-card>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <x-kpi-card title="A Receber (no período)" :value="'R$ ' . number_format($kpis['a_receber'], 2, ',', '.')" color="blue" />
+                <x-kpi-card title="Recebido (no período)" :value="'R$ ' . number_format($kpis['recebido'], 2, ',', '.')" color="green" />
+                <x-kpi-card title="Vencido (no período)" :value="'R$ ' . number_format($kpis['vencido'], 2, ',', '.')" color="red" />
+                <x-kpi-card title="Vence Hoje" :value="'R$ ' . number_format($kpis['vence_hoje'], 2, ',', '.')" color="yellow" />
             </div>
 
             {{-- ================= TABELA ================= --}}
@@ -474,9 +454,9 @@
                                     {{ $cobranca->descricao }}
                                 </td>
                                 <td data-label="Tipo">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $cobranca->tipo === 'contrato' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                    <x-badge type="{{ $cobranca->tipo === 'contrato' ? 'primary' : 'info' }}" size="xs">
                                         {{ ucfirst($cobranca->tipo) }}
-                                    </span>
+                                    </x-badge>
                                 </td>
                                 <td data-label="Valor" class="text-right font-semibold whitespace-nowrap">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
@@ -605,7 +585,7 @@
                 </div>
             </div>
 
-            {{ $cobrancas->links() }}
+            <x-pagination :paginator="$cobrancas" label="cobranças" />
             @else
             <x-card :padding="false" class="text-center py-12">
                 <p class="text-gray-500">Nenhuma cobrança encontrada para os filtros aplicados.</p>
