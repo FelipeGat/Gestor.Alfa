@@ -100,15 +100,15 @@
                                     <form method="POST" action="{{ route('financeiro.cancelar-agendamento', $orcamento->id) }}" onsubmit="return confirm('Deseja cancelar o agendamento?');">
                                         @csrf
                                         @method('DELETE')
-                                        <x-button size="sm" variant="secondary" type="submit" title="Cancelar agendamento">
+                                        <button type="submit" class="p-2 rounded-full inline-flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 transition" title="Cancelar agendamento">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </x-button>
+                                        </button>
                                     </form>
                                 </div>
                             @endif
                         </div>
                     </x-table-cell>
-                    <td class="px-4 py-3 text-left">
+                    <x-table-cell align="left">
                         <div class="flex gap-1 items-center justify-start">
                             @if($orcamento->status === 'financeiro')
                             @php
@@ -141,7 +141,7 @@
                                 </svg>
                             </a>
                         </div>
-                    </td>
+                    </x-table-cell>
                 </tr>
                 @endforeach
             </x-table>
