@@ -154,19 +154,20 @@
                         </x-badge>
                     </x-table-cell>
                     <x-table-cell>
-                        <button type="button" x-data="" x-on:click.prevent="openClientModal('{{ route('clientes.ajaxEdit', $cliente) }}', 'Editar Cliente')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Editar
-                        </button>
-                        <x-actions 
-                            :edit-url="route('clientes.edit', $cliente)" 
-                            :delete-url="route('clientes.destroy', $cliente)"
-                            :show-view="false"
-                            :show-edit="false"
-                            confirm-delete-message="Tem certeza que deseja excluir este cliente?"
-                        />
+                        <div class="flex items-center gap-1">
+                            <button type="button" x-data="" x-on:click.prevent="openClientModal('{{ route('clientes.ajaxEdit', $cliente) }}', 'Editar Cliente')" class="p-2 rounded-full inline-flex items-center justify-center text-[#3f9cae] hover:bg-[#3f9cae]/10 transition" title="Editar">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                </svg>
+                            </button>
+                            <x-actions 
+                                :edit-url="route('clientes.edit', $cliente)" 
+                                :delete-url="route('clientes.destroy', $cliente)"
+                                :show-view="false"
+                                :show-edit="false"
+                                confirm-delete-message="Tem certeza que deseja excluir este cliente?"
+                            />
+                        </div>
                     </x-table-cell>
                 </tr>
                 @endforeach
