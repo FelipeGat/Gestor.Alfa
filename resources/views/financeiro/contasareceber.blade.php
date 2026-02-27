@@ -292,8 +292,8 @@
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">CNPJ/CPF</th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Descrição</th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Tipo</th>
-                                    <th class="px-4 py-3 text-right uppercase text-sm font-bold text-gray-700">Valor</th>
-                                    <th class="px-4 py-3 text-center uppercase text-sm font-bold text-gray-700">Ações</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Valor</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Ações</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -336,11 +336,11 @@
                                         {{ ucfirst($cobranca->tipo) }}
                                     </x-badge>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-right font-semibold whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Valor">
+                                <td class="px-4 py-3 text-sm text-left font-semibold whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Valor">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
-                                <td class="px-4 py-3 text-center" data-label="Ações">
-                                    <div class="flex justify-center gap-1">
+                                <td class="px-4 py-3 text-left" data-label="Ações">
+                                    <div class="flex gap-1">
 
                                         {{-- Botão Editar (apenas para contas fixas) --}}
                                         @if($cobranca->conta_fixa_id)
