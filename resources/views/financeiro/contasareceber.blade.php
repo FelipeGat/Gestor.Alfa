@@ -332,7 +332,7 @@
                                     {{ $cobranca->descricao }}
                                 </td>
                                 <td class="px-4 py-3" data-label="Tipo">
-                                    <x-badge type="{{ $cobranca->tipo === 'contrato' ? 'primary' : 'info' }}" size="xs">
+                                    <x-badge type="{{ $cobranca->tipo === 'contrato' ? 'primary' : 'info' }}">
                                         {{ ucfirst($cobranca->tipo) }}
                                     </x-badge>
                                 </td>
