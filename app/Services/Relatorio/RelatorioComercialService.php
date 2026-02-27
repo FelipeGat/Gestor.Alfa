@@ -18,6 +18,7 @@ class RelatorioComercialService
 
         return [
             'pipeline' => $pipeline,
+            'pipeline_por_empresa' => $this->pipelinePorEmpresa($filtros),
             'enviados_fechados' => $this->enviadosFechados($filtros),
             'follow_up' => $this->followUp($filtros),
             'receita_prevista_real' => $this->receitaPrevistaReal($filtros),
@@ -86,6 +87,20 @@ class RelatorioComercialService
             'valor_total_enviado' => (float) ((clone $enviados)->sum('valor_total')),
             'valor_total_fechado' => (float) ((clone $fechados)->sum('valor_total')),
         ];
+    }
+
+    public function pipelinePorEmpresa(array $filtros)
+    {
+        return $this->baseOrcamentos($filtros)
+            ->leftJoin('empresas', 'empresas.id', '=', 'orcamentos.empresa_id')
+            ->selectRaw("COALESCE(empresas.nome_fantasia, 'Sem empresa') as empresa")
+            ->selectRaw('orcamentos.status as status')
+            ->selectRaw('COUNT(*) as quantidade')
+            ->selectRaw('SUM(orcamentos.valor_total) as valor_total')
+            ->groupBy('empresa', 'orcamentos.status')
+            ->orderBy('empresa')
+            ->orderBy('orcamentos.status')
+            ->get();
     }
 
     public function followUp(array $filtros): array

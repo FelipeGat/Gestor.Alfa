@@ -82,6 +82,26 @@
                 $pipelinePage = min(max(1, (int) request('pipeline_page', 1)), $pipelineTotalPages);
                 $pipelineRowsPage = $pipelineRows->forPage($pipelinePage, $perPage);
 
+                $pipelineEmpresaRows = collect($dados['pipeline_por_empresa']);
+                $pipelineEmpresas = $pipelineEmpresaRows
+                    ->pluck('empresa')
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values();
+                $pipelineStatus = $pipelineEmpresaRows
+                    ->pluck('status')
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values();
+
+                $pipelineEmpresaMapa = $pipelineEmpresaRows
+                    ->groupBy('status')
+                    ->map(function ($rowsPorStatus) {
+                        return $rowsPorStatus->keyBy('empresa');
+                    });
+
                 $origemRows = collect($dados['origem_leads']);
                 $origemTotalPages = max(1, (int) ceil($origemRows->count() / $perPage));
                 $origemPage = min(max(1, (int) request('origem_page', 1)), $origemTotalPages);
@@ -252,42 +272,82 @@
                 </div>
             </div>
 
-            <div class="section-card p-4 overflow-x-auto">
-                <div class="card-title">
-                    <span class="card-title-bar"></span>
-                    <h3 class="font-semibold text-gray-800">Pipeline Comercial</h3>
-                </div>
-                <table class="min-w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-500 border-b">
-                            <th class="py-2">Status</th>
-                            <th class="py-2">Qtd</th>
-                            <th class="py-2">Valor Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pipelineRowsPage as $item)
-                            <tr class="border-b">
-                                <td class="py-2">{{ $item->status }}</td>
-                                <td class="py-2">{{ $item->quantidade }}</td>
-                                <td class="py-2">R$ {{ number_format((float)$item->valor_total, 2, ',', '.') }}</td>
-                            </tr>
-                        @empty
-                            <tr><td class="py-3 text-gray-500" colspan="3">Sem dados no período.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                @if($pipelineRows->count() > $perPage)
-                    <div class="pager">
-                        @for($i = 1; $i <= $pipelineTotalPages; $i++)
-                            @if($i === $pipelinePage)
-                                <span class="active">{{ $i }}</span>
-                            @else
-                                <a href="{{ request()->fullUrlWithQuery(['pipeline_page' => $i]) }}">{{ $i }}</a>
-                            @endif
-                        @endfor
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="section-card p-4 overflow-x-auto md:col-span-4">
+                    <div class="card-title">
+                        <span class="card-title-bar"></span>
+                        <h3 class="font-semibold text-gray-800">Pipeline Comercial</h3>
                     </div>
-                @endif
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-500 border-b">
+                                <th class="py-2">Status</th>
+                                <th class="py-2">Qtd</th>
+                                <th class="py-2">Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pipelineRowsPage as $item)
+                                <tr class="border-b">
+                                    <td class="py-2">{{ $item->status }}</td>
+                                    <td class="py-2">{{ $item->quantidade }}</td>
+                                    <td class="py-2">R$ {{ number_format((float)$item->valor_total, 2, ',', '.') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td class="py-3 text-gray-500" colspan="3">Sem dados no período.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                    @if($pipelineRows->count() > $perPage)
+                        <div class="pager">
+                            @for($i = 1; $i <= $pipelineTotalPages; $i++)
+                                @if($i === $pipelinePage)
+                                    <span class="active">{{ $i }}</span>
+                                @else
+                                    <a href="{{ request()->fullUrlWithQuery(['pipeline_page' => $i]) }}">{{ $i }}</a>
+                                @endif
+                            @endfor
+                        </div>
+                    @endif
+                </div>
+
+                <div class="section-card p-4 overflow-x-auto md:col-span-8">
+                    <div class="card-title">
+                        <span class="card-title-bar"></span>
+                        <h3 class="font-semibold text-gray-800">Pipeline por Empresa</h3>
+                    </div>
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-500 border-b">
+                                <th class="py-2">Status</th>
+                                @foreach($pipelineEmpresas as $empresaNome)
+                                    <th class="py-2">{{ $empresaNome }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pipelineStatus as $status)
+                                <tr class="border-b">
+                                    <td class="py-2 font-medium">{{ $status }}</td>
+                                    @foreach($pipelineEmpresas as $empresaNome)
+                                        @php
+                                            $registro = $pipelineEmpresaMapa->get($status)?->get($empresaNome);
+                                        @endphp
+                                        <td class="py-2">
+                                            @if($registro)
+                                                {{ $registro->quantidade }} (R$ {{ number_format((float) $registro->valor_total, 2, ',', '.') }})
+                                            @else
+                                                0 (R$ 0,00)
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @empty
+                                <tr><td class="py-3 text-gray-500" colspan="{{ max(2, $pipelineEmpresas->count() + 1) }}">Sem dados no período.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
