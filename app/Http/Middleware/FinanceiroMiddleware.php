@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FinanceiroMiddleware
 {
@@ -17,7 +16,7 @@ class FinanceiroMiddleware
         }
 
         // Admin sempre pode
-        if ($user->tipo === 'admin' || $user->tipo === 'financeiro') {
+        if ($user->isAdmin() || $user->tipo === 'financeiro') {
             return $next($request);
         }
 

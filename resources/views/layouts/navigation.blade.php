@@ -5,6 +5,7 @@
 
     // Papéis principais
     $isAdmin = $user && method_exists($user, 'isAdminPanel') ? $user->isAdminPanel() : false;
+    $isAdministrativo = $user && method_exists($user, 'isAdministrativo') ? $user->isAdministrativo() : false;
     $isFinanceiro = $user && method_exists($user, 'perfis') ? $user->perfis()->where('slug', 'financeiro')->exists() : false;
     $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
     $isCliente = $user && isset($user->tipo) ? $user->tipo === 'cliente' : false;
@@ -17,13 +18,14 @@
             {{-- LOGO --}}
             <div class="flex items-center">
                 <a href="
-                    @if($isAdmin) {{ route('dashboard') }}
+                    @if($isAdministrativo) {{ route('dashboard.tecnico') }}
+                    @elseif($isAdmin) {{ route('financeiro.dashboard') }}
                     @elseif($isFinanceiro) {{ route('financeiro.dashboard') }}
                     @elseif($isComercial) {{ route('dashboard.comercial') }}
                     @elseif($isCliente) {{ route('portal.index') }}
                     @else {{ route('portal-funcionario.index') }}
                     @endif
-                " data-tab-link data-tab-label="Dashboard" 
+                " data-tab-link data-tab-label="Dashboard"
                     @if($isCliente) data-tab-icon="portal"
                     @elseif(!$isAdmin && !$isFinanceiro && !$isComercial) data-tab-icon="portal-funcionario"
                     @else data-tab-icon="dashboard"

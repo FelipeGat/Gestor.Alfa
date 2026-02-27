@@ -36,8 +36,18 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('dashboard.comercial');
         }
 
-        // Redirecionamento para Admin/Administrativo -> Financeiro Dashboard
-        if ($user->isAdminPanel()) {
+        // Redirecionamento para Administrativo -> Dashboard Técnico
+        if ($user->isAdministrativo()) {
+            return redirect()->route('dashboard.tecnico');
+        }
+
+        // Redirecionamento para Admin -> Dashboard Financeiro
+        if ($user->isAdmin()) {
+            return redirect()->route('financeiro.dashboard');
+        }
+
+        // Redirecionamento para Financeiro
+        if ($user->tipo === 'financeiro' || $user->perfis()->where('slug', 'financeiro')->exists()) {
             return redirect()->route('financeiro.dashboard');
         }
 
