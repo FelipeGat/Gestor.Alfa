@@ -209,7 +209,27 @@
                 </div>
             </form>
 
-            <div class="flex justify-start">
+            <div x-data='{
+                selecionadas: [],
+                valores: @json($cobrancas->map(function($c){ return ["id" => (int)$c->id, "valor" => (float)$c->valor]; })),
+                toggleAll(source) {
+                    if (source.checked) {
+                        this.selecionadas = @json($cobrancas->pluck("id"));
+                    } else {
+                        this.selecionadas = [];
+                    }
+                },
+                getValorSelecionado() {
+                    let total = 0;
+                    this.valores.forEach(c => {
+                        if (this.selecionadas.map(Number).includes(Number(c.id))) {
+                            total += parseFloat(c.valor) || 0;
+                        }
+                    });
+                    return total;
+                }
+            }'>
+            <div class="flex justify-start mb-4">
                 <x-button variant="success" size="sm" class="min-w-[130px]" x-data @click="$dispatch('abrir-modal-conta-fixa')">
                     <x-slot name="iconLeft">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -239,57 +259,16 @@
                 <x-kpi-card title="Vence Hoje" :value="'R$ ' . number_format($kpis['vence_hoje'], 2, ',', '.')" color="yellow" />
             </div>
 
-            <div class="flex justify-start mb-2">
-                <x-button 
-                    variant="success" 
-                    size="sm" 
-                    class="min-w-[160px]"
-                    x-bind:class="selecionadas.length >= 2 ? '' : 'opacity-50 cursor-not-allowed pointer-events-none'"
-                    x-bind:disabled="selecionadas.length < 2"
-                    x-data 
-                    x-on:click="if(selecionadas.length >= 2) $dispatch('confirmar-baixa', {
-                        action: '{{ route('financeiro.contasareceber.baixa-multipla') }}',
-                        empresaId: null,
-                        cobrancaIds: selecionadas
-                    })">
-                    <x-slot name="iconLeft">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                    </x-slot>
-                    Receber Selecionadas
-                </x-button>
-            </div>
-
             {{-- ================= TABELA ================= --}}
             @if($cobrancas->count())
-            <div x-data='{
-                selecionadas: [],
-                valores: @json($cobrancas->map(function($c){ return ["id" => (int)$c->id, "valor" => (float)$c->valor]; })),
-                toggleAll(source) {
-                    if (source.checked) {
-                        this.selecionadas = @json($cobrancas->pluck("id"));
-                    } else {
-                        this.selecionadas = [];
-                    }
-                },
-                getValorSelecionado() {
-                    let total = 0;
-                    this.valores.forEach(c => {
-                        if (this.selecionadas.map(Number).includes(Number(c.id))) {
-                            total += parseFloat(c.valor) || 0;
-                        }
-                    });
-                    return total;
-                }
-            }' class="table-card">
-                <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+            <div class="table-card">
+                <div class="rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <div class="overflow-x-auto">
                         <table class="w-full table-auto">
                             <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
-                                        <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;">
+                                        <input type="checkbox" x-on:change="toggleAll($event.target)" :checked="selecionadas.length > 0" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;" :style="selecionadas.length > 0 ? 'background:#3f9cae;border-color:#3f9cae;' : ''">
                                     </th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Vencimento</th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Empresa</th>
@@ -301,6 +280,24 @@
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Ações</th>
                                 </tr>
                             </thead>
+                            <div class="flex justify-start p-4 border-b border-gray-200" x-show="selecionadas.length > 0" x-transition>
+                                <x-button 
+                                    variant="success" 
+                                    size="sm" 
+                                    class="min-w-[160px]"
+                                    x-on:click="$dispatch('confirmar-baixa', {
+                                        action: '{{ route('financeiro.contasareceber.baixa-multipla') }}',
+                                        empresaId: null,
+                                        cobrancaIds: selecionadas
+                                    })">
+                                    <x-slot name="iconLeft">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </x-slot>
+                                    Receber Selecionadas (<span x-text="selecionadas.length"></span>)
+                                </x-button>
+                            </div>
                             <tbody class="divide-y divide-gray-200">
                             @php $totalPagina = 0; @endphp
                             @forelse($cobrancas as $cobranca)
@@ -319,7 +316,7 @@
                             @endphp
                             <tr class="{{ $linhaClass }} hover:bg-gray-50 transition" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
                                 <td class="px-4 py-3">
-                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;">
+                                    <input type="checkbox" value="{{ $cobranca->id }}" x-model.number="selecionadas" :checked="selecionadas.includes({{ $cobranca->id }})" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;" :style="selecionadas.includes({{ $cobranca->id }}) ? 'background:#3f9cae;border-color:#3f9cae;' : ''">
                                 </td>
                                 <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
