@@ -211,7 +211,7 @@
                     </div>
 
                     <div class="filter-actions justify-end mt-4">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd"
                                     d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
@@ -219,7 +219,7 @@
                             </svg>
                             Filtrar
                         </button>
-                        <a href="{{ route('relatorios.contas-receber-pagar') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                        <a href="{{ route('relatorios.contas-receber-pagar') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
@@ -250,6 +250,7 @@
                             <tr>
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Cliente</th>
+                                <th class="text-left">Descrição</th>
                                 <th class="text-left">Vencimento</th>
                                 <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
@@ -265,6 +266,9 @@
                                         {{ $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-' }}
                                     </td>
                                     <td class="text-left">
+                                        {{ $conta->descricao ?? '-' }}
+                                    </td>
+                                    <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
                                     <td class="text-left font-black text-emerald-700">
@@ -276,7 +280,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-sm text-gray-500 py-6">
+                                    <td colspan="6" class="text-center text-sm text-gray-500 py-6">
                                         Nenhuma conta a receber encontrada com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -284,7 +288,7 @@
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             <tr>
-                                <td colspan="3" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</td>
+                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</td>
                                 <td class="px-4 py-4 text-right text-base font-black text-emerald-700">
                                     R$ {{ number_format($totalReceber, 2, ',', '.') }}
                                 </td>
@@ -321,6 +325,7 @@
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Centro</th>
                                 <th class="text-left">Fornecedor</th>
+                                <th class="text-left">Descrição</th>
                                 <th class="text-left">Vencimento</th>
                                 <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
@@ -339,6 +344,9 @@
                                         {{ $conta->fornecedor?->nome_fantasia ?? $conta->fornecedor?->razao_social ?? '-' }}
                                     </td>
                                     <td class="text-left">
+                                        {{ $conta->descricao ?? '-' }}
+                                    </td>
+                                    <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
                                     <td class="text-left font-black text-red-600">
@@ -350,7 +358,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-sm text-gray-500 py-6">
+                                    <td colspan="7" class="text-center text-sm text-gray-500 py-6">
                                         Nenhuma conta a pagar encontrada com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -358,7 +366,7 @@
                         </tbody>
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             <tr>
-                                <td colspan="4" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</td>
+                                <td colspan="5" class="px-4 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</td>
                                 <td class="px-4 py-4 text-right text-base font-black text-red-600">
                                     R$ {{ number_format($totalPagar, 2, ',', '.') }}
                                 </td>
@@ -381,24 +389,24 @@
             event.preventDefault();
             event.stopPropagation();
         }
-        
+
         // Desabilitar o botão e mostrar indicador de carregamento
         var btn = event ? event.target : null;
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '⏳ Carregando...';
         }
-        
+
         // Pegar os parâmetros atuais da URL
         var urlParams = new URLSearchParams(window.location.search);
         var params = {};
         urlParams.forEach(function(value, key) {
             params[key] = value;
         });
-        
+
         // Fazer requisição AJAX para buscar todos os dados
         var url = '{{ route("relatorios.contas-receber-pagar.json") }}' + '?' + urlParams.toString();
-        
+
         fetch(url, {
             method: 'GET',
             headers: {
@@ -417,16 +425,16 @@
             var titulo = tipo === 'receber' ? 'Relatório - Contas a Receber' : 'Relatório - Contas a Pagar';
             var dataInicio = data.data_inicio_formatada;
             var dataFim = data.data_fim_formatada;
-            
+
             var contas = tipo === 'receber' ? data.contas_receber : data.contas_pagar;
             var totalLabel = tipo === 'receber' ? 'Total a Receber' : 'Total a Pagar';
             var totalValor = tipo === 'receber' ? data.total_receber_formatado : data.total_pagar_formatado;
             var corTotal = tipo === 'receber' ? '#059669' : '#dc2626';
-            
+
             // Criar as linhas da tabela
             var tableRows = '';
             if (contas.length === 0) {
-                var colspan = tipo === 'receber' ? '5' : '6';
+                var colspan = tipo === 'receber' ? '6' : '7';
                 tableRows = '<tr><td colspan="' + colspan + '" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
             } else {
                 var statusConfig = {
@@ -449,6 +457,7 @@
                         tableRows += '<tr>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.descricao || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669; white-space: nowrap;">' + conta.valor_formatado + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
@@ -458,6 +467,7 @@
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.centro_custo || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.fornecedor || '-') + '</td>';
+                        tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.descricao || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">' + conta.valor_formatado + '</td>';
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + statusBadge + '</td>';
@@ -465,13 +475,14 @@
                     }
                 });
             }
-            
+
             // Criar o cabeçalho da tabela
             var tableHeader = '';
             if (tipo === 'receber') {
                 tableHeader = '<thead><tr>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Cliente</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
@@ -481,17 +492,18 @@
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Fornecedor</th>';
+                tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
                 tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
                 tableHeader += '</tr></thead>';
             }
-            
+
             var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
-            
+
             // Criar uma nova janela para impressão
             var printWindow = window.open('', '_blank', 'width=800,height=600');
-            
+
             // Escrever o HTML da nova janela
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -533,10 +545,10 @@
                 </body>
                 </html>
             `);
-            
+
             printWindow.document.close();
             printWindow.focus();
-            
+
             // Reabilitar o botão
             if (btn) {
                 btn.disabled = false;
@@ -546,7 +558,7 @@
         .catch(function(error) {
             console.error('Erro ao carregar dados para impressão:', error);
             alert('Erro ao carregar dados para impressão. Tente novamente.');
-            
+
             // Reabilitar o botão
             if (btn) {
                 btn.disabled = false;

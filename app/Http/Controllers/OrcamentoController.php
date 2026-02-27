@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class OrcamentoController extends Controller
 {
@@ -151,6 +152,13 @@ class OrcamentoController extends Controller
         }
 
         // ================= ORÇAMENTOS (PAGINADO) =================
+        $resumo = (clone $query)
+            ->selectRaw('COUNT(*) as total_orcamentos')
+            ->selectRaw("SUM(CASE WHEN status = 'aprovado' THEN 1 ELSE 0 END) as aprovados")
+            ->selectRaw("SUM(CASE WHEN status IN ('em_elaboracao', 'aguardando_aprovacao') THEN 1 ELSE 0 END) as pendentes")
+            ->selectRaw('SUM(valor_total) as valor_total')
+            ->first();
+
         $orcamentos = $query
             ->orderBy($sort, $direction)
             ->paginate(10)
@@ -189,7 +197,8 @@ class OrcamentoController extends Controller
             'orcamentos',
             'atendimentosParaOrcamento',
             'empresas',
-            'statusList'
+            'statusList',
+            'resumo'
         ));
     }
 
@@ -233,6 +242,10 @@ class OrcamentoController extends Controller
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
         $clientes = Cliente::orderBy('nome')->get();
+        $vendedores = User::query()
+            ->whereNotNull('funcionario_id')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $atendimento = null;
 
@@ -245,7 +258,7 @@ class OrcamentoController extends Controller
 
         return view(
             'orcamentos.create',
-            compact('empresas', 'clientes', 'atendimento')
+            compact('empresas', 'clientes', 'atendimento', 'vendedores')
         );
     }
 
@@ -263,6 +276,12 @@ class OrcamentoController extends Controller
             'cliente_tipo' => 'required|in:cliente,pre_cliente',
             'cliente_id' => 'nullable|exists:clientes,id',
             'pre_cliente_id' => 'nullable|exists:pre_clientes,id',
+            'origem_lead' => 'nullable|string|max:120',
+            'probabilidade_fechamento' => 'nullable|numeric|min:0|max:100',
+            'vendedor_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereNotNull('funcionario_id'),
+            ],
             'itens' => 'required|array|min:1|max:50',
             'desconto_servico_valor' => 'nullable|numeric|min:0|max:99999999',
             'desconto_produto_valor' => 'nullable|numeric|min:0|max:99999999',
@@ -317,6 +336,8 @@ class OrcamentoController extends Controller
                 'status' => 'em_elaboracao',
                 'cliente_id' => $clienteId,
                 'pre_cliente_id' => $preClienteId,
+                'origem_lead' => $request->origem_lead,
+                'probabilidade_fechamento' => $request->probabilidade_fechamento ?? 0,
 
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
                 'desconto_servico_tipo' => $request->desconto_servico_tipo ?? 'valor',
@@ -329,6 +350,7 @@ class OrcamentoController extends Controller
                 'prazo_pagamento' => $request->prazo_pagamento,
                 'observacoes' => $request->observacoes,
                 'created_by' => $user->id,
+                'vendedor_id' => $request->vendedor_id,
             ]);
 
             // ================= ITENS =================
@@ -443,6 +465,10 @@ class OrcamentoController extends Controller
         );
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
+        $vendedores = User::query()
+            ->whereNotNull('funcionario_id')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $orcamento->load([
             'cliente',
@@ -471,7 +497,7 @@ class OrcamentoController extends Controller
 
         return view(
             'orcamentos.edit',
-            compact('orcamento', 'empresas', 'itensArray', 'extras')
+            compact('orcamento', 'empresas', 'itensArray', 'extras', 'vendedores')
         );
     }
 
@@ -485,6 +511,12 @@ class OrcamentoController extends Controller
         $request->validate([
             'empresa_id' => 'required|exists:empresas,id',
             'descricao' => 'required|string|max:255',
+            'origem_lead' => 'nullable|string|max:120',
+            'probabilidade_fechamento' => 'nullable|numeric|min:0|max:100',
+            'vendedor_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereNotNull('funcionario_id'),
+            ],
             'itens' => 'required|array|min:1',
         ]);
 
@@ -515,6 +547,9 @@ class OrcamentoController extends Controller
                 'validade' => $request->validade,
                 'cliente_id' => $clienteId,
                 'pre_cliente_id' => $preClienteId,
+                'origem_lead' => $request->origem_lead,
+                'probabilidade_fechamento' => $request->probabilidade_fechamento ?? $orcamento->probabilidade_fechamento,
+                'vendedor_id' => $request->vendedor_id,
 
                 // Salvando descontos por categoria
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,
@@ -665,9 +700,22 @@ class OrcamentoController extends Controller
             $novoStatus = $request->orcamento_status;
 
             // Atualiza status do orçamento
-            $orcamento->update([
+            $dadosAtualizacao = [
                 'status' => $novoStatus,
-            ]);
+            ];
+
+            if ($novoStatus === 'aguardando_aprovacao' && ! $orcamento->data_envio) {
+                $dadosAtualizacao['data_envio'] = now();
+            }
+
+            if (
+                in_array($novoStatus, ['aprovado', 'financeiro', 'aguardando_pagamento', 'em_andamento', 'agendado', 'concluido', 'garantia'])
+                && ! $orcamento->data_aprovacao
+            ) {
+                $dadosAtualizacao['data_aprovacao'] = now();
+            }
+
+            $orcamento->update($dadosAtualizacao);
 
             return back()->with('success', 'Status atualizado com sucesso.');
         } catch (\Exception $e) {

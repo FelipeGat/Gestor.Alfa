@@ -223,16 +223,13 @@
 
                 {{-- ================= AÇÕES ================= --}}
                 <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 items-center" style="margin-top: 1.5rem;">
-                    <button type="button" onclick="this.nextElementSibling.submit()" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; justify-content: center;">
+                    <button type="submit" form="converter-pre-cliente-form" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; justify-content: center;">
                         <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
                         </svg>
                         Converter para Cliente
                     </button>
-                    <form method="POST" action="{{ route('pre-clientes.converter', $preCliente) }}" class="hidden">
-                        @csrf
-                    </form>
-                    
+
                     <div class="flex gap-3">
                         <a href="{{ route('pre-clientes.index') }}" class="btn btn-cancel" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center;">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -249,6 +246,10 @@
                         </button>
                     </div>
                 </div>
+            </form>
+
+            <form id="converter-pre-cliente-form" method="POST" action="{{ route('pre-clientes.converter', $preCliente) }}" class="hidden">
+                @csrf
             </form>
         </div>
     </div>

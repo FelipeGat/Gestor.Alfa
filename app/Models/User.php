@@ -106,9 +106,21 @@ class User extends Authenticatable
         return $this->belongsToMany(Perfil::class, 'perfil_user', 'user_id', 'perfil_id');
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->perfis()->where('slug', 'admin')->exists()
+            || strtolower((string) $this->tipo) === 'admin';
+    }
+
+    public function isAdministrativo(): bool
+    {
+        return $this->perfis()->where('slug', 'administrativo')->exists()
+            || strtolower((string) $this->tipo) === 'administrativo';
+    }
+
     public function isAdminPanel(): bool
     {
-        return $this->perfis()->whereIn('slug', ['admin', 'administrativo'])->exists();
+        return $this->isAdmin() || $this->isAdministrativo();
     }
 
     public function empresas()

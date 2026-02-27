@@ -5,6 +5,7 @@
 
     // Papéis principais
     $isAdmin = $user && method_exists($user, 'isAdminPanel') ? $user->isAdminPanel() : false;
+    $isAdministrativo = $user && method_exists($user, 'isAdministrativo') ? $user->isAdministrativo() : false;
     $isFinanceiro = $user && method_exists($user, 'perfis') ? $user->perfis()->where('slug', 'financeiro')->exists() : false;
     $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
     $isCliente = $user && isset($user->tipo) ? $user->tipo === 'cliente' : false;
@@ -17,13 +18,14 @@
             {{-- LOGO --}}
             <div class="flex items-center">
                 <a href="
-                    @if($isAdmin) {{ route('dashboard') }}
+                    @if($isAdministrativo) {{ route('dashboard.tecnico') }}
+                    @elseif($isAdmin) {{ route('financeiro.dashboard') }}
                     @elseif($isFinanceiro) {{ route('financeiro.dashboard') }}
                     @elseif($isComercial) {{ route('dashboard.comercial') }}
                     @elseif($isCliente) {{ route('portal.index') }}
                     @else {{ route('portal-funcionario.index') }}
                     @endif
-                " data-tab-link data-tab-label="Dashboard" 
+                " data-tab-link data-tab-label="Dashboard"
                     @if($isCliente) data-tab-icon="portal"
                     @elseif(!$isAdmin && !$isFinanceiro && !$isComercial) data-tab-icon="portal-funcionario"
                     @else data-tab-icon="dashboard"
@@ -216,21 +218,37 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
-                        <x-nav-link :href="route('relatorios.custos-orcamentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                            Custos x Orçamentos
-                        </x-nav-link>
+                        <div class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Financeiro
+                        </div>
 
-                        <x-nav-link :href="route('relatorios.custos-gerencial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                            Gerencial de Custos
-                        </x-nav-link>
+                        <div class="pl-3">
+                            <x-nav-link :href="route('relatorios.custos-orcamentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Custos x Orçamentos
+                            </x-nav-link>
 
-                        <x-nav-link :href="route('relatorios.contas-receber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                            Contas a Receber
-                        </x-nav-link>
+                            <x-nav-link :href="route('relatorios.custos-gerencial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Gerencial de Custos
+                            </x-nav-link>
 
-                        <x-nav-link :href="route('relatorios.contas-pagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                            Contas a Pagar
-                        </x-nav-link>
+                            <x-nav-link :href="route('relatorios.contas-receber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Contas a Receber
+                            </x-nav-link>
+
+                            <x-nav-link :href="route('relatorios.contas-pagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Contas a Pagar
+                            </x-nav-link>
+                        </div>
+
+                        <div class="mt-1 border-t border-gray-100 px-4 pt-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Comercial
+                        </div>
+
+                        <div class="pl-3">
+                            <x-nav-link :href="route('relatorios.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Relatório Comercial
+                            </x-nav-link>
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -364,10 +382,22 @@
         <details>
             <summary class="font-semibold text-gray-700">Relatórios</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')" data-tab-icon="relatorios">Custos x Orçamentos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.custos-gerencial')" data-tab-icon="relatorios">Gerencial de Custos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.contas-receber')" data-tab-icon="relatorios">Contas a Receber</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('relatorios.contas-pagar')" data-tab-icon="relatorios">Contas a Pagar</x-responsive-nav-link>
+                <details>
+                    <summary class="font-semibold text-gray-600">Financeiro</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')" data-tab-icon="relatorios">Custos x Orçamentos</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.custos-gerencial')" data-tab-icon="relatorios">Gerencial de Custos</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.contas-receber')" data-tab-icon="relatorios">Contas a Receber</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.contas-pagar')" data-tab-icon="relatorios">Contas a Pagar</x-responsive-nav-link>
+                    </div>
+                </details>
+
+                <details>
+                    <summary class="font-semibold text-gray-600">Comercial</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.comercial')" data-tab-icon="relatorios">Relatório Comercial</x-responsive-nav-link>
+                    </div>
+                </details>
             </div>
         </details>
         @endif

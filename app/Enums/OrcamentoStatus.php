@@ -35,16 +35,16 @@ enum OrcamentoStatus: string
     public function podeTransicionarPara(OrcamentoStatus $novoStatus): bool
     {
         $transicoes = [
-            self::RASCUNHO => [self::ENVIADO, self::CANCELADO],
-            self::ENVIADO => [self::APROVADO, self::REJEITADO, self::RASCUNHO],
-            self::APROVADO => [self::FINANCEIRO, self::CANCELADO],
-            self::FINANCEIRO => [self::EXECUTANDO, self::CANCELADO],
-            self::EXECUTANDO => [self::CONCLUIDO, self::CANCELADO],
-            self::REJEITADO => [self::RASCUNHO],
-            self::CANCELADO => [],
-            self::CONCLUIDO => [],
+            self::RASCUNHO->value => [self::ENVIADO->value, self::CANCELADO->value],
+            self::ENVIADO->value => [self::APROVADO->value, self::REJEITADO->value, self::RASCUNHO->value],
+            self::APROVADO->value => [self::FINANCEIRO->value, self::CANCELADO->value],
+            self::FINANCEIRO->value => [self::EXECUTANDO->value, self::CANCELADO->value],
+            self::EXECUTANDO->value => [self::CONCLUIDO->value, self::CANCELADO->value],
+            self::REJEITADO->value => [self::RASCUNHO->value],
+            self::CANCELADO->value => [],
+            self::CONCLUIDO->value => [],
         ];
 
-        return in_array($novoStatus, $transicoes[$this] ?? []);
+        return in_array($novoStatus->value, $transicoes[$this->value] ?? [], true);
     }
 }
