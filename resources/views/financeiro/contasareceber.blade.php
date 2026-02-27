@@ -284,7 +284,7 @@
                             <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
-                                        <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
+                                        <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
                                     </th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Vencimento</th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Empresa</th>
@@ -314,7 +314,7 @@
                             @endphp
                             <tr class="{{ $linhaClass }} hover:bg-gray-50 transition" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
                                 <td class="px-4 py-3">
-                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
+                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
                                 </td>
                                 <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
