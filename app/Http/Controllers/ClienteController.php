@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\PrimeiroAcessoMail;
 use App\Models\Cliente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -206,8 +204,6 @@ class ClienteController extends Controller
 
         // Vincular usuário ao cliente na tabela cliente_user
         $userCliente->clientes()->syncWithoutDetaching([$cliente->id]);
-
-        Mail::to($userCliente->email)->send(new PrimeiroAcessoMail($userCliente));
 
         if ($request->expectsJson()) {
             return response()->json([
