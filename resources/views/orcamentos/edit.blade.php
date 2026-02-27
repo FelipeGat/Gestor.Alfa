@@ -150,9 +150,21 @@
                             </select>
                         </div>
 
-                        <div class="md:col-span-6">
+                        <div class="md:col-span-3">
                             <label class="filter-label">Número do Orçamento</label>
                             <input type="text" name="numero_orcamento" readonly value="{{ $orcamento->numero_orcamento }}" class="filter-select w-full bg-gray-50 font-bold text-blue-600">
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="filter-label">Vendedor <span class="text-red-500">*</span></label>
+                            <select name="vendedor_id" required class="filter-select w-full">
+                                <option value="">Selecione o vendedor</option>
+                                @foreach($vendedores as $vendedor)
+                                <option value="{{ $vendedor->id }}" @selected((string) old('vendedor_id', $orcamento->vendedor_id) === (string) $vendedor->id)>
+                                    {{ $vendedor->name }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="md:col-span-12">
@@ -176,14 +188,15 @@
                         </div>
 
                         <div class="md:col-span-3">
-                            <label class="filter-label">Vendedor <span class="text-red-500">*</span></label>
-                            <select name="vendedor_id" required class="filter-select w-full">
-                                <option value="">Selecione o vendedor</option>
-                                @foreach($vendedores as $vendedor)
-                                <option value="{{ $vendedor->id }}" @selected((string) old('vendedor_id', $orcamento->vendedor_id) === (string) $vendedor->id)>
-                                    {{ $vendedor->name }}
-                                </option>
-                                @endforeach
+                            <label class="filter-label">Lead</label>
+                            <select name="origem_lead" class="filter-select w-full">
+                                <option value="">Selecione a origem</option>
+                                <option value="Instagram" @selected(old('origem_lead', $orcamento->origem_lead) === 'Instagram')>Instagram</option>
+                                <option value="Whatsapp" @selected(old('origem_lead', $orcamento->origem_lead) === 'Whatsapp')>Whatsapp</option>
+                                <option value="Facebook" @selected(old('origem_lead', $orcamento->origem_lead) === 'Facebook')>Facebook</option>
+                                <option value="TikTok" @selected(old('origem_lead', $orcamento->origem_lead) === 'TikTok')>TikTok</option>
+                                <option value="Indicação" @selected(old('origem_lead', $orcamento->origem_lead) === 'Indicação')>Indicação</option>
+                                <option value="Email" @selected(old('origem_lead', $orcamento->origem_lead) === 'Email')>Email</option>
                             </select>
                         </div>
                     </div>
