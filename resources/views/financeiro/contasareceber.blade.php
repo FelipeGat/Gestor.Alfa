@@ -1,8 +1,8 @@
 <x-app-layout>
+
     @push('styles')
-    @vite('resources/css/contas-bancarias/contas-bancarias.css')
+    @vite('resources/css/atendimentos/index.css')
     @vite('resources/css/financeiro/contasareceber.css')
-    @vite('resources/css/financeiro/index.css')
     @endpush
 
     <x-slot name="breadcrumb">
@@ -12,153 +12,158 @@
         ]" />
     </x-slot>
 
-    <div class="py-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="pb-8 pt-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= FILTROS ================= --}}
-            <x-filter :action="route('financeiro.contasareceber')" :show-clear-button="false">
-                {{-- Busca --}}
-                <x-filter-field name="search" label="Buscar" placeholder="Cliente ou descrição..." colSpan="md:col-span-2" />
-                <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
-                <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden" style="top: 70px; left: 15px;"></div>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const inputBusca = document.getElementById('search');
-                    const lista = document.getElementById('autocomplete-cliente');
-                    const inputHidden = document.getElementById('busca-cliente-id');
-                    let clientes = [];
+            @php
+                $hoje = \Carbon\Carbon::today();
+                $ontem = \Carbon\Carbon::yesterday();
+                $amanha = \Carbon\Carbon::tomorrow();
+                $dataAtual = request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio')) : \Carbon\Carbon::now();
+                $mesAnterior = $dataAtual->copy()->subMonth();
+                $proximoMes = $dataAtual->copy()->addMonth();
+                $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                $vencimentoInicio = request('vencimento_inicio') ?? $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                $vencimentoFim = request('vencimento_fim') ?? $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+            @endphp
 
-                    clientes = [
-                        @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get() as $cliente)
-                        { id: {{ $cliente->id }}, nome: @json($cliente->nome_fantasia ?? $cliente->nome ?? $cliente->razao_social) },
-                        @endforeach
-                    ];
-
-                    function renderLista(filtro = '') {
-                        lista.innerHTML = '';
-                        if (!filtro || filtro.length < 2) {
-                            lista.classList.add('hidden');
-                            return;
-                        }
-                        const filtrados = clientes.filter(c => c.nome && c.nome.toLowerCase().includes(filtro.toLowerCase()));
-                        if (filtrados.length === 0) {
-                            lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum cliente encontrado</span>';
-                            lista.classList.remove('hidden');
-                            return;
-                        }
-                        filtrados.forEach(c => {
-                            const div = document.createElement('div');
-                            div.className = 'px-3 py-2 cursor-pointer hover:bg-emerald-50 text-sm';
-                            div.textContent = c.nome;
-                            div.onclick = () => {
-                                inputHidden.value = c.id;
-                                inputBusca.value = c.nome;
-                                lista.classList.add('hidden');
-                                setTimeout(() => { inputBusca.form.submit(); }, 100);
-                            };
-                            lista.appendChild(div);
-                        });
-                        lista.classList.remove('hidden');
-                    }
-
-                    inputBusca.addEventListener('input', e => {
-                        renderLista(e.target.value);
-                        if (!clientes.some(c => c.nome && c.nome.toLowerCase() === e.target.value.toLowerCase())) {
-                            inputHidden.value = '';
-                        }
-                    });
-                    inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
-                    inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
-                });
-                </script>
-
-                {{-- Empresa --}}
-                <x-filter-field name="empresa_id" label="Empresa" type="select" placeholder="Todas as Empresas" colSpan="md:col-span-2">
-                    @foreach($empresas as $empresa)
-                    <option value="{{ $empresa->id }}" @selected(request('empresa_id') == $empresa->id)>
-                        {{ $empresa->nome_fantasia }}
-                    </option>
-                    @endforeach
-                </x-filter-field>
-
-                {{-- Navegação de Meses --}}
-                <div class="md:col-span-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
-                    <div class="flex items-center gap-2">
-                        @php
-                            $hoje = \Carbon\Carbon::today();
-                            $ontem = \Carbon\Carbon::yesterday();
-                            $amanha = \Carbon\Carbon::tomorrow();
-                            $dataAtual = request('vencimento_inicio')
-                                ? \Carbon\Carbon::parse(request('vencimento_inicio'))
-                                : \Carbon\Carbon::now();
-                            $mesAnterior = $dataAtual->copy()->subMonth();
-                            $proximoMes = $dataAtual->copy()->addMonth();
-                            $meses = [
-                                1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
-                                5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
-                                9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
-                            ];
-                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
-                        @endphp
-
-                        <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $ontem->format('Y-m-d'), 'vencimento_fim' => $ontem->format('Y-m-d')])) }}"
-                            size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'primary' : 'light'">
-                            Ontem
-                        </x-button>
-                        <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $hoje->format('Y-m-d'), 'vencimento_fim' => $hoje->format('Y-m-d')])) }}"
-                            size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'primary' : 'light'">
-                            Hoje
-                        </x-button>
-                        <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $amanha->format('Y-m-d'), 'vencimento_fim' => $amanha->format('Y-m-d')])) }}"
-                            size="sm" class="min-w-[70px]" :variant="request('vencimento_inicio') == $amanha->format('Y-m-d') && request('vencimento_fim') == $amanha->format('Y-m-d') ? 'primary' : 'light'">
-                            Amanhã
-                        </x-button>
-                        <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
-                            variant="light" size="sm" title="Mês Anterior">
-                            <x-slot name="iconLeft">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </x-slot>
-                        </x-button>
-                        <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
-                            {{ $mesAtualNome }}
-                        </div>
-                        <x-button href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
-                            variant="light" size="sm" title="Próximo Mês">
-                            <x-slot name="iconLeft">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </x-slot>
-                        </x-button>
-                    </div>
-                </div>
-
-                {{-- Período Personalizado (colapsável) --}}
-                <div x-data="{ mostrarPeriodo: false }" class="md:col-span-4">
-                    <button type="button" @click="mostrarPeriodo = !mostrarPeriodo" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="mostrarPeriodo ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            {{-- Navegação Rápida --}}
+            <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-medium text-gray-700 mr-2">Navegação:</span>
+                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $ontem->format('Y-m-d'), 'vencimento_fim' => $ontem->format('Y-m-d')])) }}"
+                        class="inline-flex items-center justify-center px-3 h-9 rounded-lg transition border font-semibold min-w-[70px] text-sm
+                            {{ request('vencimento_inicio') == $ontem->format('Y-m-d') && request('vencimento_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                        Ontem
+                    </a>
+                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $hoje->format('Y-m-d'), 'vencimento_fim' => $hoje->format('Y-m-d')])) }}"
+                        class="inline-flex items-center justify-center px-3 h-9 rounded-lg transition border font-semibold min-w-[70px] text-sm
+                            {{ request('vencimento_inicio') == $hoje->format('Y-m-d') && request('vencimento_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                        Hoje
+                    </a>
+                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $amanha->format('Y-m-d'), 'vencimento_fim' => $amanha->format('Y-m-d')])) }}"
+                        class="inline-flex items-center justify-center px-3 h-9 rounded-lg transition border font-semibold min-w-[70px] text-sm
+                            {{ request('vencimento_inicio') == $amanha->format('Y-m-d') && request('vencimento_fim') == $amanha->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                        Amanhã
+                    </a>
+                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
+                        class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
-                        <span x-text="mostrarPeriodo ? 'Ocultar período personalizado' : 'Escolher período personalizado'"></span>
-                    </button>
-                    @php
-                        $dataAtual = request('vencimento_inicio') ? \Carbon\Carbon::parse(request('vencimento_inicio')) : \Carbon\Carbon::now();
-                        $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
-                        $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
-                        $vencimentoInicio = request('vencimento_inicio') ?? $inicioPadrao;
-                        $vencimentoFim = request('vencimento_fim') ?? $fimPadrao;
-                    @endphp
-                    <div x-show="mostrarPeriodo" x-transition class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <x-filter-field type="date" name="vencimento_inicio" label="Data Início" colSpan="sm:col-span-1" />
-                        <x-filter-field type="date" name="vencimento_fim" label="Data Fim" colSpan="sm:col-span-1" />
+                    </a>
+                    <div class="flex-1 text-center font-bold text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm text-sm">
+                        {{ $mesAtualNome }}
                     </div>
+                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except(['vencimento_inicio', 'vencimento_fim']), ['vencimento_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'vencimento_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
+                        class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <form method="GET" action="{{ route('financeiro.contasareceber') }}" 
+                class="bg-white rounded-lg p-6"
+                style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                    <div class="filter-group md:col-span-2 relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                        <input type="text" name="search" id="search" value="{{ request('search') }}"
+                            placeholder="Cliente ou descrição..."
+                            autocomplete="off"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <input type="hidden" name="cliente_id" id="busca-cliente-id" value="{{ request('cliente_id') }}">
+                        <div id="autocomplete-cliente" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
+                    </div>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const inputBusca = document.getElementById('search');
+                        const lista = document.getElementById('autocomplete-cliente');
+                        const inputHidden = document.getElementById('busca-cliente-id');
+                        let clientes = [];
+
+                        clientes = [
+                            @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome_fantasia')->get() as $cliente)
+                            { id: {{ $cliente->id }}, nome: @json($cliente->nome_fantasia ?? $cliente->nome ?? $cliente->razao_social) },
+                            @endforeach
+                        ];
+
+                        function renderLista(filtro = '') {
+                            lista.innerHTML = '';
+                            if (!filtro || filtro.length < 2) {
+                                lista.classList.add('hidden');
+                                return;
+                            }
+                            const filtrados = clientes.filter(c => c.nome && c.nome.toLowerCase().includes(filtro.toLowerCase()));
+                            if (filtrados.length === 0) {
+                                lista.innerHTML = '<span class="block text-gray-400 text-sm px-3 py-2">Nenhum cliente encontrado</span>';
+                                lista.classList.remove('hidden');
+                                return;
+                            }
+                            filtrados.forEach(c => {
+                                const div = document.createElement('div');
+                                div.className = 'px-3 py-2 cursor-pointer hover:bg-emerald-50 text-sm';
+                                div.textContent = c.nome;
+                                div.onclick = () => {
+                                    inputHidden.value = c.id;
+                                    inputBusca.value = c.nome;
+                                    lista.classList.add('hidden');
+                                    setTimeout(() => { inputBusca.form.submit(); }, 100);
+                                };
+                                lista.appendChild(div);
+                            });
+                            lista.classList.remove('hidden');
+                        }
+
+                        inputBusca.addEventListener('input', e => {
+                            renderLista(e.target.value);
+                            if (!clientes.some(c => c.nome && c.nome.toLowerCase() === e.target.value.toLowerCase())) {
+                                inputHidden.value = '';
+                            }
+                        });
+                        inputBusca.addEventListener('focus', () => renderLista(inputBusca.value));
+                        inputBusca.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+                    });
+                    </script>
+
+                    <div class="filter-group md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                        <select name="empresa_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todas as Empresas</option>
+                            @foreach($empresas as $empresa)
+                            <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
+                                {{ $empresa->nome_fantasia }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                 </div>
 
-                {{-- Filtros Rápidos --}}
-                <div class="col-span-12 flex flex-wrap gap-2 mt-2">
+                <details class="mt-4" {{ request('vencimento_inicio') || request('vencimento_fim') ? 'open' : '' }}>
+                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                        Período Personalizado
+                    </summary>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+                            <input type="date" name="vencimento_inicio" id="vencimento_inicio" value="{{ $vencimentoInicio }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+                            <input type="date" name="vencimento_fim" id="vencimento_fim" value="{{ $vencimentoFim }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                    </div>
+                </details>
+
+                <div class="flex flex-wrap gap-2 mt-4">
                     <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status'), ['status' => ['pendente']])) }}"
                         class="quick-filter-btn status-pendente {{ in_array('pendente', request('status', [])) ? 'active' : '' }}">
                         <span>Pendente</span>
@@ -184,18 +189,38 @@
                         <span>Nota Fiscal</span>
                         <span class="count">{{ $contadoresNotaFiscal ?? 0 }}</span>
                     </a>
-                    <x-button type="button" variant="success" size="sm" class="min-w-[130px] ml-auto"
-                        x-data
-                        @click="$dispatch('abrir-modal-conta-fixa')">
+                </div>
+
+                <div class="flex justify-start gap-2 mt-4">
+                    <x-button type="submit" variant="primary" size="sm" class="min-w-[100px]">
                         <x-slot name="iconLeft">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
                             </svg>
                         </x-slot>
-                        Receitas Fixas
+                        Filtrar
+                    </x-button>
+                    <x-button href="{{ route('financeiro.contasareceber') }}" variant="secondary" size="sm" class="min-w-[100px]">
+                        <x-slot name="iconLeft">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </x-slot>
+                        Limpar
                     </x-button>
                 </div>
-            </x-filter>
+            </form>
+
+            <div class="flex justify-start">
+                <x-button variant="success" size="sm" class="min-w-[130px]" x-data @click="$dispatch('abrir-modal-conta-fixa')">
+                    <x-slot name="iconLeft">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                    </x-slot>
+                    Receitas Fixas
+                </x-button>
+            </div>
 
             @if(request('vencimento_inicio') || request('vencimento_fim'))
             <div class="mb-4 px-4 py-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
