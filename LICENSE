@@ -1,0 +1,140 @@
+PROPRIETARY SOFTWARE LICENSE AGREEMENT
+Copyright (c) 2024 Felipe Henrique Gat - All Rights Reserved
+
+TERMS AND CONDITIONS
+
+1. DEFINITIONS
+
+"Software" means the software code, documentation, and all related materials
+contained in this repository, including but not limited to:
+- Source code, object code, and compiled binaries
+- Documentation, readme files, and configuration files
+- Database schemas, migrations, and seeders
+- Frontend assets (CSS, JavaScript, images)
+- Docker configurations and scripts
+
+"Licensee" means any person or entity that obtains access to the Software.
+
+"Licensor" means Felipe Henrique Gat, the exclusive owner of the Software.
+
+2. OWNERSHIP AND COPYRIGHT
+
+The Software is proprietary software owned exclusively by the Licensor.
+All intellectual property rights, including but not limited to:
+- Copyright
+- Patent rights
+- Trade secret rights
+- Database rights
+- Trademark rights
+
+... are and shall remain the exclusive property of the Licensor.
+
+The Software is protected by:
+- Brazilian Copyright Law (Lei 9.609/98)
+- International copyright treaties and conventions
+- Trade secret laws
+
+3. PROHIBITED USES
+
+The Licensee is strictly prohibited from:
+
+a) COMMERCIAL USE: Using the Software or any part thereof for any commercial
+   purpose, including but not limited to:
+   - Selling, renting, leasing, or licensing the Software
+   - Using the Software to provide commercial services
+   - Offering the Software as part of a commercial product or service
+   - Using the Software in any revenue-generating activity
+
+b) THIRD-PARTY USE: Allowing, permitting, or enabling any third party to:
+   - Use the Software
+   - Access the Software
+   - Copy, modify, or distribute the Software
+   - Create derivative works based on the Software
+
+c) EDUCATIONAL USE: Using the Software or making it available for:
+   - Teaching purposes
+   - Academic research
+   - Educational institutions
+   - Learning or training activities
+
+d) PUBLIC DISTRIBUTION: Publishing, uploading, or making the Software
+   available on any public platform, including:
+   - Public repositories
+   - Download websites
+   - Package managers
+
+e) MODIFICATION: Modifying, adapting, translating, or creating derivative
+   works from the Software.
+
+f) REVERSE ENGINEERING: Decompiling, disassembling, or attempting to
+   derive the source code of the Software.
+
+g) REMOVAL OF NOTICES: Removing, altering, or obscuring any copyright
+   notices, trademarks, or other proprietary notices.
+
+4. PERMITTED USES
+
+The Licensee may:
+
+a) VIEW: Access and view the Software for personal evaluation purposes only.
+
+b) FORK FOR TECHNICAL PURPOSES: Fork the repository for the sole purpose
+   of submitting pull requests or contributing improvements, subject to
+   the Contributor License Agreement.
+
+c) PRIVATE LOCAL DEVELOPMENT: Run the Software locally for development
+   and testing purposes, provided that:
+   - The instance is not accessible to third parties
+   - No data or functionality is exposed externally
+
+5. NO LICENSE GRANTED
+
+This Agreement does not grant the Licensee any license, right, title, or
+interest in or to the Software. The Licensee acknowledges that no implied
+license exists.
+
+6. DISCLAIMER OF WARRANTIES
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+7. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGE, OR LOSS
+ARISING OUT OF OR RELATED TO THIS AGREEMENT OR THE USE OF THE SOFTWARE,
+INCLUDING BUT NOT LIMITED TO DIRECT, INDIRECT, INCIDENTAL, CONSEQUENTIAL,
+OR PUNITIVE DAMAGES.
+
+8. INDEMNIFICATION
+
+The Licensee agrees to indemnify, defend, and hold harmless the Licensor
+from and against any and all claims, damages, losses, and expenses arising
+out of or resulting from any violation of this Agreement.
+
+9. TERMINATION
+
+This Agreement is effective until terminated. The Licensor may terminate
+this Agreement immediately if the Licensee breaches any term or condition.
+
+Upon termination, the Licensee must:
+a) Immediately cease all use of the Software
+b) Destroy all copies of the Software
+c) Remove the Software from all systems
+
+10. GOVERNING LAW
+
+This Agreement shall be governed by and construed in accordance with the
+laws of Brazil. Any disputes shall be subject to the exclusive jurisdiction
+of the courts of Brazil.
+
+11. ENTIRE AGREEMENT
+
+This Agreement constitutes the entire agreement between the parties and
+supersedes all prior agreements, representations, and understandings.
+
+---
+
+BY ACCESSING, VIEWING, OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU
+HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY ALL TERMS AND CONDITIONS
+OF THIS AGREEMENT.

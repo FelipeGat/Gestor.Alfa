@@ -524,9 +524,21 @@ docker compose exec php-fpm chmod -R 775 /var/www/storage
 
 ---
 
-## 📝 Licença
+## ⚠️ Direitos Autorais e Licença
 
-Este projeto é licenciado sob a [Licença MIT](LICENSE).
+**Copyright (c) 2024 Felipe Henrique Gat - Todos os Direitos Reservados**
+
+Este software é propriedade intelectual exclusiva de **Felipe Henrique Gat**.
+
+É **expressamente proibido**:
+- Uso comercial
+- Uso por terceiros
+- Uso para fins educacionais
+- Distribuição pública
+- Criação de obras derivadas
+- Remoção ou alteração deste aviso
+
+Consulte o arquivo [LICENSE](LICENSE) para os termos completos da licença proprietária.
 
 ---
 
