@@ -114,6 +114,9 @@
 .quick-filter-btn.active.status-pendente { background-color: #2563eb; }
 .quick-filter-btn.active.status-vencido { background-color: #dc2626; }
 .quick-filter-btn.active.status-pago { background-color: #16a34a; }
+.quick-filter-btn.active.tipo-orcamento { background-color: #7c3aed; }
+.quick-filter-btn.active.tipo-contrato { background-color: #16a34a; }
+.quick-filter-btn.active.tipo-nota-fiscal { background-color: #ea580c; }
 
 .quick-filter-btn .count {
     font-size: 0.75rem;
