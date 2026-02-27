@@ -278,24 +278,25 @@
                         </x-button>
                     </template>
                 </div>
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>
-                                    <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
-                                </th>
-                                <th>Vencimento</th>
-                                <th>Empresa</th>
-                                <th>Cliente</th>
-                                <th>CNPJ/CPF</th>
-                                <th>Descrição</th>
-                                <th>Tipo</th>
-                                <th class="text-right">Valor</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
+                                <tr>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
+                                        <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
+                                    </th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Vencimento</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Empresa</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Cliente</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">CNPJ/CPF</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Descrição</th>
+                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Tipo</th>
+                                    <th class="px-4 py-3 text-right uppercase text-sm font-bold text-gray-700">Valor</th>
+                                    <th class="px-4 py-3 text-center uppercase text-sm font-bold text-gray-700">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
                             @php $totalPagina = 0; @endphp
                             @forelse($cobrancas as $cobranca)
                             @php
@@ -311,35 +312,35 @@
                                 $linhaClass = 'bg-red-50 border-l-4 border-red-400';
                             }
                             @endphp
-                            <tr class="{{ $linhaClass }}" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
-                                <td>
-                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;" class="checkbox-explicit">
+                            <tr class="{{ $linhaClass }} hover:bg-gray-50 transition" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
                                 </td>
-                                <td data-label="Vencimento">
+                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
                                 </td>
-                                <td data-label="Empresa">
+                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Empresa">
                                     {{ $cobranca->orcamento?->empresa?->nome_fantasia ?? $cobranca->empresa_relacionada?->nome_fantasia ?? '—' }}
                                 </td>
-                                <td data-label="Cliente">
+                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
                                 </td>
-                                <td data-label="CNPJ/CPF" class="whitespace-nowrap">
+                                <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap" data-label="CNPJ/CPF">
                                     {{ $cobranca->cliente?->cpf_cnpj_formatado ?? '—' }}
                                 </td>
-                                <td data-label="Descrição">
+                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Descrição">
                                     {{ $cobranca->descricao }}
                                 </td>
-                                <td data-label="Tipo">
+                                <td class="px-4 py-3" data-label="Tipo">
                                     <x-badge type="{{ $cobranca->tipo === 'contrato' ? 'primary' : 'info' }}" size="xs">
                                         {{ ucfirst($cobranca->tipo) }}
                                     </x-badge>
                                 </td>
-                                <td data-label="Valor" class="text-right font-semibold whitespace-nowrap">
+                                <td class="px-4 py-3 text-sm text-gray-700 text-right font-semibold whitespace-nowrap" data-label="Valor">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
-                                <td data-label="Ações">
-                                    <div class="table-actions">
+                                <td class="px-4 py-3 text-center" data-label="Ações">
+                                    <div class="flex justify-center gap-1">
 
                                         {{-- Botão Editar (apenas para contas fixas) --}}
                                         @if($cobranca->conta_fixa_id)
@@ -430,34 +431,33 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-12 text-gray-500">
+                                <td colspan="9" class="px-4 py-12 text-center text-gray-500">
                                     Nenhuma cobrança encontrada para os filtros aplicados.
                                 </td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {{-- Rodapé com Totais --}}
-                <div class="table-footer">
-                    <div class="footer-total">
-                        <span class="label">Total na Página:</span>
-                        <span class="value">R$ {{ number_format($totalPagina, 2, ',', '.' ) }}</span>
+                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                    <div class="text-sm text-gray-700">
+                        <span class="font-medium">Total na Página:</span>
+                        <span class="font-bold ml-2">R$ {{ number_format($totalPagina, 2, ',', '.' ) }}</span>
                     </div>
-                    <div class="footer-total">
-                        <span class="label">Total Geral (Filtrado):</span>
-                        <span class="value">
-                            <template x-if="selecionadas.length > 0">
-                                <span>
-                                    <span x-text="selecionadas.length"></span> selecionadas —
-                                    R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
-                                </span>
-                            </template>
-                            <template x-if="selecionadas.length === 0">
-                                <span>R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
-                            </template>
-                        </span>
+                    <div class="text-sm text-gray-700">
+                        <span class="font-medium">Total Geral (Filtrado):</span>
+                        <template x-if="selecionadas.length > 0">
+                            <span class="font-bold ml-2">
+                                <span x-text="selecionadas.length"></span> selecionadas —
+                                R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                            </span>
+                        </template>
+                        <template x-if="selecionadas.length === 0">
+                            <span class="font-bold ml-2">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                        </template>
                     </div>
                 </div>
             </div>
