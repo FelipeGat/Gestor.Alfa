@@ -279,34 +279,6 @@
                             </div>
                         </div>
 
-                        <script>
-                            document.getElementById('btn-add-taxa').addEventListener('click', function() {
-                                const container = document.getElementById('lista-taxas');
-                                const novoId = Date.now();
-
-                                // Onde você gera o HTML da nova taxa, certifique-se de que os nomes sejam exatamente estes:
-                                const html = `
-                                    <div class="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200 animate-fade-in" id="taxa-${novoId}">
-                                        <div class="flex-1">
-                                            <input type="text" name="taxa_nomes[]" placeholder="Descrição (ex: ISS, Frete)"
-                                                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] sm:text-sm px-3 py-2" required>
-                                        </div>
-                                        <div class="w-32">
-                                            <input type="number" name="taxa_valores[]" step="0.01" placeholder="R$ 0,00"
-                                                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae] sm:text-sm px-3 py-2" required>
-                                        </div>
-                                        <button type="button" onclick="document.getElementById('taxa-${novoId}').remove()" class="text-red-500 hover:text-red-700 p-2 transition" title="Remover taxa">
-                                            <svg fill="currentColor" viewBox="0 0 20 20" style="width: 20px; height: 20px;">
-                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                `;
-
-                                container.insertAdjacentHTML('beforeend', html);
-                            });
-                        </script>
-
                         {{-- OBSERVAÇÕES --}}
                         <div class="section-card p-6 sm:p-8">
                             <h3 class="text-lg font-semibold text-gray-900">Observações</h3>

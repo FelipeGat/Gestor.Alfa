@@ -161,10 +161,10 @@
 
             {{-- ================= RESUMO ================= --}}
             @php
-            $totalOrcamentos = $orcamentos->total();
-            $aprovados = $orcamentos->filter(fn($o) => $o->status === 'aprovado')->count();
-            $pendentes = $orcamentos->filter(fn($o) => in_array($o->status, ['em_elaboracao', 'aguardando_aprovacao']))->count();
-            $valorTotal = $orcamentos->sum('valor_total');
+            $totalOrcamentos = (int) ($resumo->total_orcamentos ?? $orcamentos->total());
+            $aprovados = (int) ($resumo->aprovados ?? 0);
+            $pendentes = (int) ($resumo->pendentes ?? 0);
+            $valorTotal = (float) ($resumo->valor_total ?? 0);
             @endphp
 
             <style>
@@ -307,7 +307,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @foreach($orcamentos as $orcamento)
-                            <tr class="hover:bg-gray-50 transition" data-orcamento-id="{{ $orcamento->id }}">
+                            <tr class="hover:bg-gray-50 transition" data-orcamento-id="{{ $orcamento->id }}" data-status-url="{{ route('orcamentos.updateStatus', $orcamento) }}">
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {{ $orcamento->numero_orcamento }}
                                 </td>
@@ -324,7 +324,7 @@
                                     <form action="{{ route('orcamentos.updateStatus', $orcamento) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-                                        <select name="orcamento_status" class="status-select status-{{ $orcamento->status }} text-xs" 
+                                        <select name="orcamento_status" class="status-select status-{{ $orcamento->status }} text-xs"
                                             style="border: none !important; text-align: center; @switch($orcamento->status)
                                                 @case('em_elaboracao') background-color: #f3f4f6; color: #374151; @break
                                                 @case('aguardando_aprovacao') background-color: #fef3c7; color: #92400e; @break
@@ -416,11 +416,11 @@
             if (e.target.tagName === 'SELECT' && e.target.name === 'orcamento_status') {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 // Navegar manualmente para encontrar o formulário
                 var element = e.target;
                 var form = null;
-                
+
                 // Subir na árvore do DOM até encontrar o FORM
                 while (element && element.tagName !== 'BODY') {
                     if (element.tagName === 'FORM') {
@@ -429,7 +429,7 @@
                     }
                     element = element.parentElement;
                 }
-                
+
                 if (form) {
                     form.submit();
                 } else {
@@ -437,35 +437,35 @@
                     var status = e.target.value;
                     var row = e.target.closest('tr');
                     var orcamentoId = row ? row.getAttribute('data-orcamento-id') : null;
-                    
+
                     if (!orcamentoId) {
                         console.error('ID do orçamento não encontrado');
                         return;
                     }
-                    
+
                     // Criar form dinamicamente
                     var tempForm = document.createElement('form');
                     tempForm.method = 'POST';
-                    tempForm.action = '/orcamentos/' + orcamentoId + '/status';
-                    
+                    tempForm.action = row?.getAttribute('data-status-url') || ('/orcamentos/' + orcamentoId + '/status');
+
                     var csrfInput = document.createElement('input');
                     csrfInput.type = 'hidden';
                     csrfInput.name = '_token';
                     csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
                     tempForm.appendChild(csrfInput);
-                    
+
                     var methodInput = document.createElement('input');
                     methodInput.type = 'hidden';
                     methodInput.name = '_method';
                     methodInput.value = 'PATCH';
                     tempForm.appendChild(methodInput);
-                    
+
                     var statusInput = document.createElement('input');
                     statusInput.type = 'hidden';
                     statusInput.name = 'orcamento_status';
                     statusInput.value = status;
                     tempForm.appendChild(statusInput);
-                    
+
                     document.body.appendChild(tempForm);
                     tempForm.submit();
                 }
