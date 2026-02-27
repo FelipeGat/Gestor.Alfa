@@ -391,6 +391,24 @@ class ClienteController extends Controller
         ];
     }
 
+    public function destroy(Cliente $cliente)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel() &&
+                ! $user->canPermissao('clientes', 'excluir'),
+            403,
+            'Acesso não autorizado'
+        );
+
+        $cliente->delete();
+
+        return redirect()->route('clientes.index')
+            ->with('success', 'Cliente excluído com sucesso!');
+    }
+
     /**
      * API - Retorna lista de clientes para select
      */
