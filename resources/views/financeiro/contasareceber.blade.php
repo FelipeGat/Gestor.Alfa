@@ -281,7 +281,7 @@
                 <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <div class="overflow-x-auto">
                         <table class="w-full table-auto">
-                            <thead style="background-color: rgba(63, 156, 174, 0.05); border-bottom: 1px solid #3f9cae;">
+                            <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
                                         <input type="checkbox" x-on:change="toggleAll($event.target)" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
@@ -316,19 +316,19 @@
                                 <td class="px-4 py-3">
                                     <input type="checkbox" :value="{{ $cobranca->id }}" x-model.number="selecionadas" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:6px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:auto;">
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Vencimento">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Empresa">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Empresa">
                                     {{ $cobranca->orcamento?->empresa?->nome_fantasia ?? $cobranca->empresa_relacionada?->nome_fantasia ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Cliente">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Cliente">
                                     {{ $cobranca->cliente?->nome ?? $cobranca->cliente?->nome_fantasia ?? $cobranca->cliente?->razao_social ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap" data-label="CNPJ/CPF">
+                                <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="CNPJ/CPF">
                                     {{ $cobranca->cliente?->cpf_cnpj_formatado ?? '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700" data-label="Descrição">
+                                <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Descrição">
                                     {{ $cobranca->descricao }}
                                 </td>
                                 <td class="px-4 py-3" data-label="Tipo">
@@ -336,7 +336,7 @@
                                         {{ ucfirst($cobranca->tipo) }}
                                     </x-badge>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 text-right font-semibold whitespace-nowrap" data-label="Valor">
+                                <td class="px-4 py-3 text-sm text-right font-semibold whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Valor">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
                                 <td class="px-4 py-3 text-center" data-label="Ações">
@@ -442,7 +442,7 @@
                 </div>
 
                 {{-- Rodapé com Totais --}}
-                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
                     <div class="text-sm text-gray-700">
                         <span class="font-medium">Total na Página:</span>
                         <span class="font-bold ml-2">R$ {{ number_format($totalPagina, 2, ',', '.' ) }}</span>
