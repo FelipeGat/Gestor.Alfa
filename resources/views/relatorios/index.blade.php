@@ -102,8 +102,20 @@
 
             <div>
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Comercial</h2>
-                <div class="bg-white border border-gray-200 rounded-lg p-6 text-sm text-gray-500">
-                    Em breve
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <a href="{{ route('relatorios.comercial') }}" class="card-relatorio group block p-6">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="p-3 icone-bg rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 icone-cor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7m-4 4h.01M12 11h.01M8 11h.01M8 15h.01M12 15h.01M16 15h.01" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Relatório Comercial</div>
+                            <div class="text-xs text-gray-500">Pipeline, conversão, follow-up, receita e lucratividade</div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>

@@ -26,8 +26,12 @@ class Orcamento extends Model
         'descricao',
         'cliente_id',
         'pre_cliente_id',
+        'origem_lead',
+        'probabilidade_fechamento',
         'numero_orcamento',
         'status',
+        'data_envio',
+        'data_aprovacao',
         'data_agendamento',
         'valor_total',
         'desconto',
@@ -42,6 +46,7 @@ class Orcamento extends Model
         'validade',
         'observacoes',
         'created_by',
+        'vendedor_id',
     ];
 
     protected $casts = [
@@ -52,6 +57,9 @@ class Orcamento extends Model
         'desconto_servico_valor' => 'float',
         'desconto_produto_valor' => 'float',
         'data_agendamento' => 'date',
+        'probabilidade_fechamento' => 'float',
+        'data_envio' => 'datetime',
+        'data_aprovacao' => 'datetime',
     ];
 
 
@@ -75,6 +83,11 @@ class Orcamento extends Model
     public function criadoPor()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function vendedor()
+    {
+        return $this->belongsTo(User::class, 'vendedor_id');
     }
 
     public static function gerarNumero(int $empresaId): string

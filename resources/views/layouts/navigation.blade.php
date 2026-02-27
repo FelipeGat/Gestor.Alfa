@@ -243,6 +243,12 @@
                         <div class="mt-1 border-t border-gray-100 px-4 pt-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Comercial
                         </div>
+
+                        <div class="pl-3">
+                            <x-nav-link :href="route('relatorios.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
+                                Relatório Comercial
+                            </x-nav-link>
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -388,6 +394,9 @@
 
                 <details>
                     <summary class="font-semibold text-gray-600">Comercial</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.comercial')" data-tab-icon="relatorios">Relatório Comercial</x-responsive-nav-link>
+                    </div>
                 </details>
             </div>
         </details>

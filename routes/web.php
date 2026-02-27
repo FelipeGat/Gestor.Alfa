@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RelatorioCustosOrcamentosController;
+use App\Http\Controllers\RelatorioComercialController;
 use App\Http\Controllers\RelatorioFinanceiroController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.contas-pagar');
     Route::get('/relatorios/contas-pagar/json', [RelatorioFinanceiroController::class, 'contasPagarJson'])
         ->name('relatorios.contas-pagar.json');
+    Route::get('/relatorios/comercial', [RelatorioComercialController::class, 'index'])
+        ->name('relatorios.comercial');
 
     // Cadastros
     Route::get('/cadastros', function () {
