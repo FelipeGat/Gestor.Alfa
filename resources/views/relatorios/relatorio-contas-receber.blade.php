@@ -235,6 +235,7 @@
                             <tr>
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Cliente</th>
+                                <th class="text-left">Descrição</th>
                                 <th class="text-left">Vencimento</th>
                                 <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
@@ -250,6 +251,9 @@
                                         {{ $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-' }}
                                     </td>
                                     <td class="text-left">
+                                        {{ $conta->descricao ?? '-' }}
+                                    </td>
+                                    <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
                                     <td class="text-left font-black text-emerald-700">
@@ -261,7 +265,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-sm text-gray-500 py-6">
+                                    <td colspan="6" class="text-center text-sm text-gray-500 py-6">
                                         Nenhuma conta a receber encontrada com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -270,14 +274,14 @@
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             @foreach($totalizadoresPorEmpresa as $total)
                             <tr>
-                                <td colspan="5" class="px-4 py-4 text-right">
+                                <td colspan="6" class="px-4 py-4 text-right">
                                     <span class="text-xs font-black text-gray-500 uppercase tracking-widest">{{ $total['nome'] }}</span>
                                     <span class="text-base font-black text-emerald-700 ml-4">R$ {{ number_format($total['total'], 2, ',', '.') }}</span>
                                 </td>
                             </tr>
                             @endforeach
                             <tr>
-                                <td colspan="5" class="px-4 py-4 text-right">
+                                <td colspan="6" class="px-4 py-4 text-right">
                                     <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Total a Receber</span>
                                     <span class="text-base font-black text-emerald-700 ml-4">R$ {{ number_format($totalReceber, 2, ',', '.') }}</span>
                                 </td>
@@ -299,22 +303,22 @@
             event.preventDefault();
             event.stopPropagation();
         }
-        
+
         var btn = event ? event.currentTarget : null;
         var btnOriginalHtml = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = 'Carregando...';
         }
-        
+
         var urlParams = new URLSearchParams(window.location.search);
         var params = {};
         urlParams.forEach(function(value, key) {
             params[key] = value;
         });
-        
+
         var url = '{{ route("relatorios.contas-receber.json") }}' + '?' + urlParams.toString();
-        
+
         fetch(url, {
             method: 'GET',
             headers: {
@@ -332,15 +336,15 @@
             var titulo = 'Relatório - Contas a Receber';
             var dataInicio = data.data_inicio_formatada;
             var dataFim = data.data_fim_formatada;
-            
+
             var contas = data.contas_receber;
             var totalLabel = 'Total a Receber';
             var totalValor = data.total_receber_formatado;
             var corTotal = '#059669';
-            
+
             var tableRows = '';
             if (contas.length === 0) {
-                tableRows = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
+                tableRows = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
             } else {
                 var statusConfig = {
                     'pago': { label: 'Pago', bg: '#dcfce7', color: '#166534', icon: 'check' },
@@ -360,23 +364,25 @@
                     tableRows += '<tr>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.descricao || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669; white-space: nowrap;">' + conta.valor_formatado + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 130px; padding: 6px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; background-color: ' + config.bg + '; color: ' + config.color + ';">' + iconSvg[config.icon] + config.label + '</span></td>';
                     tableRows += '</tr>';
                 });
             }
-            
+
             var tableHeader = '<thead><tr>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Cliente</th>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
             tableHeader += '</tr></thead>';
-            
+
             var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
-            
+
             var totalizadoresHtml = '';
             if (data.totalizadores_por_empresa && data.totalizadores_por_empresa.length > 0) {
                 data.totalizadores_por_empresa.forEach(function(item) {
@@ -386,9 +392,9 @@
                     totalizadoresHtml += '</div>';
                 });
             }
-            
+
             var printWindow = window.open('', '_blank', 'width=800,height=600');
-            
+
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -430,10 +436,10 @@
                 </body>
                 </html>
             `);
-            
+
             printWindow.document.close();
             printWindow.focus();
-            
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = btnOriginalHtml;
@@ -442,7 +448,7 @@
         .catch(function(error) {
             console.error('Erro ao carregar dados para impressão:', error);
             alert('Erro ao carregar dados para impressão. Tente novamente.');
-            
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = btnOriginalHtml;

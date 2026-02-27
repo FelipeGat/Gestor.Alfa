@@ -327,6 +327,7 @@ class RelatorioFinanceiroController extends Controller
             return [
                 'empresa' => $conta->empresaRelacionada?->nome_fantasia ?? $conta->empresaRelacionada?->razao_social ?? '-',
                 'cliente' => $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-',
+                'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),
@@ -339,6 +340,7 @@ class RelatorioFinanceiroController extends Controller
                 'empresa' => $conta->empresaRelacionada?->nome_fantasia ?? $conta->empresaRelacionada?->razao_social ?? '-',
                 'centro_custo' => $conta->centroCusto?->nome ?? '-',
                 'fornecedor' => $conta->fornecedor?->nome_fantasia ?? $conta->fornecedor?->razao_social ?? '-',
+                'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),
@@ -581,6 +583,7 @@ class RelatorioFinanceiroController extends Controller
             return [
                 'empresa' => $conta->empresaRelacionada?->nome_fantasia ?? $conta->empresaRelacionada?->razao_social ?? '-',
                 'cliente' => $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-',
+                'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),
@@ -818,6 +821,7 @@ class RelatorioFinanceiroController extends Controller
                 'empresa' => $conta->empresaRelacionada?->nome_fantasia ?? $conta->empresaRelacionada?->razao_social ?? '-',
                 'centro_custo' => $conta->centroCusto?->nome ?? '-',
                 'fornecedor' => $conta->fornecedor?->nome_fantasia ?? $conta->fornecedor?->razao_social ?? '-',
+                'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),

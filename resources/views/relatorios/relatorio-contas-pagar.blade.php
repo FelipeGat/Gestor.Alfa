@@ -199,7 +199,7 @@
                     </div>
 
                     <div class="filter-actions justify-end mt-4">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd"
                                     d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
@@ -207,7 +207,7 @@
                             </svg>
                             Filtrar
                         </button>
-                        <a href="{{ route('relatorios.contas-pagar') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
+                        <a href="{{ route('relatorios.contas-pagar') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; min-width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); text-decoration: none;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
                             <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
@@ -236,6 +236,7 @@
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Centro</th>
                                 <th class="text-left">Fornecedor</th>
+                                <th class="text-left">Descrição</th>
                                 <th class="text-left">Vencimento</th>
                                 <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
@@ -254,6 +255,9 @@
                                         {{ $conta->fornecedor?->nome_fantasia ?? $conta->fornecedor?->razao_social ?? '-' }}
                                     </td>
                                     <td class="text-left">
+                                        {{ $conta->descricao ?? '-' }}
+                                    </td>
+                                    <td class="text-left">
                                         {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
                                     </td>
                                     <td class="text-left font-black text-red-600">
@@ -265,7 +269,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-sm text-gray-500 py-6">
+                                    <td colspan="7" class="text-center text-sm text-gray-500 py-6">
                                         Nenhuma conta a pagar encontrada com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -274,14 +278,14 @@
                         <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                             @foreach($totalizadoresPorCentro as $totalizador)
                             <tr>
-                                <td colspan="6" class="px-4 py-4 text-right">
+                                <td colspan="7" class="px-4 py-4 text-right">
                                     <span class="text-xs font-black text-gray-500 uppercase tracking-widest">{{ $totalizador['nome'] }}</span>
                                     <span class="text-base font-black text-blue-600 ml-4">R$ {{ number_format($totalizador['total'], 2, ',', '.') }}</span>
                                 </td>
                             </tr>
                             @endforeach
                             <tr>
-                                <td colspan="6" class="px-4 py-4 text-right">
+                                <td colspan="7" class="px-4 py-4 text-right">
                                     <span class="text-xs font-black text-gray-500 uppercase tracking-widest">Total a Pagar</span>
                                     <span class="text-base font-black text-red-600 ml-4">R$ {{ number_format($totalPagar, 2, ',', '.') }}</span>
                                 </td>
@@ -303,22 +307,22 @@
             event.preventDefault();
             event.stopPropagation();
         }
-        
+
         var btn = event ? event.currentTarget : null;
         var btnOriginalHtml = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = 'Carregando...';
         }
-        
+
         var urlParams = new URLSearchParams(window.location.search);
         var params = {};
         urlParams.forEach(function(value, key) {
             params[key] = value;
         });
-        
+
         var url = '{{ route("relatorios.contas-pagar.json") }}' + '?' + urlParams.toString();
-        
+
         fetch(url, {
             method: 'GET',
             headers: {
@@ -336,12 +340,12 @@
             var titulo = 'Relatório - Contas a Pagar';
             var dataInicio = data.data_inicio_formatada;
             var dataFim = data.data_fim_formatada;
-            
+
             var contas = data.contas_pagar;
             var totalLabel = 'Total a Pagar';
             var totalValor = data.total_pagar_formatado;
             var corTotal = '#dc2626';
-            
+
             var totalizadoresPorCentro = data.totalizadores_por_centro || [];
             var totalizadoresHtml = '';
             if (totalizadoresPorCentro.length > 0) {
@@ -352,10 +356,10 @@
                     totalizadoresHtml += '</div>';
                 });
             }
-            
+
             var tableRows = '';
             if (contas.length === 0) {
-                tableRows = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
+                tableRows = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #666;">Nenhuma conta encontrada com os filtros selecionados.</td></tr>';
             } else {
                 var statusConfig = {
                     'pago': { label: 'Pago', bg: '#dcfce7', color: '#166534', icon: 'check' },
@@ -376,24 +380,26 @@
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.centro_custo || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.fornecedor || '-') + '</td>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.descricao || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">' + conta.valor_formatado + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 130px; padding: 6px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; background-color: ' + config.bg + '; color: ' + config.color + ';">' + iconSvg[config.icon] + config.label + '</span></td>';
                     tableRows += '</tr>';
                 });
             }
-            
+
             var tableHeader = '<thead><tr>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Fornecedor</th>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
             tableHeader += '</tr></thead>';
-            
+
             var tableHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">' + tableHeader + '<tbody>' + tableRows + '</tbody></table>';
-            
+
             var totalsHtml = '';
             if (totalizadoresHtml) {
                 totalsHtml += totalizadoresHtml;
@@ -403,9 +409,9 @@
             totalsHtml += '<span style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">' + totalLabel + '</span>';
             totalsHtml += '<span style="font-size: 13px; font-weight: bold; color: ' + corTotal + '; margin-left: 10px;">' + totalValor + '</span>';
             totalsHtml += '</div>';
-            
+
             var printWindow = window.open('', '_blank', 'width=800,height=600');
-            
+
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -445,10 +451,10 @@
                 </body>
                 </html>
             `);
-            
+
             printWindow.document.close();
             printWindow.focus();
-            
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = btnOriginalHtml;
@@ -457,7 +463,7 @@
         .catch(function(error) {
             console.error('Erro ao carregar dados para impressão:', error);
             alert('Erro ao carregar dados para impressão. Tente novamente.');
-            
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = btnOriginalHtml;
