@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class OrcamentoController extends Controller
 {
@@ -241,6 +242,10 @@ class OrcamentoController extends Controller
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
         $clientes = Cliente::orderBy('nome')->get();
+        $vendedores = User::query()
+            ->whereNotNull('funcionario_id')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $atendimento = null;
 
@@ -253,7 +258,7 @@ class OrcamentoController extends Controller
 
         return view(
             'orcamentos.create',
-            compact('empresas', 'clientes', 'atendimento')
+            compact('empresas', 'clientes', 'atendimento', 'vendedores')
         );
     }
 
@@ -273,7 +278,10 @@ class OrcamentoController extends Controller
             'pre_cliente_id' => 'nullable|exists:pre_clientes,id',
             'origem_lead' => 'nullable|string|max:120',
             'probabilidade_fechamento' => 'nullable|numeric|min:0|max:100',
-            'vendedor_id' => 'nullable|exists:users,id',
+            'vendedor_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereNotNull('funcionario_id'),
+            ],
             'itens' => 'required|array|min:1|max:50',
             'desconto_servico_valor' => 'nullable|numeric|min:0|max:99999999',
             'desconto_produto_valor' => 'nullable|numeric|min:0|max:99999999',
@@ -342,7 +350,7 @@ class OrcamentoController extends Controller
                 'prazo_pagamento' => $request->prazo_pagamento,
                 'observacoes' => $request->observacoes,
                 'created_by' => $user->id,
-                'vendedor_id' => $request->vendedor_id ?? $user->id,
+                'vendedor_id' => $request->vendedor_id,
             ]);
 
             // ================= ITENS =================
@@ -457,6 +465,10 @@ class OrcamentoController extends Controller
         );
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
+        $vendedores = User::query()
+            ->whereNotNull('funcionario_id')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $orcamento->load([
             'cliente',
@@ -485,7 +497,7 @@ class OrcamentoController extends Controller
 
         return view(
             'orcamentos.edit',
-            compact('orcamento', 'empresas', 'itensArray', 'extras')
+            compact('orcamento', 'empresas', 'itensArray', 'extras', 'vendedores')
         );
     }
 
@@ -501,7 +513,10 @@ class OrcamentoController extends Controller
             'descricao' => 'required|string|max:255',
             'origem_lead' => 'nullable|string|max:120',
             'probabilidade_fechamento' => 'nullable|numeric|min:0|max:100',
-            'vendedor_id' => 'nullable|exists:users,id',
+            'vendedor_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereNotNull('funcionario_id'),
+            ],
             'itens' => 'required|array|min:1',
         ]);
 
@@ -534,7 +549,7 @@ class OrcamentoController extends Controller
                 'pre_cliente_id' => $preClienteId,
                 'origem_lead' => $request->origem_lead,
                 'probabilidade_fechamento' => $request->probabilidade_fechamento ?? $orcamento->probabilidade_fechamento,
-                'vendedor_id' => $request->vendedor_id ?? $orcamento->vendedor_id,
+                'vendedor_id' => $request->vendedor_id,
 
                 // Salvando descontos por categoria
                 'desconto_servico_valor' => $request->desconto_servico_valor ?? 0,

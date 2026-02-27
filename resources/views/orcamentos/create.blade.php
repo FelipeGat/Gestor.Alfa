@@ -139,7 +139,7 @@
                             <input type="text" name="descricao" required value="{{ old('descricao', $atendimento->descricao ?? '') }}" class="filter-select w-full">
                         </div>
 
-                        <div class="md:col-span-8 relative">
+                        <div class="md:col-span-6 relative">
                             <label class="filter-label">Cliente</label>
                             <input type="text" name="cliente_nome" id="cliente_nome" autocomplete="off" value="{{ old('cliente_nome', $atendimento?->cliente?->nome ?? '') }}" placeholder="Buscar cliente...ou Pré Cliente" class="filter-select w-full">
                             <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id', $atendimento?->cliente_id ?? '') }}">
@@ -155,9 +155,21 @@
                             </a>
                         </div>
 
-                        <div class="md:col-span-4">
+                        <div class="md:col-span-3">
                             <label class="filter-label">Validade</label>
                             <input type="date" name="validade" value="{{ old('validade', now()->addDays(5)->format('Y-m-d')) }}" class="filter-select w-full">
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="filter-label">Vendedor <span class="text-red-500">*</span></label>
+                            <select name="vendedor_id" required class="filter-select w-full">
+                                <option value="">Selecione o vendedor</option>
+                                @foreach($vendedores as $vendedor)
+                                <option value="{{ $vendedor->id }}" @selected((string) old('vendedor_id') === (string) $vendedor->id)>
+                                    {{ $vendedor->name }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </div>

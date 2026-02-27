@@ -38,12 +38,7 @@ class RelatorioComercialController extends Controller
 
         $vendedores = User::query()
             ->select('id', 'name')
-            ->where(function ($query): void {
-                $query->where('tipo', 'comercial')
-                    ->orWhereHas('perfis', function ($perfil): void {
-                        $perfil->where('slug', 'comercial');
-                    });
-            })
+            ->whereNotNull('funcionario_id')
             ->orderBy('name')
             ->get();
 

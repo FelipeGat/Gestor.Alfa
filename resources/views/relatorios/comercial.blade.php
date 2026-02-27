@@ -108,49 +108,133 @@
                 $lucratividadeRowsPage = $lucratividadeRows->forPage($lucratividadePage, $perPage);
             @endphp
 
-            <form method="GET" class="filters-card p-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div>
-                    <label class="block text-sm text-gray-700 mb-1">Início</label>
-                    <input type="date" name="data_inicio" value="{{ $filtros['data_inicio'] }}" class="filter-input w-full rounded border-gray-300" />
+            <form method="GET" class="filters-card p-6 space-y-4">
+                <div class="filter-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
+                    <div class="w-full" style="max-width: 700px;">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @php
+                                $hoje = \Carbon\Carbon::today();
+                                $ontem = \Carbon\Carbon::yesterday();
+                                $amanha = \Carbon\Carbon::tomorrow();
+                                $mesAtualInicio = $hoje->copy()->startOfMonth();
+                                $mesAtualFim = $hoje->copy()->endOfMonth();
+                            @endphp
+                            <a href="{{ route('relatorios.comercial', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
+                               class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Ontem
+                            </a>
+                            <a href="{{ route('relatorios.comercial', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $hoje->format('Y-m-d'), 'data_fim' => $hoje->format('Y-m-d')])) }}"
+                               class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $hoje->format('Y-m-d') && request('data_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Hoje
+                            </a>
+                            <a href="{{ route('relatorios.comercial', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $amanha->format('Y-m-d'), 'data_fim' => $amanha->format('Y-m-d')])) }}"
+                               class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $amanha->format('Y-m-d') && request('data_fim') == $amanha->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Amanhã
+                            </a>
+                            <a href="{{ route('relatorios.comercial', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $mesAtualInicio->format('Y-m-d'), 'data_fim' => $mesAtualFim->format('Y-m-d')])) }}"
+                               class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $mesAtualInicio->format('Y-m-d') && request('data_fim') == $mesAtualFim->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Mês
+                            </a>
+                        </div>
+                    </div>
+
+                    <details class="mt-2" id="periodoPersonalizadoDetailsComercial">
+                        <summary id="periodoPersonalizadoSummaryComercial" class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                            Outro período
+                        </summary>
+                        @php
+                            $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                            $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                            $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+                            $dataInicio = request('data_inicio') ?? $inicioPadrao;
+                            $dataFim = request('data_fim') ?? $fimPadrao;
+                        @endphp
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Data Inicial</label>
+                                <input type="date" name="data_inicio" id="data_inicio_comercial" value="{{ $dataInicio }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Data Final</label>
+                                <input type="date" name="data_fim" id="data_fim_comercial" value="{{ $dataFim }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                        </div>
+                    </details>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-700 mb-1">Fim</label>
-                    <input type="date" name="data_fim" value="{{ $filtros['data_fim'] }}" class="filter-input w-full rounded border-gray-300" />
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Empresa</label>
+                        <select name="empresa_id" class="filter-select w-full rounded border-gray-300">
+                            <option value="">Todas</option>
+                            @foreach($empresas as $empresa)
+                                <option value="{{ $empresa->id }}" @selected((string)$filtros['empresa_id'] === (string)$empresa->id)>
+                                    {{ $empresa->nome_fantasia }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Vendedor</label>
+                        <select name="vendedor_id" class="filter-select w-full rounded border-gray-300">
+                            <option value="">Todos</option>
+                            @foreach($vendedores as $vendedor)
+                                <option value="{{ $vendedor->id }}" @selected((string)$filtros['vendedor_id'] === (string)$vendedor->id)>
+                                    {{ $vendedor->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Tipo</label>
+                        <select name="tipo_servico" class="filter-select w-full rounded border-gray-300">
+                            <option value="">Todos</option>
+                            <option value="PRODUTO" @selected($filtros['tipo_servico'] === 'PRODUTO')>Produto</option>
+                            <option value="SERVICO" @selected($filtros['tipo_servico'] === 'SERVICO')>Serviço</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-700 mb-1">Empresa</label>
-                    <select name="empresa_id" class="filter-select w-full rounded border-gray-300">
-                        <option value="">Todas</option>
-                        @foreach($empresas as $empresa)
-                            <option value="{{ $empresa->id }}" @selected((string)$filtros['empresa_id'] === (string)$empresa->id)>
-                                {{ $empresa->nome_fantasia }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-700 mb-1">Vendedor</label>
-                    <select name="vendedor_id" class="filter-select w-full rounded border-gray-300">
-                        <option value="">Todos</option>
-                        @foreach($vendedores as $vendedor)
-                            <option value="{{ $vendedor->id }}" @selected((string)$filtros['vendedor_id'] === (string)$vendedor->id)>
-                                {{ $vendedor->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-700 mb-1">Tipo</label>
-                    <select name="tipo_servico" class="filter-select w-full rounded border-gray-300">
-                        <option value="">Todos</option>
-                        <option value="PRODUTO" @selected($filtros['tipo_servico'] === 'PRODUTO')>Produto</option>
-                        <option value="SERVICO" @selected($filtros['tipo_servico'] === 'SERVICO')>Serviço</option>
-                    </select>
-                </div>
-                <div class="md:col-span-5 flex gap-2 justify-end">
+
+                <div class="flex flex-wrap gap-2 justify-end">
                     <a href="{{ route('relatorios.comercial') }}" class="px-4 py-2 rounded bg-gray-200 text-gray-800">Limpar</a>
                     <button class="px-4 py-2 rounded bg-[#3f9cae] text-white">Aplicar filtros</button>
                 </div>
+
+                @push('scripts')
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const details = document.getElementById('periodoPersonalizadoDetailsComercial');
+                        const summary = document.getElementById('periodoPersonalizadoSummaryComercial');
+                        if (details && summary) {
+                            summary.addEventListener('click', function (event) {
+                                if (!details.open) {
+                                    event.preventDefault();
+                                    details.open = true;
+                                }
+                            });
+                        }
+
+                        const dataInicio = document.getElementById('data_inicio_comercial');
+                        const dataFim = document.getElementById('data_fim_comercial');
+                        if (dataInicio && dataFim) {
+                            dataInicio.addEventListener('change', function () {
+                                if (dataInicio.value) {
+                                    const data = new Date(dataInicio.value);
+                                    data.setDate(data.getDate() + 1);
+                                    dataFim.value = data.toISOString().slice(0, 10);
+                                }
+                            });
+                        }
+                    });
+                </script>
+                @endpush
             </form>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -262,7 +346,7 @@
                                 <td class="py-2">{{ $orcamento->numero_orcamento }}</td>
                                 <td class="py-2">{{ $orcamento->nome_cliente }}</td>
                                 <td class="py-2">{{ $orcamento->empresa?->nome_fantasia ?? '-' }}</td>
-                                <td class="py-2">{{ $orcamento->vendedor?->name ?? '-' }}</td>
+                                <td class="py-2">{{ $orcamento->criadoPor?->name ?? '-' }}</td>
                                 <td class="py-2">{{ optional($orcamento->updated_at)->format('d/m/Y H:i') }}</td>
                             </tr>
                         @empty

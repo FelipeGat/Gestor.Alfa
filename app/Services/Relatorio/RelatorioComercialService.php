@@ -105,7 +105,7 @@ class RelatorioComercialService
         $mais15 = (clone $base)->where('updated_at', '<', $agora->copy()->subDays(15))->count();
 
         $lista = (clone $base)
-            ->with(['cliente:id,nome,nome_fantasia,razao_social', 'preCliente:id,nome_fantasia,razao_social', 'empresa:id,nome_fantasia', 'vendedor:id,name'])
+            ->with(['cliente:id,nome,nome_fantasia,razao_social', 'preCliente:id,nome_fantasia,razao_social', 'empresa:id,nome_fantasia', 'criadoPor:id,name'])
             ->orderBy('updated_at')
             ->paginate(15)
             ->withQueryString();
@@ -192,7 +192,7 @@ class RelatorioComercialService
     public function performancePorVendedor(array $filtros)
     {
         $query = $this->baseOrcamentos($filtros)
-            ->leftJoin('users', 'users.id', '=', 'orcamentos.vendedor_id')
+            ->leftJoin('users', 'users.id', '=', 'orcamentos.created_by')
             ->selectRaw("COALESCE(users.name, 'Sem vendedor') as vendedor")
             ->selectRaw('COUNT(*) as total_orcamentos')
             ->selectRaw("SUM(CASE WHEN orcamentos.status IN ('aprovado','financeiro','aguardando_pagamento','em_andamento','concluido','garantia') THEN 1 ELSE 0 END) as fechados")
@@ -287,7 +287,7 @@ class RelatorioComercialService
         }
 
         if (! empty($filtros['vendedor_id'])) {
-            $query->where('orcamentos.vendedor_id', $filtros['vendedor_id']);
+            $query->where('orcamentos.created_by', $filtros['vendedor_id']);
         }
 
         if (! empty($filtros['tipo_servico'])) {
