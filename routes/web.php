@@ -69,6 +69,8 @@ use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Rh\FuncionarioRhDadosController;
 use App\Http\Controllers\Rh\DashboardRhController;
+use App\Http\Controllers\Rh\FeriadoController;
+use App\Http\Controllers\Rh\JornadaController;
 use App\Http\Controllers\Rh\PontoJornadaController;
 use App\Http\Controllers\UsuarioController;
 
@@ -203,6 +205,16 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
                 ->name('ponto-jornada.index');
             Route::post('/ponto-jornada/ajustes', [PontoJornadaController::class, 'storeAjuste'])
                 ->name('ponto-jornada.ajustes.store');
+
+            Route::get('/jornadas', [JornadaController::class, 'index'])->name('jornadas.index');
+            Route::post('/jornadas', [JornadaController::class, 'store'])->name('jornadas.store');
+            Route::put('/jornadas/{jornada}', [JornadaController::class, 'update'])->name('jornadas.update');
+            Route::patch('/jornadas/{jornada}/ativo', [JornadaController::class, 'toggleAtivo'])->name('jornadas.ativo');
+
+            Route::get('/feriados', [FeriadoController::class, 'index'])->name('feriados.index');
+            Route::post('/feriados', [FeriadoController::class, 'store'])->name('feriados.store');
+            Route::put('/feriados/{feriado}', [FeriadoController::class, 'update'])->name('feriados.update');
+            Route::delete('/feriados/{feriado}', [FeriadoController::class, 'destroy'])->name('feriados.destroy');
         });
 
     // Orçamentos

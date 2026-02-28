@@ -265,7 +265,7 @@
 
                     <div x-show="aba === 'jornada'" x-cloak class="space-y-3">
                         @if($isRhRoute)
-                        <form method="POST" action="{{ route('rh.funcionarios.jornadas.store', $funcionario) }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 border border-gray-200 rounded p-3">
+                        <form method="POST" action="{{ route('rh.funcionarios.jornadas.store', $funcionario) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 border border-gray-200 rounded p-3">
                             @csrf
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Jornada</label>
@@ -276,39 +276,47 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <x-form-input name="data_inicio" type="date" label="Data Início" required />
-                            <x-form-input name="data_fim" type="date" label="Data Fim" />
-                            <div class="md:col-span-3 flex justify-end">
-                                <x-button type="submit" variant="primary" size="sm">Adicionar Jornada</x-button>
+                            <x-form-input name="data_inicio" type="date" label="Iniciar a partir de" required />
+                            <x-form-input name="data_fim" type="date" label="Até (opcional)" />
+                            <div class="md:col-span-4 text-xs text-gray-600 bg-cyan-50 border border-cyan-200 rounded p-2">
+                                A nova jornada será aplicada somente da data informada para frente. O histórico anterior será preservado automaticamente.
+                            </div>
+                            <div class="md:col-span-4 flex justify-end">
+                                <x-button type="submit" variant="primary" size="sm">Vincular Jornada</x-button>
                             </div>
                         </form>
                         @endif
                         <div class="space-y-2">
                             @forelse($funcionario->jornadasVinculos as $jornadaVinculo)
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 border border-gray-200 rounded p-3">
-                                    <form method="POST" action="{{ route('rh.funcionarios.jornadas.update', [$funcionario, $jornadaVinculo]) }}" class="contents">
-                                        @csrf
-                                        @method('PUT')
-                                        <select name="jornada_id" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
-                                            @foreach($jornadas as $jornada)
-                                                <option value="{{ $jornada->id }}" @selected((int)$jornadaVinculo->jornada_id === (int)$jornada->id)>{{ $jornada->nome }}</option>
-                                            @endforeach
-                                        </select>
-                                        <input type="date" name="data_inicio" value="{{ optional($jornadaVinculo->data_inicio)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
-                                        <input type="date" name="data_fim" value="{{ optional($jornadaVinculo->data_fim)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                                        <div class="flex gap-2 justify-end">
-                                            @if($isRhRoute)
-                                            <x-button type="submit" variant="secondary" size="sm">Salvar</x-button>
-                                            @endif
-                                    </form>
-                                            @if($isRhRoute)
-                                            <form method="POST" action="{{ route('rh.funcionarios.jornadas.destroy', [$funcionario, $jornadaVinculo]) }}" onsubmit="return confirm('Excluir vínculo de jornada?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-button type="submit" variant="danger" size="sm">Excluir</x-button>
-                                            </form>
-                                            @endif
-                                        </div>
+                                @php
+                                    $inicio = optional($jornadaVinculo->data_inicio);
+                                    $fim = optional($jornadaVinculo->data_fim);
+                                    $hoje = now()->startOfDay();
+                                    $jaIniciada = $inicio && $inicio->copy()->startOfDay()->lt($hoje);
+                                @endphp
+                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 border border-gray-200 rounded p-3 items-end">
+                                    <div class="border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 lg:col-span-3">{{ $jornadaVinculo->jornada?->nome ?? '—' }}</div>
+                                    <div class="border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 lg:col-span-3">Início: {{ optional($jornadaVinculo->data_inicio)->format('d/m/Y') ?? '—' }}</div>
+                                    <div class="border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 lg:col-span-3">Fim: {{ optional($jornadaVinculo->data_fim)->format('d/m/Y') ?? 'Em aberto' }}</div>
+                                    <div class="lg:col-span-3">
+                                        @if($isRhRoute && !$jaIniciada)
+                                            <div class="flex flex-col gap-2 lg:items-end">
+                                                <form method="POST" action="{{ route('rh.funcionarios.jornadas.update', [$funcionario, $jornadaVinculo]) }}" class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 w-full">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="date" name="data_fim" value="{{ optional($jornadaVinculo->data_fim)->format('Y-m-d') }}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                                                    <x-button type="submit" variant="secondary" size="sm">Salvar Fim</x-button>
+                                                </form>
+                                                <form method="POST" action="{{ route('rh.funcionarios.jornadas.destroy', [$funcionario, $jornadaVinculo]) }}" onsubmit="return confirm('Excluir vínculo de jornada futura?')" class="lg:self-end">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <x-button type="submit" variant="danger" size="sm">Excluir</x-button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-gray-500">Histórico bloqueado</span>
+                                        @endif
+                                    </div>
                                 </div>
                             @empty
                                 <p class="text-sm text-gray-500">Sem jornada vinculada.</p>

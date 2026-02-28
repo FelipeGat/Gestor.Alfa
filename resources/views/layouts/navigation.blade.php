@@ -164,6 +164,12 @@
                         @endif
 
                         @if($isAdmin)
+                        <x-nav-link :href="route('rh.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                            Dashboard RH
+                        </x-nav-link>
+                        @endif
+
+                        @if($isAdmin)
                         <x-nav-link :href="route('atendimentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="atendimentos">
                             Atendimentos
                         </x-nav-link>
@@ -266,6 +272,14 @@
 
                         <x-nav-link :href="route('rh.ponto-jornada.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
                             Ponto & Jornada
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('rh.jornadas.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                            Cadastro de Jornada
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('rh.feriados.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                            Cadastro de Feriados
                         </x-nav-link>
                     </div>
                 </div>
@@ -468,6 +482,9 @@
                 @endif
                 @if($isAdmin || $isFinanceiro)
                 <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Financeiro</x-responsive-nav-link>
+                @endif
+                @if($isAdmin)
+                <x-responsive-nav-link :href="route('rh.dashboard')" data-tab-icon="rh">Dashboard RH</x-responsive-nav-link>
                 @endif
                 @if($isAdmin)
                 <x-responsive-nav-link :href="route('atendimentos.index')" data-tab-icon="atendimentos">Atendimentos</x-responsive-nav-link>

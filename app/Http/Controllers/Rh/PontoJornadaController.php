@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Rh;
 
 use App\Http\Controllers\Controller;
 use App\Models\Atendimento;
+use App\Models\Feriado;
 use App\Models\FuncionarioJornada;
 use App\Models\Funcionario;
+use App\Models\Jornada;
 use App\Models\RegistroPontoPortal;
 use App\Models\RhAjustePonto;
 use App\Models\User;
@@ -19,6 +21,9 @@ use Illuminate\Support\Facades\Schema;
 
 class PontoJornadaController extends Controller
 {
+    private const SEGUNDOS_META_DIARIA = 28800;
+    private const SEGUNDOS_META_SEMANAL = 158400;
+
     public function index(Request $request)
     {
         $funcionarioId = $request->integer('funcionario_id');
@@ -110,7 +115,7 @@ class PontoJornadaController extends Controller
     private function montarJornadaLegal(Collection $funcionariosEscopo, Carbon $inicio, Carbon $fim, Request $request): array
     {
         $rows = collect();
-        $feriados = $this->mapaFeriadosNacionais($inicio, $fim);
+        $totaisSemanais = [];
         $resumo = [
             'dias_previstos' => 0,
             'dias_com_presenca' => 0,
@@ -118,6 +123,7 @@ class PontoJornadaController extends Controller
             'segundos_trabalhados' => 0,
             'segundos_previstos' => 0,
             'horas_extras_segundos' => 0,
+            'banco_horas_segundos' => 0,
         ];
 
         if ($funcionariosEscopo->isEmpty()) {
@@ -146,9 +152,6 @@ class PontoJornadaController extends Controller
             foreach ($funcionariosEscopo as $funcionario) {
                 $chave = $funcionario->id . '|' . $cursor->toDateString();
                 $dataReferencia = $cursor->toDateString();
-                $feriadoNome = $feriados[$dataReferencia] ?? null;
-                $ehFeriado = $feriadoNome !== null;
-                $ehDomingo = $cursor->isSunday();
                 $registro = $registros->get($chave);
                 $jornadaVinculo = $this->jornadaVigenteNoDia($jornadasPorFuncionario->get($funcionario->id, collect()), $cursor);
 
@@ -156,26 +159,30 @@ class PontoJornadaController extends Controller
                     continue;
                 }
 
-                $ehDiaUtil = $cursor->isWeekday();
+                $regra = $this->resolverRegraDia($jornadaVinculo?->jornada, $cursor);
 
-                if (!$ehDiaUtil && !$registro) {
+                if (!$regra['trabalha'] && !$registro) {
                     continue;
                 }
 
-                if ($ehDiaUtil && $jornadaVinculo) {
+                if ($regra['trabalha'] && $jornadaVinculo) {
                     $resumo['dias_previstos']++;
                 }
 
                 if (!$jornadaVinculo) {
                     $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
+                    $possuiBatidas = $this->possuiBatidasNoDia($registro);
+                    $extrasPercentuais = $this->calcularExtrasPorPercentual($segundosTrabalhados, 0, $regra);
                     $resumo['segundos_trabalhados'] += $segundosTrabalhados;
+                    $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
 
                     $rows->push([
                         'funcionario' => $funcionario->nome,
                         'data' => $cursor->format('d/m/Y'),
-                        'eh_domingo' => $ehDomingo,
-                        'eh_feriado' => $ehFeriado,
-                        'feriado_nome' => $feriadoNome,
+                        'dia' => $this->nomeDiaSemana($cursor),
+                        'eh_domingo' => $regra['eh_domingo'],
+                        'eh_feriado' => $regra['eh_feriado'],
+                        'feriado_nome' => $regra['feriado_nome'],
                         'entrada' => $this->formatarHorario($registro?->entrada_em),
                         'intervalo_inicio' => $this->formatarHorario($registro?->intervalo_inicio_em),
                         'intervalo_fim' => $this->formatarHorario($registro?->intervalo_fim_em),
@@ -183,37 +190,57 @@ class PontoJornadaController extends Controller
                         'segundos_trabalhados' => $segundosTrabalhados,
                         'segundos_previstos' => 0,
                         'total' => $this->formatarSegundos($segundosTrabalhados),
-                        'status' => 'Sem jornada',
+                        'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
+                        'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
+                        'status' => $possuiBatidas ? 'Sem jornada' : '',
                     ]);
 
                     continue;
                 }
 
-                $status = $this->calcularStatusLegal($registro, $jornadaVinculo, $cursor);
+                $status = $this->calcularStatusLegal($registro, $cursor, $regra);
                 $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
-                $segundosPrevistos = $ehDiaUtil ? $this->segundosJornadaDiaria($jornadaVinculo->jornada) : 0;
+                $possuiBatidas = $this->possuiBatidasNoDia($registro);
+                $segundosPrevistos = $regra['trabalha'] ? $this->segundosPrevistosDaRegra($regra) : 0;
+                $extrasPercentuais = $this->calcularExtrasPorPercentual($segundosTrabalhados, $segundosPrevistos, $regra);
 
-                if (!$ehDiaUtil && $registro) {
-                    $status = 'Extra';
+                if ($regra['trabalha']) {
+                    $segundosExtrasDia = max(0, $segundosTrabalhados - $segundosPrevistos);
+                    if ($segundosExtrasDia >= ($regra['minimo_horas_para_extra'] * 60)) {
+                        $resumo['horas_extras_segundos'] += $segundosExtrasDia;
+                    }
+                } elseif ($segundosTrabalhados > 0) {
+                    $resumo['horas_extras_segundos'] += $segundosTrabalhados;
+                }
+
+                $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
+
+                if (!$regra['trabalha']) {
+                    if ($possuiBatidas && $segundosTrabalhados > 0) {
+                        $status = $regra['eh_feriado'] ? 'Extra feriado' : 'Extra';
+                    } else {
+                        $status = '';
+                    }
                 }
 
                 $resumo['segundos_previstos'] += $segundosPrevistos;
                 $resumo['segundos_trabalhados'] += $segundosTrabalhados;
 
-                if ($ehDiaUtil && $status !== 'Falta') {
+                if ($regra['trabalha'] && $status !== 'Falta') {
                     $resumo['dias_com_presenca']++;
                 }
 
-                if ($ehDiaUtil && $status === 'OK') {
+                if ($regra['trabalha'] && $status === 'OK') {
                     $resumo['dias_pontuais']++;
                 }
 
                 $rows->push([
                     'funcionario' => $funcionario->nome,
                     'data' => $cursor->format('d/m/Y'),
-                    'eh_domingo' => $ehDomingo,
-                    'eh_feriado' => $ehFeriado,
-                    'feriado_nome' => $feriadoNome,
+                    'dia' => $this->nomeDiaSemana($cursor),
+                    'eh_domingo' => $regra['eh_domingo'],
+                    'eh_feriado' => $regra['eh_feriado'],
+                    'feriado_nome' => $regra['feriado_nome'],
                     'entrada' => $this->formatarHorario($registro?->entrada_em),
                     'intervalo_inicio' => $this->formatarHorario($registro?->intervalo_inicio_em),
                     'intervalo_fim' => $this->formatarHorario($registro?->intervalo_fim_em),
@@ -221,6 +248,8 @@ class PontoJornadaController extends Controller
                     'segundos_trabalhados' => $segundosTrabalhados,
                     'segundos_previstos' => $segundosPrevistos,
                     'total' => $this->formatarSegundos($segundosTrabalhados),
+                    'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
+                    'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
                     'status' => $status,
                 ]);
             }
@@ -228,7 +257,8 @@ class PontoJornadaController extends Controller
             $cursor->addDay();
         }
 
-        $resumo['horas_extras_segundos'] = max(0, $resumo['segundos_trabalhados'] - $resumo['segundos_previstos']);
+        $resumo['banco_horas_segundos'] = collect($totaisSemanais)
+            ->reduce(fn (int $saldo, int $segundosTrabalhadosSemana) => $saldo + ($segundosTrabalhadosSemana - self::SEGUNDOS_META_SEMANAL), 0);
 
         $paginaAtual = LengthAwarePaginator::resolveCurrentPage();
         $porPagina = 25;
@@ -337,7 +367,7 @@ class PontoJornadaController extends Controller
             ->whereBetween('ajustado_em', [$inicio, $fim])
             ->sum(DB::raw('minutos_ajuste * 60'));
 
-        $bancoHorasAcumulado = ((int) ($resumoJornadaLegal['segundos_trabalhados'] ?? 0) - (int) ($resumoJornadaLegal['segundos_previstos'] ?? 0)) + $ajustesSegundos;
+        $bancoHorasAcumulado = (int) ($resumoJornadaLegal['banco_horas_segundos'] ?? 0) + $ajustesSegundos;
 
         return [
             'total_tempo_atendimento_segundos' => $totalTempoAtendimento,
@@ -359,7 +389,24 @@ class PontoJornadaController extends Controller
         }
 
         return FuncionarioJornada::query()
-            ->with('jornada:id,hora_inicio,hora_fim,intervalo_minutos')
+            ->with(['jornada' => function ($query) {
+                $query
+                    ->with(['escalas', 'feriados' => fn ($feriados) => $feriados->where('ativo', true)])
+                    ->select([
+                        'id',
+                        'tipo_jornada',
+                        'dias_trabalhados',
+                        'hora_entrada_padrao',
+                        'hora_saida_padrao',
+                        'hora_inicio',
+                        'hora_fim',
+                        'intervalo_minutos',
+                        'tolerancia_entrada_min',
+                        'tolerancia_saida_min',
+                        'tolerancia_intervalo_min',
+                        'minimo_horas_para_extra',
+                    ]);
+            }])
             ->whereIn('funcionario_id', $funcionariosIds)
             ->whereDate('data_inicio', '<=', $fim->toDateString())
             ->where(function ($query) use ($inicio) {
@@ -392,7 +439,7 @@ class PontoJornadaController extends Controller
             ->first();
     }
 
-    private function calcularStatusLegal(?RegistroPontoPortal $registro, FuncionarioJornada $vinculo, Carbon $dia): string
+    private function calcularStatusLegal(?RegistroPontoPortal $registro, Carbon $dia, array $regra): string
     {
         if (!$registro) {
             return 'Falta';
@@ -409,14 +456,125 @@ class PontoJornadaController extends Controller
             return 'Incompleto';
         }
 
-        $inicioPrevisto = Carbon::parse($dia->toDateString() . ' ' . $vinculo->jornada->hora_inicio);
-        $entrada = Carbon::parse($registro->entrada_em);
+        $inicioPrevisto = Carbon::parse($dia->toDateString() . ' ' . $regra['hora_entrada']);
+        $saidaPrevista = Carbon::parse($dia->toDateString() . ' ' . $regra['hora_saida']);
+        if ($saidaPrevista->lessThanOrEqualTo($inicioPrevisto)) {
+            $saidaPrevista->addDay();
+        }
 
-        if ($entrada->gt($inicioPrevisto)) {
+        $entrada = Carbon::parse($registro->entrada_em);
+        $saida = Carbon::parse($registro->saida_em);
+
+        $limiteEntrada = $inicioPrevisto->copy()->addMinutes((int) $regra['tolerancia_entrada_min']);
+        if ($entrada->gt($limiteEntrada)) {
             return 'Atraso';
         }
 
+        $limiteSaida = $saidaPrevista->copy()->subMinutes((int) $regra['tolerancia_saida_min']);
+        if ($saida->lt($limiteSaida)) {
+            return 'Saída antecipada';
+        }
+
+        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
+            $inicioIntervalo = Carbon::parse($registro->intervalo_inicio_em);
+            $fimIntervalo = Carbon::parse($registro->intervalo_fim_em);
+            $intervaloReal = max(0, $fimIntervalo->diffInMinutes($inicioIntervalo, false));
+            $intervaloMinimoAceito = max(0, (int) $regra['intervalo_minutos'] - (int) $regra['tolerancia_intervalo_min']);
+
+            if ($intervaloReal < $intervaloMinimoAceito) {
+                return 'Alerta intervalo';
+            }
+        }
+
         return 'OK';
+    }
+
+    private function resolverRegraDia(?Jornada $jornada, Carbon $dia): array
+    {
+        $horaEntrada = $jornada?->hora_entrada_padrao ?: $jornada?->hora_inicio;
+        $horaSaida = $jornada?->hora_saida_padrao ?: $jornada?->hora_fim;
+        $intervalo = (int) ($jornada?->intervalo_minutos ?? 0);
+        $diaSemana = (int) $dia->dayOfWeekIso;
+
+        $feriado = $this->feriadoAtreladoNoDia($jornada, $dia);
+
+        $trabalha = $dia->isWeekday();
+        if ($jornada instanceof Jornada) {
+            $trabalha = false;
+
+            if (($jornada->tipo_jornada ?? 'fixa') === 'escala') {
+                $escalaDia = $jornada->escalas->firstWhere('dia_semana', $diaSemana);
+                if ($escalaDia) {
+                    $trabalha = true;
+                    $horaEntrada = $escalaDia->hora_entrada;
+                    $horaSaida = $escalaDia->hora_saida;
+                    $intervalo = (int) $escalaDia->intervalo_minutos;
+                }
+            } else {
+                $dias = collect($jornada->dias_trabalhados ?? [1, 2, 3, 4, 5])
+                    ->map(fn ($d) => (int) $d)
+                    ->all();
+                $trabalha = in_array($diaSemana, $dias, true);
+            }
+
+            if ($feriado) {
+                $trabalha = false;
+            }
+        }
+
+        return [
+            'trabalha' => $trabalha,
+            'eh_domingo' => $dia->isSunday(),
+            'eh_feriado' => $feriado !== null,
+            'feriado_nome' => $feriado?->nome,
+            'hora_entrada' => $horaEntrada,
+            'hora_saida' => $horaSaida,
+            'intervalo_minutos' => $intervalo,
+            'tolerancia_entrada_min' => (int) ($jornada?->tolerancia_entrada_min ?? 0),
+            'tolerancia_saida_min' => (int) ($jornada?->tolerancia_saida_min ?? 0),
+            'tolerancia_intervalo_min' => (int) ($jornada?->tolerancia_intervalo_min ?? 0),
+            'minimo_horas_para_extra' => (int) ($jornada?->minimo_horas_para_extra ?? 0),
+        ];
+    }
+
+    private function feriadoAtreladoNoDia(?Jornada $jornada, Carbon $dia): ?Feriado
+    {
+        if (!$jornada) {
+            return null;
+        }
+
+        return $jornada->feriados->first(function (Feriado $feriado) use ($dia) {
+            if (!$feriado->ativo) {
+                return false;
+            }
+
+            if ($feriado->recorrente_anual) {
+                return $feriado->data
+                    && $feriado->data->format('m-d') === $dia->format('m-d');
+            }
+
+            return $feriado->data
+                && $feriado->data->toDateString() === $dia->toDateString();
+        });
+    }
+
+    private function segundosPrevistosDaRegra(array $regra): int
+    {
+        if (empty($regra['hora_entrada']) || empty($regra['hora_saida'])) {
+            return 0;
+        }
+
+        $base = Carbon::today();
+        $inicio = Carbon::parse($base->toDateString() . ' ' . $regra['hora_entrada']);
+        $fim = Carbon::parse($base->toDateString() . ' ' . $regra['hora_saida']);
+
+        if ($fim->lessThanOrEqualTo($inicio)) {
+            $fim->addDay();
+        }
+
+        $segundos = $fim->diffInSeconds($inicio);
+
+        return max(0, $segundos - (((int) $regra['intervalo_minutos']) * 60));
     }
 
     private function calcularSegundosTrabalhados(?RegistroPontoPortal $registro): int
@@ -425,25 +583,40 @@ class PontoJornadaController extends Controller
             return 0;
         }
 
-        $entrada = Carbon::parse($registro->entrada_em);
-        $saida = Carbon::parse($registro->saida_em);
+        $entradaTimestamp = strtotime((string) $registro->entrada_em);
+        $saidaTimestamp = strtotime((string) $registro->saida_em);
 
-        if ($saida->lessThanOrEqualTo($entrada)) {
+        if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
             return 0;
         }
 
-        $segundos = $saida->diffInSeconds($entrada);
+        $segundos = $saidaTimestamp - $entradaTimestamp;
 
         if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-            $inicioIntervalo = Carbon::parse($registro->intervalo_inicio_em);
-            $fimIntervalo = Carbon::parse($registro->intervalo_fim_em);
+            $inicioIntervaloTimestamp = strtotime((string) $registro->intervalo_inicio_em);
+            $fimIntervaloTimestamp = strtotime((string) $registro->intervalo_fim_em);
 
-            if ($fimIntervalo->gt($inicioIntervalo)) {
-                $segundos -= $fimIntervalo->diffInSeconds($inicioIntervalo);
+            if ($inicioIntervaloTimestamp && $fimIntervaloTimestamp && $fimIntervaloTimestamp > $inicioIntervaloTimestamp) {
+                $segundos -= ($fimIntervaloTimestamp - $inicioIntervaloTimestamp);
             }
         }
 
         return max(0, $segundos);
+    }
+
+    private function possuiBatidasNoDia(?RegistroPontoPortal $registro): bool
+    {
+        if (!$registro) {
+            return false;
+        }
+
+        return (bool) ($registro->entrada_em || $registro->intervalo_inicio_em || $registro->intervalo_fim_em || $registro->saida_em);
+    }
+
+    private function acumularSegundosSemana(array &$totaisSemanais, int $funcionarioId, Carbon $dia, int $segundosTrabalhados): void
+    {
+        $chaveSemana = sprintf('%d|%s-W%s', $funcionarioId, $dia->format('o'), $dia->format('W'));
+        $totaisSemanais[$chaveSemana] = ($totaisSemanais[$chaveSemana] ?? 0) + max(0, $segundosTrabalhados);
     }
 
     private function segundosJornadaDiaria($jornada): int
@@ -481,6 +654,53 @@ class PontoJornadaController extends Controller
         $minutos = intdiv($segundos % 3600, 60);
 
         return sprintf('%02d:%02d', $horas, $minutos);
+    }
+
+    private function formatarSegundosOpcional(int $segundos): string
+    {
+        if ($segundos <= 0) {
+            return '—';
+        }
+
+        return $this->formatarSegundos($segundos);
+    }
+
+    private function calcularExtrasPorPercentual(int $segundosTrabalhados, int $segundosPrevistos, array $regra): array
+    {
+        if ($segundosTrabalhados <= 0) {
+            return ['extra_50' => 0, 'extra_100' => 0];
+        }
+
+        if (!empty($regra['eh_domingo']) || !empty($regra['eh_feriado'])) {
+            return ['extra_50' => 0, 'extra_100' => $segundosTrabalhados];
+        }
+
+        $toleranciaMaximaMinutos = max(
+            (int) ($regra['tolerancia_entrada_min'] ?? 0),
+            (int) ($regra['tolerancia_saida_min'] ?? 0),
+            (int) ($regra['tolerancia_intervalo_min'] ?? 0)
+        );
+
+        $limiteComTolerancia = self::SEGUNDOS_META_DIARIA + ($toleranciaMaximaMinutos * 60);
+
+        if ($segundosTrabalhados > $limiteComTolerancia) {
+            return ['extra_50' => $segundosTrabalhados - $limiteComTolerancia, 'extra_100' => 0];
+        }
+
+        return ['extra_50' => 0, 'extra_100' => 0];
+    }
+
+    private function nomeDiaSemana(Carbon $dia): string
+    {
+        return [
+            1 => 'SEG',
+            2 => 'TER',
+            3 => 'QUA',
+            4 => 'QUI',
+            5 => 'SEX',
+            6 => 'SAB',
+            7 => 'DOM',
+        ][(int) $dia->dayOfWeekIso] ?? '—';
     }
 
     private function tiposAjuste(): array

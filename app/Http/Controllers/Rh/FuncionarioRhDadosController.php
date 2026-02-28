@@ -12,6 +12,8 @@ use App\Models\FuncionarioEpi;
 use App\Models\FuncionarioJornada;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 class FuncionarioRhDadosController extends Controller
 {
@@ -138,14 +140,47 @@ class FuncionarioRhDadosController extends Controller
     public function storeJornada(Request $request, Funcionario $funcionario): RedirectResponse
     {
         $dados = $request->validate([
-            'jornada_id' => ['required', 'exists:jornadas,id'],
+            'jornada_id' => ['required', Rule::exists('jornadas', 'id')->where('ativo', true)],
             'data_inicio' => ['required', 'date'],
             'data_fim' => ['nullable', 'date', 'after_or_equal:data_inicio'],
         ]);
 
-        $funcionario->jornadasVinculos()->create($dados);
+        $inicio = Carbon::parse($dados['data_inicio'])->startOfDay();
+        $fimInformado = !empty($dados['data_fim']) ? Carbon::parse($dados['data_fim'])->endOfDay() : null;
 
-        return back()->with('success', 'Jornada vinculada com sucesso.');
+        $vinculosConflitantes = FuncionarioJornada::query()
+            ->where('funcionario_id', $funcionario->id)
+            ->whereDate('data_inicio', '<=', $inicio->toDateString())
+            ->where(function ($query) use ($inicio) {
+                $query->whereNull('data_fim')
+                    ->orWhereDate('data_fim', '>=', $inicio->toDateString());
+            })
+            ->get();
+
+        foreach ($vinculosConflitantes as $vinculo) {
+            if (Carbon::parse($vinculo->data_inicio)->isSameDay($inicio)) {
+                abort(422, 'Já existe jornada iniciando nesta mesma data. Ajuste a data de início da nova jornada.');
+            }
+
+            $novoFim = $inicio->copy()->subDay();
+            if (!$vinculo->data_fim || Carbon::parse($vinculo->data_fim)->gt($novoFim)) {
+                $vinculo->update([
+                    'data_fim' => $novoFim->toDateString(),
+                ]);
+            }
+        }
+
+        if ($fimInformado && $fimInformado->lt($inicio)) {
+            abort(422, 'A data fim da jornada não pode ser anterior à data de início.');
+        }
+
+        $funcionario->jornadasVinculos()->create([
+            'jornada_id' => (int) $dados['jornada_id'],
+            'data_inicio' => $inicio->toDateString(),
+            'data_fim' => $fimInformado?->toDateString(),
+        ]);
+
+        return back()->with('success', 'Nova jornada agendada com sucesso a partir da data informada. Histórico anterior preservado.');
     }
 
     public function updateJornada(Request $request, Funcionario $funcionario, FuncionarioJornada $funcionarioJornada): RedirectResponse
@@ -153,19 +188,34 @@ class FuncionarioRhDadosController extends Controller
         $this->assertPertence($funcionario, $funcionarioJornada->funcionario_id);
 
         $dados = $request->validate([
-            'jornada_id' => ['required', 'exists:jornadas,id'],
-            'data_inicio' => ['required', 'date'],
             'data_fim' => ['nullable', 'date', 'after_or_equal:data_inicio'],
         ]);
 
-        $funcionarioJornada->update($dados);
+        $hoje = Carbon::today();
+        $inicioVinculo = Carbon::parse($funcionarioJornada->data_inicio)->startOfDay();
 
-        return back()->with('success', 'Vínculo de jornada atualizado com sucesso.');
+        if ($inicioVinculo->lt($hoje)) {
+            abort(422, 'Não é permitido alterar jornada já iniciada. Para mudança de horário, cadastre uma nova jornada com data futura.');
+        }
+
+        $funcionarioJornada->update([
+            'data_fim' => $dados['data_fim'] ?? null,
+        ]);
+
+        return back()->with('success', 'Período da jornada futura atualizado com sucesso.');
     }
 
     public function destroyJornada(Funcionario $funcionario, FuncionarioJornada $funcionarioJornada): RedirectResponse
     {
         $this->assertPertence($funcionario, $funcionarioJornada->funcionario_id);
+
+        $hoje = Carbon::today();
+        $inicioVinculo = Carbon::parse($funcionarioJornada->data_inicio)->startOfDay();
+
+        if ($inicioVinculo->lt($hoje)) {
+            abort(422, 'Não é permitido excluir jornada já iniciada. O histórico deve ser preservado.');
+        }
+
         $funcionarioJornada->delete();
 
         return back()->with('success', 'Vínculo de jornada removido com sucesso.');
@@ -251,4 +301,5 @@ class FuncionarioRhDadosController extends Controller
     {
         abort_if($funcionario->id !== $funcionarioId, 404);
     }
+
 }
