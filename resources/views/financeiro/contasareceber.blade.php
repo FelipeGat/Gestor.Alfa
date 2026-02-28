@@ -268,7 +268,7 @@
                             <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">
-                                        <input type="checkbox" x-on:change="toggleAll($event.target)" :checked="selecionadas.length > 0" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;" :style="selecionadas.length > 0 ? 'background:#3f9cae;border-color:#3f9cae;' : ''">
+<input type="checkbox" x-on:change="toggleAll($event.target)" :checked="selecionadas.length > 0" class="rounded-full border-gray-300 text-[#3f9cae] focus:ring-[#3f9cae] w-5 h-5">
                                     </th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Vencimento</th>
                                     <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700">Empresa</th>
@@ -316,7 +316,7 @@
                             @endphp
                             <tr class="{{ $linhaClass }} hover:bg-gray-50 transition" data-cobranca-id="{{ $cobranca->id }}" data-valor="{{ $cobranca->valor }}">
                                 <td class="px-4 py-3">
-                                    <input type="checkbox" value="{{ $cobranca->id }}" x-model.number="selecionadas" :checked="selecionadas.includes({{ $cobranca->id }})" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:9999px;width:16px;height:16px;box-shadow:0 1px 2px #00000010;appearance:none;" :style="selecionadas.includes({{ $cobranca->id }}) ? 'background:#3f9cae;border-color:#3f9cae;' : ''">
+                                    <input type="checkbox" value="{{ $cobranca->id }}" x-model.number="selecionadas" class="rounded-full border-gray-300 text-[#3f9cae] focus:ring-[#3f9cae] w-5 h-5">
                                 </td>
                                 <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Vencimento">
                                     {{ $cobranca->data_vencimento->format('d/m/Y') }}

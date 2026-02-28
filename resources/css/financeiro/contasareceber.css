@@ -366,3 +366,22 @@
     background-color: #f0f9ff;
 }
 
+/* =========================================================
+   9. CHECKBOX REDONDO
+========================================================= */
+.checkbox-round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px !important;
+    border: 1.5px solid #d1d5db;
+    background: #f3f4f6;
+    vertical-align: middle;
+}
+
+.checkbox-round input[type="checkbox"] {
+    cursor: pointer;
+}
+
