@@ -147,7 +147,9 @@ class PortalController extends Controller
         if (! session()->has('cliente_id_ativo')) {
 
             // Se tiver mais de uma unidade, força seleção
-            if ($user->clientes()->count() > 1) {
+            $clientesCount = $user->clientes()->count();
+
+            if ($clientesCount > 1) {
                 return redirect()->route('portal.unidade');
             }
 
@@ -156,15 +158,25 @@ class PortalController extends Controller
 
             if ($unicoCliente) {
                 session(['cliente_id_ativo' => $unicoCliente->id]);
+            } else {
+                // Se não tem clientes ativos vinculados, redireciona para selecionar
+                return redirect()->route('portal.unidade');
             }
         }
 
         $clienteId = session('cliente_id_ativo');
 
-        // cliente só acessa unidade dele
+        // cliente só acessa unidade dele (busca apenas clientes ativos)
         $cliente = $user->clientes()
             ->where('clientes.id', $clienteId)
-            ->firstOrFail();
+            ->first();
+
+        // Se não encontrou cliente ativo, força seleção de unidade
+        if (! $cliente) {
+            session()->forget('cliente_id_ativo');
+
+            return redirect()->route('portal.unidade');
+        }
 
         // Boletos
         $boletos = $cliente->boletos()->with('cobranca')->get();
