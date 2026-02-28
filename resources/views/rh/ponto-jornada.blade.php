@@ -65,15 +65,15 @@
                             <x-table-cell>{{ $linha['total'] }}</x-table-cell>
                             <x-table-cell>
                                 @php
-                                    $tipoBadge = match($linha['status']) {
-                                        'OK' => 'success',
-                                        'Atraso' => 'warning',
-                                        'Falta' => 'danger',
-                                        'Extra' => 'primary',
-                                        default => 'secondary',
-                                    };
+                                    $ehExtra = in_array($linha['status'], ['Extra', 'Extra feriado'], true);
+                                    $ehDomingoOuFeriado = !empty($linha['eh_domingo']) || !empty($linha['eh_feriado']);
+                                    $statusClass = $ehExtra
+                                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                        : ($ehDomingoOuFeriado
+                                            ? 'bg-red-100 text-red-800 border border-red-300'
+                                            : 'bg-gray-900 text-white border border-gray-900');
                                 @endphp
-                                <x-badge :type="$tipoBadge">{{ $linha['status'] }}</x-badge>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusClass }}">{{ $linha['status'] }}</span>
                             </x-table-cell>
                         </tr>
                     @endforeach

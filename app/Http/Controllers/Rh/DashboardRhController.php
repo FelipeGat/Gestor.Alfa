@@ -180,7 +180,12 @@ class DashboardRhController extends Controller
                         return null;
                     }
 
-                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $vinculo->jornada->hora_inicio);
+                    $horaEntrada = $vinculo->jornada->hora_entrada_padrao ?: $vinculo->jornada->hora_inicio;
+                    if (!$horaEntrada) {
+                        return null;
+                    }
+
+                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $horaEntrada);
                     $registrado = Carbon::parse($registro->entrada_em);
                     $atrasoMin = max(0, $registrado->diffInMinutes($previsto, false));
 
@@ -206,8 +211,14 @@ class DashboardRhController extends Controller
                         return null;
                     }
 
-                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $vinculo->jornada->hora_fim);
-                    if ($vinculo->jornada->hora_fim <= $vinculo->jornada->hora_inicio) {
+                    $horaEntrada = $vinculo->jornada->hora_entrada_padrao ?: $vinculo->jornada->hora_inicio;
+                    $horaSaida = $vinculo->jornada->hora_saida_padrao ?: $vinculo->jornada->hora_fim;
+                    if (!$horaEntrada || !$horaSaida) {
+                        return null;
+                    }
+
+                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $horaSaida);
+                    if ($horaSaida <= $horaEntrada) {
                         $previsto->addDay();
                     }
 
@@ -659,7 +670,7 @@ class DashboardRhController extends Controller
         }
 
         return FuncionarioJornada::query()
-            ->with(['funcionario:id,nome', 'jornada:id,hora_inicio,hora_fim,intervalo_minutos'])
+            ->with(['funcionario:id,nome', 'jornada:id,hora_inicio,hora_fim,hora_entrada_padrao,hora_saida_padrao,intervalo_minutos'])
             ->whereIn('funcionario_id', $funcionariosIds)
             ->whereDate('data_inicio', '<=', $data->toDateString())
             ->where(function ($query) use ($data) {
@@ -698,7 +709,7 @@ class DashboardRhController extends Controller
         $jornadas = collect();
         if (Schema::hasTable('funcionario_jornadas') && Schema::hasTable('jornadas')) {
             $jornadas = FuncionarioJornada::query()
-                ->with('jornada:id,hora_inicio,hora_fim,intervalo_minutos')
+                ->with('jornada:id,hora_inicio,hora_fim,hora_entrada_padrao,hora_saida_padrao,intervalo_minutos')
                 ->whereIn('funcionario_id', $funcionariosIds)
                 ->whereDate('data_inicio', '<=', $fim->toDateString())
                 ->where(function ($query) use ($inicio) {
@@ -766,8 +777,15 @@ class DashboardRhController extends Controller
     private function segundosDiariosJornada(Jornada $jornada): int
     {
         $base = Carbon::today();
-        $inicio = Carbon::parse($base->toDateString() . ' ' . $jornada->hora_inicio);
-        $fim = Carbon::parse($base->toDateString() . ' ' . $jornada->hora_fim);
+        $horaEntrada = $jornada->hora_entrada_padrao ?: $jornada->hora_inicio;
+        $horaSaida = $jornada->hora_saida_padrao ?: $jornada->hora_fim;
+
+        if (!$horaEntrada || !$horaSaida) {
+            return 0;
+        }
+
+        $inicio = Carbon::parse($base->toDateString() . ' ' . $horaEntrada);
+        $fim = Carbon::parse($base->toDateString() . ' ' . $horaSaida);
 
         if ($fim->lessThanOrEqualTo($inicio)) {
             $fim->addDay();

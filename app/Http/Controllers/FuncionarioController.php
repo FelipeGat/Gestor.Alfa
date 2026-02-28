@@ -129,7 +129,8 @@ class FuncionarioController extends Controller
         }
 
         if (Schema::hasTable('funcionario_jornadas') && Schema::hasTable('jornadas')) {
-            $relacoes['jornadasVinculos.jornada'] = fn($query) => $query->orderByDesc('data_inicio');
+            $relacoes['jornadasVinculos'] = fn($query) => $query->orderByDesc('data_inicio');
+            $relacoes[] = 'jornadasVinculos.jornada';
         }
 
         if (Schema::hasTable('ferias')) {
@@ -147,7 +148,7 @@ class FuncionarioController extends Controller
             : collect();
 
         $jornadas = Schema::hasTable('jornadas')
-            ? Jornada::query()->orderBy('nome')->get(['id', 'nome', 'carga_horaria_semanal'])
+            ? Jornada::query()->where('ativo', true)->orderBy('nome')->get(['id', 'nome', 'carga_horaria_semanal'])
             : collect();
 
         return view('funcionarios.edit', compact('funcionario', 'epis', 'jornadas'));
