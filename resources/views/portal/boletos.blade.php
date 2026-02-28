@@ -1,88 +1,142 @@
 <x-app-layout>
+    @push('styles')
+    @vite('resources/css/portal/index.css')
+    @endpush
+
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-semibold text-2xl text-gray-900 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
                     Meus Boletos
                 </h2>
                 <p class="text-sm text-gray-600 mt-1">
                     {{ $cliente->nome_exibicao }}
                 </p>
             </div>
-            <a href="{{ route('portal.financeiro') }}" 
-                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-all">
+            <a href="{{ route('portal.financeiro') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-[#3f9cae] hover:bg-[#2d7a8a] text-white text-sm font-semibold rounded-lg transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Voltar
+                <span class="hidden sm:inline">Voltar</span>
             </a>
         </div>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-green-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
-            @if($boletos->count() > 0)
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Nº</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Valor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Vencimento</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($boletos as $boleto)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $boleto->numero }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 font-medium">
-                                        R$ {{ number_format($boleto->valor, 2, ',', '.') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ $boleto->data_vencimento->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($boleto->foiBaixado())
-                                            <span class="inline-flex px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">Pago</span>
-                                        @elseif($boleto->estaVencido())
-                                            <span class="inline-flex px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-semibold">Vencido</span>
-                                        @else
-                                            <span class="inline-flex px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">Pendente</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($boleto->arquivo)
-                                            <a href="{{ route('portal.boletos.download', $boleto->id) }}" 
-                                                target="_blank"
-                                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                Baixar
-                                            </a>
-                                        @else
-                                            <span class="text-gray-400 text-sm">—</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @else
-                <div class="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
-                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <div class="portal-wrapper">
+        @if($boletos->count() > 0)
+        <div class="portal-table-card">
+            <div class="portal-table-header">
+                <h3 class="portal-table-title">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
-                    <p class="text-gray-500 text-lg font-medium">Nenhum boleto encontrado.</p>
+                    Boletos Disponíveis
+                </h3>
+            </div>
+
+            {{-- Versão Desktop (Tabela) --}}
+            <div class="portal-table-wrapper">
+                <table class="portal-table">
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($boletos as $boleto)
+                        <tr>
+                            <td class="portal-font-semibold">{{ $boleto->numero }}</td>
+                            <td class="portal-font-semibold">
+                                R$ {{ number_format($boleto->valor, 2, ',', '.') }}
+                            </td>
+                            <td>{{ $boleto->data_vencimento->format('d/m/Y') }}</td>
+                            <td>
+                                @if($boleto->foiBaixado())
+                                <span class="portal-badge portal-badge--success">Pago</span>
+                                @elseif($boleto->estaVencido())
+                                <span class="portal-badge portal-badge--danger">Vencido</span>
+                                @else
+                                <span class="portal-badge portal-badge--warning">Pendente</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($boleto->arquivo)
+                                <a href="{{ route('portal.boletos.download', $boleto->id) }}"
+                                    target="_blank"
+                                    class="portal-btn portal-btn--primary portal-btn--sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Baixar
+                                </a>
+                                @else
+                                <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Versão Mobile (Cards) --}}
+            <div class="portal-mobile-cards px-4 pb-4">
+                @foreach($boletos as $boleto)
+                <div class="portal-mobile-card">
+                    <div class="portal-mobile-card-header">
+                        <div>
+                            <div class="portal-mobile-card-title">
+                                Boleto Nº {{ $boleto->numero }}
+                            </div>
+                            <div class="portal-mobile-card-subtitle">
+                                Vencimento: {{ $boleto->data_vencimento->format('d/m/Y') }}
+                            </div>
+                        </div>
+                        @if($boleto->foiBaixado())
+                        <span class="portal-badge portal-badge--success">Pago</span>
+                        @elseif($boleto->estaVencido())
+                        <span class="portal-badge portal-badge--danger">Vencido</span>
+                        @else
+                        <span class="portal-badge portal-badge--warning">Pendente</span>
+                        @endif
+                    </div>
+                    <div class="portal-mobile-card-row">
+                        <span class="portal-mobile-card-label">Valor</span>
+                        <span class="portal-mobile-card-value portal-font-bold">
+                            R$ {{ number_format($boleto->valor, 2, ',', '.') }}
+                        </span>
+                    </div>
+                    @if($boleto->arquivo)
+                    <div class="portal-mobile-card-actions">
+                        <a href="{{ route('portal.boletos.download', $boleto->id) }}"
+                            target="_blank"
+                            class="portal-btn portal-btn--primary portal-btn--sm flex-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Baixar
+                        </a>
+                    </div>
+                    @endif
                 </div>
-            @endif
+                @endforeach
+            </div>
         </div>
+        @else
+        <div class="portal-empty-state">
+            <svg class="portal-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <p class="portal-empty-state-title">Nenhum boleto encontrado.</p>
+            <p class="portal-empty-state-text">
+                Seus boletos aparecerão aqui quando forem disponibilizados.
+            </p>
+        </div>
+        @endif
     </div>
 </x-app-layout>

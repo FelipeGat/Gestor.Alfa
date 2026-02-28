@@ -27,7 +27,9 @@ export default defineConfig({
                 'resources/css/financeiro/contasareceber.css',
                 'resources/css/contas-bancarias/contas-bancarias.css',
                 'resources/css/financeiro/modalcobranca.css',
-                
+
+                // PORTAL
+                'resources/css/portal/index.css',
 
                 'resources/js/app.js',
                 'resources/js/orcamento.js',

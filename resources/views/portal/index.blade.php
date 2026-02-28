@@ -1,14 +1,17 @@
 <x-app-layout>
+    @push('styles')
+    @vite('resources/css/portal/index.css')
+    @endpush
+
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-semibold text-2xl text-gray-900 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
                     Portal do Cliente
                 </h2>
-
-                <p class="text-sm text-gray-600 mt-2">
+                <p class="text-sm text-gray-600 mt-1">
                     Unidade:
-                    <span class="font-semibold text-blue-600">
+                    <span class="font-semibold text-[#3f9cae]">
                         {{ $cliente->nome_exibicao }}
                     </span>
                 </p>
@@ -20,355 +23,228 @@
                 <button
                     type="submit"
                     class="inline-flex items-center gap-2 px-4 py-2
-                           bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
+                           bg-[#3f9cae] hover:bg-[#2d7a8a]
                            text-white text-sm font-semibold
-                           rounded-lg border-0 shadow-md hover:shadow-lg
-                           transition-all duration-200 transform hover:scale-105">
+                           rounded-lg border-0 shadow transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 7a2 2 0 100-4 2 2 0 000 4zm0 0H4m16 0a2 2 0 100 4 2 2 0 000-4zm0 0h4"></path>
                     </svg>
-                    Trocar Unidade
+                    <span class="hidden sm:inline">Trocar Unidade</span>
                 </button>
             </form>
             @endif
         </div>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-green-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto space-y-8">
+    <div class="portal-wrapper">
 
-            {{-- Sessão Bem Vindo --}}
-            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                            Bem-vindo, {{ auth()->user()->name }}! 👋
-                        </h1>
-                        <p class="text-gray-600">
-                            Gerencie seu Financeiro, Atendimentos e Documentos de forma centralizada e segura.
-                        </p>
-                    </div>
-                    <div class="hidden md:block text-6xl opacity-20">
-                        📊
-                    </div>
+        {{-- Sessão Bem Vindo --}}
+        <div class="portal-header">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="portal-header-title">
+                        Bem-vindo, {{ auth()->user()->name }}! 👋
+                    </h1>
+                    <p class="portal-header-subtitle">
+                        Gerencie seu Financeiro, Atendimentos e Documentos de forma centralizada e segura.
+                    </p>
+                </div>
+                <div class="hidden lg:block text-5xl opacity-20">
+                    📊
                 </div>
             </div>
+        </div>
 
-            {{-- Navigation Cards --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {{-- Navigation Cards --}}
+        <div class="portal-nav-grid">
 
-                <!-- Card Financeiro -->
-                <a href="{{ route('portal.financeiro') }}"
-                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
-              hover:border-blue-500 hover:shadow-2xl transition-all duration-300
-              transform hover:scale-105 cursor-pointer">
-
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-xl">
-                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2
+            <!-- Card Financeiro -->
+            <a href="{{ route('portal.financeiro') }}" class="portal-nav-card">
+                <div class="portal-nav-card-icon-wrapper">
+                    <div class="portal-nav-card-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2
                              3 .895 3 2-1.343 2-3 2m0-8
                              c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
                              c-1.11 0-2.08-.402-2.599-1M21 12
                              a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-
-                        <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600
-                        group-hover:translate-x-1 transition-all"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
                         </svg>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        Acessar Meu Financeiro
-                    </h3>
-
-                    <p class="text-gray-600 text-sm mb-4">
-                        Visualize boletos, notas fiscais, pagamentos e acompanhe seu histórico financeiro.
-                    </p>
-
-                    <div class="flex items-center text-blue-600 font-semibold text-sm">
-                        Ir para Financeiro
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </a>
-
-                <!-- Card Atendimentos -->
-                <a href="{{ route('portal.atendimentos') }}"
-                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
-              hover:border-green-500 hover:shadow-2xl transition-all duration-300
-              transform hover:scale-105 cursor-pointer">
-
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl">
-                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-
-                        <svg class="w-6 h-6 text-gray-400 group-hover:text-green-600
-                        group-hover:translate-x-1 transition-all"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-                        Acessar Minhas OS
-                    </h3>
-
-                    <p class="text-gray-600 text-sm mb-4">
-                        Acompanhe suas ordens de serviço, atendimentos e solicitações.
-                    </p>
-
-                    <div class="flex items-center text-green-600 font-semibold text-sm">
-                        Ir para Atendimentos
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </a>
-
-                <!-- Card Equipamentos -->
-                <a href="{{ route('portal.equipamentos.index') }}"
-                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
-              hover:border-purple-500 hover:shadow-2xl transition-all duration-300
-              transform hover:scale-105 cursor-pointer">
-
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl">
-                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                            </svg>
-                        </div>
-
-                        <svg class="w-6 h-6 text-gray-400 group-hover:text-purple-600
-                        group-hover:translate-x-1 transition-all"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
-                        Meus Equipamentos
-                    </h3>
-
-                    <p class="text-gray-600 text-sm mb-4">
-                        Gerencie equipamentos, manutenções, limpezas e abra chamados via QRCode.
-                    </p>
-
-                    <div class="flex items-center text-purple-600 font-semibold text-sm">
-                        Ir para Equipamentos
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </a>
-
-            </div>
-
-
-            {{-- Dashboard Overview --}}
-            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-900 mb-8 flex items-center">
-                    <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    Resumo de Atividades
-                </h2>
-
-                {{-- Stats Grid --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <!-- Total NF e Boletos -->
-                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-l-4 border-blue-600 hover:shadow-lg transition-shadow">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-semibold text-gray-700">Total NF e Boletos</p>
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <p class="text-4xl font-bold text-blue-600 mb-1">
-                            {{ $totalBoletos + $totalNotas }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            Documentos anexados no portal
-                        </p>
-                    </div>
-
-                    <!-- Atendimentos Abertos -->
-                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border-l-4 border-yellow-600 hover:shadow-lg transition-shadow">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-semibold text-gray-700">Atendimentos Abertos</p>
-                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                        </div>
-                        <p class="text-4xl font-bold text-yellow-600 mb-1">
-                            {{ $totalAtendimentosAbertos }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            Aguardando ação
-                        </p>
-                    </div>
-
-                    <!-- Atendimentos Em Execução -->
-                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border-l-4 border-orange-600 hover:shadow-lg transition-shadow">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-semibold text-gray-700">Em Execução</p>
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <p class="text-4xl font-bold text-orange-600 mb-1">
-                            {{ $totalAtendimentosExecucao }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            Sendo processados
-                        </p>
-                    </div>
-
-                    <!-- Atendimentos Finalizados -->
-                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-l-4 border-green-600 hover:shadow-lg transition-shadow">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-semibold text-gray-700">Finalizados</p>
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <p class="text-4xl font-bold text-green-600 mb-1">
-                            {{ $totalAtendimentosFinalizados }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            Concluídos com sucesso
-                        </p>
                     </div>
                 </div>
+                <h3 class="portal-nav-card-title">
+                    Acessar Meu Financeiro
+                </h3>
+                <p class="portal-nav-card-description">
+                    Visualize boletos, notas fiscais, pagamentos e acompanhe seu histórico financeiro.
+                </p>
+            </a>
 
-                {{-- Charts Section --}}
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Chart 1: Atendimentos por Status -->
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-6">
-                            Distribuição de Atendimentos
-                        </h3>
-                        <canvas id="chartAtendimentos" height="300"></canvas>
+            <!-- Card Atendimentos -->
+            <a href="{{ route('portal.atendimentos') }}" class="portal-nav-card">
+                <div class="portal-nav-card-icon-wrapper">
+                    <div class="portal-nav-card-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
+                </div>
+                <h3 class="portal-nav-card-title">
+                    Acessar Minhas OS
+                </h3>
+                <p class="portal-nav-card-description">
+                    Acompanhe suas ordens de serviço, atendimentos e solicitações.
+                </p>
+            </a>
 
-                    <!-- Chart 2: Documentos por Tipo -->
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-6">
-                            Documentos Anexados
-                        </h3>
-                        <canvas id="chartDocumentos" height="300"></canvas>
+            <!-- Card Equipamentos -->
+            <a href="{{ route('portal.equipamentos.index') }}" class="portal-nav-card">
+                <div class="portal-nav-card-icon-wrapper">
+                    <div class="portal-nav-card-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
                     </div>
+                </div>
+                <h3 class="portal-nav-card-title">
+                    Meus Equipamentos
+                </h3>
+                <p class="portal-nav-card-description">
+                    Gerencie equipamentos, manutenções, limpezas e abra chamados via QRCode.
+                </p>
+            </a>
+
+        </div>
+
+        {{-- Dashboard Overview --}}
+        <div class="portal-section">
+            <h2 class="portal-section-title">
+                <svg class="w-6 h-6 text-[#3f9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Resumo de Atividades
+            </h2>
+
+            {{-- Stats Grid --}}
+            <div class="portal-stats-grid">
+                <!-- Total NF e Boletos -->
+                <div class="portal-stat-card portal-stat-card--blue">
+                    <p class="portal-stat-label">Total NF e Boletos</p>
+                    <p class="portal-stat-value">
+                        {{ $totalBoletos + $totalNotas }}
+                    </p>
+                </div>
+
+                <!-- Atendimentos Abertos -->
+                <div class="portal-stat-card portal-stat-card--yellow">
+                    <p class="portal-stat-label">Atendimentos Abertos</p>
+                    <p class="portal-stat-value">
+                        {{ $totalAtendimentosAbertos }}
+                    </p>
+                </div>
+
+                <!-- Atendimentos Em Execução -->
+                <div class="portal-stat-card portal-stat-card--orange">
+                    <p class="portal-stat-label">Em Execução</p>
+                    <p class="portal-stat-value">
+                        {{ $totalAtendimentosExecucao }}
+                    </p>
+                </div>
+
+                <!-- Atendimentos Finalizados -->
+                <div class="portal-stat-card portal-stat-card--green">
+                    <p class="portal-stat-label">Finalizados</p>
+                    <p class="portal-stat-value">
+                        {{ $totalAtendimentosFinalizados }}
+                    </p>
                 </div>
             </div>
 
-            {{-- Boletos Table (if exists) --}}
-            @if(isset($boletos) && $boletos->count() > 0)
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                <div class="p-8 border-b border-gray-200">
-                    <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-                        <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- Charts Section --}}
+            <div class="portal-charts-grid">
+                <!-- Chart 1: Atendimentos por Status -->
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">
+                        Distribuição de Atendimentos
+                    </h3>
+                    <canvas id="chartAtendimentos" height="280"></canvas>
+                </div>
+
+                <!-- Chart 2: Documentos por Tipo -->
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">
+                        Documentos Anexados
+                    </h3>
+                    <canvas id="chartDocumentos" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Boletos Table (if exists) --}}
+        @if(isset($boletos) && $boletos->count() > 0)
+        <div class="portal-section">
+            <div class="portal-table-card">
+                <div class="portal-table-header">
+                    <h3 class="portal-table-title">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         Últimos Boletos e Notas Fiscais
-                    </h2>
+                    </h3>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50 border-b border-gray-200">
+                {{-- Versão Desktop (Tabela) --}}
+                <div class="portal-table-wrapper">
+                    <table class="portal-table">
+                        <thead>
                             <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Referência
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Vencimento
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Valor
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Boleto
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    NF
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Ação
-                                </th>
+                                <th>Referência</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th class="text-center">Boleto</th>
+                                <th class="text-center">NF</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
-
-                        <tbody class="divide-y divide-gray-200">
+                        <tbody>
                             @foreach($boletos->take(10) as $boleto)
-                            <tr class="hover:bg-blue-50 transition-colors">
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                            <tr>
+                                <td class="portal-font-semibold">
                                     {{ str_pad($boleto->mes, 2, '0', STR_PAD_LEFT) }}/{{ $boleto->ano }}
                                 </td>
-
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td>
                                     {{ $boleto->data_vencimento->format('d/m/Y') }}
                                 </td>
-
-                                <td class="px-6 py-4 text-sm font-semibold text-gray-900">
+                                <td class="portal-font-semibold">
                                     R$ {{ number_format($boleto->valor, 2, ',', '.') }}
                                 </td>
-
-                                <td class="px-6 py-4 text-sm">
+                                <td>
                                     @if($boleto->cobranca && $boleto->cobranca->status === 'pago')
-                                    <span class="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
-                                        ✓ Pago
-                                    </span>
+                                    <span class="portal-badge portal-badge--success">Pago</span>
                                     @elseif($boleto->status === 'vencido')
-                                    <span class="inline-flex px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-semibold">
-                                        ⚠ Vencido
-                                    </span>
+                                    <span class="portal-badge portal-badge--danger">Vencido</span>
                                     @else
-                                    <span class="inline-flex px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">
-                                        ⏳ Em aberto
-                                    </span>
+                                    <span class="portal-badge portal-badge--warning">Em aberto</span>
                                     @endif
                                 </td>
-
-                                <td class="px-6 py-4 text-sm text-center">
+                                <td class="text-center">
                                     <a href="{{ route('portal.boletos.download', $boleto) }}"
-                                        class="inline-flex items-center justify-center px-3 py-2
-                                        bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg
-                                        shadow-sm hover:shadow-md transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="portal-btn portal-btn--primary portal-btn--sm portal-btn--icon"
+                                        title="Baixar Boleto">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                         </svg>
                                     </a>
                                 </td>
-
-                                <td class="px-6 py-4 text-sm text-center">
+                                <td class="text-center">
                                     @if($boleto->nota_fiscal)
                                     <a href="{{ route('portal.notas.download', $boleto->nota_fiscal) }}"
-                                        class="inline-flex items-center justify-center px-3 py-2
-                                        bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg
-                                        shadow-sm hover:shadow-md transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="portal-btn portal-btn--primary portal-btn--sm portal-btn--icon"
+                                        title="Baixar NF">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
                                     </a>
@@ -376,11 +252,10 @@
                                     <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-
-                                <td class="px-6 py-4 text-sm">
+                                <td>
                                     @if($boleto->foiBaixado())
                                     <div class="text-gray-600 text-xs">
-                                        <span class="font-semibold">Baixado</span><br>
+                                        <span class="portal-font-semibold">Baixado</span><br>
                                         {{ $boleto->baixado_em->format('d/m/Y H:i') }}
                                     </div>
                                     @else
@@ -393,9 +268,66 @@
                     </table>
                 </div>
 
-                <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+                {{-- Versão Mobile (Cards) --}}
+                <div class="portal-mobile-cards px-4 pb-4">
+                    @foreach($boletos->take(10) as $boleto)
+                    <div class="portal-mobile-card">
+                        <div class="portal-mobile-card-header">
+                            <div>
+                                <div class="portal-mobile-card-title">
+                                    {{ str_pad($boleto->mes, 2, '0', STR_PAD_LEFT) }}/{{ $boleto->ano }}
+                                </div>
+                                <div class="portal-mobile-card-subtitle">
+                                    Vencimento: {{ $boleto->data_vencimento->format('d/m/Y') }}
+                                </div>
+                            </div>
+                            @if($boleto->cobranca && $boleto->cobranca->status === 'pago')
+                            <span class="portal-badge portal-badge--success">Pago</span>
+                            @elseif($boleto->status === 'vencido')
+                            <span class="portal-badge portal-badge--danger">Vencido</span>
+                            @else
+                            <span class="portal-badge portal-badge--warning">Em aberto</span>
+                            @endif
+                        </div>
+                        <div class="portal-mobile-card-row">
+                            <span class="portal-mobile-card-label">Valor</span>
+                            <span class="portal-mobile-card-value portal-font-bold">
+                                R$ {{ number_format($boleto->valor, 2, ',', '.') }}
+                            </span>
+                        </div>
+                        @if($boleto->foiBaixado())
+                        <div class="portal-mobile-card-row">
+                            <span class="portal-mobile-card-label">Baixado em</span>
+                            <span class="portal-mobile-card-value">
+                                {{ $boleto->baixado_em->format('d/m/Y H:i') }}
+                            </span>
+                        </div>
+                        @endif
+                        <div class="portal-mobile-card-actions">
+                            <a href="{{ route('portal.boletos.download', $boleto) }}"
+                                class="portal-btn portal-btn--primary portal-btn--sm flex-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                Boleto
+                            </a>
+                            @if($boleto->nota_fiscal)
+                            <a href="{{ route('portal.notas.download', $boleto->nota_fiscal) }}"
+                                class="portal-btn portal-btn--primary portal-btn--sm flex-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                NF
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <a href="https://gestor.alfa.solucoesgrupo.com/portal/financeiro" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all">
+                        class="portal-btn portal-btn--primary">
                         Ver Todos
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -403,17 +335,17 @@
                     </a>
                 </div>
             </div>
-            @else
-            <div class="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <p class="text-gray-500 text-lg font-medium">Nenhum boleto disponível no momento.</p>
-                <p class="text-gray-400 text-sm mt-2">Seus documentos aparecerão aqui quando forem anexados.</p>
-            </div>
-            @endif
-
         </div>
+        @else
+        <div class="portal-empty-state">
+            <svg class="portal-empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="portal-empty-state-title">Nenhum boleto disponível no momento.</p>
+            <p class="portal-empty-state-text">Seus documentos aparecerão aqui quando forem anexados.</p>
+        </div>
+        @endif
+
     </div>
 
     {{-- Chart.js Library --}}
@@ -421,32 +353,12 @@
 
     <script>
         // Dados para os gráficos
-        const atendimentosAbertos = {
-            {
-                rand(2, 8)
-            }
-        };
-        const atendimentosEmExecucao = {
-            {
-                rand(3, 12)
-            }
-        };
-        const atendimentosFinalizados = {
-            {
-                rand(25, 60)
-            }
-        };
+        const atendimentosAbertos = {{ rand(2, 8) }};
+        const atendimentosEmExecucao = {{ rand(3, 12) }};
+        const atendimentosFinalizados = {{ rand(25, 60) }};
 
-        const nfTotal = {
-            {
-                rand(10, 25)
-            }
-        };
-        const boletosTotal = {
-            {
-                rand(15, 35)
-            }
-        };
+        const nfTotal = {{ rand(10, 25) }};
+        const boletosTotal = {{ rand(15, 35) }};
 
         // Gráfico 1: Distribuição de Atendimentos
         const ctxAtendimentos = document.getElementById('chartAtendimentos').getContext('2d');
@@ -457,9 +369,9 @@
                 datasets: [{
                     data: [atendimentosAbertos, atendimentosEmExecucao, atendimentosFinalizados],
                     backgroundColor: [
-                        'rgba(234, 179, 8, 0.8)', // Amarelo
-                        'rgba(249, 115, 22, 0.8)', // Laranja
-                        'rgba(34, 197, 94, 0.8)' // Verde
+                        'rgba(234, 179, 8, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(34, 197, 94, 0.8)'
                     ],
                     borderColor: [
                         'rgba(234, 179, 8, 1)',
@@ -478,10 +390,10 @@
                         position: 'bottom',
                         labels: {
                             font: {
-                                size: 12,
+                                size: 11,
                                 weight: 'bold'
                             },
-                            padding: 15,
+                            padding: 12,
                             usePointStyle: true
                         }
                     }
@@ -499,8 +411,8 @@
                     label: 'Quantidade',
                     data: [nfTotal, boletosTotal],
                     backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)', // Azul
-                        'rgba(139, 92, 246, 0.8)' // Roxo
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(139, 92, 246, 0.8)'
                     ],
                     borderColor: [
                         'rgba(59, 130, 246, 1)',
@@ -539,29 +451,4 @@
             }
         });
     </script>
-
-    <style>
-        /* Smooth transitions */
-        * {
-            @apply transition-all duration-200;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
 </x-app-layout>
