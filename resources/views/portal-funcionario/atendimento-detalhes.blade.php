@@ -741,9 +741,40 @@
         </div>
         @endif
 
+        @if($atendimento->is_orcamento)
+        <div class="info-card" style="background: #eef2ff; border-left: 4px solid #6366f1;">
+            <div style="font-weight: 700; color: #3730a3; margin-bottom: 0.35rem;">Demanda vinda de orçamento agendado</div>
+            @if(!$ehHoje)
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Este atendimento só pode ser incluído na data agendada.
+            </div>
+            @elseif($ehPreCliente)
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Esta demanda é de pré-cliente. Entre em contato com o comercial para converter em cliente antes de incluir o atendimento.
+            </div>
+            @else
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Para atender esta demanda, inclua primeiro o atendimento operacional.
+            </div>
+            @endif
+        </div>
+        @endif
+
         <!-- Botões de Ação -->
         <div style="margin-top: 1.5rem;">
-            @if($atendimento->status_atual === 'aberto')
+            @if($atendimento->is_orcamento && $podeIncluirAtendimento)
+            <form action="{{ route('portal-funcionario.atendimento.incluir', $atendimento) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-action btn-iniciar">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Incluir Atendimento
+                </button>
+            </form>
+            @endif
+
+            @if($atendimento->status_atual === 'aberto' && !$atendimento->is_orcamento)
             <button onclick="abrirModalIniciar()" class="btn-action btn-iniciar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
@@ -753,7 +784,7 @@
             </button>
             @endif
 
-            @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em)
+            @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em && !$atendimento->is_orcamento)
             <button onclick="abrirModalIniciar()" class="btn-action btn-iniciar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>

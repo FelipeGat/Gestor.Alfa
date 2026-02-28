@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
 use App\Models\AtendimentoStatusHistorico;
+use App\Models\Assunto;
 use App\Models\Funcionario;
 use App\Models\Orcamento;
 use App\Models\User;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AgendaTecnicaController extends Controller
 {
@@ -99,10 +101,19 @@ class AgendaTecnicaController extends Controller
             $atendimento = $orcamento->atendimento;
 
             if (! $atendimento) {
+                $assuntoId = $this->resolverAssuntoIdParaOrcamento($orcamento);
+
+                if (! $assuntoId) {
+                    throw ValidationException::withMessages([
+                        'orcamento' => 'Não foi possível agendar o orçamento: cadastre ao menos um assunto para a empresa selecionada.',
+                    ]);
+                }
+
                 $atendimento = Atendimento::create([
                     'numero_atendimento' => $this->proximoNumeroAtendimento(),
                     'cliente_id' => $orcamento->cliente_id,
                     'nome_solicitante' => $orcamento->nome_cliente,
+                    'assunto_id' => $assuntoId,
                     'descricao' => 'Atendimento gerado automaticamente a partir do orçamento ' . $orcamento->numero_orcamento,
                     'prioridade' => 'media',
                     'empresa_id' => $orcamento->empresa_id,
@@ -149,5 +160,25 @@ class AgendaTecnicaController extends Controller
 
             return (string) ((int) $ultimo + 1);
         });
+    }
+
+    private function resolverAssuntoIdParaOrcamento(Orcamento $orcamento): ?int
+    {
+        $assuntoAtivo = Assunto::query()
+            ->where('empresa_id', $orcamento->empresa_id)
+            ->where('ativo', true)
+            ->orderBy('id')
+            ->value('id');
+
+        if ($assuntoAtivo) {
+            return (int) $assuntoAtivo;
+        }
+
+        $assuntoQualquer = Assunto::query()
+            ->where('empresa_id', $orcamento->empresa_id)
+            ->orderBy('id')
+            ->value('id');
+
+        return $assuntoQualquer ? (int) $assuntoQualquer : null;
     }
 }

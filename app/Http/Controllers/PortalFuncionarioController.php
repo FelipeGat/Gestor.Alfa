@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
 use App\Models\AtendimentoPausa;
+use App\Models\AtendimentoStatusHistorico;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,6 +101,7 @@ class PortalFuncionarioController extends Controller
             'cliente',
             'empresa',
             'assunto',
+            'orcamento.preCliente',
             'andamentos.fotos',
             'pausas.user',
             'pausas.retomadoPor',
@@ -107,7 +109,93 @@ class PortalFuncionarioController extends Controller
             'finalizadoPor'
         ])->findOrFail($atendimento->id);
 
-        return view('portal-funcionario.atendimento-detalhes', compact('atendimento'));
+        $dataReferencia = $atendimento->data_inicio_agendamento?->toDateString();
+        $ehHoje = $dataReferencia && $dataReferencia === now()->toDateString();
+        $orcamentoVinculado = $atendimento->orcamento;
+        $ehPreCliente = $orcamentoVinculado && ! $orcamentoVinculado->cliente_id && $orcamentoVinculado->pre_cliente_id;
+
+        $podeIncluirAtendimento =
+            $atendimento->is_orcamento
+            && $ehHoje
+            && ! $ehPreCliente
+            && ! Atendimento::where('atendimento_origem_id', $atendimento->id)->exists();
+
+        return view('portal-funcionario.atendimento-detalhes', compact('atendimento', 'podeIncluirAtendimento', 'ehPreCliente', 'ehHoje'));
+    }
+
+    public function incluirAtendimento(Atendimento $atendimento)
+    {
+        $funcionarioId = Auth::user()->funcionario_id;
+
+        abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
+
+        if (! $atendimento->is_orcamento) {
+            return back()->with('error', 'Este registro já é um atendimento do sistema.');
+        }
+
+        $dataAgendada = $atendimento->data_inicio_agendamento?->toDateString();
+
+        if (! $dataAgendada) {
+            return back()->with('error', 'Este orçamento não possui data de agendamento válida para inclusão de atendimento.');
+        }
+
+        if ($dataAgendada !== now()->toDateString()) {
+            return back()->with('error', 'O atendimento só pode ser incluído na data agendada (' . Carbon::parse($dataAgendada)->format('d/m/Y') . ').');
+        }
+
+        $orcamento = $atendimento->orcamento;
+
+        if ($orcamento && ! $orcamento->cliente_id && $orcamento->pre_cliente_id) {
+            return back()->with('error', 'Esta demanda está vinculada a um pré-cliente. Entre em contato com o comercial para converter o pré-cliente em cliente antes de incluir o atendimento.');
+        }
+
+        $atendimentoJaGerado = Atendimento::where('atendimento_origem_id', $atendimento->id)->first();
+        if ($atendimentoJaGerado) {
+            return redirect()
+                ->route('portal-funcionario.atendimento.show', $atendimentoJaGerado)
+                ->with('success', 'Atendimento já incluído para esta demanda.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $clienteId = $orcamento?->cliente_id ?? $atendimento->cliente_id;
+
+            if (! $clienteId) {
+                DB::rollBack();
+                return back()->with('error', 'Não foi possível incluir o atendimento: cliente não identificado para esta demanda.');
+            }
+
+            $atendimento->update([
+                'cliente_id' => $clienteId,
+                'nome_solicitante' => $atendimento->nome_solicitante ?: ($orcamento?->nome_cliente ?? null),
+                'status_atual' => 'em_atendimento',
+                'is_orcamento' => false,
+                'data_atendimento' => $atendimento->data_inicio_agendamento ?? now(),
+            ]);
+
+            AtendimentoStatusHistorico::create([
+                'atendimento_id' => $atendimento->id,
+                'status' => 'em_atendimento',
+                'observacao' => 'Atendimento incluído pelo técnico a partir de agendamento de orçamento.',
+                'user_id' => Auth::id(),
+            ]);
+
+            if ($orcamento) {
+                $orcamento->update([
+                    'atendimento_id' => $atendimento->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('portal-funcionario.atendimento.show', $atendimento)
+                ->with('success', 'Atendimento incluído com sucesso para esta demanda.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Erro ao incluir atendimento: ' . $e->getMessage());
+        }
     }
 
     /**
