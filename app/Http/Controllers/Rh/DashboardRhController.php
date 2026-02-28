@@ -11,6 +11,7 @@ use App\Models\FuncionarioDocumento;
 use App\Models\FuncionarioEpi;
 use App\Models\FuncionarioJornada;
 use App\Models\Jornada;
+use App\Models\RegistroPontoPortal;
 use App\Models\RhAjustePonto;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -151,38 +152,114 @@ class DashboardRhController extends Controller
     {
         $baseFaltasIds = !empty($funcionariosComJornadaAtiva) ? $funcionariosComJornadaAtiva : $funcionariosAtivosIds;
 
-        $registrosHojeIds = Atendimento::query()
-            ->whereNotNull('funcionario_id')
-            ->whereDate('created_at', $hoje)
-            ->pluck('funcionario_id')
-            ->unique()
-            ->values()
-            ->all();
+        $usaRegistroLegal = Schema::hasTable('registro_pontos_portal')
+            && Schema::hasTable('funcionario_jornadas')
+            && Schema::hasTable('jornadas');
 
-        $faltasHoje = $funcionariosAtivos
-            ->whereIn('id', $baseFaltasIds)
-            ->reject(fn (Funcionario $funcionario) => in_array($funcionario->id, $registrosHojeIds, true))
-            ->values();
+        if ($usaRegistroLegal) {
+            $jornadasHoje = $this->jornadasVigentesPorFuncionarioNoDia($hoje, $baseFaltasIds);
+            $registrosHoje = RegistroPontoPortal::query()
+                ->whereIn('funcionario_id', array_keys($jornadasHoje))
+                ->whereDate('data_referencia', $hoje->toDateString())
+                ->get()
+                ->keyBy('funcionario_id');
 
-        $atrasosHoje = Atendimento::query()
-            ->with('funcionario:id,nome')
-            ->whereNotNull('funcionario_id')
-            ->whereNotNull('data_inicio_agendamento')
-            ->whereNotNull('iniciado_em')
-            ->whereDate('data_inicio_agendamento', $hoje)
-            ->whereColumn('iniciado_em', '>', 'data_inicio_agendamento')
-            ->orderByDesc('iniciado_em')
-            ->get();
+            $faltasHoje = $funcionariosAtivos
+                ->whereIn('id', array_keys($jornadasHoje))
+                ->reject(function (Funcionario $funcionario) use ($registrosHoje) {
+                    $registro = $registrosHoje->get($funcionario->id);
 
-        $saidasAntecipadas = Atendimento::query()
-            ->with('funcionario:id,nome')
-            ->whereNotNull('funcionario_id')
-            ->whereNotNull('data_fim_agendamento')
-            ->whereNotNull('finalizado_em')
-            ->whereDate('data_fim_agendamento', $hoje)
-            ->whereColumn('finalizado_em', '<', 'data_fim_agendamento')
-            ->orderByDesc('finalizado_em')
-            ->get();
+                    return (bool) ($registro?->entrada_em);
+                })
+                ->values();
+
+            $atrasosHoje = collect($jornadasHoje)
+                ->map(function (FuncionarioJornada $vinculo, int $funcionarioId) use ($registrosHoje, $hoje) {
+                    $registro = $registrosHoje->get($funcionarioId);
+                    if (!$registro || !$registro->entrada_em || !$vinculo->jornada) {
+                        return null;
+                    }
+
+                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $vinculo->jornada->hora_inicio);
+                    $registrado = Carbon::parse($registro->entrada_em);
+                    $atrasoMin = max(0, $registrado->diffInMinutes($previsto, false));
+
+                    if ($atrasoMin <= 0) {
+                        return null;
+                    }
+
+                    return [
+                        'funcionario' => optional($vinculo->funcionario)->nome ?? '—',
+                        'previsto' => $previsto,
+                        'registrado' => $registrado,
+                        'atraso_minutos' => $atrasoMin,
+                    ];
+                })
+                ->filter()
+                ->sortByDesc('atraso_minutos')
+                ->values();
+
+            $saidasAntecipadas = collect($jornadasHoje)
+                ->map(function (FuncionarioJornada $vinculo, int $funcionarioId) use ($registrosHoje, $hoje) {
+                    $registro = $registrosHoje->get($funcionarioId);
+                    if (!$registro || !$registro->saida_em || !$vinculo->jornada) {
+                        return null;
+                    }
+
+                    $previsto = Carbon::parse($hoje->toDateString() . ' ' . $vinculo->jornada->hora_fim);
+                    if ($vinculo->jornada->hora_fim <= $vinculo->jornada->hora_inicio) {
+                        $previsto->addDay();
+                    }
+
+                    $registrado = Carbon::parse($registro->saida_em);
+                    if ($registrado->gte($previsto)) {
+                        return null;
+                    }
+
+                    return [
+                        'funcionario' => optional($vinculo->funcionario)->nome ?? '—',
+                        'previsto' => $previsto,
+                        'registrado' => $registrado,
+                        'antecipacao_minutos' => $previsto->diffInMinutes($registrado),
+                    ];
+                })
+                ->filter()
+                ->sortByDesc('antecipacao_minutos')
+                ->values();
+        } else {
+            $registrosHojeIds = Atendimento::query()
+                ->whereNotNull('funcionario_id')
+                ->whereDate('created_at', $hoje)
+                ->pluck('funcionario_id')
+                ->unique()
+                ->values()
+                ->all();
+
+            $faltasHoje = $funcionariosAtivos
+                ->whereIn('id', $baseFaltasIds)
+                ->reject(fn (Funcionario $funcionario) => in_array($funcionario->id, $registrosHojeIds, true))
+                ->values();
+
+            $atrasosHoje = Atendimento::query()
+                ->with('funcionario:id,nome')
+                ->whereNotNull('funcionario_id')
+                ->whereNotNull('data_inicio_agendamento')
+                ->whereNotNull('iniciado_em')
+                ->whereDate('data_inicio_agendamento', $hoje)
+                ->whereColumn('iniciado_em', '>', 'data_inicio_agendamento')
+                ->orderByDesc('iniciado_em')
+                ->get();
+
+            $saidasAntecipadas = Atendimento::query()
+                ->with('funcionario:id,nome')
+                ->whereNotNull('funcionario_id')
+                ->whereNotNull('data_fim_agendamento')
+                ->whereNotNull('finalizado_em')
+                ->whereDate('data_fim_agendamento', $hoje)
+                ->whereColumn('finalizado_em', '<', 'data_fim_agendamento')
+                ->orderByDesc('finalizado_em')
+                ->get();
+        }
 
         $atestadosMesRows = [];
         if (Schema::hasTable('afastamentos')) {
@@ -220,35 +297,53 @@ class DashboardRhController extends Controller
                 'title' => 'Atrasos Hoje',
                 'description' => 'Comparação entre início previsto e início registrado.',
                 'count' => $atrasosHoje->count(),
-                'columns' => ['Atendimento', 'Funcionário', 'Previsto', 'Registrado', 'Atraso'],
-                'rows' => $atrasosHoje->map(function (Atendimento $atendimento) {
-                    $minutosAtraso = max(0, Carbon::parse($atendimento->data_inicio_agendamento)->diffInMinutes(Carbon::parse($atendimento->iniciado_em)));
+                'columns' => $usaRegistroLegal
+                    ? ['Funcionário', 'Entrada Prevista', 'Entrada Registrada', 'Atraso']
+                    : ['Atendimento', 'Funcionário', 'Previsto', 'Registrado', 'Atraso'],
+                'rows' => $usaRegistroLegal
+                    ? $atrasosHoje->map(fn (array $item) => [
+                        $item['funcionario'],
+                        $item['previsto']->format('d/m/Y H:i'),
+                        $item['registrado']->format('d/m/Y H:i'),
+                        $item['atraso_minutos'] . ' min',
+                    ])->all()
+                    : $atrasosHoje->map(function (Atendimento $atendimento) {
+                        $minutosAtraso = max(0, Carbon::parse($atendimento->data_inicio_agendamento)->diffInMinutes(Carbon::parse($atendimento->iniciado_em)));
 
-                    return [
-                        $atendimento->numero_atendimento,
-                        optional($atendimento->funcionario)->nome ?? '—',
-                        optional($atendimento->data_inicio_agendamento)?->format('d/m/Y H:i') ?? '—',
-                        optional($atendimento->iniciado_em)?->format('d/m/Y H:i') ?? '—',
-                        $minutosAtraso . ' min',
-                    ];
-                })->all(),
+                        return [
+                            $atendimento->numero_atendimento,
+                            optional($atendimento->funcionario)->nome ?? '—',
+                            optional($atendimento->data_inicio_agendamento)?->format('d/m/Y H:i') ?? '—',
+                            optional($atendimento->iniciado_em)?->format('d/m/Y H:i') ?? '—',
+                            $minutosAtraso . ' min',
+                        ];
+                    })->all(),
             ],
             'saidas_antecipadas' => [
                 'title' => 'Saídas Antecipadas',
                 'description' => 'Atendimentos finalizados antes do horário previsto de término.',
                 'count' => $saidasAntecipadas->count(),
-                'columns' => ['Atendimento', 'Funcionário', 'Previsto', 'Finalizado', 'Antecipação'],
-                'rows' => $saidasAntecipadas->map(function (Atendimento $atendimento) {
-                    $minutosAntecipacao = max(0, Carbon::parse($atendimento->finalizado_em)->diffInMinutes(Carbon::parse($atendimento->data_fim_agendamento)));
+                'columns' => $usaRegistroLegal
+                    ? ['Funcionário', 'Saída Prevista', 'Saída Registrada', 'Antecipação']
+                    : ['Atendimento', 'Funcionário', 'Previsto', 'Finalizado', 'Antecipação'],
+                'rows' => $usaRegistroLegal
+                    ? $saidasAntecipadas->map(fn (array $item) => [
+                        $item['funcionario'],
+                        $item['previsto']->format('d/m/Y H:i'),
+                        $item['registrado']->format('d/m/Y H:i'),
+                        $item['antecipacao_minutos'] . ' min',
+                    ])->all()
+                    : $saidasAntecipadas->map(function (Atendimento $atendimento) {
+                        $minutosAntecipacao = max(0, Carbon::parse($atendimento->finalizado_em)->diffInMinutes(Carbon::parse($atendimento->data_fim_agendamento)));
 
-                    return [
-                        $atendimento->numero_atendimento,
-                        optional($atendimento->funcionario)->nome ?? '—',
-                        optional($atendimento->data_fim_agendamento)?->format('d/m/Y H:i') ?? '—',
-                        optional($atendimento->finalizado_em)?->format('d/m/Y H:i') ?? '—',
-                        $minutosAntecipacao . ' min',
-                    ];
-                })->all(),
+                        return [
+                            $atendimento->numero_atendimento,
+                            optional($atendimento->funcionario)->nome ?? '—',
+                            optional($atendimento->data_fim_agendamento)?->format('d/m/Y H:i') ?? '—',
+                            optional($atendimento->finalizado_em)?->format('d/m/Y H:i') ?? '—',
+                            $minutosAntecipacao . ' min',
+                        ];
+                    })->all(),
             ],
             'atestados_mes' => [
                 'title' => 'Atestados no Mês',
@@ -554,6 +649,27 @@ class DashboardRhController extends Controller
             ->pluck('funcionario_id')
             ->unique()
             ->values()
+            ->all();
+    }
+
+    private function jornadasVigentesPorFuncionarioNoDia(Carbon $data, array $funcionariosIds): array
+    {
+        if (empty($funcionariosIds) || !Schema::hasTable('funcionario_jornadas') || !Schema::hasTable('jornadas')) {
+            return [];
+        }
+
+        return FuncionarioJornada::query()
+            ->with(['funcionario:id,nome', 'jornada:id,hora_inicio,hora_fim,intervalo_minutos'])
+            ->whereIn('funcionario_id', $funcionariosIds)
+            ->whereDate('data_inicio', '<=', $data->toDateString())
+            ->where(function ($query) use ($data) {
+                $query->whereNull('data_fim')
+                    ->orWhereDate('data_fim', '>=', $data->toDateString());
+            })
+            ->orderByDesc('data_inicio')
+            ->get()
+            ->groupBy('funcionario_id')
+            ->map(fn (Collection $itens) => $itens->first())
             ->all();
     }
 

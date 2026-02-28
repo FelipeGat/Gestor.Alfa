@@ -12,8 +12,10 @@ class RhAjustePonto extends Model
         'funcionario_id',
         'atendimento_id',
         'minutos_ajuste',
+        'tipo_ajuste',
         'justificativa',
         'ajustado_por_user_id',
+        'autorizado_por_user_id',
         'ajustado_em',
     ];
 
@@ -34,5 +36,10 @@ class RhAjustePonto extends Model
     public function ajustadoPor()
     {
         return $this->belongsTo(User::class, 'ajustado_por_user_id');
+    }
+
+    public function autorizadoPor()
+    {
+        return $this->belongsTo(User::class, 'autorizado_por_user_id');
     }
 }

@@ -693,6 +693,10 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         // Agenda Técnica
         Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])->name('agenda');
 
+        // Registro de Ponto
+        Route::get('/ponto', [PortalFuncionarioController::class, 'ponto'])->name('ponto');
+        Route::post('/ponto', [PortalFuncionarioController::class, 'registrarPonto'])->name('ponto.store');
+
         // Documentos
         Route::get('/documentos', [PortalFuncionarioController::class, 'documentos'])->name('documentos');
 

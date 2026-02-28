@@ -105,6 +105,28 @@
                 margin: 0;
             }
 
+            .portal-btn-status {
+                display: inline-block;
+                margin-top: 0.25rem;
+                padding: 0.3rem 0.65rem;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                border: 1px solid #b7dbe1;
+            }
+
+            .portal-btn-status.ok {
+                color: #0f766e;
+                background: #ecfdf5;
+                border-color: #86efac;
+            }
+
+            .portal-btn-status.pending {
+                color: #0f4d5a;
+                background: #f0f9fb;
+                border-color: #b7dbe1;
+            }
+
             .portal-btn.chamados {
                 border-top: 4px solid #3f9cae;
             }
@@ -218,13 +240,17 @@
         </div>
 
         <div class="portal-buttons">
-            <button type="button" class="portal-btn ponto">
+            <a href="{{ route('portal-funcionario.ponto') }}" class="portal-btn ponto">
                 <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <h3 class="portal-btn-title">Registro de Ponto</h3>
-                <p class="portal-btn-desc">Em breve</p>
-            </button>
+                <p class="portal-btn-desc">Registrar entrada, almoço e saída</p>
+                <span class="portal-btn-status {{ ($pontoStatus['concluido'] ?? false) ? 'ok' : 'pending' }}">
+                    {{ $pontoStatus['label'] ?? 'Pendente hoje' }}
+                </span>
+                <p class="portal-btn-desc">{{ $pontoStatus['detalhe'] ?? 'Próximo: Entrada' }}</p>
+            </a>
 
             <a href="{{ route('portal-funcionario.chamados') }}" class="portal-btn chamados">
                 <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">

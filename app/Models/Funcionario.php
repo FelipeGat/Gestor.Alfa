@@ -89,4 +89,9 @@ class Funcionario extends Model
     {
         return $this->hasMany(RhAjustePonto::class);
     }
+
+    public function registrosPontoPortal()
+    {
+        return $this->hasMany(RegistroPontoPortal::class);
+    }
 }
