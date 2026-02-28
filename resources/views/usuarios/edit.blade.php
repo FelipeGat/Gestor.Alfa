@@ -36,6 +36,7 @@
                             'financeiro' => 'Financeiro',
                             'comercial' => 'Comercial',
                             'cliente' => 'Cliente',
+                            'funcionario' => 'Funcionário',
                         ]" />
                     </div>
                 </div>
