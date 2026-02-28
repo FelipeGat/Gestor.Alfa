@@ -256,22 +256,6 @@
                         </x-slot>
                         Limpar
                     </x-button>
-                    <x-button type="button" variant="success" size="sm" class="min-w-[130px]" x-data @click="$dispatch('abrir-modal-conta-fixa-pagar')">
-                        <x-slot name="iconLeft">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                        </x-slot>
-                        Despesas Fixas
-                    </x-button>
-                    <x-button type="button" variant="danger" size="sm" class="min-w-[130px]" x-data @click="$dispatch('abrir-modal-conta-pagar')">
-                        <x-slot name="iconLeft">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                        </x-slot>
-                        Despesas Variadas
-                    </x-button>
                 </div>
             </form>
 
@@ -305,14 +289,25 @@
                     return total;
                 }
             }'>
-                <div class="flex justify-start mb-4">
-                    <x-button type="button" variant="success" size="sm" class="min-w-[130px]" x-data @click="$dispatch('abrir-modal-conta-fixa-pagar')">
+                <div class="flex justify-start gap-3 mb-4">
+                    {{-- Botão Despesa Fixa (Modal) --}}
+                    <x-button type="button" variant="success" size="sm" class="min-w-[160px]" x-data @click="$dispatch('open-modal', 'modal-conta-fixa-pagar')">
                         <x-slot name="iconLeft">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                             </svg>
                         </x-slot>
-                        Despesas Fixas
+                        Despesa Fixa
+                    </x-button>
+
+                    {{-- Botão Despesa Variada (Modal) --}}
+                    <x-button type="button" variant="info" size="sm" class="min-w-[160px]" x-data @click="$dispatch('open-modal', 'modal-conta-pagar')">
+                        <x-slot name="iconLeft">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                        </x-slot>
+                        Despesa Variada
                     </x-button>
                 </div>
 

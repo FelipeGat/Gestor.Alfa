@@ -468,20 +468,6 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->middleware('rate.forms')
             ->name('contasapagar.destroy');
 
-        // Anexos de Contas a Pagar
-        Route::get('/contas-pagar/{conta}/anexos', [ContasPagarController::class, 'getAnexos'])
-            ->name('financeiro.contas-pagar.anexos.index');
-
-        Route::post('/contas-pagar/{conta}/anexos', [ContasPagarController::class, 'storeAnexo'])
-            ->middleware('rate.uploads')
-            ->name('financeiro.contas-pagar.anexos.store');
-
-        Route::delete('/contas-pagar/anexos/{anexo}', [ContasPagarController::class, 'destroyAnexo'])
-            ->name('financeiro.contas-pagar.anexos.destroy');
-
-        Route::get('/contas-pagar/anexos/{anexo}/download', [ContasPagarController::class, 'downloadAnexo'])
-            ->name('financeiro.contas-pagar.anexos.download');
-
         // Contas Fixas a Pagar
         Route::post('/contas-fixas-pagar', [ContasPagarController::class, 'storeContaFixa'])
             ->middleware('rate.forms')
