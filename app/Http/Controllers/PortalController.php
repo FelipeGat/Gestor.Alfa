@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Boleto;
+use App\Models\Cobranca;
+use App\Models\Orcamento;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\Boleto;
-use App\Models\Cobranca;
-use App\Models\NotaFiscal;
-use App\Models\Orcamento;
-use Carbon\Carbon;
 
 class PortalController extends Controller
 {
@@ -19,18 +18,120 @@ class PortalController extends Controller
     public function atendimentos()
     {
         $user = Auth::user();
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
         $clienteId = session('cliente_id_ativo');
-        if (!$clienteId) {
+        if (! $clienteId) {
             return redirect()->route('portal.unidade');
         }
         $cliente = $user->clientes()->where('clientes.id', $clienteId)->firstOrFail();
         // Busca todos os atendimentos do cliente
         $atendimentos = $cliente->atendimentos()->orderByDesc('created_at')->get();
+
         return view('portal.atendimentos', compact('cliente', 'atendimentos'));
     }
+
+    /**
+     * Formulário para Novo Chamado
+     */
+    public function novoChamado()
+    {
+        $user = Auth::user();
+        if (! $user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+        $clienteId = session('cliente_id_ativo');
+        if (! $clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+        $cliente = $user->clientes()->where('clientes.id', $clienteId)->firstOrFail();
+        $assuntos = \App\Models\Assunto::orderBy('nome')->get();
+
+        return view('portal.chamado.novo', compact('cliente', 'assuntos'));
+    }
+
+    /**
+     * Salvar Novo Chamado
+     */
+    public function storeChamado(Request $request)
+    {
+        $user = Auth::user();
+        if (! $user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+        $clienteId = session('cliente_id_ativo');
+        if (! $clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+
+        $request->validate([
+            'assunto_id' => 'required|exists:assuntos,id',
+            'descricao' => 'required|string',
+            'prioridade' => 'required|in:baixa,media,alta,urgente',
+        ]);
+
+        // Gerar número de atendimento
+        $ultimoRegistro = \App\Models\Atendimento::orderBy('numero_atendimento', 'desc')->first();
+        $numeroAtendimento = $ultimoRegistro ? $ultimoRegistro->numero_atendimento + 1 : 1;
+
+        $atendimento = \App\Models\Atendimento::create([
+            'numero_atendimento' => $numeroAtendimento,
+            'cliente_id' => $clienteId,
+            'nome_solicitante' => $user->name,
+            'telefone_solicitante' => $user->telefone ?? null,
+            'email_solicitante' => $user->email,
+            'assunto_id' => $request->assunto_id,
+            'descricao' => $request->descricao,
+            'prioridade' => $request->prioridade,
+            'status_atual' => 'aberto',
+            'data_atendimento' => now(),
+        ]);
+
+        return redirect()->route('portal.atendimentos')->with('success', 'Chamado aberto com sucesso!');
+    }
+
+    /**
+     * Lista de Boletos
+     */
+    public function boletos()
+    {
+        $user = Auth::user();
+        if (! $user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+        $clienteId = session('cliente_id_ativo');
+        if (! $clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+        $cliente = $user->clientes()->where('clientes.id', $clienteId)->firstOrFail();
+        $boletos = $cliente->boletos()->with('cobranca')->orderByDesc('created_at')->get();
+
+        return view('portal.boletos', compact('cliente', 'boletos'));
+    }
+
+    /**
+     * Lista de Notas Fiscais
+     */
+    public function notas()
+    {
+        $user = Auth::user();
+        if (! $user || $user->tipo !== 'cliente') {
+            abort(403);
+        }
+        $clienteId = session('cliente_id_ativo');
+        if (! $clienteId) {
+            return redirect()->route('portal.unidade');
+        }
+        $cliente = $user->clientes()->where('clientes.id', $clienteId)->firstOrFail();
+
+        $notas = \App\Models\NotaFiscal::where('cliente_id', $clienteId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('portal.notas', compact('cliente', 'notas'));
+    }
+
     /**
      * Dashboard do Portal do Cliente
      */
@@ -38,12 +139,12 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
         // unidade esteja selecionada
-        if (!session()->has('cliente_id_ativo')) {
+        if (! session()->has('cliente_id_ativo')) {
 
             // Se tiver mais de uma unidade, força seleção
             if ($user->clientes()->count() > 1) {
@@ -71,7 +172,7 @@ class PortalController extends Controller
 
         // Notas fiscais
         $pastaNotas = storage_path("app/boletos/cliente_{$cliente->id}");
-        $arquivosNotas = is_dir($pastaNotas) ? glob($pastaNotas . DIRECTORY_SEPARATOR . '*.pdf') : [];
+        $arquivosNotas = is_dir($pastaNotas) ? glob($pastaNotas.DIRECTORY_SEPARATOR.'*.pdf') : [];
         $totalNotas = count($arquivosNotas);
 
         // Atendimentos
@@ -97,12 +198,12 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
         // Unidade ativa obrigatória
-        if (!session()->has('cliente_id_ativo')) {
+        if (! session()->has('cliente_id_ativo')) {
             return redirect()->route('portal.unidade');
         }
 
@@ -161,10 +262,10 @@ class PortalController extends Controller
         }
 
         $resumo = [
-            'total_pago'     => (clone $queryBase)->where('status', 'pago')->sum('valor'),
+            'total_pago' => (clone $queryBase)->where('status', 'pago')->sum('valor'),
             'total_pendente' => (clone $queryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '>=', today())->sum('valor'),
-            'total_vencido'  => (clone $queryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
-            'total_geral'    => (clone $queryBase)->sum('valor'),
+            'total_vencido' => (clone $queryBase)->where('status', '!=', 'pago')->whereDate('data_vencimento', '<', today())->sum('valor'),
+            'total_geral' => (clone $queryBase)->sum('valor'),
         ];
 
         return view('portal.financeiro.index', compact(
@@ -183,7 +284,7 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
@@ -202,9 +303,9 @@ class PortalController extends Controller
                 'baixado_em' => now(),
             ]);
 
-        $filePath = storage_path('app/' . $boleto->arquivo);
+        $filePath = storage_path('app/'.$boleto->arquivo);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             abort(404, 'Boleto não encontrado.');
         }
 
@@ -218,7 +319,7 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
@@ -231,7 +332,7 @@ class PortalController extends Controller
 
         $caminho = storage_path("app/boletos/cliente_{$cliente->id}/{$arquivo}");
 
-        if (!file_exists($caminho)) {
+        if (! file_exists($caminho)) {
             abort(404, 'Nota fiscal não encontrada.');
         }
 
@@ -245,7 +346,7 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
@@ -254,6 +355,7 @@ class PortalController extends Controller
         // Se só houver uma unidade, define e segue
         if ($clientes->count() === 1) {
             session(['cliente_id_ativo' => $clientes->first()->id]);
+
             return redirect()->route('portal.index');
         }
 
@@ -267,7 +369,7 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
@@ -294,7 +396,7 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
@@ -310,13 +412,13 @@ class PortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || $user->tipo !== 'cliente') {
+        if (! $user || $user->tipo !== 'cliente') {
             abort(403);
         }
 
         $clienteId = session('cliente_id_ativo');
 
-        if (!$clienteId) {
+        if (! $clienteId) {
             return redirect()->route('portal.unidade');
         }
 
@@ -328,43 +430,43 @@ class PortalController extends Controller
             'cliente.telefones',
             'itens.item',
             'pagamentos',
-            'taxasItens'
+            'taxasItens',
         ])->findOrFail($id);
 
         // Verificar se o orçamento pertence ao cliente ativo
         // Verifica tanto o cliente_id do orçamento quanto através das cobranças
         $pertenceAoCliente = $orcamento->cliente_id === $clienteId;
 
-        if (!$pertenceAoCliente) {
+        if (! $pertenceAoCliente) {
             // Verificar se existe cobrança vinculada ao cliente ativo
             $cobrancaDoCliente = \App\Models\Cobranca::where('orcamento_id', $orcamento->id)
                 ->where('cliente_id', $clienteId)
                 ->exists();
 
-            if (!$cobrancaDoCliente) {
+            if (! $cobrancaDoCliente) {
                 abort(403, 'Acesso não autorizado');
             }
         }
 
         // Gerar PDF usando o layout da empresa
-        $view = 'orcamentos.' . $orcamento->empresa->layout_pdf;
+        $view = 'orcamentos.'.$orcamento->empresa->layout_pdf;
 
-        if (!view()->exists($view)) {
+        if (! view()->exists($view)) {
             abort(500, 'Layout de impressão não encontrado.');
         }
 
         $pdf = app('dompdf.wrapper');
         $pdf->loadView($view, [
             'orcamento' => $orcamento,
-            'empresa'   => $orcamento->empresa
+            'empresa' => $orcamento->empresa,
         ]);
         $pdf->setPaper('A4', 'portrait');
 
-        $filename = 'orcamento_' . str_replace(
+        $filename = 'orcamento_'.str_replace(
             ['/', '\\'],
             '-',
             $orcamento->numero_orcamento
-        ) . '.pdf';
+        ).'.pdf';
 
         return $pdf->stream($filename);
     }

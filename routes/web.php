@@ -535,11 +535,23 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal/atendimentos', [PortalController::class, 'atendimentos'])
         ->name('portal.atendimentos');
 
+    Route::get('/portal/chamado/novo', [PortalController::class, 'novoChamado'])
+        ->name('portal.chamado.novo');
+
+    Route::post('/portal/chamado/novo', [PortalController::class, 'storeChamado'])
+        ->name('portal.chamado.store');
+
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
 
     Route::get('/portal/financeiro', [PortalController::class, 'financeiro'])
         ->name('portal.financeiro');
+
+    Route::get('/portal/boletos', [PortalController::class, 'boletos'])
+        ->name('portal.boletos');
+
+    Route::get('/portal/notas', [PortalController::class, 'notas'])
+        ->name('portal.notas');
 
     Route::get('/portal/unidade', [PortalController::class, 'selecionarUnidade'])
         ->name('portal.unidade');

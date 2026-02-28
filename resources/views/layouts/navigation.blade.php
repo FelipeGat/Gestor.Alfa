@@ -37,6 +37,94 @@
             {{-- ================= DESKTOP MENU ================= --}}
             <div class="hidden sm:flex sm:space-x-8 sm:items-center">
 
+                {{-- ============ ATENDIMENTOS ============ --}}
+                @if($isCliente)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(34, 197, 94, 0.1); color: #22c55e;' : 'color: #374151;'">
+                        Atendimentos
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+
+                        <x-nav-link :href="route('portal.atendimentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Meus Atendimentos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.chamado.novo')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Abrir Novo Chamado
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ FINANCEIRO ============ --}}
+                @if($isCliente)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;' : 'color: #374151;'">
+                        Financeiro
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+
+                        <x-nav-link :href="route('portal.financeiro')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Dashboard Financeiro
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.boletos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Boletos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.notas')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Notas Fiscais
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ EQUIPAMENTOS ============ --}}
+                @if($isCliente)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(147, 51, 234, 0.1); color: #9333ea;' : 'color: #374151;'">
+                        Equipamentos
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+
+                        <x-nav-link :href="route('portal.equipamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Dashboard Equipamentos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.equipamentos.lista')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Lista de Equipamentos
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.equipamentos.setores')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Setores
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.equipamentos.responsaveis')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Responsáveis
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('portal.equipamentos.pmoc')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                            Plano de Manutenção (PMOC)
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
                 {{-- ============ GESTÃO ============ --}}
                 @if($isAdmin || $isComercial || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
@@ -306,6 +394,39 @@
 
     {{-- ================= MOBILE MENU (ANINHADO IGUAL AO DESKTOP) ================= --}}
     <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
+
+        {{-- Atendimentos --}}
+        @if($isCliente)
+        <details>
+            <summary class="font-semibold text-green-700">Atendimentos</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('portal.atendimentos')" data-tab-icon="portal">Meus Atendimentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.chamado.novo')" data-tab-icon="portal">Abrir Novo Chamado</x-responsive-nav-link>
+            </div>
+        </details>
+
+        {{-- Financeiro --}}
+        <details>
+            <summary class="font-semibold text-blue-700">Financeiro</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('portal.financeiro')" data-tab-icon="portal">Dashboard Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.boletos')" data-tab-icon="portal">Boletos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.notas')" data-tab-icon="portal">Notas Fiscais</x-responsive-nav-link>
+            </div>
+        </details>
+
+        {{-- Equipamentos --}}
+        <details>
+            <summary class="font-semibold text-purple-700">Equipamentos</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('portal.equipamentos.index')" data-tab-icon="portal">Dashboard Equipamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.lista')" data-tab-icon="portal">Lista de Equipamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.setores')" data-tab-icon="portal">Setores</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.responsaveis')" data-tab-icon="portal">Responsáveis</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.pmoc')" data-tab-icon="portal">Plano de Manutenção (PMOC)</x-responsive-nav-link>
+            </div>
+        </details>
+        @endif
 
         {{-- Gestão --}}
         @if($isAdmin || $isComercial || $isFinanceiro)
