@@ -36,7 +36,7 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #3f9cae 0%, #327d8c 100%);
             color: white;
             border-radius: 0.75rem;
             font-weight: 600;

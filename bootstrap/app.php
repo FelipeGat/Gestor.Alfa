@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.panel' => \App\Http\Middleware\AdminPanelMiddleware::class,
             'dashboard.comercial' => \App\Http\Middleware\DashboardComercialMiddleware::class,
             'dashboard.admin' => \App\Http\Middleware\DashboardAdminMiddleware::class,
+            'rh.admin' => \App\Http\Middleware\RhAdminMiddleware::class,
             'financeiro' => \App\Http\Middleware\FinanceiroMiddleware::class,
             'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
             'rate.uploads' => \App\Http\Middleware\RateLimitUploads::class,

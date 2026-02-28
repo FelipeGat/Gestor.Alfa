@@ -1,16 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Portal do Funcionário
+            Bem-vindo ao seu portal
         </h2>
     </x-slot>
 
     <div class="portal-home">
         <style>
             .portal-home {
-                min-height: calc(100vh - 64px);
-                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                min-height: calc(100dvh - 48px);
+                background: linear-gradient(180deg, #f3f4f6 0%, #e5f2f5 100%);
                 padding: 2rem 1rem;
+                padding-bottom: calc(2rem + env(safe-area-inset-bottom));
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -19,7 +20,7 @@
 
             .portal-welcome {
                 text-align: center;
-                color: white;
+                color: #1f2937;
                 margin-bottom: 3rem;
             }
 
@@ -43,14 +44,14 @@
             }
 
             .stat-badge {
-                background: rgba(255, 255, 255, 0.2);
-                backdrop-filter: blur(10px);
+                background: #ffffff;
                 padding: 0.75rem 1.5rem;
                 border-radius: 50px;
-                color: white;
+                color: #2f7c8a;
                 font-weight: 600;
                 font-size: 0.875rem;
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                border: 1px solid #b7dbe1;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
             }
 
             .portal-buttons {
@@ -65,6 +66,7 @@
                 background: white;
                 border-radius: 1.5rem;
                 padding: 2rem 1.5rem;
+                min-height: 130px;
                 text-align: center;
                 text-decoration: none;
                 color: #1f2937;
@@ -103,16 +105,42 @@
                 margin: 0;
             }
 
+            .portal-btn-status {
+                display: inline-block;
+                margin-top: 0.25rem;
+                padding: 0.3rem 0.65rem;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                border: 1px solid #b7dbe1;
+            }
+
+            .portal-btn-status.ok {
+                color: #0f766e;
+                background: #ecfdf5;
+                border-color: #86efac;
+            }
+
+            .portal-btn-status.pending {
+                color: #0f4d5a;
+                background: #f0f9fb;
+                border-color: #b7dbe1;
+            }
+
             .portal-btn.chamados {
-                border-top: 4px solid #2563eb;
+                border-top: 4px solid #3f9cae;
+            }
+
+            .portal-btn.ponto {
+                border-top: 4px solid #3f9cae;
             }
 
             .portal-btn.agenda {
-                border-top: 4px solid #059669;
+                border-top: 4px solid #3f9cae;
             }
 
             .portal-btn.documentos {
-                border-top: 4px solid #dc2626;
+                border-top: 4px solid #3f9cae;
             }
 
             @media (min-width: 640px) {
@@ -122,6 +150,62 @@
 
                 .portal-welcome h1 {
                     font-size: 2.5rem;
+                }
+            }
+
+            @media (max-width: 640px) {
+                .portal-home {
+                    justify-content: flex-start;
+                    padding-top: 1.25rem;
+                }
+
+                .portal-welcome {
+                    margin-bottom: 1.5rem;
+                }
+
+                .portal-welcome h1 {
+                    font-size: 1.5rem;
+                }
+
+                .portal-welcome p {
+                    font-size: 0.95rem;
+                }
+
+                .portal-stats {
+                    margin-bottom: 1.5rem;
+                    width: 100%;
+                    gap: 0.5rem;
+                }
+
+                .stat-badge {
+                    width: 100%;
+                    text-align: center;
+                    padding: 0.7rem 0.9rem;
+                }
+
+                .portal-buttons {
+                    max-width: 100%;
+                    gap: 1rem;
+                }
+
+                .portal-btn {
+                    border-radius: 1rem;
+                    padding: 1.1rem 1rem;
+                    min-height: 96px;
+                    gap: 0.45rem;
+                }
+
+                .portal-btn-icon {
+                    width: 2rem !important;
+                    height: 2rem !important;
+                }
+
+                .portal-btn-title {
+                    font-size: 1.05rem;
+                }
+
+                .portal-btn-desc {
+                    font-size: 0.8rem;
                 }
             }
         </style>
@@ -156,8 +240,20 @@
         </div>
 
         <div class="portal-buttons">
+            <a href="{{ route('portal-funcionario.ponto') }}" class="portal-btn ponto">
+                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="portal-btn-title">Registro de Ponto</h3>
+                <p class="portal-btn-desc">Registrar entrada, almoço e saída</p>
+                <span class="portal-btn-status {{ ($pontoStatus['concluido'] ?? false) ? 'ok' : 'pending' }}">
+                    {{ $pontoStatus['label'] ?? 'Pendente hoje' }}
+                </span>
+                <p class="portal-btn-desc">{{ $pontoStatus['detalhe'] ?? 'Próximo: Entrada' }}</p>
+            </a>
+
             <a href="{{ route('portal-funcionario.chamados') }}" class="portal-btn chamados">
-                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#2563eb" viewBox="0 0 24 24">
+                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                 </svg>
                 <h3 class="portal-btn-title">Painel de Chamados</h3>
@@ -165,7 +261,7 @@
             </a>
 
             <a href="{{ route('portal-funcionario.agenda') }}" class="portal-btn agenda">
-                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#059669" viewBox="0 0 24 24">
+                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 <h3 class="portal-btn-title">Agenda Técnica</h3>
@@ -173,7 +269,7 @@
             </a>
 
             <a href="{{ route('portal-funcionario.documentos') }}" class="portal-btn documentos">
-                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                <svg class="portal-btn-icon" style="width: 3.5rem; height: 3.5rem;" fill="none" stroke="#3f9cae" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 <h3 class="portal-btn-title">Documentos</h3>

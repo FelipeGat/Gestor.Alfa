@@ -15,6 +15,7 @@
     <style>
         .detalhes-container {
             padding: 1rem;
+            padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
             max-width: 800px;
             margin: 0 auto;
         }
@@ -107,6 +108,7 @@
         .btn-action {
             width: 100%;
             padding: 1rem;
+            min-height: 48px;
             border-radius: 0.75rem;
             font-weight: 700;
             font-size: 1rem;
@@ -233,9 +235,117 @@
             border-left: 3px solid #f59e0b;
         }
 
+        .rota-resumo {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .rota-kpi {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.75rem;
+        }
+
+        .rota-kpi-label {
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .rota-kpi-value {
+            font-size: 1.1rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .rota-mapa {
+            height: 280px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            margin-top: 0.75rem;
+            display: none;
+        }
+
+        .rota-acoes {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .rota-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.45rem 0.7rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            color: #1f2937;
+            background: #fff;
+        }
+
         @media (min-width: 768px) {
             .detalhes-container {
                 padding: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .detalhes-container {
+                padding: 0.75rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .info-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .cronometro-display {
+                font-size: 2rem;
+            }
+
+            .modal {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .modal.active {
+                align-items: flex-end;
+            }
+
+            .modal-content {
+                max-width: 100%;
+                width: 100%;
+                max-height: 92dvh;
+                border-radius: 1rem 1rem 0 0;
+                padding: 1rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .modal-header {
+                font-size: 1.05rem;
+            }
+
+            .form-input, .form-select, .form-textarea {
+                font-size: 16px;
+            }
+
+            .btn-action {
+                font-size: 0.95rem;
+            }
+
+            .rota-resumo {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -277,8 +387,8 @@
                 $tempoBase += now()->diffInSeconds($atendimento->iniciado_em);
             }
         @endphp
-        <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
-             data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}" 
+        <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}"
+             data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}"
              data-tempo-base="{{ $atendimento->em_pausa ? 0 : $tempoBase }}">
             @if($atendimento->em_pausa)
                 @php
@@ -308,7 +418,7 @@
                 <div>
                     <div style="font-weight: 700; color: #92400e;">Atendimento Antigo</div>
                     <div style="font-size: 0.875rem; color: #92400e; margin-top: 0.25rem;">
-                        Este atendimento foi marcado como "em atendimento" pelo sistema antigo. 
+                        Este atendimento foi marcado como "em atendimento" pelo sistema antigo.
                         Use os botões abaixo para <strong>iniciar</strong> o controle de tempo com o novo sistema.
                     </div>
                 </div>
@@ -341,13 +451,13 @@
                 </svg>
                 {{ $atendimento->tempo_execucao_formatado }}
             </div>
-            
+
             <!-- Fotos de Início e Finalização -->
             @php
                 $andamentoInicio = $atendimento->andamentos->where('descricao', 'Atendimento iniciado pelo técnico')->first();
                 $andamentoFinal = $atendimento->andamentos->where('descricao', '!=', 'Atendimento iniciado pelo técnico')->sortByDesc('created_at')->first();
             @endphp
-            
+
             @if($andamentoInicio && $andamentoInicio->fotos->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -364,8 +474,8 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoInicio->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
-                             alt="Foto início" 
+                            <img src="{{ $foto->arquivo_url }}"
+                             alt="Foto início"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #059669;"
                              onclick="window.open(this.src, '_blank')">
                     </div>
@@ -373,7 +483,7 @@
                 </div>
             </div>
             @endif
-            
+
             @if($andamentoFinal && $andamentoFinal->fotos->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label">📸 Fotos da Finalização do Atendimento</div>
@@ -386,8 +496,8 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoFinal->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
-                             alt="Foto finalização" 
+                            <img src="{{ $foto->arquivo_url }}"
+                             alt="Foto finalização"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #8b5cf6;"
                              onclick="window.open(this.src, '_blank')">
                     </div>
@@ -395,7 +505,29 @@
                 </div>
             </div>
             @endif
-            
+
+            @if($atendimento->assinatura_cliente_path)
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                <div class="info-label">✍️ Assinatura do Cliente</div>
+                @if($atendimento->assinatura_cliente_nome || $atendimento->assinatura_cliente_cargo)
+                <div style="margin-top: 0.5rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.6rem 0.75rem;">
+                    @if($atendimento->assinatura_cliente_nome)
+                        <div style="font-size: 0.8rem; color: #334155;"><strong>Nome:</strong> {{ $atendimento->assinatura_cliente_nome }}</div>
+                    @endif
+                    @if($atendimento->assinatura_cliente_cargo)
+                        <div style="font-size: 0.8rem; color: #334155;"><strong>Cargo:</strong> {{ $atendimento->assinatura_cliente_cargo }}</div>
+                    @endif
+                </div>
+                @endif
+                <div style="margin-top: 0.75rem; max-width: 320px;">
+                    <img src="{{ $atendimento->assinatura_cliente_url }}"
+                         alt="Assinatura do cliente"
+                         style="width: 100%; max-height: 140px; object-fit: contain; background: #fff; border: 2px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer;"
+                         onclick="window.open(this.src, '_blank')">
+                </div>
+            </div>
+            @endif
+
             @if($atendimento->pausas->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label">Detalhamento de Pausas</div>
@@ -428,15 +560,15 @@
                                 {{ gmdate('H:i:s', $pausa->tempo_segundos ?? 0) }}
                             </div>
                         </div>
-                        
+
                         <!-- Fotos da Pausa -->
                         @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
                             @if($pausa->foto_inicio_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Início</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
-                                     alt="Foto início pausa" 
+                                  <img src="{{ $pausa->foto_inicio_url }}"
+                                     alt="Foto início pausa"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
                             </div>
@@ -444,8 +576,8 @@
                             @if($pausa->foto_retorno_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Retorno</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
-                                     alt="Foto retorno" 
+                                  <img src="{{ $pausa->foto_retorno_url }}"
+                                     alt="Foto retorno"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
                             </div>
@@ -455,7 +587,7 @@
                     </div>
                     @endforeach
                 </div>
-                
+
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
                     <div style="display: flex; justify-content: between; align-items: center;">
                         <div class="info-label">Tempo Total de Pausas</div>
@@ -506,6 +638,49 @@
             </div>
         </div>
 
+        @php
+            $destinoEndereco = trim(collect([
+                $atendimento->cliente?->logradouro,
+                $atendimento->cliente?->numero,
+                $atendimento->cliente?->bairro,
+                $atendimento->cliente?->cidade,
+                $atendimento->cliente?->estado,
+                $atendimento->cliente?->cep,
+            ])->filter()->implode(', '));
+        @endphp
+
+        <div class="info-card" id="rota-card">
+            <div class="info-label">Rota até o cliente</div>
+            <div class="info-value" style="font-weight: 500; font-size: 0.95rem;">
+                {{ $destinoEndereco !== '' ? $destinoEndereco : 'Endereço do cliente não cadastrado.' }}
+            </div>
+
+            <div id="rotaStatus" style="margin-top: 0.6rem; font-size: 0.85rem; color: #475569;">Buscando sua localização atual...</div>
+
+            <div class="rota-resumo">
+                <div class="rota-kpi">
+                    <div class="rota-kpi-label">Distância</div>
+                    <div class="rota-kpi-value" id="rotaDistancia">—</div>
+                </div>
+                <div class="rota-kpi">
+                    <div class="rota-kpi-label">Tempo estimado</div>
+                    <div class="rota-kpi-value" id="rotaDuracao">—</div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.45rem;" id="rotaObservacao">
+                O tempo exibido é uma estimativa de percurso por carro. Para trânsito em tempo real, use o Google Maps ou Waze nos botões abaixo.
+            </div>
+
+            <div id="rotaMapa" class="rota-mapa"></div>
+
+            <div class="rota-acoes">
+                <button type="button" class="rota-btn" id="btnRecalcularRota">↻ Recalcular rota</button>
+                <a href="#" class="rota-btn" id="btnGoogleMaps" target="_blank" rel="noopener noreferrer">📍 Abrir no Google Maps</a>
+                <a href="#" class="rota-btn" id="btnWaze" target="_blank" rel="noopener noreferrer">🚗 Abrir no Waze</a>
+            </div>
+        </div>
+
         <!-- Pausas Ativas -->
         @if($atendimento->pausas->count() > 0 && !$atendimento->finalizado_em)
         <div class="info-card">
@@ -535,15 +710,15 @@
                         Retomado por: <strong>{{ $pausa->retomadoPor->name }}</strong>
                     </div>
                     @endif
-                    
+
                     <!-- Fotos da Pausa -->
                     @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
                     <div style="margin-top: 0.75rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem;">
                         @if($pausa->foto_inicio_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Início da Pausa</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
-                                 alt="Foto início pausa" 
+                               <img src="{{ $pausa->foto_inicio_url }}"
+                                 alt="Foto início pausa"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">
                         </div>
@@ -551,8 +726,8 @@
                         @if($pausa->foto_retorno_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Retorno</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
-                                 alt="Foto retorno" 
+                               <img src="{{ $pausa->foto_retorno_url }}"
+                                 alt="Foto retorno"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">
                         </div>
@@ -566,9 +741,40 @@
         </div>
         @endif
 
+        @if($atendimento->is_orcamento)
+        <div class="info-card" style="background: #eef2ff; border-left: 4px solid #6366f1;">
+            <div style="font-weight: 700; color: #3730a3; margin-bottom: 0.35rem;">Demanda vinda de orçamento agendado</div>
+            @if(!$ehHoje)
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Este atendimento só pode ser incluído na data agendada.
+            </div>
+            @elseif($ehPreCliente)
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Esta demanda é de pré-cliente. Entre em contato com o comercial para converter em cliente antes de incluir o atendimento.
+            </div>
+            @else
+            <div style="font-size: 0.9rem; color: #3730a3;">
+                Para atender esta demanda, inclua primeiro o atendimento operacional.
+            </div>
+            @endif
+        </div>
+        @endif
+
         <!-- Botões de Ação -->
         <div style="margin-top: 1.5rem;">
-            @if($atendimento->status_atual === 'aberto')
+            @if($atendimento->is_orcamento && $podeIncluirAtendimento)
+            <form action="{{ route('portal-funcionario.atendimento.incluir', $atendimento) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-action btn-iniciar">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Incluir Atendimento
+                </button>
+            </form>
+            @endif
+
+            @if($atendimento->status_atual === 'aberto' && !$atendimento->is_orcamento)
             <button onclick="abrirModalIniciar()" class="btn-action btn-iniciar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
@@ -578,7 +784,7 @@
             </button>
             @endif
 
-            @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em)
+            @if($atendimento->status_atual === 'em_atendimento' && !$atendimento->iniciado_em && !$atendimento->is_orcamento)
             <button onclick="abrirModalIniciar()" class="btn-action btn-iniciar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
@@ -681,11 +887,29 @@
     <div id="modalFinalizar" class="modal">
         <div class="modal-content">
             <div class="modal-header">✅ Finalizar Atendimento</div>
-            <form action="{{ route('portal-funcionario.atendimento.finalizar', $atendimento) }}" method="POST" enctype="multipart/form-data">
+            <form id="formFinalizarAtendimento" action="{{ route('portal-funcionario.atendimento.finalizar', $atendimento) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
-                    <label class="form-label">Observações Finais (Opcional)</label>
-                    <textarea name="observacao" rows="3" class="form-textarea" placeholder="Descreva o que foi feito..."></textarea>
+                    <label class="form-label">Observações Finais *</label>
+                    <textarea name="observacao" rows="3" class="form-textarea" placeholder="Descreva o que foi feito..." required minlength="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="assinatura_cliente_nome" class="form-input" placeholder="Nome de quem está assinando" required minlength="2" maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cargo *</label>
+                    <input type="text" name="assinatura_cliente_cargo" class="form-input" placeholder="Cargo de quem está assinando" required minlength="2" maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assinatura do Cliente *</label>
+                    <div style="border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; background: #fff;">
+                        <canvas id="assinaturaCanvas" width="460" height="160" style="width: 100%; height: 160px; display: block; touch-action: none; cursor: crosshair;"></canvas>
+                    </div>
+                    <input type="hidden" name="assinatura_cliente" id="assinaturaClienteInput">
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button type="button" onclick="limparAssinatura()" class="btn-action" style="margin-bottom: 0; width: auto; padding: 0.5rem 0.75rem; background: #f3f4f6; color: #374151;">Limpar assinatura</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Enviar 1 Foto Final</label>
@@ -700,35 +924,312 @@
 
     @push('scripts')
     <script>
+        let assinaturaCanvas = null;
+        let assinaturaCtx = null;
+        let assinaturaDesenhada = false;
+        let desenhandoAssinatura = false;
+        let rotaMapa = null;
+        let rotaLayer = null;
+
         // Cronômetro em tempo real
         document.addEventListener('DOMContentLoaded', function() {
             const crono = document.querySelector('.cronometro-principal[data-iniciado]');
-            
+
             if (crono) {
                 const iniciadoTimestamp = parseInt(crono.dataset.iniciado);
                 const tempoBase = parseInt(crono.dataset.tempoBase || 0);
                 const display = crono.querySelector('.cronometro-display');
                 const pausado = crono.classList.contains('pausado');
-                
+
                 function atualizar() {
                     const agora = Math.floor(Date.now() / 1000);
                     const segundosDecorridos = agora - iniciadoTimestamp;
                     const totalSegundos = Math.max(0, tempoBase + segundosDecorridos); // Garante nunca negativo
-                    
+
                     const horas = Math.floor(totalSegundos / 3600);
                     const minutos = Math.floor((totalSegundos % 3600) / 60);
                     const segundos = totalSegundos % 60;
-                    
-                    display.textContent = 
+
+                    display.textContent =
                         String(horas).padStart(2, '0') + ':' +
                         String(minutos).padStart(2, '0') + ':' +
                         String(segundos).padStart(2, '0');
                 }
-                
+
                 atualizar();
                 setInterval(atualizar, 1000);
             }
+
+            assinaturaCanvas = document.getElementById('assinaturaCanvas');
+            if (assinaturaCanvas) {
+                assinaturaCtx = assinaturaCanvas.getContext('2d');
+                assinaturaCtx.lineWidth = 2;
+                assinaturaCtx.lineCap = 'round';
+                assinaturaCtx.strokeStyle = '#111827';
+
+                assinaturaCanvas.addEventListener('mousedown', iniciarDesenhoAssinatura);
+                assinaturaCanvas.addEventListener('mousemove', desenharAssinatura);
+                assinaturaCanvas.addEventListener('mouseup', finalizarDesenhoAssinatura);
+                assinaturaCanvas.addEventListener('mouseleave', finalizarDesenhoAssinatura);
+
+                assinaturaCanvas.addEventListener('touchstart', iniciarDesenhoAssinatura, { passive: false });
+                assinaturaCanvas.addEventListener('touchmove', desenharAssinatura, { passive: false });
+                assinaturaCanvas.addEventListener('touchend', finalizarDesenhoAssinatura, { passive: false });
+            }
+
+            const formFinalizar = document.getElementById('formFinalizarAtendimento');
+            if (formFinalizar) {
+                formFinalizar.addEventListener('submit', function (event) {
+                    if (!assinaturaCanvas || !assinaturaCtx || !assinaturaDesenhada) {
+                        event.preventDefault();
+                        alert('A assinatura do cliente é obrigatória para finalizar o atendimento.');
+                        return;
+                    }
+
+                    const inputAssinatura = document.getElementById('assinaturaClienteInput');
+                    inputAssinatura.value = assinaturaCanvas.toDataURL('image/png');
+                });
+            }
+
+            const btnRecalcularRota = document.getElementById('btnRecalcularRota');
+            if (btnRecalcularRota) {
+                btnRecalcularRota.addEventListener('click', function () {
+                    calcularRotaAteCliente();
+                });
+            }
+
+            calcularRotaAteCliente();
         });
+
+        async function carregarLeaflet() {
+            if (window.L) return;
+
+            await new Promise((resolve, reject) => {
+                const css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                css.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+                css.crossOrigin = '';
+                document.head.appendChild(css);
+
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                script.crossOrigin = '';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+
+        function atualizarRotaStatus(texto, cor = '#475569') {
+            const el = document.getElementById('rotaStatus');
+            if (el) {
+                el.textContent = texto;
+                el.style.color = cor;
+            }
+        }
+
+        function formatarDuracao(segundos) {
+            const totalMin = Math.round(segundos / 60);
+            const horas = Math.floor(totalMin / 60);
+            const minutos = totalMin % 60;
+
+            if (horas > 0) {
+                return `${horas}h ${String(minutos).padStart(2, '0')}min`;
+            }
+
+            return `${totalMin} min`;
+        }
+
+        function montarLinksNavegacao(origemLat, origemLng, destinoLat, destinoLng, destinoTexto) {
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origemLat},${origemLng}&destination=${encodeURIComponent(destinoTexto)}&travelmode=driving`;
+            const wazeUrl = `https://waze.com/ul?ll=${destinoLat},${destinoLng}&navigate=yes`;
+
+            const btnGoogle = document.getElementById('btnGoogleMaps');
+            const btnWaze = document.getElementById('btnWaze');
+
+            if (btnGoogle) btnGoogle.href = googleMapsUrl;
+            if (btnWaze) btnWaze.href = wazeUrl;
+        }
+
+        async function geocodificarDestino(enderecoDestino) {
+            const endpoint = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(enderecoDestino)}`;
+            const resposta = await fetch(endpoint, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao buscar coordenadas do cliente.');
+            }
+
+            const dados = await resposta.json();
+            if (!Array.isArray(dados) || !dados.length) {
+                throw new Error('Não foi possível localizar o endereço do cliente no mapa.');
+            }
+
+            return {
+                lat: parseFloat(dados[0].lat),
+                lng: parseFloat(dados[0].lon)
+            };
+        }
+
+        function obterGeolocalizacaoAtual() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Seu navegador não suporta geolocalização.'));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (posicao) => resolve({
+                        lat: posicao.coords.latitude,
+                        lng: posicao.coords.longitude,
+                    }),
+                    () => reject(new Error('Não foi possível obter sua localização. Permita o acesso ao GPS e tente novamente.')),
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 30000,
+                    }
+                );
+            });
+        }
+
+        async function obterRota(origem, destino) {
+            const endpoint = `https://router.project-osrm.org/route/v1/driving/${origem.lng},${origem.lat};${destino.lng},${destino.lat}?overview=full&geometries=geojson`;
+            const resposta = await fetch(endpoint);
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao calcular o percurso.');
+            }
+
+            const dados = await resposta.json();
+            if (!dados.routes || !dados.routes.length) {
+                throw new Error('Não foi possível calcular uma rota viável.');
+            }
+
+            return dados.routes[0];
+        }
+
+        async function renderizarMapaRota(origem, destino, rota) {
+            await carregarLeaflet();
+
+            const mapaEl = document.getElementById('rotaMapa');
+            mapaEl.style.display = 'block';
+
+            if (!rotaMapa) {
+                rotaMapa = L.map('rotaMapa');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(rotaMapa);
+            }
+
+            if (rotaLayer) {
+                rotaMapa.removeLayer(rotaLayer);
+            }
+
+            const coordenadas = rota.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+            rotaLayer = L.polyline(coordenadas, {
+                color: '#2563eb',
+                weight: 5,
+                opacity: 0.9
+            }).addTo(rotaMapa);
+
+            const markerOrigem = L.marker([origem.lat, origem.lng]).bindPopup('Sua localização atual');
+            const markerDestino = L.marker([destino.lat, destino.lng]).bindPopup('Cliente');
+            const grupo = L.featureGroup([rotaLayer, markerOrigem, markerDestino]).addTo(rotaMapa);
+            rotaMapa.fitBounds(grupo.getBounds().pad(0.15));
+        }
+
+        async function calcularRotaAteCliente() {
+            const destinoTexto = @json($destinoEndereco);
+
+            if (!destinoTexto) {
+                atualizarRotaStatus('Endereço do cliente não está cadastrado para calcular a rota.', '#b91c1c');
+                return;
+            }
+
+            try {
+                atualizarRotaStatus('Obtendo sua localização atual...');
+                const origem = await obterGeolocalizacaoAtual();
+
+                atualizarRotaStatus('Localizando endereço do cliente no mapa...');
+                const destino = await geocodificarDestino(destinoTexto);
+
+                atualizarRotaStatus('Calculando melhor percurso...');
+                const rota = await obterRota(origem, destino);
+
+                const km = (rota.distance / 1000).toFixed(1) + ' km';
+                const duracao = formatarDuracao(rota.duration);
+
+                const distanciaEl = document.getElementById('rotaDistancia');
+                const duracaoEl = document.getElementById('rotaDuracao');
+                if (distanciaEl) distanciaEl.textContent = km;
+                if (duracaoEl) duracaoEl.textContent = duracao;
+
+                montarLinksNavegacao(origem.lat, origem.lng, destino.lat, destino.lng, destinoTexto);
+                await renderizarMapaRota(origem, destino, rota);
+                atualizarRotaStatus('Rota calculada com sucesso.', '#047857');
+            } catch (erro) {
+                atualizarRotaStatus(erro.message || 'Não foi possível calcular a rota agora.', '#b91c1c');
+            }
+        }
+
+        function obterPosicaoAssinatura(event) {
+            const rect = assinaturaCanvas.getBoundingClientRect();
+            if (event.touches && event.touches.length > 0) {
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top
+                };
+            }
+
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function iniciarDesenhoAssinatura(event) {
+            if (!assinaturaCtx || !assinaturaCanvas) return;
+            event.preventDefault();
+            desenhandoAssinatura = true;
+            const posicao = obterPosicaoAssinatura(event);
+            assinaturaCtx.beginPath();
+            assinaturaCtx.moveTo(posicao.x, posicao.y);
+        }
+
+        function desenharAssinatura(event) {
+            if (!desenhandoAssinatura || !assinaturaCtx) return;
+            event.preventDefault();
+            const posicao = obterPosicaoAssinatura(event);
+            assinaturaCtx.lineTo(posicao.x, posicao.y);
+            assinaturaCtx.stroke();
+            assinaturaDesenhada = true;
+        }
+
+        function finalizarDesenhoAssinatura(event) {
+            if (!assinaturaCtx) return;
+            if (event) {
+                event.preventDefault();
+            }
+            desenhandoAssinatura = false;
+            assinaturaCtx.closePath();
+        }
+
+        function limparAssinatura() {
+            if (!assinaturaCtx || !assinaturaCanvas) return;
+            assinaturaCtx.clearRect(0, 0, assinaturaCanvas.width, assinaturaCanvas.height);
+            assinaturaDesenhada = false;
+            const inputAssinatura = document.getElementById('assinaturaClienteInput');
+            if (inputAssinatura) {
+                inputAssinatura.value = '';
+            }
+        }
 
         function abrirModalIniciar() {
             document.getElementById('modalIniciar').classList.add('active');
@@ -753,7 +1254,7 @@
         function previewFotos(input, previewId) {
             const preview = document.getElementById(previewId);
             preview.innerHTML = '';
-            
+
             if (input.files) {
                 Array.from(input.files).forEach(file => {
                     const reader = new FileReader();

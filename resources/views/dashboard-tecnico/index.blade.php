@@ -64,28 +64,28 @@
         filtroRapido: '{{ $filtroRapido }}',
         inicioCustom: '{{ $inicio?->format('Y-m-d') ?? '' }}',
         fimCustom: '{{ $fim?->format('Y-m-d') ?? '' }}',
-        
+
         async abrirModal(status, titulo) {
             this.statusFiltro = status;
             this.tituloModal = titulo;
             this.modalAberto = true;
             this.carregando = true;
-            
+
             try {
                 const params = new URLSearchParams();
                 if (this.empresaIdFiltro) params.append('empresa_id', this.empresaIdFiltro);
                 if (status) params.append('status_atual', status);
-                
+
                 // Adicionar filtros de data
                 params.append('filtro_rapido', this.filtroRapido || 'mes');
                 if (this.filtroRapido === 'custom' && this.inicioCustom && this.fimCustom) {
                     params.append('inicio_custom', this.inicioCustom);
                     params.append('fim_custom', this.fimCustom);
                 }
-                
+
                 const response = await fetch(`/dashboard-tecnico/atendimentos?${params}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     this.atendimentos = data.atendimentos;
                     this.totalAtendimentos = data.total;
@@ -97,12 +97,12 @@
                 this.carregando = false;
             }
         },
-        
+
         fecharModal() {
             this.modalAberto = false;
             this.atendimentos = [];
         },
-        
+
         getStatusColor(status) {
             const colors = {
                 'aberto': 'bg-blue-100 text-blue-800',
@@ -291,9 +291,9 @@
                     $pausaAtiva = $tecnicoData['pausa_ativa'];
                 @endphp
 
-                <div class="tecnico-card {{ $atendimentoAtual ? ($atendimentoAtual->em_pausa ? 'status-pausa' : 'status-execucao') : 'status-livre' }}" 
+                <div class="tecnico-card {{ $atendimentoAtual ? ($atendimentoAtual->em_pausa ? 'status-pausa' : 'status-execucao') : 'status-livre' }}"
                      data-tecnico-id="{{ $funcionario->id }}">
-                    
+
                     <!-- Header do Card -->
                     <div class="tecnico-header">
                         <div class="tecnico-info">
@@ -350,6 +350,13 @@
                                 <span class="info-value">{{ $atendimentoAtual->cliente->nome_fantasia ?? 'N/D' }}</span>
                             </div>
 
+                            @if(($tecnicoData['atendimentos_em_andamento_count'] ?? 0) > 1)
+                                <div class="info-row" style="margin-top: -4px;">
+                                    <span class="info-label">Em andamento:</span>
+                                    <span class="info-value">{{ $tecnicoData['atendimentos_em_andamento_count'] }} chamados (exibindo o mais recente)</span>
+                                </div>
+                            @endif
+
                             <!-- Prioridade -->
                             <div class="info-row">
                                 <span class="info-label">
@@ -393,7 +400,6 @@
                                     <p class="tempo-label">Tempo Trabalhado</p>
                                     <p class="tempo-valor tempo-trabalhado"
                                        data-segundos="{{ $tecnicoData['total_tempo_trabalhado'] }}"
-                                       data-iniciado-em="{{ $atendimentoAtual && $atendimentoAtual->em_execucao && $atendimentoAtual->iniciado_em ? $atendimentoAtual->iniciado_em->format('Y-m-d H:i:s') : '' }}"
                                        data-em-execucao="{{ $atendimentoAtual && $atendimentoAtual->em_execucao ? 'true' : 'false' }}">
                                         {{ gmdate('H:i:s', $tecnicoData['total_tempo_trabalhado']) }}
                                     </p>
@@ -401,7 +407,7 @@
                                 <div class="tempo-item">
                                     <p class="tempo-label">Tempo Pausas</p>
                                     <p class="tempo-valor tempo-pausas"
-                                       data-segundos="{{ $tecnicoData['total_tempo_pausas'] }}"
+                                       data-segundos="{{ $tecnicoData['total_tempo_pausas'] + $tecnicoData['tempo_pausa_atual'] }}"
                                        data-em-pausa="{{ $pausaAtiva ? 'true' : 'false' }}">
                                         {{ gmdate('H:i:s', $tecnicoData['total_tempo_pausas'] + $tecnicoData['tempo_pausa_atual']) }}
                                     </p>
@@ -700,22 +706,14 @@
     setInterval(function() {
         // Atualizar tempos trabalhados
         document.querySelectorAll('.tempo-trabalhado[data-em-execucao="true"]').forEach(el => {
-            let baseSegundos = parseInt(el.dataset.segundos) || 0;
-            let iniciadoEm = el.dataset.iniciadoEm;
-            if (iniciadoEm) {
-                let iniciado = new Date(iniciadoEm.replace(/-/g, '/'));
-                let agora = new Date();
-                let diff = Math.floor((agora - iniciado) / 1000);
-                let total = baseSegundos + diff;
-                el.textContent = formatarTempo(total);
-            } else {
-                el.textContent = formatarTempo(baseSegundos);
-            }
+            let segundos = (parseInt(el.dataset.segundos, 10) || 0) + 1;
+            el.dataset.segundos = segundos;
+            el.textContent = formatarTempo(segundos);
         });
-        
+
         // Atualizar tempos de pausa
         document.querySelectorAll('.tempo-pausas[data-em-pausa="true"]').forEach(el => {
-            let segundos = parseInt(el.dataset.segundos) + 1;
+            let segundos = (parseInt(el.dataset.segundos, 10) || 0) + 1;
             el.dataset.segundos = segundos;
             el.textContent = formatarTempo(segundos);
         });
@@ -727,32 +725,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Atualizar timestamp
-                    document.getElementById('timestampAtualizacao').textContent = data.timestamp;
-                    
-                    // Atualizar indicadores
-                    document.getElementById('ind-agendados').textContent = data.indicadores.agendados_hoje;
-                    document.getElementById('ind-execucao').textContent = data.indicadores.em_execucao;
-                    document.getElementById('ind-pausa').textContent = data.indicadores.em_pausa;
-                    document.getElementById('ind-finalizados').textContent = data.indicadores.finalizados_hoje;
-                    document.getElementById('ind-tecnicos-ativos').textContent = data.indicadores.tecnicos_ativos;
-                    document.getElementById('ind-tecnicos-pausados').textContent = data.indicadores.tecnicos_pausados;
-                    
-                    // Atualizar status dos técnicos
-                    data.tecnicos.forEach(tecnico => {
-                        let card = document.querySelector(`.tecnico-card[data-tecnico-id="${tecnico.funcionario_id}"]`);
-                        if (card) {
-                            // Atualizar classes de status
-                            card.classList.remove('status-execucao', 'status-pausa', 'status-livre');
-                            if (tecnico.status === 'execucao') {
-                                card.classList.add('status-execucao');
-                            } else if (tecnico.status === 'pausa') {
-                                card.classList.add('status-pausa');
-                            } else {
-                                card.classList.add('status-livre');
-                            }
+                    const setText = (id, valor) => {
+                        const elemento = document.getElementById(id);
+                        if (elemento && valor !== undefined && valor !== null) {
+                            elemento.textContent = valor;
                         }
-                    });
+                    };
+
+                    setText('ind-agendados', data.indicadores.agendados);
+                    setText('ind-execucao', data.indicadores.em_execucao);
+                    setText('ind-pausa', data.indicadores.em_pausa);
+                    setText('ind-finalizados', data.indicadores.finalizados);
+                    setText('ind-tecnicos-pausados', data.indicadores.tecnicos_pausados);
                 }
             })
             .catch(error => console.error('Erro ao atualizar:', error));
@@ -762,10 +746,10 @@
     function abrirDetalhes(atendimentoId) {
         const modal = document.getElementById('modalDetalhes');
         const conteudo = document.getElementById('modalDetalhesConteudo');
-        
+
         conteudo.innerHTML = '<div class="text-center py-10"><p>Carregando...</p></div>';
         modal.style.display = 'flex';
-        
+
         fetch(`/dashboard-tecnico/atendimento/${atendimentoId}`)
             .then(response => response.json())
             .then(data => {

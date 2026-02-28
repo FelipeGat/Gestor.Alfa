@@ -42,4 +42,56 @@ class Funcionario extends Model
     {
         return $this->hasMany(Atendimento::class);
     }
+
+    public function jornadasVinculos()
+    {
+        return $this->hasMany(FuncionarioJornada::class);
+    }
+
+    public function jornadas()
+    {
+        return $this->belongsToMany(Jornada::class, 'funcionario_jornadas')
+            ->withPivot(['id', 'data_inicio', 'data_fim'])
+            ->withTimestamps();
+    }
+
+    public function documentos()
+    {
+        return $this->hasMany(FuncionarioDocumento::class);
+    }
+
+    public function episVinculos()
+    {
+        return $this->hasMany(FuncionarioEpi::class);
+    }
+
+    public function beneficios()
+    {
+        return $this->hasMany(FuncionarioBeneficio::class);
+    }
+
+    public function ferias()
+    {
+        return $this->hasMany(Ferias::class);
+    }
+
+    public function afastamentos()
+    {
+        return $this->hasMany(Afastamento::class);
+    }
+
+    public function advertencias()
+    {
+        return $this->hasMany(Advertencia::class);
+    }
+
+    public function ajustesPonto()
+    {
+        return $this->hasMany(RhAjustePonto::class);
+    }
+
+    public function registrosPontoPortal()
+    {
+        return $this->hasMany(RegistroPontoPortal::class);
+    }
 }

@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
 use App\Models\AtendimentoPausa;
-use App\Models\AtendimentoAndamento;
+use App\Models\AtendimentoStatusHistorico;
+use App\Models\RegistroPontoPortal;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PortalFuncionarioController extends Controller
 {
@@ -39,7 +42,38 @@ class PortalFuncionarioController extends Controller
             ->where('em_pausa', true)
             ->exists();
 
-        return view('portal-funcionario.index', compact('totalAbertos', 'totalFinalizados', 'totalEmAtendimento', 'temPausado'));
+        $pontoStatus = [
+            'disponivel' => Schema::hasTable('registro_pontos_portal'),
+            'concluido' => false,
+            'label' => 'Pendente hoje',
+            'detalhe' => 'Próximo: Entrada',
+        ];
+
+        if ($pontoStatus['disponivel']) {
+            $registroHoje = RegistroPontoPortal::query()
+                ->where('funcionario_id', $funcionarioId)
+                ->whereDate('data_referencia', now()->toDateString())
+                ->first();
+
+            $concluido = $registroHoje
+                && $registroHoje->entrada_em
+                && $registroHoje->intervalo_inicio_em
+                && $registroHoje->intervalo_fim_em
+                && $registroHoje->saida_em;
+
+            $proximoEvento = $this->proximoEventoPonto($registroHoje);
+
+            $pontoStatus = [
+                'disponivel' => true,
+                'concluido' => (bool) $concluido,
+                'label' => $concluido ? 'Concluído hoje' : 'Pendente hoje',
+                'detalhe' => $concluido
+                    ? 'Jornada registrada no dia.'
+                    : 'Próximo: ' . $this->rotuloEvento($proximoEvento),
+            ];
+        }
+
+        return view('portal-funcionario.index', compact('totalAbertos', 'totalFinalizados', 'totalEmAtendimento', 'temPausado', 'pontoStatus'));
     }
 
     /**
@@ -100,6 +134,7 @@ class PortalFuncionarioController extends Controller
             'cliente',
             'empresa',
             'assunto',
+            'orcamento.preCliente',
             'andamentos.fotos',
             'pausas.user',
             'pausas.retomadoPor',
@@ -107,7 +142,93 @@ class PortalFuncionarioController extends Controller
             'finalizadoPor'
         ])->findOrFail($atendimento->id);
 
-        return view('portal-funcionario.atendimento-detalhes', compact('atendimento'));
+        $dataReferencia = $atendimento->data_inicio_agendamento?->toDateString();
+        $ehHoje = $dataReferencia && $dataReferencia === now()->toDateString();
+        $orcamentoVinculado = $atendimento->orcamento;
+        $ehPreCliente = $orcamentoVinculado && ! $orcamentoVinculado->cliente_id && $orcamentoVinculado->pre_cliente_id;
+
+        $podeIncluirAtendimento =
+            $atendimento->is_orcamento
+            && $ehHoje
+            && ! $ehPreCliente
+            && ! Atendimento::where('atendimento_origem_id', $atendimento->id)->exists();
+
+        return view('portal-funcionario.atendimento-detalhes', compact('atendimento', 'podeIncluirAtendimento', 'ehPreCliente', 'ehHoje'));
+    }
+
+    public function incluirAtendimento(Atendimento $atendimento)
+    {
+        $funcionarioId = Auth::user()->funcionario_id;
+
+        abort_if($atendimento->funcionario_id !== $funcionarioId, 403);
+
+        if (! $atendimento->is_orcamento) {
+            return back()->with('error', 'Este registro já é um atendimento do sistema.');
+        }
+
+        $dataAgendada = $atendimento->data_inicio_agendamento?->toDateString();
+
+        if (! $dataAgendada) {
+            return back()->with('error', 'Este orçamento não possui data de agendamento válida para inclusão de atendimento.');
+        }
+
+        if ($dataAgendada !== now()->toDateString()) {
+            return back()->with('error', 'O atendimento só pode ser incluído na data agendada (' . Carbon::parse($dataAgendada)->format('d/m/Y') . ').');
+        }
+
+        $orcamento = $atendimento->orcamento;
+
+        if ($orcamento && ! $orcamento->cliente_id && $orcamento->pre_cliente_id) {
+            return back()->with('error', 'Esta demanda está vinculada a um pré-cliente. Entre em contato com o comercial para converter o pré-cliente em cliente antes de incluir o atendimento.');
+        }
+
+        $atendimentoJaGerado = Atendimento::where('atendimento_origem_id', $atendimento->id)->first();
+        if ($atendimentoJaGerado) {
+            return redirect()
+                ->route('portal-funcionario.atendimento.show', $atendimentoJaGerado)
+                ->with('success', 'Atendimento já incluído para esta demanda.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $clienteId = $orcamento?->cliente_id ?? $atendimento->cliente_id;
+
+            if (! $clienteId) {
+                DB::rollBack();
+                return back()->with('error', 'Não foi possível incluir o atendimento: cliente não identificado para esta demanda.');
+            }
+
+            $atendimento->update([
+                'cliente_id' => $clienteId,
+                'nome_solicitante' => $atendimento->nome_solicitante ?: ($orcamento?->nome_cliente ?? null),
+                'status_atual' => 'em_atendimento',
+                'is_orcamento' => false,
+                'data_atendimento' => $atendimento->data_inicio_agendamento ?? now(),
+            ]);
+
+            AtendimentoStatusHistorico::create([
+                'atendimento_id' => $atendimento->id,
+                'status' => 'em_atendimento',
+                'observacao' => 'Atendimento incluído pelo técnico a partir de agendamento de orçamento.',
+                'user_id' => Auth::id(),
+            ]);
+
+            if ($orcamento) {
+                $orcamento->update([
+                    'atendimento_id' => $atendimento->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('portal-funcionario.atendimento.show', $atendimento)
+                ->with('success', 'Atendimento incluído com sucesso para esta demanda.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Erro ao incluir atendimento: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -149,14 +270,18 @@ class PortalFuncionarioController extends Controller
 
         DB::beginTransaction();
         try {
+            $momentoInicio = now();
+
             // Atualizar atendimento
             $atendimento->update([
                 'status_atual' => 'em_atendimento',
-                'iniciado_em' => now(),
+                'iniciado_em' => $momentoInicio,
                 'iniciado_por_user_id' => Auth::id(),
                 'em_execucao' => true,
                 'em_pausa' => false,
             ]);
+
+            $this->registrarEntradaPortal($funcionarioId, (int) Auth::id(), $momentoInicio, $atendimento->id);
 
             // Criar andamento com fotos
             $andamento = $atendimento->andamentos()->create([
@@ -216,7 +341,7 @@ class PortalFuncionarioController extends Controller
             $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
             $agora = now();
             // Auditoria: log para depuração
-            \Log::info('[PAUSAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+            \Illuminate\Support\Facades\Log::info('[PAUSAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
             if (!$inicioContagem) {
                 // Não deve acontecer, mas se acontecer, não incrementa nada
                 $tempoDecorrido = 0;
@@ -230,7 +355,7 @@ class PortalFuncionarioController extends Controller
                 'em_pausa' => true,
             ]);
             $atendimento->refresh();
-            \Log::info('[PAUSAR] tempoDecorrido=' . $tempoDecorrido . ' | novoTempoExecucao=' . $novoTempoExecucao);
+            \Illuminate\Support\Facades\Log::info('[PAUSAR] tempoDecorrido=' . $tempoDecorrido . ' | novoTempoExecucao=' . $novoTempoExecucao);
 
             // Salvar foto
             $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
@@ -243,6 +368,10 @@ class PortalFuncionarioController extends Controller
                 'iniciada_em' => $agora,
                 'foto_inicio_path' => $fotoPath,
             ]);
+
+            if ($request->tipo_pausa === 'almoco') {
+                $this->registrarInicioIntervaloPortal($funcionarioId, (int) Auth::id(), $agora, $atendimento->id);
+            }
 
             DB::commit();
 
@@ -286,6 +415,8 @@ class PortalFuncionarioController extends Controller
 
         DB::beginTransaction();
         try {
+            $agora = now();
+
             // Salvar foto de retorno se enviada
             if ($request->hasFile('foto')) {
                 $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
@@ -298,10 +429,15 @@ class PortalFuncionarioController extends Controller
             $novoTempoPausa = max(0, ($atendimento->tempo_pausa_segundos ?? 0) + ($pausaAtiva->tempo_segundos ?? 0));
             $atendimento->update([
                 'tempo_pausa_segundos' => $novoTempoPausa,
-                'iniciado_em' => now(), // Sempre que retoma, novo início de execução
+                'iniciado_em' => $agora, // Sempre que retoma, novo início de execução
                 'em_execucao' => true,
                 'em_pausa' => false,
             ]);
+
+            if ($pausaAtiva->tipo_pausa === 'almoco') {
+                $this->registrarFimIntervaloPortal($funcionarioId, (int) Auth::id(), $agora, $atendimento->id);
+            }
+
             $atendimento->refresh();
             DB::commit();
             return back()->with('success', 'Atendimento retomado. Cronômetro de execução reiniciado.');
@@ -312,7 +448,7 @@ class PortalFuncionarioController extends Controller
     }
 
     /**
-     * Finalizar atendimento - Exige 3 fotos
+     * Finalizar atendimento - Exige foto final, observação e assinatura do cliente
      */
     public function finalizarAtendimento(Request $request, Atendimento $atendimento)
     {
@@ -324,21 +460,41 @@ class PortalFuncionarioController extends Controller
         $request->validate([
             'fotos' => 'required|array|min:1|max:1',
             'fotos.*' => 'required|image|max:5120',
-            'observacao' => 'nullable|string|max:1000',
+            'observacao' => 'required|string|min:5|max:1000',
+            'assinatura_cliente_nome' => 'required|string|min:2|max:120',
+            'assinatura_cliente_cargo' => 'required|string|min:2|max:120',
+            'assinatura_cliente' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!preg_match('/^data:image\/(png|jpeg);base64,/', $value)) {
+                        $fail('Formato de assinatura inválido. Assine novamente.');
+                    }
+                },
+            ],
         ], [
             'fotos.required' => 'É obrigatório enviar 1 foto para finalizar o atendimento',
             'fotos.min' => 'É obrigatório enviar exatamente 1 foto',
             'fotos.max' => 'É obrigatório enviar exatamente 1 foto',
+            'observacao.required' => 'As observações finais são obrigatórias',
+            'observacao.min' => 'As observações finais devem ter pelo menos 5 caracteres',
+            'assinatura_cliente_nome.required' => 'O nome de quem assina é obrigatório',
+            'assinatura_cliente_nome.min' => 'O nome de quem assina deve ter pelo menos 2 caracteres',
+            'assinatura_cliente_cargo.required' => 'O cargo de quem assina é obrigatório',
+            'assinatura_cliente_cargo.min' => 'O cargo de quem assina deve ter pelo menos 2 caracteres',
+            'assinatura_cliente.required' => 'A assinatura do cliente é obrigatória para finalizar',
         ]);
 
         DB::beginTransaction();
         try {
+            $momentoFinalizacao = now();
+
             // Se estava em execução, calcular tempo final usando timestamps
             if ($atendimento->em_execucao) {
                 $ultimaPausa = $atendimento->pausas()->whereNotNull('encerrada_em')->latest('encerrada_em')->first();
                 $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
                 $agora = now();
-                \Log::info('[FINALIZAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+                \Illuminate\Support\Facades\Log::info('[FINALIZAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
                 if (!$inicioContagem) {
                     $tempoDecorrido = 0;
                 } else {
@@ -346,7 +502,7 @@ class PortalFuncionarioController extends Controller
                 }
                 $tempoExecucao = max(0, ($atendimento->tempo_execucao_segundos ?? 0) + $tempoDecorrido);
                 if ($tempoExecucao < 0) {
-                    \Log::warning('tempo_execucao_segundos negativo detectado e corrigido', [
+                    \Illuminate\Support\Facades\Log::warning('tempo_execucao_segundos negativo detectado e corrigido', [
                         'atendimento_id' => $atendimento->id,
                         'valor_calculado' => $tempoExecucao,
                         'incremento' => $tempoDecorrido,
@@ -356,15 +512,34 @@ class PortalFuncionarioController extends Controller
                 $atendimento->tempo_execucao_segundos = $tempoExecucao;
             }
 
+            $assinaturaData = $request->input('assinatura_cliente');
+            if (!preg_match('/^data:image\/(\w+);base64,/', $assinaturaData, $matches)) {
+                throw new \RuntimeException('Assinatura inválida.');
+            }
+
+            $extensao = strtolower($matches[1]) === 'jpeg' ? 'jpg' : strtolower($matches[1]);
+            $conteudo = base64_decode(substr($assinaturaData, strpos($assinaturaData, ',') + 1), true);
+            if ($conteudo === false) {
+                throw new \RuntimeException('Não foi possível processar a assinatura.');
+            }
+
+            $assinaturaRelativePath = 'atendimentos/assinaturas/' . uniqid('assinatura_', true) . '.' . $extensao;
+            Storage::disk('public')->put($assinaturaRelativePath, $conteudo);
+
             // Atualizar atendimento
             $atendimento->update([
                 'status_atual' => 'finalizacao',
-                'finalizado_em' => now(),
+                'finalizado_em' => $momentoFinalizacao,
                 'finalizado_por_user_id' => Auth::id(),
                 'em_execucao' => false,
                 'em_pausa' => false,
                 'tempo_execucao_segundos' => $atendimento->tempo_execucao_segundos,
+                'assinatura_cliente_nome' => trim($request->assinatura_cliente_nome),
+                'assinatura_cliente_cargo' => trim($request->assinatura_cliente_cargo),
+                'assinatura_cliente_path' => $assinaturaRelativePath,
             ]);
+
+            $this->registrarSaidaPortal($funcionarioId, (int) Auth::id(), $momentoFinalizacao, $atendimento->id);
 
             // Criar andamento final com fotos
             $andamento = $atendimento->andamentos()->create([
@@ -395,21 +570,59 @@ class PortalFuncionarioController extends Controller
     /**
      * Agenda Técnica - Estilo Calendar
      */
-    public function agenda()
+    public function agenda(Request $request)
     {
         $funcionarioId = Auth::user()->funcionario_id;
+        $visao = $request->input('visao', 'mes');
+        $dataBase = $request->filled('data')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('data'))
+            : now();
 
-        // Buscar atendimentos para o mês atual
-        $atendimentos = Atendimento::with(['cliente', 'empresa'])
+        // Janela ampla para o frontend navegar entre meses sem perder eventos
+        $janelaInicio = $dataBase->copy()->startOfYear();
+        $janelaFim = $dataBase->copy()->endOfYear();
+
+        // Buscar atendimentos para a visão atual
+        $atendimentos = Atendimento::with([
+            'cliente:id,nome,nome_fantasia,logradouro,numero,bairro,cidade,estado,complemento,cep',
+            'empresa:id,nome_fantasia',
+            'assunto:id,nome',
+        ])
             ->where('funcionario_id', $funcionarioId)
-            ->whereMonth('data_atendimento', now()->month)
-            ->whereYear('data_atendimento', now()->year)
+            ->where(function ($q) use ($janelaInicio, $janelaFim) {
+                $q->whereBetween('data_inicio_agendamento', [$janelaInicio, $janelaFim])
+                    ->orWhereBetween('data_atendimento', [$janelaInicio, $janelaFim]);
+            })
+            ->orderByRaw('COALESCE(data_inicio_agendamento, data_atendimento) asc')
             ->get()
             ->map(function ($at) {
+                $inicio = $at->data_inicio_agendamento ?? $at->data_atendimento;
+                $fim = $at->data_fim_agendamento;
+
                 return [
                     'id' => $at->id,
-                    'title' => $at->cliente?->nome_fantasia ?? $at->nome_solicitante ?? 'Sem cliente',
-                    'start' => $at->data_atendimento->format('Y-m-d'),
+                    'numero_atendimento' => $at->numero_atendimento,
+                    'cliente_nome' => $at->cliente?->nome_fantasia ?? $at->cliente?->nome ?? $at->nome_solicitante ?? 'Sem cliente',
+                    'empresa_nome' => $at->empresa?->nome_fantasia ?? '—',
+                    'assunto_nome' => $at->assunto?->nome ?? 'Sem assunto',
+                    'descricao' => (string) ($at->descricao ?? ''),
+                    'tipo_demanda' => $at->is_orcamento ? 'orcamento' : 'atendimento',
+                    'prioridade' => $at->prioridade,
+                    'status' => $at->status_atual,
+                    'telefone_solicitante' => $at->telefone_solicitante,
+                    'data_atendimento' => optional($inicio)->format('Y-m-d'),
+                    'inicio' => optional($inicio)->format('H:i'),
+                    'fim' => optional($fim)->format('H:i'),
+                    'duracao_minutos' => $at->duracao_agendamento_minutos,
+                    'endereco' => trim(collect([
+                        $at->cliente?->logradouro,
+                        $at->cliente?->numero,
+                        $at->cliente?->bairro,
+                        $at->cliente?->cidade,
+                        $at->cliente?->estado,
+                    ])->filter()->implode(', ')),
+                    'cep' => $at->cliente?->cep,
+                    'complemento' => $at->cliente?->complemento,
                     'backgroundColor' => match ($at->prioridade) {
                         'alta' => '#ef4444',
                         'media' => '#f59e0b',
@@ -420,7 +633,111 @@ class PortalFuncionarioController extends Controller
                 ];
             });
 
-        return view('portal-funcionario.agenda', compact('atendimentos'));
+        return view('portal-funcionario.agenda', compact('atendimentos', 'visao', 'dataBase'));
+    }
+
+    public function ponto()
+    {
+        $funcionarioId = (int) Auth::user()->funcionario_id;
+
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return redirect()
+                ->route('portal-funcionario.index')
+                ->with('error', 'Módulo de registro de ponto ainda não está disponível neste ambiente.');
+        }
+
+        $hoje = now()->toDateString();
+        $registroHoje = RegistroPontoPortal::query()
+            ->where('funcionario_id', $funcionarioId)
+            ->whereDate('data_referencia', $hoje)
+            ->first();
+
+        $historico = RegistroPontoPortal::query()
+            ->where('funcionario_id', $funcionarioId)
+            ->orderByDesc('data_referencia')
+            ->limit(15)
+            ->get();
+
+        $proximoEvento = $this->proximoEventoPonto($registroHoje);
+
+        return view('portal-funcionario.ponto', [
+            'registroHoje' => $registroHoje,
+            'historico' => $historico,
+            'proximoEvento' => $proximoEvento,
+            'eventos' => [
+                'entrada' => 'Entrada',
+                'saida_almoco' => 'Saída almoço',
+                'retorno_almoco' => 'Retorno almoço',
+                'saida' => 'Saída',
+            ],
+        ]);
+    }
+
+    public function registrarPonto(Request $request)
+    {
+        $funcionarioId = (int) Auth::user()->funcionario_id;
+        $userId = (int) Auth::id();
+
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return back()->with('error', 'Tabela de registro de ponto não encontrada neste ambiente.');
+        }
+
+        $validated = $request->validate([
+            'tipo' => 'required|in:entrada,saida_almoco,retorno_almoco,saida',
+        ], [
+            'tipo.required' => 'Informe o tipo de registro.',
+            'tipo.in' => 'Tipo de registro inválido.',
+        ]);
+
+        $momento = now();
+
+        DB::beginTransaction();
+        try {
+            $registro = RegistroPontoPortal::query()->firstOrCreate(
+                [
+                    'funcionario_id' => $funcionarioId,
+                    'data_referencia' => $momento->toDateString(),
+                ],
+                [
+                    'registrado_por_user_id' => $userId,
+                ]
+            );
+
+            $proximoEvento = $this->proximoEventoPonto($registro);
+            if ($validated['tipo'] !== $proximoEvento) {
+                DB::rollBack();
+                return back()->with('error', 'Sequência inválida. O próximo registro esperado é: ' . $this->rotuloEvento($proximoEvento) . '.');
+            }
+
+            switch ($validated['tipo']) {
+                case 'entrada':
+                    $registro->entrada_em = $momento;
+                    break;
+                case 'saida_almoco':
+                    $registro->intervalo_inicio_em = $momento;
+                    break;
+                case 'retorno_almoco':
+                    $registro->intervalo_fim_em = $momento;
+                    break;
+                case 'saida':
+                    $registro->saida_em = $momento;
+                    break;
+            }
+
+            $registro->registrado_por_user_id = $userId;
+            $registro->observacao = $this->appendObservacao($registro->observacao, 'Registro manual de ponto: ' . $this->rotuloEvento($validated['tipo']) . '.');
+            $registro->save();
+
+            DB::commit();
+
+            return redirect()
+                ->route('portal-funcionario.ponto')
+                ->with('success', $this->rotuloEvento($validated['tipo']) . ' registrado(a) com sucesso.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Erro ao registrar ponto: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -429,5 +746,132 @@ class PortalFuncionarioController extends Controller
     public function documentos()
     {
         return view('portal-funcionario.documentos');
+    }
+
+    private function proximoEventoPonto(?RegistroPontoPortal $registro): string
+    {
+        if (!$registro || !$registro->entrada_em) {
+            return 'entrada';
+        }
+
+        if (!$registro->intervalo_inicio_em) {
+            return 'saida_almoco';
+        }
+
+        if (!$registro->intervalo_fim_em) {
+            return 'retorno_almoco';
+        }
+
+        if (!$registro->saida_em) {
+            return 'saida';
+        }
+
+        return 'saida';
+    }
+
+    private function rotuloEvento(string $evento): string
+    {
+        return match ($evento) {
+            'entrada' => 'Entrada',
+            'saida_almoco' => 'Saída almoço',
+            'retorno_almoco' => 'Retorno almoço',
+            'saida' => 'Saída',
+            default => 'Registro',
+        };
+    }
+
+    private function registrarEntradaPortal(int $funcionarioId, int $userId, Carbon $momento, int $atendimentoId): void
+    {
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return;
+        }
+
+        $registro = $this->obterOuCriarRegistroPonto($funcionarioId, $userId, $momento);
+        if (!$registro->entrada_em) {
+            $registro->entrada_em = $momento;
+        }
+
+        $registro->registrado_por_user_id = $userId;
+        $registro->observacao = $this->appendObservacao($registro->observacao, 'Entrada registrada via atendimento #' . $atendimentoId . '.');
+        $registro->save();
+    }
+
+    private function registrarInicioIntervaloPortal(int $funcionarioId, int $userId, Carbon $momento, int $atendimentoId): void
+    {
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return;
+        }
+
+        $registro = $this->obterOuCriarRegistroPonto($funcionarioId, $userId, $momento);
+        if (!$registro->intervalo_inicio_em || ($registro->intervalo_fim_em && $registro->intervalo_inicio_em->gt($registro->intervalo_fim_em))) {
+            $registro->intervalo_inicio_em = $momento;
+            $registro->intervalo_fim_em = null;
+        }
+
+        $registro->registrado_por_user_id = $userId;
+        $registro->observacao = $this->appendObservacao($registro->observacao, 'Início de intervalo (almoço) via atendimento #' . $atendimentoId . '.');
+        $registro->save();
+    }
+
+    private function registrarFimIntervaloPortal(int $funcionarioId, int $userId, Carbon $momento, int $atendimentoId): void
+    {
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return;
+        }
+
+        $registro = $this->obterOuCriarRegistroPonto($funcionarioId, $userId, $momento);
+        if ($registro->intervalo_inicio_em && !$registro->intervalo_fim_em) {
+            $registro->intervalo_fim_em = $momento;
+        }
+
+        $registro->registrado_por_user_id = $userId;
+        $registro->observacao = $this->appendObservacao($registro->observacao, 'Fim de intervalo (almoço) via atendimento #' . $atendimentoId . '.');
+        $registro->save();
+    }
+
+    private function registrarSaidaPortal(int $funcionarioId, int $userId, Carbon $momento, int $atendimentoId): void
+    {
+        if (!Schema::hasTable('registro_pontos_portal')) {
+            return;
+        }
+
+        $registro = $this->obterOuCriarRegistroPonto($funcionarioId, $userId, $momento);
+        if (!$registro->saida_em || Carbon::parse($registro->saida_em)->lt($momento)) {
+            $registro->saida_em = $momento;
+        }
+
+        if (!$registro->entrada_em) {
+            $registro->entrada_em = $momento;
+        }
+
+        $registro->registrado_por_user_id = $userId;
+        $registro->observacao = $this->appendObservacao($registro->observacao, 'Saída registrada via finalização do atendimento #' . $atendimentoId . '.');
+        $registro->save();
+    }
+
+    private function obterOuCriarRegistroPonto(int $funcionarioId, int $userId, Carbon $momento): RegistroPontoPortal
+    {
+        return RegistroPontoPortal::query()->firstOrCreate(
+            [
+                'funcionario_id' => $funcionarioId,
+                'data_referencia' => $momento->toDateString(),
+            ],
+            [
+                'registrado_por_user_id' => $userId,
+                'observacao' => null,
+            ]
+        );
+    }
+
+    private function appendObservacao(?string $textoAtual, string $novoTrecho): string
+    {
+        $prefixo = '[' . now()->format('d/m/Y H:i') . '] ';
+        $novo = $prefixo . $novoTrecho;
+
+        if (!$textoAtual) {
+            return $novo;
+        }
+
+        return trim($textoAtual) . PHP_EOL . $novo;
     }
 }

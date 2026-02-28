@@ -5,6 +5,7 @@
 
     // Papéis principais
     $isAdmin = $user && method_exists($user, 'isAdminPanel') ? $user->isAdminPanel() : false;
+    $isRhAdmin = $user && method_exists($user, 'isAdmin') ? $user->isAdmin() : false;
     $isAdministrativo = $user && method_exists($user, 'isAdministrativo') ? $user->isAdministrativo() : false;
     $isFinanceiro = $user && method_exists($user, 'perfis') ? $user->perfis()->where('slug', 'financeiro')->exists() : false;
     $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
@@ -243,6 +244,33 @@
                 </div>
                 @endif
 
+                {{-- ============ RH ============ --}}
+                @if($isRhAdmin)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                        RH
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
+                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        <x-nav-link :href="route('rh.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                            Dashboard RH
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('rh.funcionarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="funcionarios">
+                            Funcionários
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('rh.ponto-jornada.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                            Ponto & Jornada
+                        </x-nav-link>
+                    </div>
+                </div>
+                @endif
+
                 {{-- ============ CADASTROS ============ --}}
                 @if($isAdmin || $isFinanceiro || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
@@ -259,10 +287,6 @@
                         @if($isAdmin)
                         <x-nav-link :href="route('empresas.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="empresas">
                             Empresas
-                        </x-nav-link>
-
-                        <x-nav-link :href="route('funcionarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="funcionarios">
-                            Funcionários
                         </x-nav-link>
 
                         <x-nav-link :href="route('usuarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="usuarios">
@@ -483,7 +507,6 @@
             <div class="pl-4 space-y-1">
                 @if($isAdmin)
                 <x-responsive-nav-link :href="route('empresas.index')" data-tab-icon="empresas">Empresas</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('usuarios.index')" data-tab-icon="usuarios">Usuários</x-responsive-nav-link>
                 @endif
                 <x-responsive-nav-link :href="route('clientes.index')" data-tab-icon="clientes">Clientes</x-responsive-nav-link>
@@ -494,6 +517,18 @@
                 @if($isAdmin || $isFinanceiro)
                 <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>
                 @endif
+            </div>
+        </details>
+        @endif
+
+        {{-- RH --}}
+        @if($isRhAdmin)
+        <details>
+            <summary class="font-semibold text-gray-700">RH</summary>
+            <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('rh.dashboard')" data-tab-icon="rh">Dashboard RH</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('rh.funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('rh.ponto-jornada.index')" data-tab-icon="rh">Ponto & Jornada</x-responsive-nav-link>
             </div>
         </details>
         @endif

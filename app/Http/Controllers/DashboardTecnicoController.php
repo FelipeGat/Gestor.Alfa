@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
-use App\Models\AtendimentoPausa;
 use App\Models\Funcionario;
-use App\Models\User;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -147,16 +145,37 @@ class DashboardTecnicoController extends Controller
             }])
             ->get()
             ->map(function ($funcionario) use ($agora) {
-                $atendimentoAtual = $funcionario->atendimentos
+                $atendimentosEmAndamento = $funcionario->atendimentos
                     ->where('status_atual', 'em_atendimento')
-                    ->whereNotNull('iniciado_em')
+                    ->whereNotNull('iniciado_em');
+
+                $atendimentoAtual = $atendimentosEmAndamento
+                    ->where('em_execucao', true)
+                    ->where('em_pausa', false)
+                    ->sortByDesc(function ($atendimento) {
+                        return optional($atendimento->iniciado_em)->timestamp ?? 0;
+                    })
                     ->first();
 
-                $atendimentosDoPeriodo = $funcionario->atendimentos;
-                $totalTempoTrabalhado = $atendimentosDoPeriodo->sum('tempo_execucao_segundos');
-                $totalTempoPausas = $atendimentosDoPeriodo->sum('tempo_pausa_segundos');
+                if (!$atendimentoAtual) {
+                    $atendimentoAtual = $atendimentosEmAndamento
+                        ->where('em_pausa', true)
+                        ->sortByDesc(function ($atendimento) {
+                            return optional($atendimento->iniciado_em)->timestamp ?? 0;
+                        })
+                        ->first();
+                }
 
-                // Corrigir tempo trabalhado para atendimento em execução
+                $atendimentosDoPeriodo = $funcionario->atendimentos;
+                $totalTempoTrabalhado = 0;
+                $totalTempoPausas = 0;
+
+                if ($atendimentoAtual) {
+                    $totalTempoTrabalhado = max(0, $atendimentoAtual->tempo_execucao_segundos ?? 0);
+                    $totalTempoPausas = max(0, $atendimentoAtual->tempo_pausa_segundos ?? 0);
+                }
+
+                // Corrigir tempo trabalhado para atendimento atual em execução
                 if ($atendimentoAtual && $atendimentoAtual->em_execucao && !$atendimentoAtual->em_pausa && $atendimentoAtual->iniciado_em) {
                     $diff = $atendimentoAtual->iniciado_em->diffInSeconds($agora, false);
                     if ($diff > 0) {
@@ -184,6 +203,7 @@ class DashboardTecnicoController extends Controller
                 return [
                     'funcionario' => $funcionario,
                     'atendimento_atual' => $atendimentoAtual,
+                    'atendimentos_em_andamento_count' => $atendimentosEmAndamento->count(),
                     'pausa_ativa' => $pausaAtiva,
                     'tempo_pausa_atual' => $tempoPausaAtual,
                     'total_tempo_trabalhado' => $totalTempoTrabalhado,
@@ -338,7 +358,7 @@ class DashboardTecnicoController extends Controller
                 'total' => $atendimentos->count()
             ]);
         } catch (\Throwable $e) {
-            \Log::error('Erro no getAtendimentos DashboardTecnico: ' . $e->getMessage(), [
+            \Illuminate\Support\Facades\Log::error('Erro no getAtendimentos DashboardTecnico: ' . $e->getMessage(), [
                 'exception' => $e,
                 'request' => $request->all(),
             ]);

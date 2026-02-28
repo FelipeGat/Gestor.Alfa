@@ -10,9 +10,9 @@ class CPFTest extends TestCase
 {
     public function test_criar_cpf_valido(): void
     {
-        $cpf = new CPF('123.456.789-00');
+        $cpf = new CPF('529.982.247-25');
 
-        $this->assertEquals('12345678900', $cpf->getNumero());
+        $this->assertEquals('52998224725', $cpf->getNumero());
     }
 
     public function test_criar_cpf_com_digitos_invalidos_deve_lançar_exceção(): void
@@ -40,16 +40,16 @@ class CPFTest extends TestCase
 
     public function test_formatar_cpf(): void
     {
-        $cpf = new CPF('12345678900');
+        $cpf = new CPF('52998224725');
 
-        $this->assertEquals('123.456.789-00', $cpf->formatado());
+        $this->assertEquals('529.982.247-25', $cpf->formatado());
     }
 
     public function test_to_string(): void
     {
-        $cpf = new CPF('12345678900');
+        $cpf = new CPF('52998224725');
 
-        $this->assertEquals('123.456.789-00', (string) $cpf);
+        $this->assertEquals('529.982.247-25', (string) $cpf);
     }
 
     public function test_cpf_valido_oficial(): void

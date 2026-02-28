@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Funcionario;
@@ -29,6 +30,10 @@ class Atendimento extends Model
         'is_orcamento',
         'atendimento_origem_id',
         'data_atendimento',
+        'periodo_agendamento',
+        'data_inicio_agendamento',
+        'data_fim_agendamento',
+        'duracao_agendamento_minutos',
         'iniciado_em',
         'iniciado_por_user_id',
         'finalizado_em',
@@ -37,10 +42,15 @@ class Atendimento extends Model
         'tempo_pausa_segundos',
         'em_execucao',
         'em_pausa',
+        'assinatura_cliente_nome',
+        'assinatura_cliente_cargo',
+        'assinatura_cliente_path',
     ];
 
     protected $casts = [
-        'data_atendimento' => 'date',
+        'data_atendimento' => 'datetime',
+        'data_inicio_agendamento' => 'datetime',
+        'data_fim_agendamento' => 'datetime',
         'iniciado_em' => 'datetime',
         'finalizado_em' => 'datetime',
         'em_execucao' => 'boolean',
@@ -151,5 +161,63 @@ class Atendimento extends Model
         $minutos = floor(($segundos % 3600) / 60);
         $segs = $segundos % 60;
         return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
+    }
+
+    public function getTempoTotalSegundosAttribute(): int
+    {
+        $tempoExecucao = max(0, (int) ($this->tempo_execucao_segundos ?? 0));
+        $tempoPausa = max(0, (int) ($this->tempo_pausa_segundos ?? 0));
+
+        return $tempoExecucao + $tempoPausa;
+    }
+
+    public function getTempoTotalFormatadoAttribute(): string
+    {
+        $segundos = $this->tempo_total_segundos;
+        $horas = floor($segundos / 3600);
+        $minutos = floor(($segundos % 3600) / 60);
+        $segs = $segundos % 60;
+
+        return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
+    }
+
+    public function getAssinaturaClienteStoragePathAttribute(): ?string
+    {
+        if (!$this->assinatura_cliente_path) {
+            return null;
+        }
+
+        return $this->normalizarCaminhoStorage($this->assinatura_cliente_path);
+    }
+
+    public function getAssinaturaClienteUrlAttribute(): ?string
+    {
+        if (!$this->assinatura_cliente_path) {
+            return null;
+        }
+
+        $arquivo = str_replace('\\', '/', trim((string) $this->assinatura_cliente_path));
+
+        if (Str::startsWith($arquivo, ['http://', 'https://'])) {
+            return $arquivo;
+        }
+
+        return asset('storage/' . $this->normalizarCaminhoStorage($arquivo));
+    }
+
+    private function normalizarCaminhoStorage(?string $caminho): string
+    {
+        $arquivo = str_replace('\\', '/', trim((string) $caminho));
+        $arquivo = ltrim($arquivo, '/');
+
+        if (Str::startsWith($arquivo, 'public/')) {
+            $arquivo = Str::after($arquivo, 'public/');
+        }
+
+        if (Str::startsWith($arquivo, 'storage/')) {
+            $arquivo = Str::after($arquivo, 'storage/');
+        }
+
+        return $arquivo;
     }
 }

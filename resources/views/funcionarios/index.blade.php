@@ -1,12 +1,20 @@
 <x-app-layout>
 
+    @php
+        $routePrefix = request()->routeIs('rh.*') ? 'rh.funcionarios' : 'funcionarios';
+        $isRhRoute = request()->routeIs('rh.*');
+        $breadcrumbBase = $isRhRoute
+            ? ['label' => 'RH', 'url' => route('rh.dashboard')]
+            : ['label' => 'Cadastros', 'url' => route('cadastros.index')];
+    @endphp
+
     @push('styles')
     @vite('resources/css/atendimentos/index.css')
     @endpush
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Cadastros', 'url' => route('cadastros.index')],
+            $breadcrumbBase,
             ['label' => 'Funcionários']
         ]" />
     </x-slot>
@@ -15,7 +23,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= FILTROS ================= --}}
-            <x-filter :action="route('funcionarios.index')" :show-clear-button="true">
+            <x-filter :action="route($routePrefix . '.index')" :show-clear-button="true">
                 <x-filter-field name="search" label="Pesquisar Funcionário" placeholder="Nome do funcionário" colSpan="lg:col-span-6" />
                 <x-filter-field name="status" label="Status" type="select" placeholder="Todos" colSpan="lg:col-span-3">
                     <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
@@ -41,7 +49,7 @@
 
             @if(auth()->user()->isAdminPanel() || auth()->user()->canPermissao('funcionarios','incluir'))
             <div class="flex justify-start">
-                <x-button href="{{ route('funcionarios.create') }}" variant="success" size="sm" class="min-w-[130px]">
+                <x-button href="{{ route($routePrefix . '.create') }}" variant="success" size="sm" class="min-w-[130px]">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
@@ -73,9 +81,9 @@
                         </x-badge>
                     </x-table-cell>
                     <x-table-cell>
-                        <x-actions 
-                            :edit-url="route('funcionarios.edit', $funcionario)" 
-                            :delete-url="route('funcionarios.destroy', $funcionario)"
+                        <x-actions
+                            :edit-url="route($routePrefix . '.edit', $funcionario)"
+                            :delete-url="route($routePrefix . '.destroy', $funcionario)"
                             :show-view="false"
                             confirm-delete-message="Deseja excluir este Funcionário?"
                         />

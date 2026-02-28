@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Atendimento;
 use App\Models\Cliente;
 use App\Models\Empresa;
+use App\Models\Funcionario;
 use App\Models\ItemComercial;
 use App\Models\Orcamento;
 use App\Models\OrcamentoItem;
@@ -178,6 +179,7 @@ class OrcamentoController extends Controller
             ->get();
 
         $empresas = Empresa::orderBy('nome_fantasia')->get();
+        $funcionariosTecnicos = Funcionario::where('ativo', true)->orderBy('nome')->get(['id', 'nome']);
 
         $statusList = [
             'em_elaboracao' => 'Em Elaboração',
@@ -197,6 +199,7 @@ class OrcamentoController extends Controller
             'orcamentos',
             'atendimentosParaOrcamento',
             'empresas',
+            'funcionariosTecnicos',
             'statusList',
             'resumo'
         ));
@@ -698,6 +701,10 @@ class OrcamentoController extends Controller
             ]);
 
             $novoStatus = $request->orcamento_status;
+
+            if (in_array($novoStatus, ['aprovado', 'agendado'], true)) {
+                return back()->with('error', 'Para este status, utilize o agendamento técnico no modal da tela de orçamentos.');
+            }
 
             // Atualiza status do orçamento
             $dadosAtualizacao = [

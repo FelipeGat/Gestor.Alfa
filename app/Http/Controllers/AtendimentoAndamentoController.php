@@ -24,7 +24,7 @@ class AtendimentoAndamentoController extends Controller
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('atendimentos/fotos', 'public');
-                $publicPath = 'storage/' . ltrim(str_replace('public/', '', $path), '/');
+                $publicPath = ltrim(str_replace(['public/', 'storage/'], '', $path), '/');
                 $andamento->fotos()->create([
                     'arquivo' => $publicPath,
                 ]);

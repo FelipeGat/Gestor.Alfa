@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class AtendimentoPausa extends Model
 {
@@ -68,5 +69,51 @@ class AtendimentoPausa extends Model
             'fim_dia' => 'Encerramento do Dia',
             default => $this->tipo_pausa,
         };
+    }
+
+    public function getFotoInicioUrlAttribute(): ?string
+    {
+        if (!$this->foto_inicio_path) {
+            return null;
+        }
+
+        $arquivo = str_replace('\\', '/', trim((string) $this->foto_inicio_path));
+
+        if (Str::startsWith($arquivo, ['http://', 'https://'])) {
+            return $arquivo;
+        }
+
+        return asset('storage/' . $this->normalizarCaminho($arquivo));
+    }
+
+    public function getFotoRetornoUrlAttribute(): ?string
+    {
+        if (!$this->foto_retorno_path) {
+            return null;
+        }
+
+        $arquivo = str_replace('\\', '/', trim((string) $this->foto_retorno_path));
+
+        if (Str::startsWith($arquivo, ['http://', 'https://'])) {
+            return $arquivo;
+        }
+
+        return asset('storage/' . $this->normalizarCaminho($arquivo));
+    }
+
+    private function normalizarCaminho(?string $caminho): string
+    {
+        $arquivo = str_replace('\\', '/', trim((string) $caminho));
+        $arquivo = ltrim($arquivo, '/');
+
+        if (Str::startsWith($arquivo, 'public/')) {
+            $arquivo = Str::after($arquivo, 'public/');
+        }
+
+        if (Str::startsWith($arquivo, 'storage/')) {
+            $arquivo = Str::after($arquivo, 'storage/');
+        }
+
+        return $arquivo;
     }
 }

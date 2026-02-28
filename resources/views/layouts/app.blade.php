@@ -34,20 +34,20 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
+
         :hover::-webkit-scrollbar {
             opacity: 1;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: transparent;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 3px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
@@ -66,15 +66,38 @@
 </head>
 
 <body class="font-sans antialiased">
+    @php
+        $isFuncionarioPortal = auth()->check()
+            && auth()->user()->tipo === 'funcionario'
+            && request()->routeIs('portal-funcionario.*');
+    @endphp
+
     <div class="min-h-screen bg-gray-100">
-        @include('layouts.navigation')
+        @if(!$isFuncionarioPortal)
+            @include('layouts.navigation')
+        @else
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+                <div class="relative px-3 pt-2 pb-1">
+                    <div class="flex items-center justify-center">
+                        <x-application-logo class="h-6 w-auto text-gray-800" />
+                    </div>
+                    <form method="POST" action="{{ route('logout') }}" onsubmit="if(window.limparAbasSessao){window.limparAbasSessao();}" class="absolute right-3 top-2">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 active:bg-gray-200">
+                            Sair
+                        </button>
+                    </form>
+                    <p class="mt-1 text-center text-xs font-semibold text-gray-600">Bem-vindo ao seu portal</p>
+                </div>
+            </header>
+        @endif
 
         <!-- Sticky wrapper for header + breadcrumb -->
-        <div id="sticky-wrapper" class="relative pt-12">
+        <div id="sticky-wrapper" class="relative {{ $isFuncionarioPortal ? 'pt-0' : 'pt-12' }}">
             <!-- Page Heading -->
             @isset($header)
             <header id="page-header" class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <div class="{{ $isFuncionarioPortal ? 'w-full py-3 px-3' : 'max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8' }}">
                     {{ $header }}
                 </div>
             </header>
@@ -100,17 +123,29 @@
             @endif
         </main>
 
-        @include('components.dashboard-fab')
+        @if(!$isFuncionarioPortal)
+            @include('components.dashboard-fab')
+        @endif
     </div>
     @stack('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const isFuncionarioPortal = @json($isFuncionarioPortal);
             const wrapper = document.getElementById('sticky-wrapper');
             const navHeight = 48;
-            
+
+            if (isFuncionarioPortal) {
+                if (wrapper) {
+                    wrapper.style.position = '';
+                    wrapper.style.paddingTop = '0';
+                    wrapper.style.paddingBottom = '0';
+                }
+                return;
+            }
+
             function handleScroll() {
                 const scrollTop = window.scrollY;
-                
+
                 if (scrollTop > navHeight) {
                     if (wrapper) {
                         wrapper.style.position = 'fixed';
@@ -172,6 +207,7 @@
                 perfil: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
                 portal: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
                 'portal-funcionario': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                rh: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
             };
 
             // Ícone padrão quando não encontrado
@@ -185,11 +221,11 @@
                 if (iconName && TAB_ICONS[iconName]) {
                     return TAB_ICONS[iconName];
                 }
-                
+
                 // Gerar ícone baseado na URL
                 if (url) {
                     const urlLower = url.toLowerCase();
-                    
+
                     // Mapeamento de palavras-chave da URL para ícones
                     const urlMappings = {
                         'dashboard': 'dashboard',
@@ -231,6 +267,8 @@
                         'servicos': 'produtos',
                         'portal': 'portal',
                         'portal-funcionario': 'portal-funcionario',
+                        'ponto-jornada': 'rh',
+                        'rh': 'rh',
                         'profile': 'perfil',
                         'perfil': 'perfil',
                     };
@@ -242,7 +280,7 @@
                         }
                     }
                 }
-                
+
                 return DEFAULT_ICON;
             }
 
@@ -271,10 +309,10 @@
             window.abrirTab = function(url, label, icon = null) {
                 let tabs = getTabs();
                 const activeId = getActiveTabId();
-                
+
                 // Verificar se já existe aba com mesma URL
                 const existingTab = tabs.find(t => t.url === url);
-                
+
                 if (existingTab) {
                     // Se já existe e é a ativa, apenas fazer scroll
                     if (existingTab.id === activeId) {
@@ -294,10 +332,10 @@
                     // Se não existe, criar nova aba
                     const tabId = generateTabId(url, label);
                     tabs.push({ id: tabId, url: url, label: label, icon: icon });
-                    
+
                     saveTabs(tabs);
                     setActiveTabId(tabId);
-                    
+
                     window.location.href = url;
                 }
             };
@@ -306,13 +344,13 @@
             window.fecharTab = function(tabId) {
                 let tabs = getTabs();
                 const activeId = getActiveTabId();
-                
+
                 const tabIndex = tabs.findIndex(t => t.id === tabId);
                 if (tabIndex === -1) return;
-                
+
                 tabs.splice(tabIndex, 1);
                 saveTabs(tabs);
-                
+
                 if (tabId === activeId) {
                     if (tabs.length > 0) {
                         const newActiveIndex = Math.min(tabIndex, tabs.length - 1);
@@ -333,7 +371,7 @@
                 let tabs = getTabs();
                 const tab = tabs.find(t => t.id === tabId);
                 const activeId = getActiveTabId();
-                
+
                 if (tab) {
                     // Se já estiver ativa, apenas fazer scroll para ela
                     if (tabId === activeId) {
@@ -346,7 +384,7 @@
                         }
                         return;
                     }
-                    
+
                     setActiveTabId(tabId);
                     window.location.href = tab.url;
                 }
@@ -355,7 +393,7 @@
             // Renderizar abas visuais no topo da página
             function renderAbas() {
                 let tabsContainer = document.getElementById('tabs-container');
-                
+
                 const tabs = getTabs();
                 const activeId = getActiveTabId();
                 const currentUrl = window.location.href;
@@ -396,10 +434,10 @@
                     wrapper.id = 'tabs-container';
                     wrapper.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2';
                     wrapper.innerHTML = html;
-                    
+
                     const header = document.getElementById('page-header');
                     const breadcrumbContainer = document.getElementById('breadcrumb-container');
-                    
+
                     if (header && header.parentNode) {
                         header.parentNode.insertBefore(wrapper, header.nextSibling);
                     } else if (breadcrumbContainer && breadcrumbContainer.parentNode) {

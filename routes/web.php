@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 use App\Http\Controllers\AssuntoController;
+use App\Http\Controllers\AgendaTecnicaController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\BoletoController;
@@ -66,6 +67,9 @@ use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFuncionarioController;
 use App\Http\Controllers\PreClienteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Rh\FuncionarioRhDadosController;
+use App\Http\Controllers\Rh\DashboardRhController;
+use App\Http\Controllers\Rh\PontoJornadaController;
 use App\Http\Controllers\UsuarioController;
 
 /*
@@ -160,12 +164,56 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.admin')
         ->name('dashboard.tecnico.atualizar');
 
+    // RH (somente perfis administrativos)
+    Route::middleware('rh.admin')
+        ->prefix('rh')
+        ->name('rh.')
+        ->group(function () {
+            Route::get('/', [DashboardRhController::class, 'index'])->name('dashboard');
+            Route::get('/relatorios/{indicador}', [DashboardRhController::class, 'relatorio'])->name('relatorios.show');
+
+            Route::resource('funcionarios', FuncionarioController::class)
+                ->except(['show']);
+
+            Route::post('funcionarios/{funcionario}/documentos', [FuncionarioRhDadosController::class, 'storeDocumento'])->name('funcionarios.documentos.store');
+            Route::put('funcionarios/{funcionario}/documentos/{documento}', [FuncionarioRhDadosController::class, 'updateDocumento'])->name('funcionarios.documentos.update');
+            Route::delete('funcionarios/{funcionario}/documentos/{documento}', [FuncionarioRhDadosController::class, 'destroyDocumento'])->name('funcionarios.documentos.destroy');
+
+            Route::post('funcionarios/{funcionario}/epis', [FuncionarioRhDadosController::class, 'storeEpi'])->name('funcionarios.epis.store');
+            Route::put('funcionarios/{funcionario}/epis/{funcionarioEpi}', [FuncionarioRhDadosController::class, 'updateEpi'])->name('funcionarios.epis.update');
+            Route::delete('funcionarios/{funcionario}/epis/{funcionarioEpi}', [FuncionarioRhDadosController::class, 'destroyEpi'])->name('funcionarios.epis.destroy');
+
+            Route::post('funcionarios/{funcionario}/beneficios', [FuncionarioRhDadosController::class, 'storeBeneficio'])->name('funcionarios.beneficios.store');
+            Route::put('funcionarios/{funcionario}/beneficios/{beneficio}', [FuncionarioRhDadosController::class, 'updateBeneficio'])->name('funcionarios.beneficios.update');
+            Route::delete('funcionarios/{funcionario}/beneficios/{beneficio}', [FuncionarioRhDadosController::class, 'destroyBeneficio'])->name('funcionarios.beneficios.destroy');
+
+            Route::post('funcionarios/{funcionario}/jornadas', [FuncionarioRhDadosController::class, 'storeJornada'])->name('funcionarios.jornadas.store');
+            Route::put('funcionarios/{funcionario}/jornadas/{funcionarioJornada}', [FuncionarioRhDadosController::class, 'updateJornada'])->name('funcionarios.jornadas.update');
+            Route::delete('funcionarios/{funcionario}/jornadas/{funcionarioJornada}', [FuncionarioRhDadosController::class, 'destroyJornada'])->name('funcionarios.jornadas.destroy');
+
+            Route::post('funcionarios/{funcionario}/ferias', [FuncionarioRhDadosController::class, 'storeFerias'])->name('funcionarios.ferias.store');
+            Route::put('funcionarios/{funcionario}/ferias/{ferias}', [FuncionarioRhDadosController::class, 'updateFerias'])->name('funcionarios.ferias.update');
+            Route::delete('funcionarios/{funcionario}/ferias/{ferias}', [FuncionarioRhDadosController::class, 'destroyFerias'])->name('funcionarios.ferias.destroy');
+
+            Route::post('funcionarios/{funcionario}/advertencias', [FuncionarioRhDadosController::class, 'storeAdvertencia'])->name('funcionarios.advertencias.store');
+            Route::put('funcionarios/{funcionario}/advertencias/{advertencia}', [FuncionarioRhDadosController::class, 'updateAdvertencia'])->name('funcionarios.advertencias.update');
+            Route::delete('funcionarios/{funcionario}/advertencias/{advertencia}', [FuncionarioRhDadosController::class, 'destroyAdvertencia'])->name('funcionarios.advertencias.destroy');
+
+            Route::get('/ponto-jornada', [PontoJornadaController::class, 'index'])
+                ->name('ponto-jornada.index');
+            Route::post('/ponto-jornada/ajustes', [PontoJornadaController::class, 'storeAjuste'])
+                ->name('ponto-jornada.ajustes.store');
+        });
+
     // Orçamentos
     Route::resource('orcamentos', OrcamentoController::class)
         ->middleware('dashboard.comercial');
 
     Route::patch('/orcamentos/{orcamento}/status', [OrcamentoController::class, 'updateStatus'])
         ->name('orcamentos.updateStatus');
+
+    Route::post('/orcamentos/{orcamento}/agendar-tecnico', [AgendaTecnicaController::class, 'agendarOrcamento'])
+        ->name('orcamentos.agendar-tecnico');
 
     Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
         ->name('orcamentos.imprimir');
@@ -261,6 +309,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         '/atendimentos/{atendimento}/atualizar-campo',
         [AtendimentoController::class, 'atualizarCampo']
     );
+
+    Route::get('/agenda-tecnica/disponibilidade', [AgendaTecnicaController::class, 'disponibilidade'])
+        ->name('agenda-tecnica.disponibilidade');
 
     Route::post(
         '/atendimentos/{atendimento}/andamentos',
@@ -623,9 +674,14 @@ Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
         Route::post('/atendimento/{atendimento}/pausar', [PortalFuncionarioController::class, 'pausarAtendimento'])->name('atendimento.pausar');
         Route::post('/atendimento/{atendimento}/retomar', [PortalFuncionarioController::class, 'retomarAtendimento'])->name('atendimento.retomar');
         Route::post('/atendimento/{atendimento}/finalizar', [PortalFuncionarioController::class, 'finalizarAtendimento'])->name('atendimento.finalizar');
+        Route::post('/atendimento/{atendimento}/incluir', [PortalFuncionarioController::class, 'incluirAtendimento'])->name('atendimento.incluir');
 
         // Agenda Técnica
         Route::get('/agenda', [PortalFuncionarioController::class, 'agenda'])->name('agenda');
+
+        // Registro de Ponto
+        Route::get('/ponto', [PortalFuncionarioController::class, 'ponto'])->name('ponto');
+        Route::post('/ponto', [PortalFuncionarioController::class, 'registrarPonto'])->name('ponto.store');
 
         // Documentos
         Route::get('/documentos', [PortalFuncionarioController::class, 'documentos'])->name('documentos');

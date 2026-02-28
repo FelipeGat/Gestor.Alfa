@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\PrimeiroAcessoMail;
+use App\Models\Epi;
 use App\Models\Funcionario;
+use App\Models\Jornada;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class FuncionarioController extends Controller
@@ -100,16 +103,54 @@ class FuncionarioController extends Controller
         // Envia e-mail de primeiro acesso
         Mail::to($user->email)->send(new PrimeiroAcessoMail($user));
 
+        $indexRoute = $request->routeIs('rh.*')
+            ? 'rh.funcionarios.index'
+            : 'funcionarios.index';
+
         return redirect()
-            ->route('funcionarios.index')
+            ->route($indexRoute)
             ->with('success', 'Funcionário cadastrado com sucesso!');
     }
 
     public function edit(Funcionario $funcionario)
     {
-        $funcionario->load('user');
+        $relacoes = ['user'];
 
-        return view('funcionarios.edit', compact('funcionario'));
+        if (Schema::hasTable('funcionario_documentos')) {
+            $relacoes['documentos'] = fn($query) => $query->orderByDesc('data_vencimento');
+        }
+
+        if (Schema::hasTable('funcionario_epis') && Schema::hasTable('epis')) {
+            $relacoes['episVinculos.epi'] = fn($query) => $query->orderByDesc('data_prevista_troca');
+        }
+
+        if (Schema::hasTable('funcionario_beneficios')) {
+            $relacoes['beneficios'] = fn($query) => $query->orderByDesc('data_inicio');
+        }
+
+        if (Schema::hasTable('funcionario_jornadas') && Schema::hasTable('jornadas')) {
+            $relacoes['jornadasVinculos.jornada'] = fn($query) => $query->orderByDesc('data_inicio');
+        }
+
+        if (Schema::hasTable('ferias')) {
+            $relacoes['ferias'] = fn($query) => $query->orderByDesc('periodo_aquisitivo_fim');
+        }
+
+        if (Schema::hasTable('advertencias')) {
+            $relacoes['advertencias'] = fn($query) => $query->orderByDesc('data');
+        }
+
+        $funcionario->load($relacoes);
+
+        $epis = Schema::hasTable('epis')
+            ? Epi::query()->orderBy('nome')->get(['id', 'nome', 'ca'])
+            : collect();
+
+        $jornadas = Schema::hasTable('jornadas')
+            ? Jornada::query()->orderBy('nome')->get(['id', 'nome', 'carga_horaria_semanal'])
+            : collect();
+
+        return view('funcionarios.edit', compact('funcionario', 'epis', 'jornadas'));
     }
 
     public function update(Request $request, Funcionario $funcionario)
@@ -137,12 +178,16 @@ class FuncionarioController extends Controller
             'email' => $request->email,
         ]);
 
+        $indexRoute = $request->routeIs('rh.*')
+            ? 'rh.funcionarios.index'
+            : 'funcionarios.index';
+
         return redirect()
-            ->route('funcionarios.index')
+            ->route($indexRoute)
             ->with('success', 'Funcionário atualizado com sucesso!');
     }
 
-    public function destroy(Funcionario $funcionario)
+    public function destroy(Request $request, Funcionario $funcionario)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -154,8 +199,12 @@ class FuncionarioController extends Controller
 
         $funcionario->delete();
 
+        $indexRoute = $request->routeIs('rh.*')
+            ? 'rh.funcionarios.index'
+            : 'funcionarios.index';
+
         return redirect()
-            ->route('funcionarios.index')
+            ->route($indexRoute)
             ->with('success', 'Funcionário excluído com sucesso!');
     }
 }
