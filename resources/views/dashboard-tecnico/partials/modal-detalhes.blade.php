@@ -97,12 +97,7 @@
             @if($atendimento->iniciado_em && $atendimento->finalizado_em)
             <div class="tempo-card tempo-total">
                 <p class="tempo-card-label">Tempo Total</p>
-                <p class="tempo-card-valor">
-                    @php
-                        $totalSegundos = $atendimento->iniciado_em->diffInSeconds($atendimento->finalizado_em);
-                        echo gmdate('H:i:s', $totalSegundos);
-                    @endphp
-                </p>
+                <p class="tempo-card-valor">{{ $atendimento->tempo_total_formatado }}</p>
             </div>
             @endif
         </div>

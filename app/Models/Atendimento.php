@@ -163,6 +163,24 @@ class Atendimento extends Model
         return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
     }
 
+    public function getTempoTotalSegundosAttribute(): int
+    {
+        $tempoExecucao = max(0, (int) ($this->tempo_execucao_segundos ?? 0));
+        $tempoPausa = max(0, (int) ($this->tempo_pausa_segundos ?? 0));
+
+        return $tempoExecucao + $tempoPausa;
+    }
+
+    public function getTempoTotalFormatadoAttribute(): string
+    {
+        $segundos = $this->tempo_total_segundos;
+        $horas = floor($segundos / 3600);
+        $minutos = floor(($segundos % 3600) / 60);
+        $segs = $segundos % 60;
+
+        return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
+    }
+
     public function getAssinaturaClienteStoragePathAttribute(): ?string
     {
         if (!$this->assinatura_cliente_path) {
