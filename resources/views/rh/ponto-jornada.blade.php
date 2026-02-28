@@ -24,11 +24,14 @@
                     $columnsLegal = [
                         ['label' => 'Funcionário'],
                         ['label' => 'Data'],
+                        ['label' => 'Dia'],
                         ['label' => 'Entrada'],
                         ['label' => 'Início Intervalo'],
                         ['label' => 'Fim Intervalo'],
                         ['label' => 'Saída'],
-                        ['label' => 'Total Trabalhado'],
+                        ['label' => 'Total'],
+                        ['label' => 'Extra 50%'],
+                        ['label' => 'Extra 100%'],
                         ['label' => 'Status'],
                     ];
                 @endphp
@@ -37,6 +40,9 @@
                     @foreach($jornadaLegal['rows'] as $linha)
                         @php
                             $estiloLinha = '';
+                            $ehFalta = ($linha['status'] ?? '') === 'Falta';
+                            $tipoCelula = $ehFalta ? 'danger' : 'default';
+
                             if (!empty($linha['eh_feriado'])) {
                                 $estiloLinha = 'background-color: #fef3c7;';
                             } elseif (!empty($linha['eh_domingo'])) {
@@ -44,36 +50,43 @@
                             }
                         @endphp
                         <tr @if($estiloLinha) style="{{ $estiloLinha }}" @endif>
-                            <x-table-cell>{{ $linha['funcionario'] }}</x-table-cell>
-                            <x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['funcionario'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $linha['data'] }}</span>
+                                </div>
+                            </x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $linha['dia'] ?? '—' }}</span>
                                     @if(!empty($linha['eh_feriado']))
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color:#f59e0b; color:white;">Feriado</span>
-                                    @elseif(!empty($linha['eh_domingo']))
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color:#ef4444; color:white;">Domingo</span>
                                     @endif
                                 </div>
                                 @if(!empty($linha['feriado_nome']))
                                     <div class="text-xs text-amber-800 mt-1">{{ $linha['feriado_nome'] }}</div>
                                 @endif
                             </x-table-cell>
-                            <x-table-cell>{{ $linha['entrada'] }}</x-table-cell>
-                            <x-table-cell>{{ $linha['intervalo_inicio'] }}</x-table-cell>
-                            <x-table-cell>{{ $linha['intervalo_fim'] }}</x-table-cell>
-                            <x-table-cell>{{ $linha['saida'] }}</x-table-cell>
-                            <x-table-cell>{{ $linha['total'] }}</x-table-cell>
-                            <x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['entrada'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_inicio'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_fim'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['saida'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['total'] }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['extra_50'] ?? '—' }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">{{ $linha['extra_100'] ?? '—' }}</x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
                                 @php
                                     $ehExtra = in_array($linha['status'], ['Extra', 'Extra feriado'], true);
                                     $ehDomingoOuFeriado = !empty($linha['eh_domingo']) || !empty($linha['eh_feriado']);
-                                    $statusClass = $ehExtra
-                                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                        : ($ehDomingoOuFeriado
-                                            ? 'bg-red-100 text-red-800 border border-red-300'
-                                            : 'bg-gray-900 text-white border border-gray-900');
+                                    $statusClass = $ehFalta
+                                        ? 'text-red-700'
+                                        : ($ehExtra
+                                            ? 'text-amber-700'
+                                            : ($ehDomingoOuFeriado
+                                                ? 'text-red-700'
+                                                : 'text-gray-700'));
                                 @endphp
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusClass }}">{{ $linha['status'] }}</span>
+                                <span class="text-xs font-semibold {{ $statusClass }}">{{ $linha['status'] }}</span>
                             </x-table-cell>
                         </tr>
                     @endforeach

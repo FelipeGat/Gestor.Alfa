@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Schema;
 
 class PortalFuncionarioController extends Controller
 {
+    private const SEGUNDOS_META_SEMANAL = 158400;
+
     /**
      * Tela inicial do portal - 3 botões principais
      */
@@ -655,15 +657,67 @@ class PortalFuncionarioController extends Controller
         $historico = RegistroPontoPortal::query()
             ->where('funcionario_id', $funcionarioId)
             ->orderByDesc('data_referencia')
-            ->limit(15)
-            ->get();
+            ->paginate(10);
+
+        $feriadosNacionais = [];
+        if ($historico->total() > 0) {
+            $historicoCollection = $historico->getCollection();
+            $inicioHistorico = Carbon::parse($historicoCollection->min('data_referencia'))->startOfDay();
+            $fimHistorico = Carbon::parse($historicoCollection->max('data_referencia'))->endOfDay();
+            $feriadosNacionais = $this->mapaFeriadosNacionaisPortal($inicioHistorico, $fimHistorico);
+        }
+
+        $historico->getCollection()->transform(function (RegistroPontoPortal $registro) use ($feriadosNacionais) {
+            $dia = Carbon::parse($registro->data_referencia)->startOfDay();
+            $dataChave = $dia->toDateString();
+            $ehDomingo = $dia->isSunday();
+            $ehFeriado = array_key_exists($dataChave, $feriadosNacionais);
+            $segundosTrabalhados = $this->calcularSegundosTrabalhadosPortal($registro);
+
+            $registro->eh_domingo = $ehDomingo;
+            $registro->eh_feriado = $ehFeriado;
+            $registro->feriado_nome = $feriadosNacionais[$dataChave] ?? null;
+            $registro->total_formatado = $this->formatarSegundosPortal($segundosTrabalhados);
+            $registro->status = $this->resolverStatusPortal($registro, $segundosTrabalhados, $ehDomingo, $ehFeriado);
+            $registro->ponto_fora_atendimento = (bool) $registro->registrado_fora_atendimento;
+
+            return $registro;
+        });
+
+        $mesesDaPagina = collect($historico->items())
+            ->map(fn (RegistroPontoPortal $registro) => Carbon::parse($registro->data_referencia)->format('m/Y'))
+            ->unique()
+            ->values();
+
+        $saldoBancoHorasMes = $this->calcularSaldoBancoHorasMesesPortal($funcionarioId, $mesesDaPagina);
 
         $proximoEvento = $this->proximoEventoPonto($registroHoje);
+        $ultimoRegistroHoje = $registroHoje ? $this->ultimoRegistroPontoEm($registroHoje) : null;
+        $bloqueioMinutosRestantes = 0;
+        if ($ultimoRegistroHoje && $ultimoRegistroHoje->diffInMinutes(now()) < 15) {
+            $bloqueioMinutosRestantes = max(1, 15 - $ultimoRegistroHoje->diffInMinutes(now()));
+        }
+        $atendimentoHoje = $this->atendimentoDoDiaPortal($funcionarioId, now());
+
+        $enderecoAtendimento = null;
+        if ($atendimentoHoje?->cliente) {
+            $enderecoAtendimento = collect([
+                $atendimentoHoje->cliente->logradouro,
+                $atendimentoHoje->cliente->numero,
+                $atendimentoHoje->cliente->bairro,
+                $atendimentoHoje->cliente->cidade,
+                $atendimentoHoje->cliente->estado,
+            ])->filter()->implode(', ');
+        }
 
         return view('portal-funcionario.ponto', [
             'registroHoje' => $registroHoje,
             'historico' => $historico,
+            'saldoBancoHorasMes' => $saldoBancoHorasMes,
             'proximoEvento' => $proximoEvento,
+            'bloqueioMinutosRestantes' => $bloqueioMinutosRestantes,
+            'atendimentoHoje' => $atendimentoHoje,
+            'enderecoAtendimento' => $enderecoAtendimento,
             'eventos' => [
                 'entrada' => 'Entrada',
                 'saida_almoco' => 'Saída almoço',
@@ -684,10 +738,31 @@ class PortalFuncionarioController extends Controller
 
         $validated = $request->validate([
             'tipo' => 'required|in:entrada,saida_almoco,retorno_almoco,saida',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'fora_atendimento' => 'nullable|boolean',
+            'fora_atendimento_confirmado' => 'nullable|boolean',
+            'distancia_atendimento_metros' => 'nullable|integer|min:0|max:200000',
+            'justificativa_fora_atendimento' => 'nullable|string|max:1000',
         ], [
             'tipo.required' => 'Informe o tipo de registro.',
             'tipo.in' => 'Tipo de registro inválido.',
+            'latitude.required' => 'Não foi possível obter sua localização. Ative o GPS e tente novamente.',
+            'longitude.required' => 'Não foi possível obter sua localização. Ative o GPS e tente novamente.',
         ]);
+
+        $atendimentoHoje = $this->atendimentoDoDiaPortal($funcionarioId, now());
+        $foraAtendimento = (bool) ($validated['fora_atendimento'] ?? false);
+        $foraAtendimentoConfirmado = (bool) ($validated['fora_atendimento_confirmado'] ?? false);
+
+        if ($atendimentoHoje && $foraAtendimento && !$foraAtendimentoConfirmado) {
+            return back()->with('error', 'Registro fora do atendimento requer confirmação explícita do funcionário.');
+        }
+
+        if (in_array($validated['tipo'], ['entrada', 'saida'], true) && !$request->hasFile('foto')) {
+            return back()->with('error', 'Para entrada e saída é obrigatório enviar uma foto.');
+        }
 
         $momento = now();
 
@@ -709,6 +784,25 @@ class PortalFuncionarioController extends Controller
                 return back()->with('error', 'Sequência inválida. O próximo registro esperado é: ' . $this->rotuloEvento($proximoEvento) . '.');
             }
 
+            $ultimoRegistroEm = $this->ultimoRegistroPontoEm($registro);
+            if ($ultimoRegistroEm && $ultimoRegistroEm->diffInMinutes($momento) < 15) {
+                DB::rollBack();
+                $restante = 15 - $ultimoRegistroEm->diffInMinutes($momento);
+                return back()->with('error', 'Aguarde ' . max(1, $restante) . ' minuto(s) para registrar o próximo evento.');
+            }
+
+            $this->preencherGeoDoEvento($registro, $validated['tipo'], (float) $validated['latitude'], (float) $validated['longitude']);
+
+            if ($request->hasFile('foto')) {
+                $fotoPath = $request->file('foto')->store('ponto/' . $funcionarioId . '/' . now()->format('Y/m'), 'public');
+                if ($validated['tipo'] === 'entrada') {
+                    $registro->entrada_foto_path = $fotoPath;
+                }
+                if ($validated['tipo'] === 'saida') {
+                    $registro->saida_foto_path = $fotoPath;
+                }
+            }
+
             switch ($validated['tipo']) {
                 case 'entrada':
                     $registro->entrada_em = $momento;
@@ -724,15 +818,32 @@ class PortalFuncionarioController extends Controller
                     break;
             }
 
+            if ($atendimentoHoje && $foraAtendimento) {
+                $registro->registrado_fora_atendimento = true;
+                $registro->distancia_atendimento_metros = $validated['distancia_atendimento_metros'] ?? $registro->distancia_atendimento_metros;
+                $registro->justificativa_fora_atendimento = $validated['justificativa_fora_atendimento']
+                    ?? 'Registro confirmado fora do endereço de atendimento agendado.';
+            }
+
             $registro->registrado_por_user_id = $userId;
             $registro->observacao = $this->appendObservacao($registro->observacao, 'Registro manual de ponto: ' . $this->rotuloEvento($validated['tipo']) . '.');
+            if ($atendimentoHoje && $foraAtendimento) {
+                $registro->observacao = $this->appendObservacao($registro->observacao, 'ATENÇÃO: ponto registrado fora do endereço do atendimento agendado e sujeito a auditoria.');
+            }
             $registro->save();
 
             DB::commit();
 
+            $mensagem = $this->rotuloEvento($validated['tipo']) . ' registrado(a) com sucesso.';
+            if (in_array($validated['tipo'], ['entrada', 'saida'], true)) {
+                $mensagem = $validated['tipo'] === 'entrada'
+                    ? 'Seu registro de ponto foi feito com sucesso. Bom trabalho.'
+                    : 'Seu registro de saída foi feito com sucesso. Bom descanso.';
+            }
+
             return redirect()
                 ->route('portal-funcionario.ponto')
-                ->with('success', $this->rotuloEvento($validated['tipo']) . ' registrado(a) com sucesso.');
+                ->with('success', $mensagem);
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -873,5 +984,211 @@ class PortalFuncionarioController extends Controller
         }
 
         return trim($textoAtual) . PHP_EOL . $novo;
+    }
+
+    private function resolverStatusPortal(RegistroPontoPortal $registro, int $segundosTrabalhados, bool $ehDomingo, bool $ehFeriado): string
+    {
+        $possuiBatidas = $this->possuiBatidasPortal($registro);
+        if (!$possuiBatidas) {
+            return ($ehDomingo || $ehFeriado) ? '' : 'Falta';
+        }
+
+        $intervaloIncompleto = ($registro->intervalo_inicio_em && !$registro->intervalo_fim_em)
+            || (!$registro->intervalo_inicio_em && $registro->intervalo_fim_em);
+
+        if (!$registro->entrada_em || !$registro->saida_em || $intervaloIncompleto) {
+            return 'Incompleto';
+        }
+
+        if ($ehDomingo || $ehFeriado) {
+            return $ehFeriado ? 'Extra feriado' : 'Extra';
+        }
+
+        return $segundosTrabalhados > 29400 ? 'Extra' : 'Normal';
+    }
+
+    private function possuiBatidasPortal(RegistroPontoPortal $registro): bool
+    {
+        return (bool) ($registro->entrada_em || $registro->intervalo_inicio_em || $registro->intervalo_fim_em || $registro->saida_em);
+    }
+
+    private function calcularSegundosTrabalhadosPortal(RegistroPontoPortal $registro): int
+    {
+        if (!$registro->entrada_em || !$registro->saida_em) {
+            return 0;
+        }
+
+        $entradaTimestamp = strtotime((string) $registro->entrada_em);
+        $saidaTimestamp = strtotime((string) $registro->saida_em);
+        if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
+            return 0;
+        }
+
+        $segundos = $saidaTimestamp - $entradaTimestamp;
+
+        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
+            $inicioIntervaloTimestamp = strtotime((string) $registro->intervalo_inicio_em);
+            $fimIntervaloTimestamp = strtotime((string) $registro->intervalo_fim_em);
+
+            if ($inicioIntervaloTimestamp && $fimIntervaloTimestamp && $fimIntervaloTimestamp > $inicioIntervaloTimestamp) {
+                $segundos -= ($fimIntervaloTimestamp - $inicioIntervaloTimestamp);
+            }
+        }
+
+        return max(0, $segundos);
+    }
+
+    private function formatarSegundosPortal(int $segundos): string
+    {
+        $segundos = max(0, $segundos);
+        $horas = intdiv($segundos, 3600);
+        $minutos = intdiv($segundos % 3600, 60);
+
+        return sprintf('%02d:%02d', $horas, $minutos);
+    }
+
+    private function mapaFeriadosNacionaisPortal(Carbon $inicio, Carbon $fim): array
+    {
+        $mapa = [];
+        $anoInicio = (int) $inicio->year;
+        $anoFim = (int) $fim->year;
+
+        for ($ano = $anoInicio; $ano <= $anoFim; $ano++) {
+            $fixos = [
+                sprintf('%04d-01-01', $ano) => 'Confraternização Universal',
+                sprintf('%04d-04-21', $ano) => 'Tiradentes',
+                sprintf('%04d-05-01', $ano) => 'Dia do Trabalho',
+                sprintf('%04d-09-07', $ano) => 'Independência do Brasil',
+                sprintf('%04d-10-12', $ano) => 'Nossa Senhora Aparecida',
+                sprintf('%04d-11-02', $ano) => 'Finados',
+                sprintf('%04d-11-15', $ano) => 'Proclamação da República',
+                sprintf('%04d-11-20', $ano) => 'Dia da Consciência Negra',
+                sprintf('%04d-12-25', $ano) => 'Natal',
+            ];
+
+            $pascoa = Carbon::createFromTimestamp(easter_date($ano))->startOfDay();
+            $moveis = [
+                $pascoa->copy()->subDays(48)->toDateString() => 'Carnaval',
+                $pascoa->copy()->subDays(47)->toDateString() => 'Carnaval',
+                $pascoa->copy()->subDays(2)->toDateString() => 'Sexta-feira Santa',
+                $pascoa->copy()->toDateString() => 'Páscoa',
+                $pascoa->copy()->addDays(60)->toDateString() => 'Corpus Christi',
+            ];
+
+            foreach ($fixos + $moveis as $data => $nome) {
+                if ($data >= $inicio->toDateString() && $data <= $fim->toDateString()) {
+                    $mapa[$data] = $nome;
+                }
+            }
+        }
+
+        return $mapa;
+    }
+
+    private function calcularSaldoBancoHorasMesesPortal(int $funcionarioId, $mesesReferencia): array
+    {
+        $saldoPorMes = [];
+
+        foreach ($mesesReferencia as $mesAno) {
+            [$mes, $ano] = explode('/', $mesAno);
+            $inicioMes = Carbon::createFromDate((int) $ano, (int) $mes, 1)->startOfMonth();
+            $fimMes = $inicioMes->copy()->endOfMonth();
+
+            $registrosMes = RegistroPontoPortal::query()
+                ->where('funcionario_id', $funcionarioId)
+                ->whereBetween('data_referencia', [$inicioMes->toDateString(), $fimMes->toDateString()])
+                ->orderBy('data_referencia')
+                ->get();
+
+            $totaisSemanais = [];
+            foreach ($registrosMes as $registro) {
+                $dia = Carbon::parse($registro->data_referencia)->startOfDay();
+                $chaveSemana = sprintf('%s-W%s', $dia->format('o'), $dia->format('W'));
+                $totaisSemanais[$chaveSemana] = ($totaisSemanais[$chaveSemana] ?? 0) + $this->calcularSegundosTrabalhadosPortal($registro);
+            }
+
+            $saldoSegundos = collect($totaisSemanais)
+                ->reduce(fn (int $saldo, int $segundosSemana) => $saldo + ($segundosSemana - self::SEGUNDOS_META_SEMANAL), 0);
+
+            $saldoPorMes[$mesAno] = [
+                'segundos' => $saldoSegundos,
+                'formatado' => $this->formatarSaldoBancoHorasPortal($saldoSegundos),
+                'positivo' => $saldoSegundos >= 0,
+            ];
+        }
+
+        return $saldoPorMes;
+    }
+
+    private function formatarSaldoBancoHorasPortal(int $segundos): string
+    {
+        $sinal = $segundos < 0 ? '-' : '+';
+        $segundosAbsolutos = abs($segundos);
+        $horas = intdiv($segundosAbsolutos, 3600);
+        $minutos = intdiv($segundosAbsolutos % 3600, 60);
+
+        return sprintf('%s%02d:%02d', $sinal, $horas, $minutos);
+    }
+
+    private function atendimentoDoDiaPortal(int $funcionarioId, Carbon $momento): ?Atendimento
+    {
+        return Atendimento::query()
+            ->with('cliente')
+            ->where('funcionario_id', $funcionarioId)
+            ->where(function ($query) use ($momento) {
+                $query->whereDate('data_atendimento', $momento->toDateString())
+                    ->orWhere(function ($q) use ($momento) {
+                        $q->whereNotNull('data_inicio_agendamento')
+                            ->whereNotNull('data_fim_agendamento')
+                            ->where('data_inicio_agendamento', '<=', $momento)
+                            ->where('data_fim_agendamento', '>=', $momento);
+                    });
+            })
+            ->orderByDesc('data_inicio_agendamento')
+            ->first();
+    }
+
+    private function ultimoRegistroPontoEm(RegistroPontoPortal $registro): ?Carbon
+    {
+        $eventos = collect([
+            $registro->entrada_em,
+            $registro->intervalo_inicio_em,
+            $registro->intervalo_fim_em,
+            $registro->saida_em,
+        ])->filter();
+
+        if ($eventos->isEmpty()) {
+            return null;
+        }
+
+        $ultimo = $eventos->map(fn ($evento) => Carbon::parse($evento))->sort()->last();
+
+        return $ultimo instanceof Carbon ? $ultimo : Carbon::parse($ultimo);
+    }
+
+    private function preencherGeoDoEvento(RegistroPontoPortal $registro, string $tipo, float $latitude, float $longitude): void
+    {
+        if ($tipo === 'entrada') {
+            $registro->entrada_latitude = $latitude;
+            $registro->entrada_longitude = $longitude;
+            return;
+        }
+
+        if ($tipo === 'saida_almoco') {
+            $registro->intervalo_inicio_latitude = $latitude;
+            $registro->intervalo_inicio_longitude = $longitude;
+            return;
+        }
+
+        if ($tipo === 'retorno_almoco') {
+            $registro->intervalo_fim_latitude = $latitude;
+            $registro->intervalo_fim_longitude = $longitude;
+            return;
+        }
+
+        if ($tipo === 'saida') {
+            $registro->saida_latitude = $latitude;
+            $registro->saida_longitude = $longitude;
+        }
     }
 }
