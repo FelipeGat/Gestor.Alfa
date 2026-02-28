@@ -444,24 +444,28 @@
                 </div>
 
                 {{-- Rodapé com Totais --}}
-                <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
-                    <div class="text-sm text-gray-700">
-                        <span class="font-medium">Total na Página:</span>
-                        <span class="font-bold ml-2">R$ {{ number_format($totalPagina, 2, ',', '.' ) }}</span>
+                <x-card class="mt-4 mb-6">
+                    <div class="p-4 flex justify-end">
+                        <div class="text-right space-y-2">
+                            <div>
+                                <span class="text-sm text-gray-600 uppercase tracking-wide">Total da Página:</span>
+                                <span class="ml-2 text-xl font-bold text-gray-900">R$ {{ number_format($totalPagina, 2, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-600 uppercase tracking-wide">Total Geral (Filtrado):</span>
+                                <template x-if="selecionadas.length > 0">
+                                    <span class="ml-2 text-xl font-bold text-gray-900">
+                                        <span x-text="selecionadas.length"></span> selecionadas —
+                                        R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                                    </span>
+                                </template>
+                                <template x-if="selecionadas.length === 0">
+                                    <span class="ml-2 text-xl font-bold text-gray-900">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
+                                </template>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-sm text-gray-700">
-                        <span class="font-medium">Total Geral (Filtrado):</span>
-                        <template x-if="selecionadas.length > 0">
-                            <span class="font-bold ml-2">
-                                <span x-text="selecionadas.length"></span> selecionadas —
-                                R$ <span x-text="getValorSelecionado().toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
-                            </span>
-                        </template>
-                        <template x-if="selecionadas.length === 0">
-                            <span class="font-bold ml-2">R$ {{ number_format($totalGeralFiltrado, 2, ',', '.') }}</span>
-                        </template>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <x-pagination :paginator="$cobrancas" label="cobranças" />
