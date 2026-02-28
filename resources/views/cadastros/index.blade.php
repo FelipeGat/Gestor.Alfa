@@ -63,7 +63,7 @@
                     </div>
                 </a>
 
-                @if(auth()->check() && auth()->user()->isAdminPanel())
+                @if(auth()->check() && auth()->user()->isAdmin())
                 <!-- RH -->
                 <a href="{{ route('rh.dashboard') }}" class="card-cadastro group block p-6">
                     <div class="flex items-center justify-center mb-4">

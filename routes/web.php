@@ -165,11 +165,12 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->name('dashboard.tecnico.atualizar');
 
     // RH (somente perfis administrativos)
-    Route::middleware('dashboard.admin')
+    Route::middleware('rh.admin')
         ->prefix('rh')
         ->name('rh.')
         ->group(function () {
             Route::get('/', [DashboardRhController::class, 'index'])->name('dashboard');
+            Route::get('/relatorios/{indicador}', [DashboardRhController::class, 'relatorio'])->name('relatorios.show');
 
             Route::resource('funcionarios', FuncionarioController::class)
                 ->except(['show']);

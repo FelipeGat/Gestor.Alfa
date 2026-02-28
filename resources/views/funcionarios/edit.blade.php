@@ -3,6 +3,11 @@
     @php
         $routePrefix = request()->routeIs('rh.*') ? 'rh.funcionarios' : 'funcionarios';
         $isRhRoute = request()->routeIs('rh.*');
+        $isRhAdmin = auth()->check() && auth()->user()->isAdmin();
+        $canShowRh = $isRhRoute && $isRhAdmin;
+        $breadcrumbBase = $isRhRoute
+            ? ['label' => 'RH', 'url' => route('rh.dashboard')]
+            : ['label' => 'Cadastros', 'url' => route('cadastros.index')];
     @endphp
 
     @push('styles')
@@ -11,7 +16,7 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'RH', 'url' => route('rh.dashboard')],
+            $breadcrumbBase,
             ['label' => 'Funcionários', 'url' => route($routePrefix . '.index')],
             ['label' => 'Editar Funcionário']
         ]" />
@@ -85,16 +90,11 @@
 
             </form>
 
+            @if($canShowRh)
             <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                     Gestão RH do Funcionário
                 </h3>
-
-                @if(!$isRhRoute)
-                    <div class="mb-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-800 text-sm">
-                        Edição de itens RH habilitada apenas no módulo RH.
-                    </div>
-                @endif
 
                 <div x-data="{ aba: 'documentos' }" class="space-y-5">
                     <div class="flex flex-wrap gap-2">
@@ -403,6 +403,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

@@ -2,6 +2,10 @@
 
     @php
         $routePrefix = request()->routeIs('rh.*') ? 'rh.funcionarios' : 'funcionarios';
+        $isRhRoute = request()->routeIs('rh.*');
+        $breadcrumbBase = $isRhRoute
+            ? ['label' => 'RH', 'url' => route('rh.dashboard')]
+            : ['label' => 'Cadastros', 'url' => route('cadastros.index')];
     @endphp
 
     @push('styles')
@@ -10,7 +14,7 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'RH', 'url' => route('rh.dashboard')],
+            $breadcrumbBase,
             ['label' => 'Funcionários']
         ]" />
     </x-slot>

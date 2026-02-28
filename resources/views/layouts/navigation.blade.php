@@ -5,6 +5,7 @@
 
     // Papéis principais
     $isAdmin = $user && method_exists($user, 'isAdminPanel') ? $user->isAdminPanel() : false;
+    $isRhAdmin = $user && method_exists($user, 'isAdmin') ? $user->isAdmin() : false;
     $isAdministrativo = $user && method_exists($user, 'isAdministrativo') ? $user->isAdministrativo() : false;
     $isFinanceiro = $user && method_exists($user, 'perfis') ? $user->perfis()->where('slug', 'financeiro')->exists() : false;
     $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
@@ -244,7 +245,7 @@
                 @endif
 
                 {{-- ============ RH ============ --}}
-                @if($isAdmin)
+                @if($isRhAdmin)
                 <div x-data="{ openMenu: false }" class="relative">
                     <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
                         RH
@@ -521,7 +522,7 @@
         @endif
 
         {{-- RH --}}
-        @if($isAdmin)
+        @if($isRhAdmin)
         <details>
             <summary class="font-semibold text-gray-700">RH</summary>
             <div class="pl-4 space-y-1">
