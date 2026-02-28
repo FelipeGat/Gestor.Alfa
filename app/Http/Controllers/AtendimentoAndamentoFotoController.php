@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\AtendimentoAndamento;
 use App\Models\AtendimentoAndamentoFoto;
 
@@ -95,8 +96,8 @@ class AtendimentoAndamentoFotoController extends Controller
         }
 
         // Caminho físico correto do arquivo
-        if (\Storage::disk('public')->exists($foto->arquivo)) {
-            \Storage::disk('public')->delete($foto->arquivo);
+        if (Storage::disk('public')->exists($foto->arquivo_storage_path)) {
+            Storage::disk('public')->delete($foto->arquivo_storage_path);
         }
 
         $foto->delete();

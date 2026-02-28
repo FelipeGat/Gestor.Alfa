@@ -367,8 +367,8 @@
                                     <div class="photo-grid">
                                         @foreach($andamento->fotos as $foto)
                                         <div class="photo-item">
-                                            <a href="{{ asset('storage/' . $foto->arquivo) }}" target="_blank">
-                                                <img src="{{ asset('storage/' . $foto->arquivo) }}" alt="Anexo">
+                                            <a href="{{ $foto->arquivo_url }}" target="_blank">
+                                                <img src="{{ $foto->arquivo_url }}" alt="Anexo">
                                             </a>
                                             @if($atendimento->status_atual !== 'finalizacao' &&
                                             $atendimento->status_atual !== 'concluido')

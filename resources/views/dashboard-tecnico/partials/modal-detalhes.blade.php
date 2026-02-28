@@ -135,8 +135,8 @@
         </h5>
         <div class="fotos-grid">
             @foreach($andamentoInicio->fotos as $indice => $fotoInicio)
-                <a href="{{ asset('storage/' . $fotoInicio->arquivo) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $fotoInicio->arquivo) }}" alt="Foto de início {{ $indice + 1 }}" class="foto-thumbnail">
+                <a href="{{ $fotoInicio->arquivo_url }}" target="_blank" class="foto-link">
+                    <img src="{{ $fotoInicio->arquivo_url }}" alt="Foto de início {{ $indice + 1 }}" class="foto-thumbnail">
                     <span class="foto-label">Foto {{ $indice + 1 }}</span>
                 </a>
             @endforeach
@@ -196,14 +196,14 @@
                 @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
                 <div class="pausa-fotos">
                     @if($pausa->foto_inicio_path)
-                    <a href="{{ asset('storage/' . $pausa->foto_inicio_path) }}" target="_blank" class="pausa-foto-link">
-                        <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" alt="Foto Pausa" class="pausa-foto-thumb">
+                    <a href="{{ $pausa->foto_inicio_url }}" target="_blank" class="pausa-foto-link">
+                        <img src="{{ $pausa->foto_inicio_url }}" alt="Foto Pausa" class="pausa-foto-thumb">
                         <span class="pausa-foto-label">Início da Pausa</span>
                     </a>
                     @endif
                     @if($pausa->foto_retorno_path)
-                    <a href="{{ asset('storage/' . $pausa->foto_retorno_path) }}" target="_blank" class="pausa-foto-link">
-                        <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" alt="Foto Retorno" class="pausa-foto-thumb">
+                    <a href="{{ $pausa->foto_retorno_url }}" target="_blank" class="pausa-foto-link">
+                        <img src="{{ $pausa->foto_retorno_url }}" alt="Foto Retorno" class="pausa-foto-thumb">
                         <span class="pausa-foto-label">Retorno</span>
                     </a>
                     @endif
@@ -226,8 +226,8 @@
         </h5>
         <div class="fotos-grid">
             @foreach($andamentoFinal->fotos as $indice => $fotoFinal)
-                <a href="{{ asset('storage/' . $fotoFinal->arquivo) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $fotoFinal->arquivo) }}" alt="Finalização {{ $indice + 1 }}" class="foto-thumbnail">
+                <a href="{{ $fotoFinal->arquivo_url }}" target="_blank" class="foto-link">
+                    <img src="{{ $fotoFinal->arquivo_url }}" alt="Finalização {{ $indice + 1 }}" class="foto-thumbnail">
                     <span class="foto-label">Finalização {{ $indice + 1 }}</span>
                 </a>
             @endforeach
@@ -268,12 +268,12 @@
             @endif
         </div>
         @endif
-        <div class="fotos-grid">
-            <a href="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}" target="_blank" class="foto-link">
-                <img src="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}" alt="Assinatura do cliente" class="foto-thumbnail">
-                <span class="foto-label">Assinatura</span>
-            </a>
-        </div>
+            <div class="fotos-grid">
+                <a href="{{ $atendimento->assinatura_cliente_url }}" target="_blank" class="foto-link">
+                    <img src="{{ $atendimento->assinatura_cliente_url }}" alt="Assinatura do cliente" class="foto-thumbnail">
+                    <span class="foto-label">Assinatura</span>
+                </a>
+            </div>
     </div>
     @endif
 </div>

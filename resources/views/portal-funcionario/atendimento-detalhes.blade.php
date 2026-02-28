@@ -412,7 +412,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoInicio->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}"
+                            <img src="{{ $foto->arquivo_url }}"
                              alt="Foto início"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #059669;"
                              onclick="window.open(this.src, '_blank')">
@@ -434,7 +434,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoFinal->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}"
+                            <img src="{{ $foto->arquivo_url }}"
                              alt="Foto finalização"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #8b5cf6;"
                              onclick="window.open(this.src, '_blank')">
@@ -458,7 +458,7 @@
                 </div>
                 @endif
                 <div style="margin-top: 0.75rem; max-width: 320px;">
-                    <img src="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}"
+                    <img src="{{ $atendimento->assinatura_cliente_url }}"
                          alt="Assinatura do cliente"
                          style="width: 100%; max-height: 140px; object-fit: contain; background: #fff; border: 2px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer;"
                          onclick="window.open(this.src, '_blank')">
@@ -505,7 +505,7 @@
                             @if($pausa->foto_inicio_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Início</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}"
+                                  <img src="{{ $pausa->foto_inicio_url }}"
                                      alt="Foto início pausa"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
@@ -514,7 +514,7 @@
                             @if($pausa->foto_retorno_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Retorno</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}"
+                                  <img src="{{ $pausa->foto_retorno_url }}"
                                      alt="Foto retorno"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
@@ -612,7 +612,7 @@
                         @if($pausa->foto_inicio_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Início da Pausa</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}"
+                               <img src="{{ $pausa->foto_inicio_url }}"
                                  alt="Foto início pausa"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">
@@ -621,7 +621,7 @@
                         @if($pausa->foto_retorno_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Retorno</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}"
+                               <img src="{{ $pausa->foto_retorno_url }}"
                                  alt="Foto retorno"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">

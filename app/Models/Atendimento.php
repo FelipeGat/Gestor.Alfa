@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Funcionario;
@@ -154,5 +155,45 @@ class Atendimento extends Model
         $minutos = floor(($segundos % 3600) / 60);
         $segs = $segundos % 60;
         return sprintf('%02d:%02d:%02d', $horas, $minutos, $segs);
+    }
+
+    public function getAssinaturaClienteStoragePathAttribute(): ?string
+    {
+        if (!$this->assinatura_cliente_path) {
+            return null;
+        }
+
+        return $this->normalizarCaminhoStorage($this->assinatura_cliente_path);
+    }
+
+    public function getAssinaturaClienteUrlAttribute(): ?string
+    {
+        if (!$this->assinatura_cliente_path) {
+            return null;
+        }
+
+        $arquivo = str_replace('\\', '/', trim((string) $this->assinatura_cliente_path));
+
+        if (Str::startsWith($arquivo, ['http://', 'https://'])) {
+            return $arquivo;
+        }
+
+        return asset('storage/' . $this->normalizarCaminhoStorage($arquivo));
+    }
+
+    private function normalizarCaminhoStorage(?string $caminho): string
+    {
+        $arquivo = str_replace('\\', '/', trim((string) $caminho));
+        $arquivo = ltrim($arquivo, '/');
+
+        if (Str::startsWith($arquivo, 'public/')) {
+            $arquivo = Str::after($arquivo, 'public/');
+        }
+
+        if (Str::startsWith($arquivo, 'storage/')) {
+            $arquivo = Str::after($arquivo, 'storage/');
+        }
+
+        return $arquivo;
     }
 }
