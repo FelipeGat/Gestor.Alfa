@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 use App\Http\Controllers\AssuntoController;
+use App\Http\Controllers\AgendaTecnicaController;
 use App\Http\Controllers\AtendimentoAndamentoFotoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\BoletoController;
@@ -167,6 +168,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::patch('/orcamentos/{orcamento}/status', [OrcamentoController::class, 'updateStatus'])
         ->name('orcamentos.updateStatus');
 
+    Route::post('/orcamentos/{orcamento}/agendar-tecnico', [AgendaTecnicaController::class, 'agendarOrcamento'])
+        ->name('orcamentos.agendar-tecnico');
+
     Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
         ->name('orcamentos.imprimir');
 
@@ -261,6 +265,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         '/atendimentos/{atendimento}/atualizar-campo',
         [AtendimentoController::class, 'atualizarCampo']
     );
+
+    Route::get('/agenda-tecnica/disponibilidade', [AgendaTecnicaController::class, 'disponibilidade'])
+        ->name('agenda-tecnica.disponibilidade');
 
     Route::post(
         '/atendimentos/{atendimento}/andamentos',

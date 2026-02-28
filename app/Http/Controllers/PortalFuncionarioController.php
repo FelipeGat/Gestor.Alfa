@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
 use App\Models\AtendimentoPausa;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -429,21 +430,59 @@ class PortalFuncionarioController extends Controller
     /**
      * Agenda Técnica - Estilo Calendar
      */
-    public function agenda()
+    public function agenda(Request $request)
     {
         $funcionarioId = Auth::user()->funcionario_id;
+        $visao = $request->input('visao', 'mes');
+        $dataBase = $request->filled('data')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('data'))
+            : now();
 
-        // Buscar atendimentos para o mês atual
-        $atendimentos = Atendimento::with(['cliente', 'empresa'])
+        // Janela ampla para o frontend navegar entre meses sem perder eventos
+        $janelaInicio = $dataBase->copy()->startOfYear();
+        $janelaFim = $dataBase->copy()->endOfYear();
+
+        // Buscar atendimentos para a visão atual
+        $atendimentos = Atendimento::with([
+            'cliente:id,nome,nome_fantasia,logradouro,numero,bairro,cidade,estado,complemento,cep',
+            'empresa:id,nome_fantasia',
+            'assunto:id,nome',
+        ])
             ->where('funcionario_id', $funcionarioId)
-            ->whereMonth('data_atendimento', now()->month)
-            ->whereYear('data_atendimento', now()->year)
+            ->where(function ($q) use ($janelaInicio, $janelaFim) {
+                $q->whereBetween('data_inicio_agendamento', [$janelaInicio, $janelaFim])
+                    ->orWhereBetween('data_atendimento', [$janelaInicio, $janelaFim]);
+            })
+            ->orderByRaw('COALESCE(data_inicio_agendamento, data_atendimento) asc')
             ->get()
             ->map(function ($at) {
+                $inicio = $at->data_inicio_agendamento ?? $at->data_atendimento;
+                $fim = $at->data_fim_agendamento;
+
                 return [
                     'id' => $at->id,
-                    'title' => $at->cliente?->nome_fantasia ?? $at->nome_solicitante ?? 'Sem cliente',
-                    'start' => $at->data_atendimento->format('Y-m-d'),
+                    'numero_atendimento' => $at->numero_atendimento,
+                    'cliente_nome' => $at->cliente?->nome_fantasia ?? $at->cliente?->nome ?? $at->nome_solicitante ?? 'Sem cliente',
+                    'empresa_nome' => $at->empresa?->nome_fantasia ?? '—',
+                    'assunto_nome' => $at->assunto?->nome ?? 'Sem assunto',
+                    'descricao' => (string) ($at->descricao ?? ''),
+                    'tipo_demanda' => $at->is_orcamento ? 'orcamento' : 'atendimento',
+                    'prioridade' => $at->prioridade,
+                    'status' => $at->status_atual,
+                    'telefone_solicitante' => $at->telefone_solicitante,
+                    'data_atendimento' => optional($inicio)->format('Y-m-d'),
+                    'inicio' => optional($inicio)->format('H:i'),
+                    'fim' => optional($fim)->format('H:i'),
+                    'duracao_minutos' => $at->duracao_agendamento_minutos,
+                    'endereco' => trim(collect([
+                        $at->cliente?->logradouro,
+                        $at->cliente?->numero,
+                        $at->cliente?->bairro,
+                        $at->cliente?->cidade,
+                        $at->cliente?->estado,
+                    ])->filter()->implode(', ')),
+                    'cep' => $at->cliente?->cep,
+                    'complemento' => $at->cliente?->complemento,
                     'backgroundColor' => match ($at->prioridade) {
                         'alta' => '#ef4444',
                         'media' => '#f59e0b',
@@ -454,7 +493,7 @@ class PortalFuncionarioController extends Controller
                 ];
             });
 
-        return view('portal-funcionario.agenda', compact('atendimentos'));
+        return view('portal-funcionario.agenda', compact('atendimentos', 'visao', 'dataBase'));
     }
 
     /**

@@ -30,6 +30,10 @@ class Atendimento extends Model
         'is_orcamento',
         'atendimento_origem_id',
         'data_atendimento',
+        'periodo_agendamento',
+        'data_inicio_agendamento',
+        'data_fim_agendamento',
+        'duracao_agendamento_minutos',
         'iniciado_em',
         'iniciado_por_user_id',
         'finalizado_em',
@@ -44,7 +48,9 @@ class Atendimento extends Model
     ];
 
     protected $casts = [
-        'data_atendimento' => 'date',
+        'data_atendimento' => 'datetime',
+        'data_inicio_agendamento' => 'datetime',
+        'data_fim_agendamento' => 'datetime',
         'iniciado_em' => 'datetime',
         'finalizado_em' => 'datetime',
         'em_execucao' => 'boolean',

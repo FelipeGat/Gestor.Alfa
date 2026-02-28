@@ -235,6 +235,64 @@
             border-left: 3px solid #f59e0b;
         }
 
+        .rota-resumo {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .rota-kpi {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.75rem;
+        }
+
+        .rota-kpi-label {
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .rota-kpi-value {
+            font-size: 1.1rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .rota-mapa {
+            height: 280px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            margin-top: 0.75rem;
+            display: none;
+        }
+
+        .rota-acoes {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .rota-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.45rem 0.7rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            color: #1f2937;
+            background: #fff;
+        }
+
         @media (min-width: 768px) {
             .detalhes-container {
                 padding: 2rem;
@@ -284,6 +342,10 @@
 
             .btn-action {
                 font-size: 0.95rem;
+            }
+
+            .rota-resumo {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -576,6 +638,49 @@
             </div>
         </div>
 
+        @php
+            $destinoEndereco = trim(collect([
+                $atendimento->cliente?->logradouro,
+                $atendimento->cliente?->numero,
+                $atendimento->cliente?->bairro,
+                $atendimento->cliente?->cidade,
+                $atendimento->cliente?->estado,
+                $atendimento->cliente?->cep,
+            ])->filter()->implode(', '));
+        @endphp
+
+        <div class="info-card" id="rota-card">
+            <div class="info-label">Rota até o cliente</div>
+            <div class="info-value" style="font-weight: 500; font-size: 0.95rem;">
+                {{ $destinoEndereco !== '' ? $destinoEndereco : 'Endereço do cliente não cadastrado.' }}
+            </div>
+
+            <div id="rotaStatus" style="margin-top: 0.6rem; font-size: 0.85rem; color: #475569;">Buscando sua localização atual...</div>
+
+            <div class="rota-resumo">
+                <div class="rota-kpi">
+                    <div class="rota-kpi-label">Distância</div>
+                    <div class="rota-kpi-value" id="rotaDistancia">—</div>
+                </div>
+                <div class="rota-kpi">
+                    <div class="rota-kpi-label">Tempo estimado</div>
+                    <div class="rota-kpi-value" id="rotaDuracao">—</div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.45rem;" id="rotaObservacao">
+                O tempo exibido é uma estimativa de percurso por carro. Para trânsito em tempo real, use o Google Maps ou Waze nos botões abaixo.
+            </div>
+
+            <div id="rotaMapa" class="rota-mapa"></div>
+
+            <div class="rota-acoes">
+                <button type="button" class="rota-btn" id="btnRecalcularRota">↻ Recalcular rota</button>
+                <a href="#" class="rota-btn" id="btnGoogleMaps" target="_blank" rel="noopener noreferrer">📍 Abrir no Google Maps</a>
+                <a href="#" class="rota-btn" id="btnWaze" target="_blank" rel="noopener noreferrer">🚗 Abrir no Waze</a>
+            </div>
+        </div>
+
         <!-- Pausas Ativas -->
         @if($atendimento->pausas->count() > 0 && !$atendimento->finalizado_em)
         <div class="info-card">
@@ -792,6 +897,8 @@
         let assinaturaCtx = null;
         let assinaturaDesenhada = false;
         let desenhandoAssinatura = false;
+        let rotaMapa = null;
+        let rotaLayer = null;
 
         // Cronômetro em tempo real
         document.addEventListener('DOMContentLoaded', function() {
@@ -852,7 +959,194 @@
                     inputAssinatura.value = assinaturaCanvas.toDataURL('image/png');
                 });
             }
+
+            const btnRecalcularRota = document.getElementById('btnRecalcularRota');
+            if (btnRecalcularRota) {
+                btnRecalcularRota.addEventListener('click', function () {
+                    calcularRotaAteCliente();
+                });
+            }
+
+            calcularRotaAteCliente();
         });
+
+        async function carregarLeaflet() {
+            if (window.L) return;
+
+            await new Promise((resolve, reject) => {
+                const css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                css.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+                css.crossOrigin = '';
+                document.head.appendChild(css);
+
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                script.crossOrigin = '';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+
+        function atualizarRotaStatus(texto, cor = '#475569') {
+            const el = document.getElementById('rotaStatus');
+            if (el) {
+                el.textContent = texto;
+                el.style.color = cor;
+            }
+        }
+
+        function formatarDuracao(segundos) {
+            const totalMin = Math.round(segundos / 60);
+            const horas = Math.floor(totalMin / 60);
+            const minutos = totalMin % 60;
+
+            if (horas > 0) {
+                return `${horas}h ${String(minutos).padStart(2, '0')}min`;
+            }
+
+            return `${totalMin} min`;
+        }
+
+        function montarLinksNavegacao(origemLat, origemLng, destinoLat, destinoLng, destinoTexto) {
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origemLat},${origemLng}&destination=${encodeURIComponent(destinoTexto)}&travelmode=driving`;
+            const wazeUrl = `https://waze.com/ul?ll=${destinoLat},${destinoLng}&navigate=yes`;
+
+            const btnGoogle = document.getElementById('btnGoogleMaps');
+            const btnWaze = document.getElementById('btnWaze');
+
+            if (btnGoogle) btnGoogle.href = googleMapsUrl;
+            if (btnWaze) btnWaze.href = wazeUrl;
+        }
+
+        async function geocodificarDestino(enderecoDestino) {
+            const endpoint = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(enderecoDestino)}`;
+            const resposta = await fetch(endpoint, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao buscar coordenadas do cliente.');
+            }
+
+            const dados = await resposta.json();
+            if (!Array.isArray(dados) || !dados.length) {
+                throw new Error('Não foi possível localizar o endereço do cliente no mapa.');
+            }
+
+            return {
+                lat: parseFloat(dados[0].lat),
+                lng: parseFloat(dados[0].lon)
+            };
+        }
+
+        function obterGeolocalizacaoAtual() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Seu navegador não suporta geolocalização.'));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (posicao) => resolve({
+                        lat: posicao.coords.latitude,
+                        lng: posicao.coords.longitude,
+                    }),
+                    () => reject(new Error('Não foi possível obter sua localização. Permita o acesso ao GPS e tente novamente.')),
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 30000,
+                    }
+                );
+            });
+        }
+
+        async function obterRota(origem, destino) {
+            const endpoint = `https://router.project-osrm.org/route/v1/driving/${origem.lng},${origem.lat};${destino.lng},${destino.lat}?overview=full&geometries=geojson`;
+            const resposta = await fetch(endpoint);
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao calcular o percurso.');
+            }
+
+            const dados = await resposta.json();
+            if (!dados.routes || !dados.routes.length) {
+                throw new Error('Não foi possível calcular uma rota viável.');
+            }
+
+            return dados.routes[0];
+        }
+
+        async function renderizarMapaRota(origem, destino, rota) {
+            await carregarLeaflet();
+
+            const mapaEl = document.getElementById('rotaMapa');
+            mapaEl.style.display = 'block';
+
+            if (!rotaMapa) {
+                rotaMapa = L.map('rotaMapa');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(rotaMapa);
+            }
+
+            if (rotaLayer) {
+                rotaMapa.removeLayer(rotaLayer);
+            }
+
+            const coordenadas = rota.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+            rotaLayer = L.polyline(coordenadas, {
+                color: '#2563eb',
+                weight: 5,
+                opacity: 0.9
+            }).addTo(rotaMapa);
+
+            const markerOrigem = L.marker([origem.lat, origem.lng]).bindPopup('Sua localização atual');
+            const markerDestino = L.marker([destino.lat, destino.lng]).bindPopup('Cliente');
+            const grupo = L.featureGroup([rotaLayer, markerOrigem, markerDestino]).addTo(rotaMapa);
+            rotaMapa.fitBounds(grupo.getBounds().pad(0.15));
+        }
+
+        async function calcularRotaAteCliente() {
+            const destinoTexto = @json($destinoEndereco);
+
+            if (!destinoTexto) {
+                atualizarRotaStatus('Endereço do cliente não está cadastrado para calcular a rota.', '#b91c1c');
+                return;
+            }
+
+            try {
+                atualizarRotaStatus('Obtendo sua localização atual...');
+                const origem = await obterGeolocalizacaoAtual();
+
+                atualizarRotaStatus('Localizando endereço do cliente no mapa...');
+                const destino = await geocodificarDestino(destinoTexto);
+
+                atualizarRotaStatus('Calculando melhor percurso...');
+                const rota = await obterRota(origem, destino);
+
+                const km = (rota.distance / 1000).toFixed(1) + ' km';
+                const duracao = formatarDuracao(rota.duration);
+
+                const distanciaEl = document.getElementById('rotaDistancia');
+                const duracaoEl = document.getElementById('rotaDuracao');
+                if (distanciaEl) distanciaEl.textContent = km;
+                if (duracaoEl) duracaoEl.textContent = duracao;
+
+                montarLinksNavegacao(origem.lat, origem.lng, destino.lat, destino.lng, destinoTexto);
+                await renderizarMapaRota(origem, destino, rota);
+                atualizarRotaStatus('Rota calculada com sucesso.', '#047857');
+            } catch (erro) {
+                atualizarRotaStatus(erro.message || 'Não foi possível calcular a rota agora.', '#b91c1c');
+            }
+        }
 
         function obterPosicaoAssinatura(event) {
             const rect = assinaturaCanvas.getBoundingClientRect();

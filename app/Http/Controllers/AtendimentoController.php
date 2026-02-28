@@ -8,9 +8,11 @@ use App\Models\Empresa;
 use App\Models\Funcionario;
 use App\Models\Assunto;
 use App\Models\AtendimentoStatusHistorico;
+use App\Services\AgendaTecnicaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AtendimentoController extends Controller
 {
@@ -116,7 +118,7 @@ class AtendimentoController extends Controller
         return view('atendimentos.edit', compact('atendimento'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AgendaTecnicaService $agendaService)
     {
         $request->validate([
             'nome_solicitante' => 'required|string|max:255',
@@ -125,7 +127,20 @@ class AtendimentoController extends Controller
             'prioridade'       => 'required|in:baixa,media,alta',
             'empresa_id'       => 'required|exists:empresas,id',
             'status_inicial'   => 'required|in:orcamento,aberto,garantia',
+            'funcionario_id'   => 'nullable|exists:funcionarios,id',
         ]);
+
+        $agendarTecnico = $request->boolean('agendar_tecnico') || $request->filled('data_agendamento');
+
+        if ($agendarTecnico) {
+            $request->validate([
+                'funcionario_id' => ['required', 'exists:funcionarios,id'],
+                'data_agendamento' => ['required', 'date_format:Y-m-d'],
+                'periodo_agendamento' => ['required', Rule::in(array_keys(AgendaTecnicaService::PERIODOS))],
+                'hora_inicio' => ['required', 'date_format:H:i'],
+                'duracao_horas' => ['required', 'integer', 'min:1', 'max:4'],
+            ]);
+        }
 
         $statusInicial = $request->status_inicial;
 
@@ -136,7 +151,7 @@ class AtendimentoController extends Controller
                 ->lockForUpdate()
                 ->orderBy('numero_atendimento', 'desc')
                 ->first(['numero_atendimento']);
-            
+
             $ultimoNumero = $ultimoRegistro ? $ultimoRegistro->numero_atendimento : 0;
             return $ultimoNumero + 1;
         });
@@ -157,6 +172,17 @@ class AtendimentoController extends Controller
             'data_atendimento'     => now(),
         ]);
 
+        if ($agendarTecnico) {
+            $agendaService->agendarAtendimento(
+                $atendimento,
+                (int) $request->funcionario_id,
+                $request->data_agendamento,
+                $request->periodo_agendamento,
+                $request->hora_inicio,
+                (int) $request->duracao_horas
+            );
+        }
+
         AtendimentoStatusHistorico::create([
             'atendimento_id' => $atendimento->id,
             'status'         => $statusInicial,
@@ -166,7 +192,9 @@ class AtendimentoController extends Controller
 
         return redirect()
             ->route('atendimentos.index')
-            ->with('success', 'Atendimento registrado com sucesso.');
+            ->with('success', $agendarTecnico
+                ? 'Atendimento registrado e técnico agendado com sucesso.'
+                : 'Atendimento registrado com sucesso.');
     }
 
     public function update(Request $request, Atendimento $atendimento)

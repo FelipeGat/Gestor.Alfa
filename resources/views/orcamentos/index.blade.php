@@ -352,6 +352,16 @@
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $orcamento->created_at->format('d/m/Y') }}</td>
                                 <td class="px-4 py-3 text-left">
                                     <div class="flex gap-1 items-center justify-start">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center w-8 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full transition btn-agendar-tecnico"
+                                            title="Agendar Técnico"
+                                            data-orcamento-id="{{ $orcamento->id }}"
+                                            data-orcamento-status="{{ $orcamento->status }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
                                         <a href="{{ route('orcamentos.imprimir', $orcamento->id) }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 bg-gray-800 hover:bg-gray-900 text-white rounded-full transition" title="Imprimir">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
@@ -410,12 +420,167 @@
     </div>
 </x-app-layout>
 
+<div id="modal-agendamento-orcamento" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60;">
+    <div style="max-width:920px; margin:3vh auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.25);">
+        <div style="padding:14px 18px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-weight:700; color:#1f2937;">Agendar Técnico</h3>
+            <button type="button" id="fechar-modal-agendamento" style="font-size:20px; color:#6b7280;">&times;</button>
+        </div>
+        <div style="padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
+            <div>
+                <label class="text-sm font-medium text-gray-700">Status</label>
+                <input id="agendamento_orcamento_status_label" type="text" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm">
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Técnico</label>
+                <select id="agendamento_funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    @foreach($funcionariosTecnicos as $funcionario)
+                    <option value="{{ $funcionario->id }}">{{ $funcionario->nome }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Data</label>
+                <input id="agendamento_data" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Período</label>
+                <select id="agendamento_periodo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    <option value="manha">Manhã (08:00-12:00)</option>
+                    <option value="tarde">Tarde (13:00-18:00)</option>
+                    <option value="noite">Noite (18:01-21:59)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Hora início</label>
+                <input id="agendamento_hora_inicio" type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Duração (horas)</label>
+                <select id="agendamento_duracao_horas" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    <option value="1">1 hora</option>
+                    <option value="2">2 horas</option>
+                    <option value="3">3 horas</option>
+                    <option value="4">4 horas</option>
+                </select>
+            </div>
+        </div>
+        <div style="padding:0 18px 12px;">
+            <div class="text-sm font-semibold text-gray-700 mb-2">Agenda do dia (calendário por técnico)</div>
+            <div id="agenda-calendario-orcamento" style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;"></div>
+        </div>
+        <div style="padding:14px 18px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button" id="cancelar-agendamento-orcamento" class="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancelar</button>
+            <button type="button" id="confirmar-agendamento-orcamento" class="px-4 py-2 rounded-lg bg-[#3f9cae] text-white text-sm">Salvar agendamento</button>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('modal-agendamento-orcamento');
+        const dataInput = document.getElementById('agendamento_data');
+        const periodoInput = document.getElementById('agendamento_periodo');
+        const funcionarioInput = document.getElementById('agendamento_funcionario_id');
+        const horaInicioInput = document.getElementById('agendamento_hora_inicio');
+        const duracaoInput = document.getElementById('agendamento_duracao_horas');
+        const statusLabelInput = document.getElementById('agendamento_orcamento_status_label');
+        const calendarioWrapper = document.getElementById('agenda-calendario-orcamento');
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        let contextoAgendamento = null;
+
+        function abrirModal({ select = null, orcamentoId = null, statusSelecionado = 'agendado' }) {
+            contextoAgendamento = {
+                select,
+                status: statusSelecionado,
+                orcamentoId,
+                valorAnterior: select?.dataset?.prevValue || ''
+            };
+
+            statusLabelInput.value = statusSelecionado === 'aprovado' ? 'Aprovado' : 'Agendado';
+            dataInput.value = dataInput.value || new Date().toISOString().slice(0, 10);
+            modal.style.display = 'block';
+            carregarAgendaCalendario();
+        }
+
+        function fecharModal(restaurarStatus = true) {
+            if (restaurarStatus && contextoAgendamento?.select) {
+                contextoAgendamento.select.value = contextoAgendamento.valorAnterior;
+            }
+            modal.style.display = 'none';
+            contextoAgendamento = null;
+        }
+
+        async function carregarAgendaCalendario() {
+            const data = dataInput.value;
+            const periodo = periodoInput.value;
+
+            if (!data) {
+                calendarioWrapper.innerHTML = '<div class="text-sm text-gray-500">Selecione a data para visualizar a agenda.</div>';
+                return;
+            }
+
+            calendarioWrapper.innerHTML = '<div class="text-sm text-gray-500">Carregando agenda...</div>';
+
+            try {
+                const url = `{{ route('agenda-tecnica.disponibilidade') }}?data=${encodeURIComponent(data)}${periodo ? `&periodo=${encodeURIComponent(periodo)}` : ''}`;
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const json = await response.json();
+
+                const blocos = (json.tecnicos || []).map(tecnico => {
+                    const agendaTecnico = (json.agendamentos || []).filter(item => String(item.funcionario_id) === String(tecnico.id));
+                    const linhas = agendaTecnico.length
+                        ? agendaTecnico.map(item => `<div style="font-size:12px;color:#374151;margin-top:3px;">${item.inicio} - ${item.fim} • #${item.numero_atendimento} • ${item.cliente}</div>`).join('')
+                        : '<div style="font-size:12px;color:#16a34a;margin-top:3px;">Livre</div>';
+
+                    return `<div style="border-bottom:1px solid #f3f4f6;padding:8px 0;"><div style="font-weight:600;font-size:13px;">${tecnico.nome}</div>${linhas}</div>`;
+                });
+
+                calendarioWrapper.innerHTML = blocos.length ? blocos.join('') : '<div class="text-sm text-gray-500">Nenhum técnico encontrado.</div>';
+            } catch (error) {
+                calendarioWrapper.innerHTML = '<div class="text-sm text-red-600">Não foi possível carregar a agenda.</div>';
+            }
+        }
+
+        document.querySelectorAll('select[name="orcamento_status"]').forEach(select => {
+            select.addEventListener('focus', function() {
+                this.dataset.prevValue = this.value;
+            });
+        });
+
+        document.querySelectorAll('.btn-agendar-tecnico').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const orcamentoId = this.dataset.orcamentoId || row?.getAttribute('data-orcamento-id');
+                const statusAtual = this.dataset.orcamentoStatus || 'agendado';
+                const statusSelecionado = ['aprovado', 'agendado'].includes(statusAtual) ? statusAtual : 'agendado';
+
+                abrirModal({
+                    select: null,
+                    orcamentoId,
+                    statusSelecionado,
+                });
+            });
+        });
+
         document.addEventListener('change', function(e) {
             if (e.target.tagName === 'SELECT' && e.target.name === 'orcamento_status') {
                 e.preventDefault();
                 e.stopPropagation();
+
+                if (['aprovado', 'agendado'].includes(e.target.value)) {
+                    const row = e.target.closest('tr');
+                    abrirModal({
+                        select: e.target,
+                        orcamentoId: row?.getAttribute('data-orcamento-id') || null,
+                        statusSelecionado: e.target.value,
+                    });
+                    return;
+                }
 
                 // Navegar manualmente para encontrar o formulário
                 var element = e.target;
@@ -470,6 +635,68 @@
                     tempForm.submit();
                 }
             }
+
+            if (e.target.id === 'agendamento_data' || e.target.id === 'agendamento_periodo') {
+                carregarAgendaCalendario();
+            }
+        });
+
+        document.getElementById('fechar-modal-agendamento').addEventListener('click', function() {
+            fecharModal(true);
+        });
+
+        document.getElementById('cancelar-agendamento-orcamento').addEventListener('click', function() {
+            fecharModal(true);
+        });
+
+        document.getElementById('confirmar-agendamento-orcamento').addEventListener('click', function() {
+            if (!contextoAgendamento) {
+                return;
+            }
+
+            const funcionarioId = funcionarioInput.value;
+            const data = dataInput.value;
+            const periodo = periodoInput.value;
+            const horaInicio = horaInicioInput.value;
+            const duracaoHoras = duracaoInput.value;
+
+            if (!funcionarioId || !data || !periodo || !horaInicio || !duracaoHoras) {
+                alert('Preencha todos os campos de agendamento.');
+                return;
+            }
+
+            const row = contextoAgendamento.select ? contextoAgendamento.select.closest('tr') : null;
+            const orcamentoId = contextoAgendamento.orcamentoId || (row ? row.getAttribute('data-orcamento-id') : null);
+
+            if (!orcamentoId) {
+                alert('Não foi possível identificar o orçamento para agendar.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ url('orcamentos') }}/${orcamentoId}/agendar-tecnico`;
+
+            const payload = {
+                _token: token,
+                orcamento_status: contextoAgendamento.status,
+                funcionario_id: funcionarioId,
+                data_agendamento: data,
+                periodo_agendamento: periodo,
+                hora_inicio: horaInicio,
+                duracao_horas: duracaoHoras,
+            };
+
+            Object.entries(payload).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         });
     });
 </script>
