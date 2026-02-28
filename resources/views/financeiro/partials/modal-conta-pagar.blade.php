@@ -333,44 +333,40 @@
             },
 
             resetForm() {
-                // Somente resetar valores se NÃO estivermos editando
-                if (!this.isEditing) {
-                    this.categoriaId = '';
-                    this.subcategoriaId = '';
-                    this.contaId = '';
-                    this.centroCustoId = '';
-                    this.descricao = '';
-                    this.valor = '';
-                    this.dataVencimento = '';
-                    this.formaPagamento = '';
-                    this.contaFinanceiraId = '';
-                    this.observacoes = '';
+                this.categoriaId = '';
+                this.subcategoriaId = '';
+                this.contaId = '';
+                this.centroCustoId = '';
+                this.descricao = '';
+                this.valor = '';
+                this.dataVencimento = '';
+                this.formaPagamento = '';
+                this.contaFinanceiraId = '';
+                this.observacoes = '';
 
-                    this.subcategorias = [];
-                    this.contas = [];
-                    this.fornecedorBusca = '';
-                    this.fornecedoresFiltrados = [];
-                    this.mostrarListaFornecedores = false;
-                    this.vincularOrcamento = false;
-                    this.clienteId = '';
-                    this.orcamentos = [];
-                    this.orcamentoId = '';
+                this.subcategorias = [];
+                this.contas = [];
+                this.fornecedorBusca = '';
+                this.fornecedoresFiltrados = [];
+                this.mostrarListaFornecedores = false;
+                this.vincularOrcamento = false;
+                this.clienteId = '';
+                this.orcamentos = [];
+                this.orcamentoId = '';
 
-                    // Limpar campos do formulário somente se não estivermos editando
-                    const form = this.$el.querySelector('form');
-                    if (form) {
-                        // Resetar o formulário para valores padrão
-                        form.reset();
+                this.isEditing = false; // Garantir que saia do modo de edição
 
-                        // Certificar-se de que o campo de fornecedor ID está limpo
-                        const fornecedorIdField = form.querySelector('[name="fornecedor_id"]');
-                        if (fornecedorIdField) {
-                            fornecedorIdField.value = '';
-                        }
-                    }
-                } else {
-                    // Se estivermos editando, apenas resetamos o estado de edição
-                    this.isEditing = false;
+                const form = this.$el.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // Restaurar action original para criação
+                    form.setAttribute('action', '{{ route("financeiro.contasapagar.store") }}');
+                    // Remover campo _method se existir (vindo de uma edição anterior)
+                    const methodInput = form.querySelector('input[name="_method"]');
+                    if (methodInput) methodInput.remove();
+
+                    const fornecedorIdField = form.querySelector('[name="fornecedor_id"]');
+                    if (fornecedorIdField) fornecedorIdField.value = '';
                 }
             },
 

@@ -225,85 +225,84 @@
 </x-modal>
 
 <script>
-function contaFixaPagarModal() {
-    return {
-        categorias: @js(\App\Models\Categoria::where('ativo', true)->orderBy('nome')->get()),
-        subcategorias: [],
-        contas: [],
-        categoriaId: '',
-        subcategoriaId: '',
-        contaId: '',
-        centroCustoId: '',
-        descricao: '',
-        valor: '',
-        periodicidade: '',
-        diaVencimento: '',
-        dataInicial: '',
-        dataFim: '',
-        formaPagamento: '',
-        contaFinanceiraId: '',
-        observacoes: '',
-        
-        fornecedorBusca: '',
-        fornecedores: @js(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get(['id', 'razao_social', 'nome_fantasia'])),
-        fornecedoresFiltrados: [],
-        mostrarListaFornecedores: false,
-        
-        // Estado para controlar se estamos editando ou criando
-        isEditing: false,
-        
-        filtrarFornecedores() {
-            if (!this.fornecedorBusca || this.fornecedorBusca.length < 2) {
-                this.fornecedoresFiltrados = [];
-                return;
-            }
-            const filtro = this.fornecedorBusca.toLowerCase();
-            this.fornecedoresFiltrados = this.fornecedores.filter(f => 
-                (f.razao_social || '').toLowerCase().includes(filtro) || 
-                (f.nome_fantasia || '').toLowerCase().includes(filtro)
-            );
-        },
-        
-        selecionarFornecedor(fornecedor) {
-            this.$refs.fornecedorId.value = fornecedor.id;
-            this.fornecedorBusca = fornecedor.razao_social || fornecedor.nome_fantasia;
-            this.mostrarListaFornecedores = false;
-        },
-        
-        async loadSubcategorias() {
-            if (!this.categoriaId) {
-                this.subcategorias = [];
-                this.contas = [];
-                this.subcategoriaId = '';
-                this.contaId = '';
-                return;
-            }
-            try {
-                const r = await fetch(`/financeiro/api/subcategorias/${this.categoriaId}`);
-                if (!r.ok) throw new Error('Erro');
-                this.subcategorias = await r.json();
-            } catch (err) {
-                console.error('Erro:', err);
-            }
-        },
-        
-        async loadContas() {
-            if (!this.subcategoriaId) {
-                this.contas = [];
-                this.contaId = '';
-                return;
-            }
-            try {
-                const r = await fetch(`/financeiro/api/contas/${this.subcategoriaId}`);
-                if (!r.ok) throw new Error('Erro');
-                this.contas = await r.json();
-            } catch (err) {
-                console.error('Erro:', err);
-            }
-        },
-        
-        resetForm() {
-            if (!this.isEditing) {
+    function contaFixaPagarModal() {
+        return {
+            categorias: @js(\App\Models\Categoria::where('ativo', true)->orderBy('nome')->get()),
+            subcategorias: [],
+            contas: [],
+            categoriaId: '',
+            subcategoriaId: '',
+            contaId: '',
+            centroCustoId: '',
+            descricao: '',
+            valor: '',
+            periodicidade: '',
+            diaVencimento: '',
+            dataInicial: '',
+            dataFim: '',
+            formaPagamento: '',
+            contaFinanceiraId: '',
+            observacoes: '',
+
+            fornecedorBusca: '',
+            fornecedores: @js(\App\Models\Fornecedor::where('ativo', true)->orderBy('razao_social')->get(['id', 'razao_social', 'nome_fantasia'])),
+            fornecedoresFiltrados: [],
+            mostrarListaFornecedores: false,
+
+            // Estado para controlar se estamos editando ou criando
+            isEditing: false,
+
+            filtrarFornecedores() {
+                if (!this.fornecedorBusca || this.fornecedorBusca.length < 2) {
+                    this.fornecedoresFiltrados = [];
+                    return;
+                }
+                const filtro = this.fornecedorBusca.toLowerCase();
+                this.fornecedoresFiltrados = this.fornecedores.filter(f =>
+                    (f.razao_social || '').toLowerCase().includes(filtro) ||
+                    (f.nome_fantasia || '').toLowerCase().includes(filtro)
+                );
+            },
+
+            selecionarFornecedor(fornecedor) {
+                this.$refs.fornecedorId.value = fornecedor.id;
+                this.fornecedorBusca = fornecedor.razao_social || fornecedor.nome_fantasia;
+                this.mostrarListaFornecedores = false;
+            },
+
+            async loadSubcategorias() {
+                if (!this.categoriaId) {
+                    this.subcategorias = [];
+                    this.contas = [];
+                    this.subcategoriaId = '';
+                    this.contaId = '';
+                    return;
+                }
+                try {
+                    const r = await fetch(`/financeiro/api/subcategorias/${this.categoriaId}`);
+                    if (!r.ok) throw new Error('Erro');
+                    this.subcategorias = await r.json();
+                } catch (err) {
+                    console.error('Erro:', err);
+                }
+            },
+
+            async loadContas() {
+                if (!this.subcategoriaId) {
+                    this.contas = [];
+                    this.contaId = '';
+                    return;
+                }
+                try {
+                    const r = await fetch(`/financeiro/api/contas/${this.subcategoriaId}`);
+                    if (!r.ok) throw new Error('Erro');
+                    this.contas = await r.json();
+                } catch (err) {
+                    console.error('Erro:', err);
+                }
+            },
+
+            resetForm() {
                 this.categoriaId = '';
                 this.subcategoriaId = '';
                 this.contaId = '';
@@ -317,90 +316,95 @@ function contaFixaPagarModal() {
                 this.formaPagamento = '';
                 this.contaFinanceiraId = '';
                 this.observacoes = '';
-                
+
                 this.subcategorias = [];
                 this.contas = [];
                 this.fornecedorBusca = '';
                 this.fornecedoresFiltrados = [];
                 this.mostrarListaFornecedores = false;
-                
+
+                this.isEditing = false; // Garantir que saia do modo de edição
+
                 const form = this.$el.querySelector('form');
                 if (form) {
                     form.reset();
+                    // Restaurar action original para criação
+                    form.setAttribute('action', '{{ route("financeiro.contasapagar.storeContaFixa") }}');
+                    // Remover campo _method se existir
+                    const methodInput = form.querySelector('input[name="_method"]');
+                    if (methodInput) methodInput.remove();
+
                     const fornecedorIdField = form.querySelector('[name="fornecedor_id"]');
                     if (fornecedorIdField) fornecedorIdField.value = '';
                 }
-            } else {
-                this.isEditing = false;
-            }
-        },
-        
-        async carregarContaFixa(id) {
-            try {
-                const response = await fetch(`/financeiro/contas-fixas-pagar/${id}`);
-                if (!response.ok) throw new Error('Erro');
-                const data = await response.json();
+            },
 
-                this.isEditing = true;
+            async carregarContaFixa(id) {
+                try {
+                    const response = await fetch(`/financeiro/contas-fixas-pagar/${id}`);
+                    if (!response.ok) throw new Error('Erro');
+                    const data = await response.json();
 
-                // 1. Dados simples
-                this.centroCustoId = data.centro_custo_id || '';
-                this.descricao = data.descricao || '';
-                this.valor = data.valor || '';
-                this.periodicidade = data.periodicidade || '';
-                this.diaVencimento = data.dia_vencimento || '';
-                this.formaPagamento = data.forma_pagamento || '';
-                this.contaFinanceiraId = data.conta_financeira_id || '';
-                this.observacoes = data.observacoes || '';
-                this.dataInicial = data.data_inicial ? data.data_inicial.split('T')[0] : '';
-                this.dataFim = data.data_fim ? data.data_fim.split('T')[0] : '';
+                    this.isEditing = true;
 
-                // 2. Hierarquia de conta
-                if (data.conta && data.conta.subcategoria && data.conta.subcategoria.categoria_id) {
-                    this.categoriaId = String(data.conta.subcategoria.categoria_id);
-                    await this.loadSubcategorias();
-                    this.subcategoriaId = String(data.conta.subcategoria_id);
-                    await this.loadContas();
-                    this.contaId = String(data.conta_id);
-                } else {
-                    this.categoriaId = '';
-                    this.subcategoriaId = '';
-                    this.contaId = '';
-                    this.subcategorias = [];
-                    this.contas = [];
-                }
+                    // 1. Dados simples
+                    this.centroCustoId = data.centro_custo_id || '';
+                    this.descricao = data.descricao || '';
+                    this.valor = data.valor || '';
+                    this.periodicidade = data.periodicidade || '';
+                    this.diaVencimento = data.dia_vencimento || '';
+                    this.formaPagamento = data.forma_pagamento || '';
+                    this.contaFinanceiraId = data.conta_financeira_id || '';
+                    this.observacoes = data.observacoes || '';
+                    this.dataInicial = data.data_inicial ? data.data_inicial.split('T')[0] : '';
+                    this.dataFim = data.data_fim ? data.data_fim.split('T')[0] : '';
 
-                // 3. Fornecedor
-                if (data.fornecedor_id) {
-                    this.$refs.fornecedorId.value = data.fornecedor_id;
-                    const f = this.fornecedores.find(f => f.id == data.fornecedor_id);
-                    if (f) this.fornecedorBusca = f.razao_social || f.nome_fantasia;
-                } else {
-                    this.$refs.fornecedorId.value = '';
-                    this.fornecedorBusca = '';
-                }
-
-                // 4. Atualizar action do form
-                const form = this.$el.querySelector('form');
-                if (form) {
-                    form.setAttribute('action', `/financeiro/contas-fixas-pagar/${id}`);
-                    let methodInput = form.querySelector('input[name="_method"]');
-                    if (!methodInput) {
-                        methodInput = document.createElement('input');
-                        methodInput.type = 'hidden';
-                        methodInput.name = '_method';
-                        form.appendChild(methodInput);
+                    // 2. Hierarquia de conta
+                    if (data.conta && data.conta.subcategoria && data.conta.subcategoria.categoria_id) {
+                        this.categoriaId = String(data.conta.subcategoria.categoria_id);
+                        await this.loadSubcategorias();
+                        this.subcategoriaId = String(data.conta.subcategoria_id);
+                        await this.loadContas();
+                        this.contaId = String(data.conta_id);
+                    } else {
+                        this.categoriaId = '';
+                        this.subcategoriaId = '';
+                        this.contaId = '';
+                        this.subcategorias = [];
+                        this.contas = [];
                     }
-                    methodInput.value = 'PUT';
+
+                    // 3. Fornecedor
+                    if (data.fornecedor_id) {
+                        this.$refs.fornecedorId.value = data.fornecedor_id;
+                        const f = this.fornecedores.find(f => f.id == data.fornecedor_id);
+                        if (f) this.fornecedorBusca = f.razao_social || f.nome_fantasia;
+                    } else {
+                        this.$refs.fornecedorId.value = '';
+                        this.fornecedorBusca = '';
+                    }
+
+                    // 4. Atualizar action do form
+                    const form = this.$el.querySelector('form');
+                    if (form) {
+                        form.setAttribute('action', `/financeiro/contas-fixas-pagar/${id}`);
+                        let methodInput = form.querySelector('input[name="_method"]');
+                        if (!methodInput) {
+                            methodInput = document.createElement('input');
+                            methodInput.type = 'hidden';
+                            methodInput.name = '_method';
+                            form.appendChild(methodInput);
+                        }
+                        methodInput.value = 'PUT';
+                    }
+
+                    return Promise.resolve();
+                } catch (error) {
+                    console.error('Erro ao carregar conta fixa:', error);
+                    alert('Erro ao carregar dados da conta fixa');
+                    return Promise.reject(error);
                 }
-                
-                return Promise.resolve();
-            } catch (error) {
-                console.error('Erro ao carregar conta fixa:', error);
-                alert('Erro ao carregar dados da conta fixa');
-                return Promise.reject(error);
             }
         }
     }
-}
 </script>
