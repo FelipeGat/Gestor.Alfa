@@ -13,13 +13,15 @@ class EquipamentoPortalController extends Controller
     {
         $user = Auth::user();
         if (! $user || $user->tipo !== 'cliente') {
-            abort(403, 'Acesso restrito a clientes.');
+            return redirect()->route('login');
         }
 
         // Se não tiver cliente ativo na sessão, tenta selecionar automaticamente
         if (! session()->has('cliente_id_ativo')) {
             // Se tiver mais de uma unidade, força seleção
-            if ($user->clientes()->count() > 1) {
+            $clientesCount = $user->clientes()->count();
+
+            if ($clientesCount > 1) {
                 return redirect()->route('portal.unidade');
             }
 
@@ -27,20 +29,26 @@ class EquipamentoPortalController extends Controller
             $unicoCliente = $user->clientes()->first();
             if ($unicoCliente) {
                 session(['cliente_id_ativo' => $unicoCliente->id]);
+            } else {
+                // Se não tem clientes ativos, redireciona para selecionar
+                return redirect()->route('portal.unidade');
             }
         }
 
         $clienteId = session('cliente_id_ativo');
         if (! $clienteId) {
-            abort(403, 'Nenhuma unidade selecionada. Selecione uma unidade primeiro.');
+            return redirect()->route('portal.unidade');
         }
 
         $cliente = $user->clientes()
             ->where('clientes.id', $clienteId)
             ->first();
 
+        // Se não encontrou cliente ativo, força seleção de unidade
         if (! $cliente) {
-            abort(403, 'Você não tem acesso a esta unidade.');
+            session()->forget('cliente_id_ativo');
+
+            return redirect()->route('portal.unidade');
         }
 
         return $cliente;
@@ -49,6 +57,11 @@ class EquipamentoPortalController extends Controller
     public function index()
     {
         $cliente = $this->getCliente();
+
+        // Se retornou redirect, retorna ele
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         $equipamentos = $cliente->equipamentos()->with(['setor', 'responsavel'])->get();
 
@@ -80,6 +93,11 @@ class EquipamentoPortalController extends Controller
     public function lista()
     {
         $cliente = $this->getCliente();
+
+        // Se retornou redirect, retorna ele
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         $equipamentos = $cliente->equipamentos()
             ->with(['setor', 'responsavel'])
@@ -116,6 +134,11 @@ class EquipamentoPortalController extends Controller
     public function pmoc()
     {
         $cliente = $this->getCliente();
+
+        // Se retornou redirect, retorna ele
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         $equipamentos = $cliente->equipamentos()
             ->with(['setor', 'responsavel', 'manutencoes', 'limpezas'])
