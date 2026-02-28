@@ -341,8 +341,8 @@
                                 <td class="px-4 py-3 text-sm text-left font-semibold whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Valor">
                                     R$ {{ number_format($cobranca->valor, 2, ',', '.') }}
                                 </td>
-                                <td class="px-4 py-3 text-left" data-label="Ações">
-                                    <div class="flex gap-1">
+                                <td class="px-4 py-3 text-right" data-label="Ações">
+                                    <div class="flex gap-1 justify-end">
 
                                         {{-- Botão Editar (apenas para contas fixas) --}}
                                         @if($cobranca->conta_fixa_id)
