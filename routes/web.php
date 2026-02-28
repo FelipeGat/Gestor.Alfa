@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\RelatorioCustosOrcamentosController;
 use App\Http\Controllers\RelatorioComercialController;
+use App\Http\Controllers\RelatorioCustosOrcamentosController;
 use App\Http\Controllers\RelatorioFinanceiroController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -549,6 +549,34 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
 
     Route::post('/portal/trocar-unidade', [PortalController::class, 'trocarUnidade'])
         ->name('portal.trocar-unidade');
+
+    // Equipamentos
+    Route::get('/portal/equipamentos', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'index'])
+        ->name('portal.equipamentos.index');
+
+    Route::get('/portal/equipamentos/lista', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'lista'])
+        ->name('portal.equipamentos.lista');
+
+    Route::get('/portal/equipamentos/setores', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'setores'])
+        ->name('portal.equipamentos.setores');
+
+    Route::get('/portal/equipamentos/responsaveis', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'responsaveis'])
+        ->name('portal.equipamentos.responsaveis');
+
+    Route::get('/portal/equipamentos/pmoc', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'pmoc'])
+        ->name('portal.equipamentos.pmoc');
+
+    Route::get('/portal/equipamentos/{equipamento}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'show'])
+        ->name('portal.equipamentos.show');
+
+    Route::post('/portal/equipamentos/{equipamento}/manutencao', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'registrarManutencao'])
+        ->name('portal.equipamentos.manutencao.store');
+
+    Route::post('/portal/equipamentos/{equipamento}/limpeza', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'registrarLimpeza'])
+        ->name('portal.equipamentos.limpeza.store');
+
+    Route::get('/portal/equipamentos/{equipamento}/qrcode', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'qrcode'])
+        ->name('portal.equipamentos.qrcode');
 
     Route::get(
         '/portal/boletos/{boleto}/download',

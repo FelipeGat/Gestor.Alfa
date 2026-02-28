@@ -141,6 +141,46 @@
                     </div>
                 </a>
 
+                <!-- Card Equipamentos -->
+                <a href="{{ route('portal.equipamentos.index') }}"
+                    class="group bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent
+              hover:border-purple-500 hover:shadow-2xl transition-all duration-300
+              transform hover:scale-105 cursor-pointer">
+
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                            </svg>
+                        </div>
+
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-purple-600
+                        group-hover:translate-x-1 transition-all"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                        Meus Equipamentos
+                    </h3>
+
+                    <p class="text-gray-600 text-sm mb-4">
+                        Gerencie equipamentos, manutenções, limpezas e abra chamados via QRCode.
+                    </p>
+
+                    <div class="flex items-center text-purple-600 font-semibold text-sm">
+                        Ir para Equipamentos
+                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </a>
+
             </div>
 
 

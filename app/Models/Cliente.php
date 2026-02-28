@@ -3,14 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Cobranca;
-use App\Models\Boleto;
-use App\Models\User;
-use App\Models\Email;
-use App\Models\Telefone;
-use App\Models\NotaFiscal;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends Model
 {
@@ -18,6 +12,7 @@ class Cliente extends Model
     {
         return $this->hasMany(\App\Models\Atendimento::class);
     }
+
     use SoftDeletes;
 
     /**
@@ -26,7 +21,9 @@ class Cliente extends Model
     public function getCpfCnpjFormatadoAttribute(): ?string
     {
         $valor = preg_replace('/\D/', '', $this->cpf_cnpj);
-        if (!$valor) return null;
+        if (! $valor) {
+            return null;
+        }
         if (strlen($valor) === 11) {
             // CPF: xxx.xxx.xxx-xx
             return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $valor);
@@ -34,6 +31,7 @@ class Cliente extends Model
             // CNPJ: xx.xxx.xxx/xxxx-xx
             return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $valor);
         }
+
         return $this->cpf_cnpj;
     }
 
@@ -62,9 +60,9 @@ class Cliente extends Model
     ];
 
     protected $casts = [
-        'ativo'          => 'boolean',
-        'nota_fiscal'    => 'boolean',
-        'valor_mensal'   => 'decimal:2',
+        'ativo' => 'boolean',
+        'nota_fiscal' => 'boolean',
+        'valor_mensal' => 'decimal:2',
         'dia_vencimento' => 'integer',
     ];
 
@@ -104,6 +102,21 @@ class Cliente extends Model
         return $this->hasMany(NotaFiscal::class);
     }
 
+    public function equipamentos()
+    {
+        return $this->hasMany(Equipamento::class);
+    }
+
+    public function equipamentoSetores()
+    {
+        return $this->hasMany(EquipamentoSetor::class);
+    }
+
+    public function equipamentoResponsaveis()
+    {
+        return $this->hasMany(EquipamentoResponsavel::class);
+    }
+
     public function empresas()
     {
         return $this->belongsToMany(Empresa::class);
@@ -117,7 +130,7 @@ class Cliente extends Model
         }
 
         // Pessoa Jurídica
-        if (!empty($this->nome)) {
+        if (! empty($this->nome)) {
             return $this->nome;
         }
 
