@@ -10,9 +10,9 @@ class CNPJTest extends TestCase
 {
     public function test_criar_cnpj_valido(): void
     {
-        $cnpj = new CNPJ('12.345.678/0001-90');
+        $cnpj = new CNPJ('04.252.011/0001-10');
 
-        $this->assertEquals('12345678000190', $cnpj->getNumero());
+        $this->assertEquals('04252011000110', $cnpj->getNumero());
     }
 
     public function test_criar_cnpj_com_digitos_invalidos_deve_lançar_exceção(): void
@@ -40,22 +40,22 @@ class CNPJTest extends TestCase
 
     public function test_formatar_cnpj(): void
     {
-        $cnpj = new CNPJ('12345678000190');
+        $cnpj = new CNPJ('04252011000110');
 
-        $this->assertEquals('12.345.678/0001-90', $cnpj->formatado());
+        $this->assertEquals('04.252.011/0001-10', $cnpj->formatado());
     }
 
     public function test_to_string(): void
     {
-        $cnpj = new CNPJ('12345678000190');
+        $cnpj = new CNPJ('04252011000110');
 
-        $this->assertEquals('12.345.678/0001-90', (string) $cnpj);
+        $this->assertEquals('04.252.011/0001-10', (string) $cnpj);
     }
 
     public function test_cnpj_valido_oficial(): void
     {
-        $cnpj = new CNPJ('29.228.756/0001-36');
+        $cnpj = new CNPJ('04.252.011/0001-10');
 
-        $this->assertEquals('29228756000136', $cnpj->getNumero());
+        $this->assertEquals('04252011000110', $cnpj->getNumero());
     }
 }
