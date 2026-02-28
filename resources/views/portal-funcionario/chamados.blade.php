@@ -15,12 +15,13 @@
     <style>
         .chamados-container {
             padding: 1rem;
+            padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
             max-width: 100%;
             margin: 0 auto;
         }
 
         .section-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #3f9cae 0%, #327d8c 100%);
             color: white;
             padding: 1rem;
             border-radius: 0.75rem;
@@ -72,7 +73,7 @@
         }
 
         .chamado-card.baixa {
-            border-left-color: #3b82f6;
+            border-left-color: #3f9cae;
         }
 
         .chamado-card.proximo {
@@ -112,8 +113,8 @@
         }
 
         .priority-badge.baixa {
-            background: #bfdbfe;
-            color: #1e40af;
+            background: #d7edf1;
+            color: #2f7c8a;
         }
 
         .card-info {
@@ -153,6 +154,7 @@
 
         .btn {
             padding: 0.75rem 1.5rem;
+            min-height: 48px;
             border-radius: 0.5rem;
             font-weight: 600;
             font-size: 0.875rem;
@@ -170,7 +172,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #3f9cae 0%, #327d8c 100%);
             color: white;
         }
 
@@ -179,7 +181,7 @@
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #3f9cae 0%, #327d8c 100%);
             color: white;
         }
 
@@ -224,6 +226,52 @@
 
             .cards-grid {
                 grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .chamados-container {
+                padding: 0.75rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .section-header {
+                padding: 0.75rem;
+                border-radius: 0.6rem;
+            }
+
+            .section-title {
+                font-size: 0.95rem;
+            }
+
+            .section-count {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.5rem;
+            }
+
+            .chamado-card {
+                border-radius: 0.75rem;
+                padding: 1rem;
+            }
+
+            .card-numero {
+                font-size: 1.1rem;
+            }
+
+            .card-footer {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+                min-width: 0;
+                font-size: 0.92rem;
+            }
+
+            .cronometro {
+                font-size: 1rem;
+                padding: 0.65rem 0.85rem;
             }
         }
     </style>
@@ -393,7 +441,7 @@
 
         <!-- FINALIZADOS -->
         @if($finalizados->count() > 0)
-        <div class="section-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+        <div class="section-header">
             <span class="section-title">
                 <svg style="width: 1.25rem; height: 1.25rem; display: inline-block; margin-right: 0.5rem;" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -453,27 +501,27 @@
         // Cronômetros em tempo real
         document.addEventListener('DOMContentLoaded', function() {
             const cronometros = document.querySelectorAll('.cronometro[data-iniciado]');
-            
+
             cronometros.forEach(crono => {
                 const iniciadoTimestamp = parseInt(crono.dataset.iniciado);
                 const tempoBase = parseInt(crono.dataset.tempoBase || 0);
                 const display = crono.querySelector('.tempo-display');
-                
+
                 function atualizarCronometro() {
                     const agora = Math.floor(Date.now() / 1000);
                     const segundosDecorridos = agora - iniciadoTimestamp;
                     const totalSegundos = tempoBase + segundosDecorridos;
-                    
+
                     const horas = Math.floor(totalSegundos / 3600);
                     const minutos = Math.floor((totalSegundos % 3600) / 60);
                     const segundos = totalSegundos % 60;
-                    
-                    display.textContent = 
+
+                    display.textContent =
                         String(horas).padStart(2, '0') + ':' +
                         String(minutos).padStart(2, '0') + ':' +
                         String(segundos).padStart(2, '0');
                 }
-                
+
                 atualizarCronometro();
                 setInterval(atualizarCronometro, 1000);
             });

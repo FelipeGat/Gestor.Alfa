@@ -15,6 +15,7 @@
     <style>
         .detalhes-container {
             padding: 1rem;
+            padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
             max-width: 800px;
             margin: 0 auto;
         }
@@ -107,6 +108,7 @@
         .btn-action {
             width: 100%;
             padding: 1rem;
+            min-height: 48px;
             border-radius: 0.75rem;
             font-weight: 700;
             font-size: 1rem;
@@ -238,6 +240,52 @@
                 padding: 2rem;
             }
         }
+
+        @media (max-width: 640px) {
+            .detalhes-container {
+                padding: 0.75rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .info-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .cronometro-display {
+                font-size: 2rem;
+            }
+
+            .modal {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .modal.active {
+                align-items: flex-end;
+            }
+
+            .modal-content {
+                max-width: 100%;
+                width: 100%;
+                max-height: 92dvh;
+                border-radius: 1rem 1rem 0 0;
+                padding: 1rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .modal-header {
+                font-size: 1.05rem;
+            }
+
+            .form-input, .form-select, .form-textarea {
+                font-size: 16px;
+            }
+
+            .btn-action {
+                font-size: 0.95rem;
+            }
+        }
     </style>
 
     <div class="detalhes-container">
@@ -277,8 +325,8 @@
                 $tempoBase += now()->diffInSeconds($atendimento->iniciado_em);
             }
         @endphp
-        <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}" 
-             data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}" 
+        <div class="cronometro-principal {{ $atendimento->em_pausa ? 'pausado' : '' }}"
+             data-iniciado="{{ $atendimento->em_pausa && $pausaAtiva ? $pausaAtiva->iniciada_em->timestamp : $atendimento->iniciado_em->timestamp }}"
              data-tempo-base="{{ $atendimento->em_pausa ? 0 : $tempoBase }}">
             @if($atendimento->em_pausa)
                 @php
@@ -308,7 +356,7 @@
                 <div>
                     <div style="font-weight: 700; color: #92400e;">Atendimento Antigo</div>
                     <div style="font-size: 0.875rem; color: #92400e; margin-top: 0.25rem;">
-                        Este atendimento foi marcado como "em atendimento" pelo sistema antigo. 
+                        Este atendimento foi marcado como "em atendimento" pelo sistema antigo.
                         Use os botões abaixo para <strong>iniciar</strong> o controle de tempo com o novo sistema.
                     </div>
                 </div>
@@ -341,13 +389,13 @@
                 </svg>
                 {{ $atendimento->tempo_execucao_formatado }}
             </div>
-            
+
             <!-- Fotos de Início e Finalização -->
             @php
                 $andamentoInicio = $atendimento->andamentos->where('descricao', 'Atendimento iniciado pelo técnico')->first();
                 $andamentoFinal = $atendimento->andamentos->where('descricao', '!=', 'Atendimento iniciado pelo técnico')->sortByDesc('created_at')->first();
             @endphp
-            
+
             @if($andamentoInicio && $andamentoInicio->fotos->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -364,8 +412,8 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoInicio->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
-                             alt="Foto início" 
+                        <img src="{{ asset('storage/' . $foto->arquivo) }}"
+                             alt="Foto início"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #059669;"
                              onclick="window.open(this.src, '_blank')">
                     </div>
@@ -373,7 +421,7 @@
                 </div>
             </div>
             @endif
-            
+
             @if($andamentoFinal && $andamentoFinal->fotos->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label">📸 Fotos da Finalização do Atendimento</div>
@@ -386,8 +434,8 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.75rem;">
                     @foreach($andamentoFinal->fotos as $foto)
                     <div>
-                        <img src="{{ asset('storage/' . $foto->arquivo) }}" 
-                             alt="Foto finalização" 
+                        <img src="{{ asset('storage/' . $foto->arquivo) }}"
+                             alt="Foto finalização"
                              style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #8b5cf6;"
                              onclick="window.open(this.src, '_blank')">
                     </div>
@@ -395,7 +443,29 @@
                 </div>
             </div>
             @endif
-            
+
+            @if($atendimento->assinatura_cliente_path)
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                <div class="info-label">✍️ Assinatura do Cliente</div>
+                @if($atendimento->assinatura_cliente_nome || $atendimento->assinatura_cliente_cargo)
+                <div style="margin-top: 0.5rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.6rem 0.75rem;">
+                    @if($atendimento->assinatura_cliente_nome)
+                        <div style="font-size: 0.8rem; color: #334155;"><strong>Nome:</strong> {{ $atendimento->assinatura_cliente_nome }}</div>
+                    @endif
+                    @if($atendimento->assinatura_cliente_cargo)
+                        <div style="font-size: 0.8rem; color: #334155;"><strong>Cargo:</strong> {{ $atendimento->assinatura_cliente_cargo }}</div>
+                    @endif
+                </div>
+                @endif
+                <div style="margin-top: 0.75rem; max-width: 320px;">
+                    <img src="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}"
+                         alt="Assinatura do cliente"
+                         style="width: 100%; max-height: 140px; object-fit: contain; background: #fff; border: 2px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer;"
+                         onclick="window.open(this.src, '_blank')">
+                </div>
+            </div>
+            @endif
+
             @if($atendimento->pausas->count() > 0)
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                 <div class="info-label">Detalhamento de Pausas</div>
@@ -428,15 +498,15 @@
                                 {{ gmdate('H:i:s', $pausa->tempo_segundos ?? 0) }}
                             </div>
                         </div>
-                        
+
                         <!-- Fotos da Pausa -->
                         @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
                             @if($pausa->foto_inicio_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Início</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
-                                     alt="Foto início pausa" 
+                                <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}"
+                                     alt="Foto início pausa"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
                             </div>
@@ -444,8 +514,8 @@
                             @if($pausa->foto_retorno_path)
                             <div>
                                 <div style="font-size: 0.65rem; color: #92400e; margin-bottom: 0.25rem; font-weight: 600;">📸 Retorno</div>
-                                <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
-                                     alt="Foto retorno" 
+                                <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}"
+                                     alt="Foto retorno"
                                      style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 2px solid #f59e0b;"
                                      onclick="window.open(this.src, '_blank')">
                             </div>
@@ -455,7 +525,7 @@
                     </div>
                     @endforeach
                 </div>
-                
+
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
                     <div style="display: flex; justify-content: between; align-items: center;">
                         <div class="info-label">Tempo Total de Pausas</div>
@@ -535,15 +605,15 @@
                         Retomado por: <strong>{{ $pausa->retomadoPor->name }}</strong>
                     </div>
                     @endif
-                    
+
                     <!-- Fotos da Pausa -->
                     @if($pausa->foto_inicio_path || $pausa->foto_retorno_path)
                     <div style="margin-top: 0.75rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem;">
                         @if($pausa->foto_inicio_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Início da Pausa</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}" 
-                                 alt="Foto início pausa" 
+                            <img src="{{ asset('storage/' . $pausa->foto_inicio_path) }}"
+                                 alt="Foto início pausa"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">
                         </div>
@@ -551,8 +621,8 @@
                         @if($pausa->foto_retorno_path)
                         <div>
                             <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.25rem;">📸 Retorno</div>
-                            <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}" 
-                                 alt="Foto retorno" 
+                            <img src="{{ asset('storage/' . $pausa->foto_retorno_path) }}"
+                                 alt="Foto retorno"
                                  style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;"
                                  onclick="window.open(this.src, '_blank')">
                         </div>
@@ -681,11 +751,29 @@
     <div id="modalFinalizar" class="modal">
         <div class="modal-content">
             <div class="modal-header">✅ Finalizar Atendimento</div>
-            <form action="{{ route('portal-funcionario.atendimento.finalizar', $atendimento) }}" method="POST" enctype="multipart/form-data">
+            <form id="formFinalizarAtendimento" action="{{ route('portal-funcionario.atendimento.finalizar', $atendimento) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
-                    <label class="form-label">Observações Finais (Opcional)</label>
-                    <textarea name="observacao" rows="3" class="form-textarea" placeholder="Descreva o que foi feito..."></textarea>
+                    <label class="form-label">Observações Finais *</label>
+                    <textarea name="observacao" rows="3" class="form-textarea" placeholder="Descreva o que foi feito..." required minlength="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="assinatura_cliente_nome" class="form-input" placeholder="Nome de quem está assinando" required minlength="2" maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cargo *</label>
+                    <input type="text" name="assinatura_cliente_cargo" class="form-input" placeholder="Cargo de quem está assinando" required minlength="2" maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assinatura do Cliente *</label>
+                    <div style="border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; background: #fff;">
+                        <canvas id="assinaturaCanvas" width="460" height="160" style="width: 100%; height: 160px; display: block; touch-action: none; cursor: crosshair;"></canvas>
+                    </div>
+                    <input type="hidden" name="assinatura_cliente" id="assinaturaClienteInput">
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button type="button" onclick="limparAssinatura()" class="btn-action" style="margin-bottom: 0; width: auto; padding: 0.5rem 0.75rem; background: #f3f4f6; color: #374151;">Limpar assinatura</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Enviar 1 Foto Final</label>
@@ -700,35 +788,123 @@
 
     @push('scripts')
     <script>
+        let assinaturaCanvas = null;
+        let assinaturaCtx = null;
+        let assinaturaDesenhada = false;
+        let desenhandoAssinatura = false;
+
         // Cronômetro em tempo real
         document.addEventListener('DOMContentLoaded', function() {
             const crono = document.querySelector('.cronometro-principal[data-iniciado]');
-            
+
             if (crono) {
                 const iniciadoTimestamp = parseInt(crono.dataset.iniciado);
                 const tempoBase = parseInt(crono.dataset.tempoBase || 0);
                 const display = crono.querySelector('.cronometro-display');
                 const pausado = crono.classList.contains('pausado');
-                
+
                 function atualizar() {
                     const agora = Math.floor(Date.now() / 1000);
                     const segundosDecorridos = agora - iniciadoTimestamp;
                     const totalSegundos = Math.max(0, tempoBase + segundosDecorridos); // Garante nunca negativo
-                    
+
                     const horas = Math.floor(totalSegundos / 3600);
                     const minutos = Math.floor((totalSegundos % 3600) / 60);
                     const segundos = totalSegundos % 60;
-                    
-                    display.textContent = 
+
+                    display.textContent =
                         String(horas).padStart(2, '0') + ':' +
                         String(minutos).padStart(2, '0') + ':' +
                         String(segundos).padStart(2, '0');
                 }
-                
+
                 atualizar();
                 setInterval(atualizar, 1000);
             }
+
+            assinaturaCanvas = document.getElementById('assinaturaCanvas');
+            if (assinaturaCanvas) {
+                assinaturaCtx = assinaturaCanvas.getContext('2d');
+                assinaturaCtx.lineWidth = 2;
+                assinaturaCtx.lineCap = 'round';
+                assinaturaCtx.strokeStyle = '#111827';
+
+                assinaturaCanvas.addEventListener('mousedown', iniciarDesenhoAssinatura);
+                assinaturaCanvas.addEventListener('mousemove', desenharAssinatura);
+                assinaturaCanvas.addEventListener('mouseup', finalizarDesenhoAssinatura);
+                assinaturaCanvas.addEventListener('mouseleave', finalizarDesenhoAssinatura);
+
+                assinaturaCanvas.addEventListener('touchstart', iniciarDesenhoAssinatura, { passive: false });
+                assinaturaCanvas.addEventListener('touchmove', desenharAssinatura, { passive: false });
+                assinaturaCanvas.addEventListener('touchend', finalizarDesenhoAssinatura, { passive: false });
+            }
+
+            const formFinalizar = document.getElementById('formFinalizarAtendimento');
+            if (formFinalizar) {
+                formFinalizar.addEventListener('submit', function (event) {
+                    if (!assinaturaCanvas || !assinaturaCtx || !assinaturaDesenhada) {
+                        event.preventDefault();
+                        alert('A assinatura do cliente é obrigatória para finalizar o atendimento.');
+                        return;
+                    }
+
+                    const inputAssinatura = document.getElementById('assinaturaClienteInput');
+                    inputAssinatura.value = assinaturaCanvas.toDataURL('image/png');
+                });
+            }
         });
+
+        function obterPosicaoAssinatura(event) {
+            const rect = assinaturaCanvas.getBoundingClientRect();
+            if (event.touches && event.touches.length > 0) {
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top
+                };
+            }
+
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function iniciarDesenhoAssinatura(event) {
+            if (!assinaturaCtx || !assinaturaCanvas) return;
+            event.preventDefault();
+            desenhandoAssinatura = true;
+            const posicao = obterPosicaoAssinatura(event);
+            assinaturaCtx.beginPath();
+            assinaturaCtx.moveTo(posicao.x, posicao.y);
+        }
+
+        function desenharAssinatura(event) {
+            if (!desenhandoAssinatura || !assinaturaCtx) return;
+            event.preventDefault();
+            const posicao = obterPosicaoAssinatura(event);
+            assinaturaCtx.lineTo(posicao.x, posicao.y);
+            assinaturaCtx.stroke();
+            assinaturaDesenhada = true;
+        }
+
+        function finalizarDesenhoAssinatura(event) {
+            if (!assinaturaCtx) return;
+            if (event) {
+                event.preventDefault();
+            }
+            desenhandoAssinatura = false;
+            assinaturaCtx.closePath();
+        }
+
+        function limparAssinatura() {
+            if (!assinaturaCtx || !assinaturaCanvas) return;
+            assinaturaCtx.clearRect(0, 0, assinaturaCanvas.width, assinaturaCanvas.height);
+            assinaturaDesenhada = false;
+            const inputAssinatura = document.getElementById('assinaturaClienteInput');
+            if (inputAssinatura) {
+                inputAssinatura.value = '';
+            }
+        }
 
         function abrirModalIniciar() {
             document.getElementById('modalIniciar').classList.add('active');
@@ -753,7 +929,7 @@
         function previewFotos(input, previewId) {
             const preview = document.getElementById(previewId);
             preview.innerHTML = '';
-            
+
             if (input.files) {
                 Array.from(input.files).forEach(file => {
                     const reader = new FileReader();

@@ -31,9 +31,9 @@
         }
 
         .view-btn.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #3f9cae 0%, #327d8c 100%);
             color: white;
-            border-color: #2563eb;
+            border-color: #327d8c;
         }
 
         .calendar-header {
@@ -102,7 +102,7 @@
         }
 
         .calendar-day.today .day-number {
-            background: #3b82f6;
+            background: #3f9cae;
             color: white;
             width: 28px;
             height: 28px;
@@ -136,8 +136,8 @@
         }
 
         .event-item.baixa {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #d7edf1;
+            color: #2f7c8a;
         }
 
         .lista-view {
@@ -166,7 +166,7 @@
         }
 
         .atendimento-card.baixa {
-            border-color: #3b82f6;
+            border-color: #3f9cae;
         }
 
         @media (max-width: 768px) {
@@ -227,7 +227,7 @@
         const atendimentos = @json($atendimentos);
 
         const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         function switchView(view) {
@@ -280,8 +280,8 @@
                         ${atendimento.assunto_nome}
                     </div>
                     <div style="margin-top: 0.5rem; font-size: 0.75rem; font-weight: 600; color: ${
-                        atendimento.prioridade === 'alta' ? '#ef4444' : 
-                        atendimento.prioridade === 'media' ? '#f59e0b' : '#3b82f6'
+                        atendimento.prioridade === 'alta' ? '#ef4444' :
+                        atendimento.prioridade === 'media' ? '#f59e0b' : '#3f9cae'
                     };">
                         ${atendimento.prioridade.toUpperCase()}
                     </div>
@@ -326,7 +326,7 @@
                 let eventos = '';
                 atendimentosDia.forEach(atendimento => {
                     eventos += `
-                        <div class="event-item ${atendimento.prioridade}" 
+                        <div class="event-item ${atendimento.prioridade}"
                              onclick="window.location.href='/portal-funcionario/atendimento/${atendimento.id}'">
                             ${atendimento.numero_atendimento}
                         </div>

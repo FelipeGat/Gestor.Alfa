@@ -109,35 +109,37 @@
     </div>
     @endif
 
+    @php
+        $andamentoInicio = $atendimento->andamentos->first(function ($andamento) {
+            return stripos($andamento->descricao ?? '', 'Atendimento iniciado pelo técnico') !== false;
+        });
+
+        $andamentoFinal = $atendimento->andamentos
+            ->filter(function ($andamento) {
+                return $andamento->fotos->count() > 0
+                    && stripos($andamento->descricao ?? '', 'Atendimento iniciado pelo técnico') === false;
+            })
+            ->sortByDesc('created_at')
+            ->first();
+    @endphp
+
     <!-- Fotos de Início -->
-    @if($atendimento->iniciado_em)
+    @if($andamentoInicio && $andamentoInicio->fotos->count() > 0)
     <div class="detalhes-section">
         <h5 class="section-subtitle">
             <svg class="icon-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Fotos de Início ({{ $atendimento->foto_inicio_1_path ? 1 : 0 }}{{ $atendimento->foto_inicio_2_path ? '+1' : '' }}{{ $atendimento->foto_inicio_3_path ? '+1' : '' }})
+            Fotos de Início ({{ $andamentoInicio->fotos->count() }})
         </h5>
         <div class="fotos-grid">
-            @if($atendimento->foto_inicio_1_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_inicio_1_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_inicio_1_path) }}" alt="Foto 1" class="foto-thumbnail">
-                    <span class="foto-label">Foto 1</span>
+            @foreach($andamentoInicio->fotos as $indice => $fotoInicio)
+                <a href="{{ asset('storage/' . $fotoInicio->arquivo) }}" target="_blank" class="foto-link">
+                    <img src="{{ asset('storage/' . $fotoInicio->arquivo) }}" alt="Foto de início {{ $indice + 1 }}" class="foto-thumbnail">
+                    <span class="foto-label">Foto {{ $indice + 1 }}</span>
                 </a>
-            @endif
-            @if($atendimento->foto_inicio_2_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_inicio_2_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_inicio_2_path) }}" alt="Foto 2" class="foto-thumbnail">
-                    <span class="foto-label">Foto 2</span>
-                </a>
-            @endif
-            @if($atendimento->foto_inicio_3_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_inicio_3_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_inicio_3_path) }}" alt="Foto 3" class="foto-thumbnail">
-                    <span class="foto-label">Foto 3</span>
-                </a>
-            @endif
+            @endforeach
         </div>
     </div>
     @endif
@@ -168,7 +170,7 @@
                         {{ $pausa->encerrada_em ? 'Encerrada' : 'Em Andamento' }}
                     </span>
                 </div>
-                
+
                 <div class="pausa-detalhes">
                     <div class="pausa-detail-item">
                         <span class="detail-label">Pausado por:</span>
@@ -214,7 +216,7 @@
     @endif
 
     <!-- Fotos de Finalização -->
-    @if($atendimento->finalizado_em)
+    @if($andamentoFinal)
     <div class="detalhes-section">
         <h5 class="section-subtitle">
             <svg class="icon-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,30 +225,18 @@
             Fotos de Finalização
         </h5>
         <div class="fotos-grid">
-            @if($atendimento->foto_finalizacao_1_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_finalizacao_1_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_finalizacao_1_path) }}" alt="Finalização 1" class="foto-thumbnail">
-                    <span class="foto-label">Finalização 1</span>
+            @foreach($andamentoFinal->fotos as $indice => $fotoFinal)
+                <a href="{{ asset('storage/' . $fotoFinal->arquivo) }}" target="_blank" class="foto-link">
+                    <img src="{{ asset('storage/' . $fotoFinal->arquivo) }}" alt="Finalização {{ $indice + 1 }}" class="foto-thumbnail">
+                    <span class="foto-label">Finalização {{ $indice + 1 }}</span>
                 </a>
-            @endif
-            @if($atendimento->foto_finalizacao_2_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_finalizacao_2_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_finalizacao_2_path) }}" alt="Finalização 2" class="foto-thumbnail">
-                    <span class="foto-label">Finalização 2</span>
-                </a>
-            @endif
-            @if($atendimento->foto_finalizacao_3_path)
-                <a href="{{ asset('storage/' . $atendimento->foto_finalizacao_3_path) }}" target="_blank" class="foto-link">
-                    <img src="{{ asset('storage/' . $atendimento->foto_finalizacao_3_path) }}" alt="Finalização 3" class="foto-thumbnail">
-                    <span class="foto-label">Finalização 3</span>
-                </a>
-            @endif
+            @endforeach
         </div>
     </div>
     @endif
 
     <!-- Observações de Finalização -->
-    @if($atendimento->observacoes_finalizacao)
+    @if($andamentoFinal && $andamentoFinal->descricao && stripos($andamentoFinal->descricao, 'Atendimento finalizado pelo técnico') === false)
     <div class="detalhes-section">
         <h5 class="section-subtitle">
             <svg class="icon-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -255,7 +245,34 @@
             Observações de Finalização
         </h5>
         <div class="observacoes-box">
-            {{ $atendimento->observacoes_finalizacao }}
+            {{ $andamentoFinal->descricao }}
+        </div>
+    </div>
+    @endif
+
+    @if($atendimento->assinatura_cliente_path)
+    <div class="detalhes-section">
+        <h5 class="section-subtitle">
+            <svg class="icon-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+            </svg>
+            Assinatura do Cliente
+        </h5>
+        @if($atendimento->assinatura_cliente_nome || $atendimento->assinatura_cliente_cargo)
+        <div class="observacoes-box" style="margin-bottom: 12px;">
+            @if($atendimento->assinatura_cliente_nome)
+                <div><strong>Nome:</strong> {{ $atendimento->assinatura_cliente_nome }}</div>
+            @endif
+            @if($atendimento->assinatura_cliente_cargo)
+                <div><strong>Cargo:</strong> {{ $atendimento->assinatura_cliente_cargo }}</div>
+            @endif
+        </div>
+        @endif
+        <div class="fotos-grid">
+            <a href="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}" target="_blank" class="foto-link">
+                <img src="{{ asset('storage/' . $atendimento->assinatura_cliente_path) }}" alt="Assinatura do cliente" class="foto-thumbnail">
+                <span class="foto-label">Assinatura</span>
+            </a>
         </div>
     </div>
     @endif

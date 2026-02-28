@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
 use App\Models\AtendimentoPausa;
-use App\Models\AtendimentoAndamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -216,7 +215,7 @@ class PortalFuncionarioController extends Controller
             $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
             $agora = now();
             // Auditoria: log para depuração
-            \Log::info('[PAUSAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+            \Illuminate\Support\Facades\Log::info('[PAUSAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
             if (!$inicioContagem) {
                 // Não deve acontecer, mas se acontecer, não incrementa nada
                 $tempoDecorrido = 0;
@@ -230,7 +229,7 @@ class PortalFuncionarioController extends Controller
                 'em_pausa' => true,
             ]);
             $atendimento->refresh();
-            \Log::info('[PAUSAR] tempoDecorrido=' . $tempoDecorrido . ' | novoTempoExecucao=' . $novoTempoExecucao);
+            \Illuminate\Support\Facades\Log::info('[PAUSAR] tempoDecorrido=' . $tempoDecorrido . ' | novoTempoExecucao=' . $novoTempoExecucao);
 
             // Salvar foto
             $fotoPath = $request->file('foto')->store('atendimentos/pausas', 'public');
@@ -312,7 +311,7 @@ class PortalFuncionarioController extends Controller
     }
 
     /**
-     * Finalizar atendimento - Exige 3 fotos
+     * Finalizar atendimento - Exige foto final, observação e assinatura do cliente
      */
     public function finalizarAtendimento(Request $request, Atendimento $atendimento)
     {
@@ -324,11 +323,29 @@ class PortalFuncionarioController extends Controller
         $request->validate([
             'fotos' => 'required|array|min:1|max:1',
             'fotos.*' => 'required|image|max:5120',
-            'observacao' => 'nullable|string|max:1000',
+            'observacao' => 'required|string|min:5|max:1000',
+            'assinatura_cliente_nome' => 'required|string|min:2|max:120',
+            'assinatura_cliente_cargo' => 'required|string|min:2|max:120',
+            'assinatura_cliente' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!preg_match('/^data:image\/(png|jpeg);base64,/', $value)) {
+                        $fail('Formato de assinatura inválido. Assine novamente.');
+                    }
+                },
+            ],
         ], [
             'fotos.required' => 'É obrigatório enviar 1 foto para finalizar o atendimento',
             'fotos.min' => 'É obrigatório enviar exatamente 1 foto',
             'fotos.max' => 'É obrigatório enviar exatamente 1 foto',
+            'observacao.required' => 'As observações finais são obrigatórias',
+            'observacao.min' => 'As observações finais devem ter pelo menos 5 caracteres',
+            'assinatura_cliente_nome.required' => 'O nome de quem assina é obrigatório',
+            'assinatura_cliente_nome.min' => 'O nome de quem assina deve ter pelo menos 2 caracteres',
+            'assinatura_cliente_cargo.required' => 'O cargo de quem assina é obrigatório',
+            'assinatura_cliente_cargo.min' => 'O cargo de quem assina deve ter pelo menos 2 caracteres',
+            'assinatura_cliente.required' => 'A assinatura do cliente é obrigatória para finalizar',
         ]);
 
         DB::beginTransaction();
@@ -338,7 +355,7 @@ class PortalFuncionarioController extends Controller
                 $ultimaPausa = $atendimento->pausas()->whereNotNull('encerrada_em')->latest('encerrada_em')->first();
                 $inicioContagem = $ultimaPausa ? $ultimaPausa->encerrada_em : $atendimento->iniciado_em;
                 $agora = now();
-                \Log::info('[FINALIZAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
+                \Illuminate\Support\Facades\Log::info('[FINALIZAR] agora=' . $agora . ' | inicioContagem=' . $inicioContagem . ' | tempo_execucao_segundos=' . $atendimento->tempo_execucao_segundos);
                 if (!$inicioContagem) {
                     $tempoDecorrido = 0;
                 } else {
@@ -346,7 +363,7 @@ class PortalFuncionarioController extends Controller
                 }
                 $tempoExecucao = max(0, ($atendimento->tempo_execucao_segundos ?? 0) + $tempoDecorrido);
                 if ($tempoExecucao < 0) {
-                    \Log::warning('tempo_execucao_segundos negativo detectado e corrigido', [
+                    \Illuminate\Support\Facades\Log::warning('tempo_execucao_segundos negativo detectado e corrigido', [
                         'atendimento_id' => $atendimento->id,
                         'valor_calculado' => $tempoExecucao,
                         'incremento' => $tempoDecorrido,
@@ -356,6 +373,20 @@ class PortalFuncionarioController extends Controller
                 $atendimento->tempo_execucao_segundos = $tempoExecucao;
             }
 
+            $assinaturaData = $request->input('assinatura_cliente');
+            if (!preg_match('/^data:image\/(\w+);base64,/', $assinaturaData, $matches)) {
+                throw new \RuntimeException('Assinatura inválida.');
+            }
+
+            $extensao = strtolower($matches[1]) === 'jpeg' ? 'jpg' : strtolower($matches[1]);
+            $conteudo = base64_decode(substr($assinaturaData, strpos($assinaturaData, ',') + 1), true);
+            if ($conteudo === false) {
+                throw new \RuntimeException('Não foi possível processar a assinatura.');
+            }
+
+            $assinaturaRelativePath = 'atendimentos/assinaturas/' . uniqid('assinatura_', true) . '.' . $extensao;
+            Storage::disk('public')->put($assinaturaRelativePath, $conteudo);
+
             // Atualizar atendimento
             $atendimento->update([
                 'status_atual' => 'finalizacao',
@@ -364,6 +395,9 @@ class PortalFuncionarioController extends Controller
                 'em_execucao' => false,
                 'em_pausa' => false,
                 'tempo_execucao_segundos' => $atendimento->tempo_execucao_segundos,
+                'assinatura_cliente_nome' => trim($request->assinatura_cliente_nome),
+                'assinatura_cliente_cargo' => trim($request->assinatura_cliente_cargo),
+                'assinatura_cliente_path' => $assinaturaRelativePath,
             ]);
 
             // Criar andamento final com fotos

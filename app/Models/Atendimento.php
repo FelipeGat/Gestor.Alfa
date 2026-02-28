@@ -37,6 +37,9 @@ class Atendimento extends Model
         'tempo_pausa_segundos',
         'em_execucao',
         'em_pausa',
+        'assinatura_cliente_nome',
+        'assinatura_cliente_cargo',
+        'assinatura_cliente_path',
     ];
 
     protected $casts = [
