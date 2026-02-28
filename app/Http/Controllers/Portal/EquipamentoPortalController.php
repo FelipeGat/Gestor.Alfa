@@ -111,6 +111,11 @@ class EquipamentoPortalController extends Controller
     {
         $cliente = $this->getCliente();
 
+        // Se retornou redirect, retorna ele
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
         $setores = $cliente->equipamentoSetores()
             ->withCount('equipamentos')
             ->orderBy('nome')
@@ -122,6 +127,11 @@ class EquipamentoPortalController extends Controller
     public function responsaveis()
     {
         $cliente = $this->getCliente();
+
+        // Se retornou redirect, retorna ele
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         $responsaveis = $cliente->equipamentoResponsaveis()
             ->withCount('equipamentos')

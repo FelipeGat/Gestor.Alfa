@@ -51,13 +51,13 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
-                        <x-nav-link :href="route('portal.atendimentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.atendimentos') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Meus Atendimentos" @click.stop>
                             Meus Atendimentos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.chamado.novo')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.chamado.novo') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Abrir Novo Chamado" @click.stop>
                             Abrir Novo Chamado
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -75,17 +75,17 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
-                        <x-nav-link :href="route('portal.financeiro')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.financeiro') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Dashboard Financeiro" @click.stop>
                             Dashboard Financeiro
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.boletos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.boletos') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Boletos" @click.stop>
                             Boletos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.notas')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.notas') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Notas Fiscais" @click.stop>
                             Notas Fiscais
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -103,25 +103,25 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
 
-                        <x-nav-link :href="route('portal.equipamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.equipamentos.index') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Dashboard Equipamentos" @click.stop>
                             Dashboard Equipamentos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.equipamentos.lista')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.equipamentos.lista') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Lista de Equipamentos" @click.stop>
                             Lista de Equipamentos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.equipamentos.setores')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.equipamentos.setores') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Setores" @click.stop>
                             Setores
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.equipamentos.responsaveis')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.equipamentos.responsaveis') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Responsáveis" @click.stop>
                             Responsáveis
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('portal.equipamentos.pmoc')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link="">
+                        <a href="{{ route('portal.equipamentos.pmoc') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Plano de Manutenção (PMOC)" @click.stop>
                             Plano de Manutenção (PMOC)
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif

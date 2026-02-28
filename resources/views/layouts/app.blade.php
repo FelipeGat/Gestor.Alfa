@@ -479,11 +479,13 @@
             document.addEventListener('click', function(e) {
                 const link = e.target.closest('[data-tab-link]');
                 if (link) {
-                    e.preventDefault();
                     const url = link.getAttribute('href');
                     const label = link.getAttribute('data-tab-label') || link.textContent.trim();
                     const icon = link.getAttribute('data-tab-icon');
-                    if (url && url !== '#') {
+                    
+                    // Verificar se a URL é válida antes de prevenir o comportamento padrão
+                    if (url && url !== '#' && !url.startsWith('javascript:')) {
+                        e.preventDefault();
                         window.abrirTab(url, label, icon);
                         return false;
                     }

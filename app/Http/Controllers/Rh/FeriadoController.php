@@ -95,7 +95,8 @@ class FeriadoController extends Controller
             );
         }
 
-        $pascoa = now()->setDate($anoAtual, 1, 1)->startOfDay()->setTimestamp(easter_date($anoAtual));
+        $diaPascoa = $this->calcularDiaPascoa($anoAtual);
+        $pascoa = now()->setDate($anoAtual, 1, 1)->startOfDay()->setTimestamp($diaPascoa);
         $moveis = [
             ['nome' => 'Carnaval', 'data' => $pascoa->copy()->subDays(48)->toDateString()],
             ['nome' => 'Carnaval', 'data' => $pascoa->copy()->subDays(47)->toDateString()],
@@ -116,5 +117,29 @@ class FeriadoController extends Controller
                 ]
             );
         }
+    }
+
+    /**
+     * Calcula o dia de Páscoa usando o algoritmo de Meeus/Jones/Butcher.
+     * Retorna o timestamp Unix do dia de Páscoa.
+     */
+    private function calcularDiaPascoa(int $ano): int
+    {
+        $a = $ano % 19;
+        $b = (int) floor($ano / 100);
+        $c = $ano % 100;
+        $d = (int) floor($b / 4);
+        $e = $b % 4;
+        $f = (int) floor(($b + 8) / 25);
+        $g = (int) floor(($b - $f + 1) / 3);
+        $h = (19 * $a + $b - $d - $g + 15) % 30;
+        $i = (int) floor($c / 4);
+        $k = $c % 4;
+        $l = (32 + 2 * $e + 2 * $i - $h - $k) % 7;
+        $m = (int) floor(($a + 11 * $h + 22 * $l) / 451);
+        $mes = (int) floor(($h + $l - 7 * $m + 114) / 31);
+        $dia = (($h + $l - 7 * $m + 114) % 31) + 1;
+
+        return mktime(0, 0, 0, $mes, $dia, $ano);
     }
 }
