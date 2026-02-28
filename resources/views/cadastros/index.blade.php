@@ -63,20 +63,22 @@
                     </div>
                 </a>
 
-                <!-- Funcionários -->
-                <a href="{{ route('funcionarios.index') }}" class="card-cadastro group block p-6">
+                @if(auth()->check() && auth()->user()->isAdminPanel())
+                <!-- RH -->
+                <a href="{{ route('rh.dashboard') }}" class="card-cadastro group block p-6">
                     <div class="flex items-center justify-center mb-4">
                         <div class="p-3 icone-bg rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 icone-cor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
                     </div>
                     <div class="text-center">
-                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Funcionários</div>
-                        <div class="text-xs text-gray-500">Gerencie a equipe de funcionários</div>
+                        <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">RH</div>
+                        <div class="text-xs text-gray-500">Funcionários, ponto e jornada</div>
                     </div>
                 </a>
+                @endif
 
                 <!-- Usuários -->
                 <a href="{{ route('usuarios.index') }}" class="card-cadastro group block p-6">
