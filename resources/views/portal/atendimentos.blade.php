@@ -56,8 +56,20 @@
                             <td>{{ $atendimento->empresa->nome_fantasia ?? '—' }}</td>
                             <td>{{ $atendimento->assunto->nome ?? '—' }}</td>
                             <td>
-                                <span class="portal-badge portal-badge--info">
-                                    {{ strtoupper($atendimento->status_atual ?? 'Indefinido') }}
+                                @php
+                                    $status = $atendimento->status_atual;
+                                    $badgeClass = 'portal-badge--gray';
+                                    
+                                    if(in_array($status, ['aberto', 'em_atendimento'])) {
+                                        $badgeClass = 'portal-badge--info';
+                                    } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
+                                        $badgeClass = 'portal-badge--warning';
+                                    } elseif($status === 'concluido') {
+                                        $badgeClass = 'portal-badge--success';
+                                    }
+                                @endphp
+                                <span class="portal-badge {{ $badgeClass }}">
+                                    {{ strtoupper(str_replace('_', ' ', $status ?? 'Indefinido')) }}
                                 </span>
                             </td>
                             <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
@@ -125,8 +137,20 @@
                                 {{ $atendimento->empresa->nome_fantasia ?? '—' }}
                             </div>
                         </div>
-                        <span class="portal-badge portal-badge--info">
-                            {{ strtoupper($atendimento->status_atual ?? 'Indefinido') }}
+                        @php
+                            $status = $atendimento->status_atual;
+                            $badgeClass = 'portal-badge--gray';
+                            
+                            if(in_array($status, ['aberto', 'em_atendimento'])) {
+                                $badgeClass = 'portal-badge--info';
+                            } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
+                                $badgeClass = 'portal-badge--warning';
+                            } elseif($status === 'concluido') {
+                                $badgeClass = 'portal-badge--success';
+                            }
+                        @endphp
+                        <span class="portal-badge {{ $badgeClass }}">
+                            {{ strtoupper(str_replace('_', ' ', $status ?? 'Indefinido')) }}
                         </span>
                     </div>
                     <div class="portal-mobile-card-row">
