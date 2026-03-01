@@ -13,6 +13,7 @@
                 modalLoteAberto: false,
                      modalRelatorioAjustesAberto: false,
                      modalDetalhesBatidaAberto: false,
+                     modalIndicadorAberto: false,
                 ajusteSecao1: {
                     funcionario_id: '',
                     funcionario_nome: '',
@@ -41,6 +42,13 @@
                     intervalo_inicio: { horario: '—', foto_url: null, latitude: null, longitude: null },
                     intervalo_fim: { horario: '—', foto_url: null, latitude: null, longitude: null },
                     saida: { horario: '—', foto_url: null, latitude: null, longitude: null }
+                },
+                indicadorSelecionado: {
+                    titulo: '',
+                    valor: '',
+                    formula: '',
+                    descricao: '',
+                    componentes: []
                 },
                 abrirModalAjuste(payload) {
                     this.ajusteSecao1 = payload;
@@ -80,6 +88,13 @@
                 },
                 fecharModalDetalhesBatida() {
                     this.modalDetalhesBatidaAberto = false;
+                },
+                abrirModalIndicador(payload) {
+                    this.indicadorSelecionado = payload;
+                    this.modalIndicadorAberto = true;
+                },
+                fecharModalIndicador() {
+                    this.modalIndicadorAberto = false;
                 }
              }">
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -501,46 +516,159 @@
 
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">SEÇÃO 2 – Indicadores de Produtividade (Atendimentos)</h2>
+                @php
+                    $formatarSegundosIndicador = function (int $segundos): string {
+                        return gmdate('H:i', max(0, $segundos));
+                    };
+
+                    $valorTempoAtendimento = $formatarSegundosIndicador((int) ($indicadores['total_tempo_atendimento_segundos'] ?? 0));
+                    $valorTempoMedio = $formatarSegundosIndicador((int) ($indicadores['tempo_medio_segundos'] ?? 0));
+                    $valorTempoOcioso = $formatarSegundosIndicador((int) ($indicadores['tempo_ocioso_segundos'] ?? 0));
+                    $valorHorasExtras = $formatarSegundosIndicador((int) ($indicadores['horas_extras_segundos'] ?? 0));
+                    $valorJornadaLegalTotal = $formatarSegundosIndicador((int) ($indicadores['jornada_legal_total_segundos'] ?? 0));
+                    $valorBancoBase = $formatarSegundosIndicador((int) abs($indicadores['banco_horas_base_segundos'] ?? 0));
+                    $valorAjustesBanco = $formatarSegundosIndicador((int) abs($indicadores['ajustes_segundos'] ?? 0));
+                    $valorBancoAcumulado = (($indicadores['banco_horas_acumulado_segundos'] ?? 0) < 0 ? '-' : '+')
+                        . $formatarSegundosIndicador((int) abs($indicadores['banco_horas_acumulado_segundos'] ?? 0));
+
+                    $detalhesIndicadores = [
+                        'tempo_atendimento' => [
+                            'titulo' => 'Tempo em Atendimento',
+                            'valor' => $valorTempoAtendimento,
+                            'formula' => 'Σ tempo_execucao_segundos dos atendimentos no período',
+                            'descricao' => 'Soma o tempo efetivamente executado em atendimentos para o filtro selecionado.',
+                            'componentes' => [
+                                'Total em segundos: ' . (int) ($indicadores['total_tempo_atendimento_segundos'] ?? 0),
+                                'Total formatado: ' . $valorTempoAtendimento,
+                            ],
+                        ],
+                        'tempo_medio' => [
+                            'titulo' => 'Tempo Médio / Atendimento',
+                            'valor' => $valorTempoMedio,
+                            'formula' => 'Tempo em Atendimento ÷ Atendimentos no Período',
+                            'descricao' => 'Média simples do tempo executado por atendimento no período.',
+                            'componentes' => [
+                                'Tempo total: ' . $valorTempoAtendimento,
+                                'Atendimentos: ' . (int) ($indicadores['total_atendimentos'] ?? 0),
+                                'Resultado médio: ' . $valorTempoMedio,
+                            ],
+                        ],
+                        'atendimentos' => [
+                            'titulo' => 'Atendimentos no Período',
+                            'valor' => (string) (int) ($indicadores['total_atendimentos'] ?? 0),
+                            'formula' => 'COUNT(atendimentos filtrados por período e funcionário)',
+                            'descricao' => 'Contagem de atendimentos considerados no mesmo filtro da tela.',
+                            'componentes' => [
+                                'Total de atendimentos: ' . (int) ($indicadores['total_atendimentos'] ?? 0),
+                                'Filtro de data aplicado em: data_atendimento (com fallback para created_at quando necessário).',
+                            ],
+                        ],
+                        'produtividade' => [
+                            'titulo' => 'Produtividade (%)',
+                            'valor' => number_format((float) ($indicadores['produtividade_percentual'] ?? 0), 2, ',', '.') . '%',
+                            'formula' => '(Tempo em Atendimento ÷ Tempo da Jornada Legal Trabalhada) × 100',
+                            'descricao' => 'Mostra quanto do tempo trabalhado foi convertido em execução de atendimentos.',
+                            'componentes' => [
+                                'Tempo em atendimento: ' . $valorTempoAtendimento,
+                                'Jornada legal trabalhada: ' . $valorJornadaLegalTotal,
+                                'Resultado: ' . number_format((float) ($indicadores['produtividade_percentual'] ?? 0), 2, ',', '.') . '%',
+                            ],
+                        ],
+                        'ocioso' => [
+                            'titulo' => 'Tempo Ocioso',
+                            'valor' => $valorTempoOcioso,
+                            'formula' => 'Jornada Legal Trabalhada - Tempo em Atendimento',
+                            'descricao' => 'Tempo de jornada sem execução de atendimento no período.',
+                            'componentes' => [
+                                'Jornada legal trabalhada: ' . $valorJornadaLegalTotal,
+                                'Tempo em atendimento: ' . $valorTempoAtendimento,
+                                'Resultado: ' . $valorTempoOcioso,
+                            ],
+                        ],
+                        'assiduidade' => [
+                            'titulo' => 'Assiduidade Mensal',
+                            'valor' => number_format((float) ($indicadores['assiduidade_mensal'] ?? 0), 2, ',', '.') . '%',
+                            'formula' => '(Dias com Presença ÷ Dias Previstos) × 100',
+                            'descricao' => 'Percentual de presença considerando os dias previstos na jornada.',
+                            'componentes' => [
+                                'Dias previstos: ' . (int) ($indicadores['dias_previstos'] ?? 0),
+                                'Dias com presença: ' . (int) ($indicadores['dias_com_presenca'] ?? 0),
+                                'Resultado: ' . number_format((float) ($indicadores['assiduidade_mensal'] ?? 0), 2, ',', '.') . '%',
+                            ],
+                        ],
+                        'pontualidade' => [
+                            'titulo' => 'Pontualidade Mensal',
+                            'valor' => number_format((float) ($indicadores['pontualidade_mensal'] ?? 0), 2, ',', '.') . '%',
+                            'formula' => '(Dias Pontuais ÷ Dias Previstos) × 100',
+                            'descricao' => 'Percentual de dias com status OK na jornada legal.',
+                            'componentes' => [
+                                'Dias previstos: ' . (int) ($indicadores['dias_previstos'] ?? 0),
+                                'Dias pontuais: ' . (int) ($indicadores['dias_pontuais'] ?? 0),
+                                'Resultado: ' . number_format((float) ($indicadores['pontualidade_mensal'] ?? 0), 2, ',', '.') . '%',
+                            ],
+                        ],
+                        'horas_extras' => [
+                            'titulo' => 'Horas Extras no Período',
+                            'valor' => $valorHorasExtras,
+                            'formula' => 'Σ (extra_50 + extra_100) apurados na Seção 1',
+                            'descricao' => 'Soma das horas extras calculadas na jornada legal no período filtrado.',
+                            'componentes' => [
+                                'Total de horas extras: ' . $valorHorasExtras,
+                            ],
+                        ],
+                        'banco_horas' => [
+                            'titulo' => 'Banco de Horas Acumulado',
+                            'valor' => $valorBancoAcumulado,
+                            'formula' => 'Saldo base do banco + ajustes manuais convertidos em segundos',
+                            'descricao' => 'Consolida o saldo semanal de banco de horas com os ajustes lançados no período.',
+                            'componentes' => [
+                                'Saldo base do banco: ' . (($indicadores['banco_horas_base_segundos'] ?? 0) < 0 ? '-' : '+') . $valorBancoBase,
+                                'Ajustes manuais: ' . (($indicadores['ajustes_segundos'] ?? 0) < 0 ? '-' : '+') . $valorAjustesBanco,
+                                'Resultado final: ' . $valorBancoAcumulado,
+                            ],
+                        ],
+                    ];
+                @endphp
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-4">
-                    <div class="bg-white p-4 rounded border" style="border-color:#3b82f6; border-width:1px; border-left-width:4px;">
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#3b82f6; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_atendimento']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Tempo em Atendimento</p>
                         <p class="text-2xl font-bold text-blue-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['total_tempo_atendimento_segundos'])) }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded border" style="border-color:#22c55e; border-width:1px; border-left-width:4px;">
+                    </button>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#22c55e; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_medio']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Tempo Médio / Atendimento</p>
                         <p class="text-2xl font-bold text-green-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['tempo_medio_segundos'])) }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded border" style="border-color:#8b5cf6; border-width:1px; border-left-width:4px;">
+                    </button>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#8b5cf6; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['atendimentos']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Atendimentos no Período</p>
                         <p class="text-2xl font-bold text-violet-600 mt-1">{{ $indicadores['total_atendimentos'] }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded border" style="border-color:#f59e0b; border-width:1px; border-left-width:4px;">
+                    </button>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#f59e0b; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['produtividade']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Produtividade (%)</p>
                         <p class="text-2xl font-bold text-amber-600 mt-1">{{ number_format($indicadores['produtividade_percentual'], 2, ',', '.') }}%</p>
-                    </div>
-                    <div class="bg-white p-4 rounded border" style="border-color:#ef4444; border-width:1px; border-left-width:4px;">
+                    </button>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#ef4444; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['ocioso']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Tempo Ocioso</p>
                         <p class="text-2xl font-bold text-red-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['tempo_ocioso_segundos'])) }}</p>
-                    </div>
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="border border-gray-200 rounded p-4">
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['assiduidade']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Assiduidade Mensal</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($indicadores['assiduidade_mensal'], 2, ',', '.') }}%</p>
-                    </div>
-                    <div class="border border-gray-200 rounded p-4">
+                    </button>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['pontualidade']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Pontualidade Mensal</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($indicadores['pontualidade_mensal'], 2, ',', '.') }}%</p>
-                    </div>
-                    <div class="border border-gray-200 rounded p-4">
+                    </button>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['horas_extras']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Horas Extras no Período</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $indicadores['horas_extras_segundos'])) }}</p>
-                    </div>
-                    <div class="border border-gray-200 rounded p-4">
+                    </button>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['banco_horas']) }})'>
                         <p class="text-xs text-gray-600 uppercase">Banco de Horas Acumulado</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ ($indicadores['banco_horas_acumulado_segundos'] < 0 ? '-' : '+') . gmdate('H:i', abs($indicadores['banco_horas_acumulado_segundos'])) }}</p>
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -771,6 +899,43 @@
                                     <img :src="detalhesBatida.saida.foto_url" alt="Foto saída" class="h-28 w-28 object-cover rounded border border-gray-200">
                                 </a>
                             </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="modalIndicadorAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="fecharModalIndicador()"></div>
+                <div class="relative bg-white rounded-lg w-full max-w-2xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" x-text="indicadorSelecionado.titulo"></h3>
+                            <p class="text-sm text-gray-600">Valor atual: <span class="font-semibold" x-text="indicadorSelecionado.valor"></span></p>
+                        </div>
+                        <button type="button" class="text-gray-500 hover:text-gray-700" @click="fecharModalIndicador()">✕</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="border border-blue-100 bg-blue-50 rounded p-3">
+                            <p class="text-xs font-semibold uppercase text-blue-700 mb-1">Fórmula</p>
+                            <p class="text-sm text-blue-900" x-text="indicadorSelecionado.formula"></p>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-xs font-semibold uppercase text-gray-700 mb-1">Como o sistema calcula</p>
+                            <p class="text-sm text-gray-700" x-text="indicadorSelecionado.descricao"></p>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-xs font-semibold uppercase text-gray-700 mb-2">Componentes usados no cálculo</p>
+                            <ul class="space-y-1 text-sm text-gray-700">
+                                <template x-for="(item, index) in (indicadorSelecionado.componentes || [])" :key="index">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#3f9cae] font-bold">•</span>
+                                        <span x-text="item"></span>
+                                    </li>
+                                </template>
+                            </ul>
                         </div>
                     </div>
                 </div>
