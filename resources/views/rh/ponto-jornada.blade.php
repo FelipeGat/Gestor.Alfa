@@ -48,8 +48,11 @@
                     valor: '',
                     formula: '',
                     descricao: '',
-                    componentes: []
+                    componentes: [],
+                    mostrar_lista_atendimentos: false,
+                    atendimentos: []
                 },
+                atendimentosIndicadores: {{ \Illuminate\Support\Js::from($indicadores['atendimentos_utilizados'] ?? []) }},
                 cacheEnderecos: {},
                 abrirModalAjuste(payload) {
                     this.ajusteSecao1 = payload;
@@ -96,6 +99,9 @@
                         && latitude !== ''
                         && longitude !== null
                         && longitude !== '';
+                },
+                ehCarregandoEndereco(endereco) {
+                    return typeof endereco === 'string' && endereco.includes('Carregando endereço');
                 },
                 linkGoogleMaps(latitude, longitude) {
                     return `https://www.google.com/maps?q=${encodeURIComponent(`${latitude},${longitude}`)}`;
@@ -152,7 +158,16 @@
                     }
                 },
                 abrirModalIndicador(payload) {
-                    this.indicadorSelecionado = payload;
+                    const mostrarLista = Boolean(payload?.mostrar_lista_atendimentos);
+                    this.indicadorSelecionado = {
+                        titulo: payload?.titulo || '',
+                        valor: payload?.valor || '',
+                        formula: payload?.formula || '',
+                        descricao: payload?.descricao || '',
+                        componentes: payload?.componentes || [],
+                        mostrar_lista_atendimentos: mostrarLista,
+                        atendimentos: mostrarLista ? (this.atendimentosIndicadores || []) : []
+                    };
                     this.modalIndicadorAberto = true;
                 },
                 fecharModalIndicador() {
@@ -592,6 +607,8 @@
                     $valorAjustesBanco = $formatarSegundosIndicador((int) abs($indicadores['ajustes_segundos'] ?? 0));
                     $valorBancoAcumulado = (($indicadores['banco_horas_acumulado_segundos'] ?? 0) < 0 ? '-' : '+')
                         . $formatarSegundosIndicador((int) abs($indicadores['banco_horas_acumulado_segundos'] ?? 0));
+                    $tempoOciosoBrutoSegundos = (int) ($indicadores['tempo_ocioso_bruto_segundos'] ?? 0);
+                    $totalAtendimentosUtilizados = count($indicadores['atendimentos_utilizados'] ?? []);
 
                     $detalhesIndicadores = [
                         'tempo_atendimento' => [
@@ -603,6 +620,7 @@
                                 'Total em segundos: ' . (int) ($indicadores['total_tempo_atendimento_segundos'] ?? 0),
                                 'Total formatado: ' . $valorTempoAtendimento,
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'tempo_medio' => [
                             'titulo' => 'Tempo Médio / Atendimento',
@@ -614,6 +632,7 @@
                                 'Atendimentos: ' . (int) ($indicadores['total_atendimentos'] ?? 0),
                                 'Resultado médio: ' . $valorTempoMedio,
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'atendimentos' => [
                             'titulo' => 'Atendimentos no Período',
@@ -624,6 +643,7 @@
                                 'Total de atendimentos: ' . (int) ($indicadores['total_atendimentos'] ?? 0),
                                 'Filtro de data aplicado em: data_atendimento (com fallback para created_at quando necessário).',
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'produtividade' => [
                             'titulo' => 'Produtividade (%)',
@@ -635,6 +655,7 @@
                                 'Jornada legal trabalhada: ' . $valorJornadaLegalTotal,
                                 'Resultado: ' . number_format((float) ($indicadores['produtividade_percentual'] ?? 0), 2, ',', '.') . '%',
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'ocioso' => [
                             'titulo' => 'Tempo Ocioso',
@@ -644,8 +665,11 @@
                             'componentes' => [
                                 'Jornada legal trabalhada: ' . $valorJornadaLegalTotal,
                                 'Tempo em atendimento: ' . $valorTempoAtendimento,
+                                'Cálculo em segundos: ' . (int) ($indicadores['jornada_legal_total_segundos'] ?? 0) . ' - ' . (int) ($indicadores['total_tempo_atendimento_segundos'] ?? 0) . ' = ' . $tempoOciosoBrutoSegundos,
+                                'Regra aplicada: resultado final nunca pode ser negativo (mínimo 0).',
                                 'Resultado: ' . $valorTempoOcioso,
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'assiduidade' => [
                             'titulo' => 'Assiduidade Mensal',
@@ -657,6 +681,7 @@
                                 'Dias com presença: ' . (int) ($indicadores['dias_com_presenca'] ?? 0),
                                 'Resultado: ' . number_format((float) ($indicadores['assiduidade_mensal'] ?? 0), 2, ',', '.') . '%',
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'pontualidade' => [
                             'titulo' => 'Pontualidade Mensal',
@@ -668,6 +693,7 @@
                                 'Dias pontuais: ' . (int) ($indicadores['dias_pontuais'] ?? 0),
                                 'Resultado: ' . number_format((float) ($indicadores['pontualidade_mensal'] ?? 0), 2, ',', '.') . '%',
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'horas_extras' => [
                             'titulo' => 'Horas Extras no Período',
@@ -677,6 +703,7 @@
                             'componentes' => [
                                 'Total de horas extras: ' . $valorHorasExtras,
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                         'banco_horas' => [
                             'titulo' => 'Banco de Horas Acumulado',
@@ -688,46 +715,47 @@
                                 'Ajustes manuais: ' . (($indicadores['ajustes_segundos'] ?? 0) < 0 ? '-' : '+') . $valorAjustesBanco,
                                 'Resultado final: ' . $valorBancoAcumulado,
                             ],
+                            'mostrar_lista_atendimentos' => true,
                         ],
                     ];
                 @endphp
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-4">
-                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#3b82f6; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_atendimento']) }})'>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#3b82f6; border-width:1px; border-left-width:4px;" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_atendimento']) }})">
                         <p class="text-xs text-gray-600 uppercase">Tempo em Atendimento</p>
                         <p class="text-2xl font-bold text-blue-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['total_tempo_atendimento_segundos'])) }}</p>
                     </button>
-                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#22c55e; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_medio']) }})'>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#22c55e; border-width:1px; border-left-width:4px;" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['tempo_medio']) }})">
                         <p class="text-xs text-gray-600 uppercase">Tempo Médio / Atendimento</p>
                         <p class="text-2xl font-bold text-green-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['tempo_medio_segundos'])) }}</p>
                     </button>
-                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#8b5cf6; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['atendimentos']) }})'>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#8b5cf6; border-width:1px; border-left-width:4px;" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['atendimentos']) }})">
                         <p class="text-xs text-gray-600 uppercase">Atendimentos no Período</p>
                         <p class="text-2xl font-bold text-violet-600 mt-1">{{ $indicadores['total_atendimentos'] }}</p>
                     </button>
-                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#f59e0b; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['produtividade']) }})'>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#f59e0b; border-width:1px; border-left-width:4px;" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['produtividade']) }})">
                         <p class="text-xs text-gray-600 uppercase">Produtividade (%)</p>
                         <p class="text-2xl font-bold text-amber-600 mt-1">{{ number_format($indicadores['produtividade_percentual'], 2, ',', '.') }}%</p>
                     </button>
-                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#ef4444; border-width:1px; border-left-width:4px;" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['ocioso']) }})'>
+                    <button type="button" class="bg-white p-4 rounded border text-left hover:bg-gray-50 transition" style="border-color:#ef4444; border-width:1px; border-left-width:4px;" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['ocioso']) }})">
                         <p class="text-xs text-gray-600 uppercase">Tempo Ocioso</p>
                         <p class="text-2xl font-bold text-red-600 mt-1">{{ gmdate('H:i', max(0, $indicadores['tempo_ocioso_segundos'])) }}</p>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['assiduidade']) }})'>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['assiduidade']) }})">
                         <p class="text-xs text-gray-600 uppercase">Assiduidade Mensal</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($indicadores['assiduidade_mensal'], 2, ',', '.') }}%</p>
                     </button>
-                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['pontualidade']) }})'>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['pontualidade']) }})">
                         <p class="text-xs text-gray-600 uppercase">Pontualidade Mensal</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($indicadores['pontualidade_mensal'], 2, ',', '.') }}%</p>
                     </button>
-                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['horas_extras']) }})'>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['horas_extras']) }})">
                         <p class="text-xs text-gray-600 uppercase">Horas Extras no Período</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $indicadores['horas_extras_segundos'])) }}</p>
                     </button>
-                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click='abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['banco_horas']) }})'>
+                    <button type="button" class="border border-gray-200 rounded p-4 text-left hover:bg-gray-50 transition" @click="abrirModalIndicador({{ \Illuminate\Support\Js::from($detalhesIndicadores['banco_horas']) }})">
                         <p class="text-xs text-gray-600 uppercase">Banco de Horas Acumulado</p>
                         <p class="text-2xl font-bold text-gray-800 mt-1">{{ ($indicadores['banco_horas_acumulado_segundos'] < 0 ? '-' : '+') . gmdate('H:i', abs($indicadores['banco_horas_acumulado_segundos'])) }}</p>
                     </button>
@@ -934,7 +962,20 @@
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.entrada.horario || '—'"></span></p>
                             <p class="text-sm text-gray-700">Localização:
                                 <template x-if="coordenadasValidas(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)">
-                                    <a :href="linkGoogleMaps(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.entrada.endereco || ('Coordenadas: ' + detalhesBatida.entrada.latitude + ', ' + detalhesBatida.entrada.longitude)"></a>
+                                    <span>
+                                        <template x-if="ehCarregandoEndereco(detalhesBatida.entrada.endereco)">
+                                            <span class="inline-flex items-center gap-2 text-gray-600">
+                                                <svg class="h-4 w-4 animate-spin text-[#3f9cae]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                                <span x-text="detalhesBatida.entrada.endereco"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!ehCarregandoEndereco(detalhesBatida.entrada.endereco)">
+                                            <a :href="linkGoogleMaps(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.entrada.endereco || ('Coordenadas: ' + detalhesBatida.entrada.latitude + ', ' + detalhesBatida.entrada.longitude)"></a>
+                                        </template>
+                                    </span>
                                 </template>
                                 <template x-if="!coordenadasValidas(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)">
                                     <span>—</span>
@@ -952,7 +993,20 @@
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_inicio.horario || '—'"></span></p>
                             <p class="text-sm text-gray-700">Localização:
                                 <template x-if="coordenadasValidas(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)">
-                                    <a :href="linkGoogleMaps(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_inicio.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_inicio.latitude + ', ' + detalhesBatida.intervalo_inicio.longitude)"></a>
+                                    <span>
+                                        <template x-if="ehCarregandoEndereco(detalhesBatida.intervalo_inicio.endereco)">
+                                            <span class="inline-flex items-center gap-2 text-gray-600">
+                                                <svg class="h-4 w-4 animate-spin text-[#3f9cae]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                                <span x-text="detalhesBatida.intervalo_inicio.endereco"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!ehCarregandoEndereco(detalhesBatida.intervalo_inicio.endereco)">
+                                            <a :href="linkGoogleMaps(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_inicio.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_inicio.latitude + ', ' + detalhesBatida.intervalo_inicio.longitude)"></a>
+                                        </template>
+                                    </span>
                                 </template>
                                 <template x-if="!coordenadasValidas(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)">
                                     <span>—</span>
@@ -965,7 +1019,20 @@
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_fim.horario || '—'"></span></p>
                             <p class="text-sm text-gray-700">Localização:
                                 <template x-if="coordenadasValidas(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)">
-                                    <a :href="linkGoogleMaps(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_fim.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_fim.latitude + ', ' + detalhesBatida.intervalo_fim.longitude)"></a>
+                                    <span>
+                                        <template x-if="ehCarregandoEndereco(detalhesBatida.intervalo_fim.endereco)">
+                                            <span class="inline-flex items-center gap-2 text-gray-600">
+                                                <svg class="h-4 w-4 animate-spin text-[#3f9cae]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                                <span x-text="detalhesBatida.intervalo_fim.endereco"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!ehCarregandoEndereco(detalhesBatida.intervalo_fim.endereco)">
+                                            <a :href="linkGoogleMaps(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_fim.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_fim.latitude + ', ' + detalhesBatida.intervalo_fim.longitude)"></a>
+                                        </template>
+                                    </span>
                                 </template>
                                 <template x-if="!coordenadasValidas(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)">
                                     <span>—</span>
@@ -978,7 +1045,20 @@
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.saida.horario || '—'"></span></p>
                             <p class="text-sm text-gray-700">Localização:
                                 <template x-if="coordenadasValidas(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)">
-                                    <a :href="linkGoogleMaps(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.saida.endereco || ('Coordenadas: ' + detalhesBatida.saida.latitude + ', ' + detalhesBatida.saida.longitude)"></a>
+                                    <span>
+                                        <template x-if="ehCarregandoEndereco(detalhesBatida.saida.endereco)">
+                                            <span class="inline-flex items-center gap-2 text-gray-600">
+                                                <svg class="h-4 w-4 animate-spin text-[#3f9cae]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                                <span x-text="detalhesBatida.saida.endereco"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!ehCarregandoEndereco(detalhesBatida.saida.endereco)">
+                                            <a :href="linkGoogleMaps(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.saida.endereco || ('Coordenadas: ' + detalhesBatida.saida.latitude + ', ' + detalhesBatida.saida.longitude)"></a>
+                                        </template>
+                                    </span>
                                 </template>
                                 <template x-if="!coordenadasValidas(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)">
                                     <span>—</span>
@@ -1026,6 +1106,46 @@
                                     </li>
                                 </template>
                             </ul>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3" x-show="indicadorSelecionado.mostrar_lista_atendimentos" x-cloak>
+                            <p class="text-xs font-semibold uppercase text-gray-700 mb-2">Atendimentos que compõem o indicador</p>
+                            <p class="text-sm text-gray-600 mb-2">Total listado: {{ $totalAtendimentosUtilizados }}</p>
+
+                            <div class="max-h-64 overflow-auto border border-gray-100 rounded">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs sticky top-0">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left">Atendimento</th>
+                                            <th class="px-3 py-2 text-left">Funcionário</th>
+                                            <th class="px-3 py-2 text-left">Cliente</th>
+                                            <th class="px-3 py-2 text-left">Data</th>
+                                            <th class="px-3 py-2 text-left">Status</th>
+                                            <th class="px-3 py-2 text-right">Tempo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-if="(indicadorSelecionado.atendimentos || []).length === 0">
+                                            <tr>
+                                                <td colspan="6" class="px-3 py-3 text-center text-gray-500">Nenhum atendimento encontrado no filtro atual.</td>
+                                            </tr>
+                                        </template>
+                                        <template x-for="(item, index) in (indicadorSelecionado.atendimentos || [])" :key="item.id || index">
+                                            <tr class="border-t border-gray-100">
+                                                <td class="px-3 py-2" x-text="item.numero || ('#' + item.id)"></td>
+                                                <td class="px-3 py-2" x-text="item.funcionario || '—'"></td>
+                                                <td class="px-3 py-2" x-text="item.cliente || '—'"></td>
+                                                <td class="px-3 py-2">
+                                                    <span x-text="item.data_referencia || '—'"></span>
+                                                    <span class="text-xs text-gray-500 block" x-text="'Origem: ' + (item.origem_data || '—')"></span>
+                                                </td>
+                                                <td class="px-3 py-2" x-text="item.status || '—'"></td>
+                                                <td class="px-3 py-2 text-right font-semibold" x-text="item.tempo_execucao_formatado || '00:00:00'"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
