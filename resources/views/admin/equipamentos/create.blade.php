@@ -65,6 +65,32 @@
                                 </select>
                                 <x-input-error :messages="$errors->get('cliente_id')" class="mt-2" />
                             </div>
+
+                            <div>
+                                <x-input-label for="setor_id" value="Setor" />
+                                <select id="setor_id" name="setor_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Selecione um setor</option>
+                                    @foreach($setores as $setor)
+                                        <option value="{{ $setor->id }}" @selected(old('setor_id') == $setor->id)>
+                                            {{ $setor->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('setor_id')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="responsavel_id" value="Responsável" />
+                                <select id="responsavel_id" name="responsavel_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Selecione um responsável</option>
+                                    @foreach($responsaveis as $responsavel)
+                                        <option value="{{ $responsavel->id }}" @selected(old('responsavel_id') == $responsavel->id)>
+                                            {{ $responsavel->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('responsavel_id')" class="mt-2" />
+                            </div>
                         </div>
                     </div>
 

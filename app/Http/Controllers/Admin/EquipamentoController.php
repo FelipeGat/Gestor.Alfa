@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Equipamento;
+use App\Models\EquipamentoSetor;
+use App\Models\EquipamentoResponsavel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,8 +79,10 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
+        $setores = \App\Models\EquipamentoSetor::orderBy('nome')->get();
+        $responsaveis = \App\Models\EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.create', compact('clientes'));
+        return view('admin.equipamentos.create', compact('clientes', 'setores', 'responsaveis'));
     }
 
     /**
@@ -168,8 +172,10 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
+        $setores = EquipamentoSetor::orderBy('nome')->get();
+        $responsaveis = EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.edit', compact('equipamento', 'clientes'));
+        return view('admin.equipamentos.edit', compact('equipamento', 'clientes', 'setores', 'responsaveis'));
     }
 
     /**
