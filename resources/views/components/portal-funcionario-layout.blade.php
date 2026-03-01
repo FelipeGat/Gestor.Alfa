@@ -5,14 +5,31 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3f9cae">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Portal Funcionário">
+    
+    <!-- iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Portal Funcionário">
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    
+    <!-- Android/Chrome -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    
     <title>{{ config('app.name', 'Laravel') }} - Portal do Funcionário</title>
 
     <!-- Fonts -->
@@ -237,6 +254,35 @@
             </a>
         </div>
     </nav>
+
+    <!-- PWA: Registro do Service Worker -->
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('[PWA] Service Worker registrado:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('[PWA] Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Prevenir zoom duplo tap no iOS
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        });
+
+        // Adicionar à tela inicial - prompt customizado
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('[PWA] Banner de instalação disponível');
+        });
+    </script>
 </body>
 
 </html>
