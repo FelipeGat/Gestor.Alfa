@@ -116,7 +116,7 @@
             </div>
 
             <!-- Navegação Rápida -->
-            <nav class="mt-3 flex gap-2 overflow-x-auto pb-1" x-data="{ activeTab: window.location.pathname }">
+            <nav class="mt-3 flex gap-2 overflow-x-auto pb-1 justify-center" x-data="{ activeTab: window.location.pathname }">
                 <a href="{{ route('portal-funcionario.index') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.index') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                     <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
