@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PontoJornadaController extends Controller
@@ -225,6 +226,175 @@ class PontoJornadaController extends Controller
             ->with('success', 'Ajuste manual lançado com sucesso na Seção 1.');
     }
 
+    public function storeAjusteLote(Request $request)
+    {
+        $validated = $request->validate([
+            'funcionario_id' => ['required', 'exists:funcionarios,id'],
+            'data_inicio' => ['required', 'date'],
+            'data_fim' => ['required', 'date', 'after_or_equal:data_inicio'],
+            'tipo_lote' => ['required', 'in:atestado,batidas'],
+            'tipo_ajuste' => ['required', 'in:esquecimento,batida_duplicidade,atestado_medico,acompanhamento_medico'],
+            'horario_entrada' => ['nullable', 'date_format:H:i'],
+            'horario_intervalo_inicio' => ['nullable', 'date_format:H:i'],
+            'horario_intervalo_fim' => ['nullable', 'date_format:H:i'],
+            'horario_saida' => ['nullable', 'date_format:H:i'],
+            'sobrescrever_campos' => ['nullable', 'boolean'],
+            'motivo_lancamento_manual' => ['required', 'string', 'min:5', 'max:1000'],
+            'autorizado_por_user_id' => ['required', 'exists:users,id'],
+            'inicio' => ['nullable', 'date'],
+            'fim' => ['nullable', 'date'],
+            'funcionario_id_filtro' => ['nullable', 'integer', 'exists:funcionarios,id'],
+        ], [
+            'tipo_lote.required' => 'Selecione o tipo do lançamento em lote.',
+            'tipo_ajuste.required' => 'Selecione o tipo do ajuste.',
+            'motivo_lancamento_manual.required' => 'Informe o motivo do lançamento manual.',
+            'autorizado_por_user_id.required' => 'Informe quem autorizou.',
+        ]);
+
+        $horariosBatida = [
+            'entrada_em' => $validated['horario_entrada'] ?? null,
+            'intervalo_inicio_em' => $validated['horario_intervalo_inicio'] ?? null,
+            'intervalo_fim_em' => $validated['horario_intervalo_fim'] ?? null,
+            'saida_em' => $validated['horario_saida'] ?? null,
+        ];
+
+        if ($validated['tipo_lote'] === 'batidas' && collect($horariosBatida)->filter()->isEmpty()) {
+            throw ValidationException::withMessages([
+                'horario_entrada' => 'Informe pelo menos uma batida para o lançamento em lote.',
+            ]);
+        }
+
+        $funcionarioId = (int) $validated['funcionario_id'];
+        $dataInicio = Carbon::parse($validated['data_inicio'])->startOfDay();
+        $dataFim = Carbon::parse($validated['data_fim'])->startOfDay();
+        $sobrescreverCampos = (bool) ($validated['sobrescrever_campos'] ?? false);
+        $motivo = trim($validated['motivo_lancamento_manual']);
+
+        $labelsCampos = [
+            'entrada_em' => 'Entrada',
+            'intervalo_inicio_em' => 'Saída almoço',
+            'intervalo_fim_em' => 'Retorno almoço',
+            'saida_em' => 'Saída',
+        ];
+
+        $aplicados = 0;
+        $bloqueados = 0;
+        $semAlteracao = 0;
+
+        $cursor = $dataInicio->copy();
+        while ($cursor->lte($dataFim)) {
+            $dia = $cursor->copy();
+
+            if ($this->edicaoPontoBloqueada($funcionarioId, $dia)) {
+                $bloqueados++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $registro = RegistroPontoPortal::query()->firstOrNew([
+                'funcionario_id' => $funcionarioId,
+                'data_referencia' => $dia->toDateString(),
+            ]);
+
+            if ($validated['tipo_lote'] === 'atestado') {
+                $jaSemBatidas = !$registro->entrada_em
+                    && !$registro->intervalo_inicio_em
+                    && !$registro->intervalo_fim_em
+                    && !$registro->saida_em;
+
+                if ($jaSemBatidas) {
+                    $semAlteracao++;
+                    $cursor->addDay();
+                    continue;
+                }
+
+                $registro->entrada_em = null;
+                $registro->intervalo_inicio_em = null;
+                $registro->intervalo_fim_em = null;
+                $registro->saida_em = null;
+                $registro->registrado_por_user_id = Auth::id();
+                $registro->save();
+
+                RhAjustePonto::create([
+                    'funcionario_id' => $funcionarioId,
+                    'atendimento_id' => null,
+                    'minutos_ajuste' => 0,
+                    'tipo_ajuste' => $validated['tipo_ajuste'],
+                    'justificativa' => sprintf(
+                        'Lançamento em lote (Atestado) em %s. Motivo: %s',
+                        $dia->format('d/m/Y'),
+                        $motivo
+                    ),
+                    'ajustado_por_user_id' => Auth::id(),
+                    'autorizado_por_user_id' => (int) $validated['autorizado_por_user_id'],
+                    'ajustado_em' => $dia->copy()->setTimeFrom(now()),
+                ]);
+
+                $aplicados++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $camposAlterados = [];
+            foreach ($horariosBatida as $campo => $horario) {
+                if (!$horario) {
+                    continue;
+                }
+
+                if (!$sobrescreverCampos && !empty($registro->{$campo})) {
+                    continue;
+                }
+
+                $batida = Carbon::createFromFormat('Y-m-d H:i', $dia->toDateString() . ' ' . $horario);
+                $registro->{$campo} = $batida;
+                $camposAlterados[] = ($labelsCampos[$campo] ?? $campo) . ' ' . $batida->format('H:i');
+            }
+
+            if (empty($camposAlterados)) {
+                $semAlteracao++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $registro->registrado_por_user_id = Auth::id();
+            $registro->save();
+
+            RhAjustePonto::create([
+                'funcionario_id' => $funcionarioId,
+                'atendimento_id' => null,
+                'minutos_ajuste' => 0,
+                'tipo_ajuste' => $validated['tipo_ajuste'],
+                'justificativa' => sprintf(
+                    'Lançamento em lote (Batidas) em %s [%s]. Motivo: %s',
+                    $dia->format('d/m/Y'),
+                    implode(' | ', $camposAlterados),
+                    $motivo
+                ),
+                'ajustado_por_user_id' => Auth::id(),
+                'autorizado_por_user_id' => (int) $validated['autorizado_por_user_id'],
+                'ajustado_em' => $dia->copy()->setTimeFrom(now()),
+            ]);
+
+            $aplicados++;
+            $cursor->addDay();
+        }
+
+        $mensagem = sprintf(
+            'Lançamento em lote concluído: %d dia(s) aplicado(s), %d bloqueado(s), %d sem alteração.',
+            $aplicados,
+            $bloqueados,
+            $semAlteracao
+        );
+
+        return redirect()
+            ->route('rh.ponto-jornada.index', array_filter([
+                'inicio' => $validated['inicio'] ?? null,
+                'fim' => $validated['fim'] ?? null,
+                'funcionario_id' => $validated['funcionario_id_filtro'] ?? null,
+            ]))
+            ->with($aplicados > 0 ? 'success' : 'error', $mensagem);
+    }
+
     public function storeFechamentoPonto(Request $request)
     {
         if (!Schema::hasTable('rh_fechamentos_ponto')) {
@@ -426,6 +596,7 @@ class PontoJornadaController extends Controller
                         'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                         'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
                         'status' => $possuiBatidas ? 'Sem jornada' : '',
+                        'detalhes_batida' => $this->montarDetalhesBatida($registro),
                     ]);
 
                     continue;
@@ -469,9 +640,10 @@ class PontoJornadaController extends Controller
 
                 if ($status === 'Falta') {
                     $totaisSecaoUm['faltas_qtd']++;
+                    $totaisSecaoUm['atrasos_segundos'] += $segundosPrevistos;
                 }
 
-                if ($saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos) {
+                if ($status !== 'Falta' && $saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos) {
                     $totaisSecaoUm['atrasos_qtd']++;
                     $totaisSecaoUm['atrasos_segundos'] += abs($saldoSegundos);
                 }
@@ -510,6 +682,7 @@ class PontoJornadaController extends Controller
                     'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                     'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
                     'status' => $status,
+                    'detalhes_batida' => $this->montarDetalhesBatida($registro),
                 ]);
             }
 
@@ -707,8 +880,8 @@ class PontoJornadaController extends Controller
             $saidaPrevista->addDay();
         }
 
-        $entrada = Carbon::parse($registro->entrada_em);
-        $saida = Carbon::parse($registro->saida_em);
+        $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
+        $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
 
         $limiteEntrada = $inicioPrevisto->copy()->addMinutes((int) $regra['tolerancia_entrada_min']);
         if ($entrada->gt($limiteEntrada)) {
@@ -721,8 +894,8 @@ class PontoJornadaController extends Controller
         }
 
         if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-            $inicioIntervalo = Carbon::parse($registro->intervalo_inicio_em);
-            $fimIntervalo = Carbon::parse($registro->intervalo_fim_em);
+            $inicioIntervalo = $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em);
+            $fimIntervalo = $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em);
             $intervaloReal = max(0, $fimIntervalo->diffInMinutes($inicioIntervalo, false));
             $intervaloMinimoAceito = max(0, (int) $regra['intervalo_minutos'] - (int) $regra['tolerancia_intervalo_min']);
 
@@ -742,6 +915,8 @@ class PontoJornadaController extends Controller
         $diaSemana = (int) $dia->dayOfWeekIso;
 
         $feriado = $this->feriadoAtreladoNoDia($jornada, $dia);
+        $feriadoNacionalNome = $this->nomeFeriadoNacionalNoDia($dia);
+        $ehFeriado = $feriado !== null || $feriadoNacionalNome !== null;
 
         $trabalha = $dia->isWeekday();
         if ($jornada instanceof Jornada) {
@@ -762,7 +937,7 @@ class PontoJornadaController extends Controller
                 $trabalha = in_array($diaSemana, $dias, true);
             }
 
-            if ($feriado) {
+            if ($ehFeriado) {
                 $trabalha = false;
             }
         }
@@ -770,8 +945,8 @@ class PontoJornadaController extends Controller
         return [
             'trabalha' => $trabalha,
             'eh_domingo' => $dia->isSunday(),
-            'eh_feriado' => $feriado !== null,
-            'feriado_nome' => $feriado?->nome,
+            'eh_feriado' => $ehFeriado,
+            'feriado_nome' => $feriado?->nome ?? $feriadoNacionalNome,
             'hora_entrada' => $horaEntrada,
             'hora_saida' => $horaSaida,
             'intervalo_minutos' => $intervalo,
@@ -831,20 +1006,20 @@ class PontoJornadaController extends Controller
         $segundos = 0;
 
         if ($registro->entrada_em && $registro->intervalo_inicio_em) {
-            $entrada = strtotime((string) $registro->entrada_em);
-            $intervaloInicio = strtotime((string) $registro->intervalo_inicio_em);
+            $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
+            $intervaloInicio = $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em);
 
-            if ($entrada && $intervaloInicio && $intervaloInicio > $entrada) {
-                $segundos += ($intervaloInicio - $entrada);
+            if ($entrada && $intervaloInicio && $intervaloInicio->gt($entrada)) {
+                $segundos += $intervaloInicio->diffInSeconds($entrada, true);
             }
         }
 
         if ($registro->intervalo_fim_em && $registro->saida_em) {
-            $intervaloFim = strtotime((string) $registro->intervalo_fim_em);
-            $saida = strtotime((string) $registro->saida_em);
+            $intervaloFim = $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em);
+            $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
 
-            if ($intervaloFim && $saida && $saida > $intervaloFim) {
-                $segundos += ($saida - $intervaloFim);
+            if ($intervaloFim && $saida && $saida->gt($intervaloFim)) {
+                $segundos += $saida->diffInSeconds($intervaloFim, true);
             }
         }
 
@@ -853,11 +1028,11 @@ class PontoJornadaController extends Controller
         }
 
         if ($registro->entrada_em && $registro->saida_em) {
-            $entrada = strtotime((string) $registro->entrada_em);
-            $saida = strtotime((string) $registro->saida_em);
+            $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
+            $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
 
-            if ($entrada && $saida && $saida > $entrada) {
-                return $saida - $entrada;
+            if ($entrada && $saida && $saida->gt($entrada)) {
+                return $saida->diffInSeconds($entrada, true);
             }
         }
 
@@ -866,7 +1041,7 @@ class PontoJornadaController extends Controller
 
     private function calcularApuracaoJornadaDia(?RegistroPontoPortal $registro, Carbon $dia, array $regra): array
     {
-        if (!$regra['trabalha']) {
+        if (!empty($regra['eh_domingo']) || !empty($regra['eh_feriado'])) {
             $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
 
             return [
@@ -874,46 +1049,45 @@ class PontoJornadaController extends Controller
                 'segundos_previstos' => 0,
                 'extra_50_segundos' => 0,
                 'extra_100_segundos' => $segundosTrabalhados,
+                'status' => $segundosTrabalhados > 0 ? 'Extra feriado/domingo' : '',
+            ];
+        }
+
+        if (!$regra['trabalha']) {
+            $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
+
+            return [
+                'segundos_trabalhados' => $segundosTrabalhados,
+                'segundos_previstos' => 0,
+                'extra_50_segundos' => $segundosTrabalhados,
+                'extra_100_segundos' => 0,
                 'status' => $segundosTrabalhados > 0
-                    ? ($regra['eh_feriado'] ? 'Extra feriado' : 'Extra')
+                    ? 'Extra'
                     : '',
             ];
         }
 
-        $entrada = $registro?->entrada_em ? Carbon::parse($registro->entrada_em) : null;
-        $intervaloInicio = $registro?->intervalo_inicio_em ? Carbon::parse($registro->intervalo_inicio_em) : null;
-        $intervaloFim = $registro?->intervalo_fim_em ? Carbon::parse($registro->intervalo_fim_em) : null;
-        $saida = $registro?->saida_em ? Carbon::parse($registro->saida_em) : null;
+        $entrada = $registro?->entrada_em ? $this->normalizarBatidaParaMinuto($registro->entrada_em) : null;
+        $intervaloInicio = $registro?->intervalo_inicio_em ? $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em) : null;
+        $intervaloFim = $registro?->intervalo_fim_em ? $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em) : null;
+        $saida = $registro?->saida_em ? $this->normalizarBatidaParaMinuto($registro->saida_em) : null;
 
         $segundosPrevistos = $this->segundosPrevistosDaRegra($regra);
         if ($segundosPrevistos <= 0) {
             $segundosPrevistos = self::SEGUNDOS_META_DIARIA;
         }
 
-        $limiteManha = min(self::SEGUNDOS_META_MEIO_PERIODO, $segundosPrevistos);
-        $limiteTarde = max(0, $segundosPrevistos - $limiteManha);
+        $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
 
-        $segundosManha = 0;
-        if ($entrada && $intervaloInicio && $intervaloInicio->gt($entrada)) {
-            $segundosManha = min($limiteManha, $intervaloInicio->diffInSeconds($entrada, true));
-        }
+        $toleranciaSegundos = max(
+            0,
+            (int) ($regra['tolerancia_entrada_min'] ?? 0),
+            (int) ($regra['tolerancia_saida_min'] ?? 0),
+            (int) ($regra['tolerancia_intervalo_min'] ?? 0)
+        ) * 60;
 
-        $segundosTarde = 0;
-        if ($intervaloFim && $saida && $saida->gt($intervaloFim)) {
-            $segundosTarde = min($limiteTarde, $saida->diffInSeconds($intervaloFim, true));
-        }
-
-        $segundosTrabalhados = max(0, $segundosManha + $segundosTarde);
-
-        $extra50Segundos = 0;
-        if ($entrada && !empty($regra['hora_entrada'])) {
-            $inicioPrevisto = Carbon::parse($dia->toDateString() . ' ' . $regra['hora_entrada']);
-            if ($entrada->lt($inicioPrevisto)) {
-                $janelaBonificada = $inicioPrevisto->copy()->addMinutes(max(0, (int) ($regra['tolerancia_entrada_min'] ?? 0)));
-                $extra50Segundos = $janelaBonificada->diffInSeconds($entrada, true);
-                $segundosTrabalhados = max(0, $segundosTrabalhados - $extra50Segundos);
-            }
-        }
+        $saldoSegundos = $segundosTrabalhados - $segundosPrevistos;
+        $extra50Segundos = $saldoSegundos > $toleranciaSegundos ? $saldoSegundos : 0;
 
         $segundosAtraso = max(0, $segundosPrevistos - $segundosTrabalhados);
 
@@ -994,6 +1168,58 @@ class PontoJornadaController extends Controller
         return $this->formatarSegundos($segundos);
     }
 
+    private function montarDetalhesBatida(?RegistroPontoPortal $registro): array
+    {
+        return [
+            'entrada' => [
+                'horario' => $this->formatarHorario($registro?->entrada_em),
+                'foto_url' => $this->resolverUrlFotoBatida($registro?->entrada_foto_path),
+                'latitude' => $registro?->entrada_latitude,
+                'longitude' => $registro?->entrada_longitude,
+            ],
+            'intervalo_inicio' => [
+                'horario' => $this->formatarHorario($registro?->intervalo_inicio_em),
+                'foto_url' => null,
+                'latitude' => $registro?->intervalo_inicio_latitude,
+                'longitude' => $registro?->intervalo_inicio_longitude,
+            ],
+            'intervalo_fim' => [
+                'horario' => $this->formatarHorario($registro?->intervalo_fim_em),
+                'foto_url' => null,
+                'latitude' => $registro?->intervalo_fim_latitude,
+                'longitude' => $registro?->intervalo_fim_longitude,
+            ],
+            'saida' => [
+                'horario' => $this->formatarHorario($registro?->saida_em),
+                'foto_url' => $this->resolverUrlFotoBatida($registro?->saida_foto_path),
+                'latitude' => $registro?->saida_latitude,
+                'longitude' => $registro?->saida_longitude,
+            ],
+        ];
+    }
+
+    private function resolverUrlFotoBatida(?string $caminho): ?string
+    {
+        if (!$caminho) {
+            return null;
+        }
+
+        if (str_starts_with($caminho, 'http://') || str_starts_with($caminho, 'https://')) {
+            return $caminho;
+        }
+
+        return Storage::url($caminho);
+    }
+
+    private function normalizarBatidaParaMinuto($valor): ?Carbon
+    {
+        if (!$valor) {
+            return null;
+        }
+
+        return Carbon::parse($valor)->copy()->setSecond(0);
+    }
+
     private function calcularExtrasPorPercentual(int $segundosTrabalhados, int $segundosPrevistos, array $regra): array
     {
         if ($segundosTrabalhados <= 0) {
@@ -1002,6 +1228,10 @@ class PontoJornadaController extends Controller
 
         if (!empty($regra['eh_domingo']) || !empty($regra['eh_feriado'])) {
             return ['extra_50' => 0, 'extra_100' => $segundosTrabalhados];
+        }
+
+        if (isset($regra['trabalha']) && $regra['trabalha'] === false) {
+            return ['extra_50' => $segundosTrabalhados, 'extra_100' => 0];
         }
 
         $toleranciaMaximaMinutos = max(
@@ -1017,6 +1247,38 @@ class PontoJornadaController extends Controller
         }
 
         return ['extra_50' => 0, 'extra_100' => 0];
+    }
+
+    private function nomeFeriadoNacionalNoDia(Carbon $dia): ?string
+    {
+        $fixos = [
+            '01-01' => 'Confraternização Universal',
+            '04-21' => 'Tiradentes',
+            '05-01' => 'Dia do Trabalho',
+            '09-07' => 'Independência do Brasil',
+            '10-12' => 'Nossa Senhora Aparecida',
+            '11-02' => 'Finados',
+            '11-15' => 'Proclamação da República',
+            '11-20' => 'Dia da Consciência Negra',
+            '12-25' => 'Natal',
+        ];
+
+        $chaveFixa = $dia->format('m-d');
+        if (isset($fixos[$chaveFixa])) {
+            return $fixos[$chaveFixa];
+        }
+
+        $ano = (int) $dia->year;
+        $pascoa = Carbon::createFromTimestamp(easter_date($ano))->startOfDay();
+        $moveis = [
+            $pascoa->copy()->subDays(48)->toDateString() => 'Carnaval',
+            $pascoa->copy()->subDays(47)->toDateString() => 'Carnaval',
+            $pascoa->copy()->subDays(2)->toDateString() => 'Sexta-feira Santa',
+            $pascoa->copy()->toDateString() => 'Páscoa',
+            $pascoa->copy()->addDays(60)->toDateString() => 'Corpus Christi',
+        ];
+
+        return $moveis[$dia->toDateString()] ?? null;
     }
 
     private function mapaFechamentosPorCompetencia(array $funcionariosIds, Carbon $inicio, Carbon $fim): Collection

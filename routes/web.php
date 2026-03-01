@@ -207,6 +207,8 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
                 ->name('ponto-jornada.ajustes.store');
             Route::post('/ponto-jornada/ajustes/secao-um', [PontoJornadaController::class, 'storeAjusteSecaoUm'])
                 ->name('ponto-jornada.ajustes-secao-um.store');
+            Route::post('/ponto-jornada/ajustes/lote', [PontoJornadaController::class, 'storeAjusteLote'])
+                ->name('ponto-jornada.ajustes-lote.store');
             Route::post('/ponto-jornada/fechamentos', [PontoJornadaController::class, 'storeFechamentoPonto'])
                 ->name('ponto-jornada.fechamentos.store');
 
