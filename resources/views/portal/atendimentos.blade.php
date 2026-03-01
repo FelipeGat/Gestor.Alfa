@@ -26,7 +26,7 @@
     <div class="portal-wrapper">
 
         @if($atendimentos->count() > 0)
-        <div class="portal-table-card">
+        <div class="rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
             <div class="portal-table-header">
                 <h3 class="portal-table-title">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,8 +37,8 @@
             </div>
 
             {{-- Versão Desktop (Tabela) --}}
-            <div class="portal-table-wrapper">
-                <table class="portal-table">
+            <div class="overflow-x-auto">
+                <table class="portal-table w-full">
                     <thead>
                         <tr>
                             <th>#</th>
