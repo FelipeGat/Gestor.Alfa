@@ -107,7 +107,7 @@ Route::middleware(['auth', 'financeiro'])->group(function () {
 | ÁREA ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
+Route::middleware(['auth', 'primeiro_acesso', 'no.cache'])->group(function () {
 
     // Dashboard ADMIN
     Route::get('/dashboard', [DashboardAdmController::class, 'index'])
@@ -367,7 +367,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
+Route::middleware(['auth', 'financeiro', 'primeiro_acesso', 'no.cache'])
     ->prefix('financeiro')
     ->name('financeiro.')
     ->group(function () {
@@ -605,7 +605,7 @@ Route::middleware(['auth', 'dashboard.comercial', 'primeiro_acesso'])->group(fun
     | PORTAL DO CLIENTE
     |--------------------------------------------------------------------------
     */
-Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
+Route::middleware(['auth', 'cliente', 'primeiro_acesso', 'no.cache'])->group(function () {
     Route::get('/portal/atendimentos', [PortalController::class, 'atendimentos'])
         ->name('portal.atendimentos');
 
@@ -692,7 +692,7 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
 | PORTAL DO FUNCIONÁRIO
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'funcionario', 'primeiro_acesso'])
+Route::middleware(['auth', 'funcionario', 'primeiro_acesso', 'no.cache'])
     ->prefix('portal-funcionario')
     ->name('portal-funcionario.')
     ->group(function () {

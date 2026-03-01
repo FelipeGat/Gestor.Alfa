@@ -63,6 +63,18 @@
         }
     </style>
 
+    <!-- Prevenir navegação com botão voltar após logout -->
+    <script>
+        // Armazenar estado inicial para detectar navegação
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function () {
+                // Forçar recarregamento da página atual ao tentar voltar
+                window.location.reload();
+            };
+        }
+    </script>
+
 </head>
 
 <body class="font-sans antialiased">
