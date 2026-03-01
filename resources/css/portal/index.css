@@ -813,3 +813,21 @@
     letter-spacing: 0.05em;
     padding: 0.5rem 0.75rem 0.25rem;
 }
+
+/* =========================
+   CARDS DE CONTEÚDO (Setores, Responsáveis, etc.)
+   ========================= */
+.portal-card {
+    background: white;
+    border-radius: 0.5rem;
+    border-top: 4px solid var(--portal-primary);
+    border-right: 1px solid var(--portal-primary);
+    border-bottom: 1px solid var(--portal-primary);
+    border-left: 1px solid var(--portal-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s ease;
+}
+
+.portal-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
