@@ -12,12 +12,18 @@ class FuncionarioEpi extends Model
         'funcionario_id',
         'epi_id',
         'data_entrega',
+        'marca',
+        'quantidade',
+        'tamanho',
+        'numero_ca',
+        'data_vencimento',
         'data_prevista_troca',
         'status',
     ];
 
     protected $casts = [
         'data_entrega' => 'date',
+        'data_vencimento' => 'date',
         'data_prevista_troca' => 'date',
     ];
 

@@ -13,6 +13,8 @@ use App\Models\FuncionarioJornada;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class FuncionarioRhDadosController extends Controller
@@ -23,10 +25,17 @@ class FuncionarioRhDadosController extends Controller
             'tipo' => ['required', 'string', 'max:100'],
             'numero' => ['nullable', 'string', 'max:120'],
             'data_emissao' => ['nullable', 'date'],
-            'data_vencimento' => ['nullable', 'date'],
+            'data_vencimento' => ['nullable', 'date', 'after_or_equal:data_emissao'],
             'arquivo' => ['nullable', 'string', 'max:255'],
+            'arquivo_upload' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,webp,doc,docx', 'max:5120'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        if ($request->hasFile('arquivo_upload')) {
+            $dados['arquivo'] = $request->file('arquivo_upload')->store('rh/documentos-funcionarios', 'public');
+        } elseif (isset($dados['arquivo']) && trim((string) $dados['arquivo']) === '') {
+            $dados['arquivo'] = null;
+        }
 
         $funcionario->documentos()->create($dados);
 
@@ -41,10 +50,33 @@ class FuncionarioRhDadosController extends Controller
             'tipo' => ['required', 'string', 'max:100'],
             'numero' => ['nullable', 'string', 'max:120'],
             'data_emissao' => ['nullable', 'date'],
-            'data_vencimento' => ['nullable', 'date'],
+            'data_vencimento' => ['nullable', 'date', 'after_or_equal:data_emissao'],
             'arquivo' => ['nullable', 'string', 'max:255'],
+            'arquivo_upload' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,webp,doc,docx', 'max:5120'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $arquivoAnterior = $documento->arquivo;
+
+        if ($request->hasFile('arquivo_upload')) {
+            $dados['arquivo'] = $request->file('arquivo_upload')->store('rh/documentos-funcionarios', 'public');
+
+            if ($arquivoAnterior && !Str::startsWith($arquivoAnterior, ['http://', 'https://'])) {
+                $caminhoAnterior = str_replace('\\', '/', trim((string) $arquivoAnterior));
+                $caminhoAnterior = ltrim($caminhoAnterior, '/');
+                if (Str::startsWith($caminhoAnterior, 'public/')) {
+                    $caminhoAnterior = Str::after($caminhoAnterior, 'public/');
+                }
+                if (Str::startsWith($caminhoAnterior, 'storage/')) {
+                    $caminhoAnterior = Str::after($caminhoAnterior, 'storage/');
+                }
+                Storage::disk('public')->delete($caminhoAnterior);
+            }
+        }
+
+        if (isset($dados['arquivo']) && trim((string) $dados['arquivo']) === '') {
+            $dados['arquivo'] = $arquivoAnterior;
+        }
 
         $documento->update($dados);
 
@@ -54,6 +86,19 @@ class FuncionarioRhDadosController extends Controller
     public function destroyDocumento(Funcionario $funcionario, FuncionarioDocumento $documento): RedirectResponse
     {
         $this->assertPertence($funcionario, $documento->funcionario_id);
+
+        if ($documento->arquivo && !Str::startsWith($documento->arquivo, ['http://', 'https://'])) {
+            $caminho = str_replace('\\', '/', trim((string) $documento->arquivo));
+            $caminho = ltrim($caminho, '/');
+            if (Str::startsWith($caminho, 'public/')) {
+                $caminho = Str::after($caminho, 'public/');
+            }
+            if (Str::startsWith($caminho, 'storage/')) {
+                $caminho = Str::after($caminho, 'storage/');
+            }
+            Storage::disk('public')->delete($caminho);
+        }
+
         $documento->delete();
 
         return back()->with('success', 'Documento removido com sucesso.');
@@ -64,9 +109,15 @@ class FuncionarioRhDadosController extends Controller
         $dados = $request->validate([
             'epi_id' => ['required', 'exists:epis,id'],
             'data_entrega' => ['required', 'date'],
-            'data_prevista_troca' => ['nullable', 'date', 'after_or_equal:data_entrega'],
+            'marca' => ['required', 'string', 'max:120'],
+            'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
+            'tamanho' => ['required', 'string', 'max:40'],
+            'numero_ca' => ['required', 'string', 'max:60'],
+            'data_vencimento' => ['required', 'date', 'after_or_equal:data_entrega'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['data_prevista_troca'] = $dados['data_vencimento'];
 
         $funcionario->episVinculos()->create($dados);
 
@@ -80,9 +131,15 @@ class FuncionarioRhDadosController extends Controller
         $dados = $request->validate([
             'epi_id' => ['required', 'exists:epis,id'],
             'data_entrega' => ['required', 'date'],
-            'data_prevista_troca' => ['nullable', 'date', 'after_or_equal:data_entrega'],
+            'marca' => ['required', 'string', 'max:120'],
+            'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
+            'tamanho' => ['required', 'string', 'max:40'],
+            'numero_ca' => ['required', 'string', 'max:60'],
+            'data_vencimento' => ['required', 'date', 'after_or_equal:data_entrega'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['data_prevista_troca'] = $dados['data_vencimento'];
 
         $funcionarioEpi->update($dados);
 

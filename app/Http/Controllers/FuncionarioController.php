@@ -114,6 +114,28 @@ class FuncionarioController extends Controller
 
     public function edit(Funcionario $funcionario)
     {
+        $episPadrao = [
+            'UNIFORME',
+            'BOTA',
+            'CAPACETE',
+            'LUVA',
+            'PROTETOR OURICULAR',
+            'CINTO TALABARTE',
+        ];
+
+        if (Schema::hasTable('epis')) {
+            foreach ($episPadrao as $nomeEpi) {
+                Epi::query()->firstOrCreate(
+                    ['nome' => $nomeEpi],
+                    [
+                        'ca' => 'N/I',
+                        'validade_ca' => null,
+                        'vida_util_meses' => null,
+                    ]
+                );
+            }
+        }
+
         $relacoes = ['user'];
 
         if (Schema::hasTable('funcionario_documentos')) {

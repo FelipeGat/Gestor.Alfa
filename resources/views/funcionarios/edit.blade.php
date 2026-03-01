@@ -96,7 +96,7 @@
                     Gestão RH do Funcionário
                 </h3>
 
-                <div x-data="{ aba: 'documentos' }" class="space-y-5">
+                <div x-data="{ aba: localStorage.getItem('rh-funcionario-aba') || 'documentos' }" x-init="$watch('aba', valor => localStorage.setItem('rh-funcionario-aba', valor))" class="space-y-5">
                     <div class="flex flex-wrap gap-2">
                         <button type="button" @click="aba = 'documentos'" class="px-3 py-2 rounded border text-sm" :class="aba === 'documentos' ? 'bg-gray-100 border-gray-400 font-semibold' : 'bg-white border-gray-200'">Documentos</button>
                         <button type="button" @click="aba = 'epis'" class="px-3 py-2 rounded border text-sm" :class="aba === 'epis' ? 'bg-gray-100 border-gray-400 font-semibold' : 'bg-white border-gray-200'">EPIs</button>
@@ -107,31 +107,99 @@
                     </div>
 
                     <div x-show="aba === 'documentos'" x-cloak class="space-y-3">
+                        @php
+                            $tiposDocumentoPadrao = [
+                                'RG',
+                                'CNH',
+                                'CPF',
+                                'CTPS',
+                                'PIS',
+                                'COMPROVANTE DE ENDEREÇO',
+                                'TÍTULO ELEITOR',
+                                'RESERVISTA',
+                                'CERTIDÃO DE NASCIMENTO',
+                                'CERTIDÃO DE CASAMENTO',
+                                'CERTIDÃO DOS FILHOS (MENORES DE 14 ANOS)',
+                            ];
+                        @endphp
                         @if($isRhRoute)
-                        <form method="POST" action="{{ route('rh.funcionarios.documentos.store', $funcionario) }}" class="grid grid-cols-1 md:grid-cols-6 gap-3 border border-gray-200 rounded p-3">
+                        <form method="POST" action="{{ route('rh.funcionarios.documentos.store', $funcionario) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-7 gap-3 border border-gray-200 rounded p-3">
                             @csrf
-                            <x-form-input name="tipo" label="Tipo" required />
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                                <select name="tipo" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                    <option value="">Selecione</option>
+                                    @foreach($tiposDocumentoPadrao as $tipoDocumento)
+                                        <option value="{{ $tipoDocumento }}">{{ $tipoDocumento }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <x-form-input name="numero" label="Número" />
                             <x-form-input name="data_emissao" type="date" label="Emissão" />
                             <x-form-input name="data_vencimento" type="date" label="Vencimento" />
-                            <x-form-input name="arquivo" label="Arquivo" />
-                            <x-form-input name="status" label="Status" :value="'ativo'" />
-                            <div class="md:col-span-6 flex justify-end">
+                            <x-form-input name="arquivo" label="Referência (opcional)" placeholder="Ex.: Pasta física RH" />
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Anexo do Documento</label>
+                                <input type="file" name="arquivo_upload" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="status" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                    @foreach(['ativo' => 'Ativo', 'vencido' => 'Vencido', 'pendente' => 'Pendente'] as $valor => $rotulo)
+                                        <option value="{{ $valor }}">{{ $rotulo }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="md:col-span-7 flex justify-end">
                                 <x-button type="submit" variant="primary" size="sm">Adicionar Documento</x-button>
                             </div>
                         </form>
                         @endif
                         <div class="space-y-2">
                             @forelse($funcionario->documentos as $documento)
-                                <form method="POST" action="{{ route('rh.funcionarios.documentos.update', [$funcionario, $documento]) }}" class="grid grid-cols-1 md:grid-cols-7 gap-2 border border-gray-200 rounded p-3">
+                                @php
+                                    $diasParaVencimento = $documento->data_vencimento
+                                        ? now()->startOfDay()->diffInDays($documento->data_vencimento->copy()->startOfDay(), false)
+                                        : null;
+                                    $badgePrazo = null;
+                                    $classeBadgePrazo = '';
+
+                                    if (!is_null($diasParaVencimento)) {
+                                        if ($diasParaVencimento < 0) {
+                                            $badgePrazo = 'Vencido há ' . abs($diasParaVencimento) . ' dia(s)';
+                                            $classeBadgePrazo = 'bg-red-100 text-red-700 border-red-200';
+                                        } elseif ($diasParaVencimento <= 30) {
+                                            $badgePrazo = 'Vence em ' . $diasParaVencimento . ' dia(s)';
+                                            $classeBadgePrazo = 'bg-amber-100 text-amber-700 border-amber-200';
+                                        }
+                                    }
+                                @endphp
+                                <form method="POST" action="{{ route('rh.funcionarios.documentos.update', [$funcionario, $documento]) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-8 gap-2 border border-gray-200 rounded p-3">
                                     @csrf
                                     @method('PUT')
-                                    <input type="text" name="tipo" value="{{ $documento->tipo }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                    @if($badgePrazo)
+                                        <div class="md:col-span-8">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold border {{ $classeBadgePrazo }}">{{ $badgePrazo }}</span>
+                                        </div>
+                                    @endif
+                                    <select name="tipo" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                        @if(!in_array($documento->tipo, $tiposDocumentoPadrao, true))
+                                            <option value="{{ $documento->tipo }}" selected>{{ $documento->tipo }}</option>
+                                        @endif
+                                        @foreach($tiposDocumentoPadrao as $tipoDocumento)
+                                            <option value="{{ $tipoDocumento }}" @selected($documento->tipo === $tipoDocumento)>{{ $tipoDocumento }}</option>
+                                        @endforeach
+                                    </select>
                                     <input type="text" name="numero" value="{{ $documento->numero }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
                                     <input type="date" name="data_emissao" value="{{ optional($documento->data_emissao)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
                                     <input type="date" name="data_vencimento" value="{{ optional($documento->data_vencimento)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                                    <input type="text" name="arquivo" value="{{ $documento->arquivo }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                                    <input type="text" name="status" value="{{ $documento->status }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                    <input type="text" name="arquivo" value="{{ $documento->arquivo }}" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Referência/URL do documento">
+                                    <input type="file" name="arquivo_upload" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                                    <select name="status" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                        @foreach(['ativo' => 'Ativo', 'vencido' => 'Vencido', 'pendente' => 'Pendente'] as $valor => $rotulo)
+                                            <option value="{{ $valor }}" @selected($documento->status === $valor)>{{ $rotulo }}</option>
+                                        @endforeach
+                                    </select>
                                     <div class="flex gap-2 justify-end">
                                         @if($isRhRoute)
                                         <x-button type="submit" variant="secondary" size="sm">Salvar</x-button>
@@ -145,6 +213,13 @@
                                         </form>
                                         @endif
                                     </div>
+                                    @if($documento->arquivo_url)
+                                        <div class="md:col-span-8 flex flex-wrap items-center gap-2">
+                                            <span class="text-xs text-gray-600">Anexo atual: {{ $documento->arquivo_nome ?? 'Documento' }}</span>
+                                            <x-button href="{{ $documento->arquivo_url }}" variant="secondary" size="sm" target="_blank">Abrir Anexo</x-button>
+                                            <x-button href="{{ $documento->arquivo_url }}" variant="primary" size="sm" target="_blank">Baixar Anexo</x-button>
+                                        </div>
+                                    @endif
                             @empty
                                 <p class="text-sm text-gray-500">Sem documentos cadastrados.</p>
                             @endforelse
@@ -165,8 +240,15 @@
                                 </select>
                             </div>
                             <x-form-input name="data_entrega" type="date" label="Data de Entrega" required />
-                            <x-form-input name="data_prevista_troca" type="date" label="Troca Prevista" />
+                            <x-form-input name="data_vencimento" type="date" label="Data Vencimento" required />
+                            <x-form-input name="marca" label="Marca" required />
+                            <x-form-input name="quantidade" type="number" min="1" step="1" label="Quantidade" :value="1" required />
+                            <x-form-input name="tamanho" label="Tamanho" required />
+                            <x-form-input name="numero_ca" label="Nº CA" required />
                             <x-form-input name="status" label="Status" :value="'ativo'" required />
+                            <div class="md:col-span-4 text-xs text-gray-600 bg-cyan-50 border border-cyan-200 rounded p-2">
+                                Sempre informe a data de vencimento e o Nº do CA. O sistema sinaliza EPIs vencidos e próximos do vencimento.
+                            </div>
                             <div class="md:col-span-4 flex justify-end">
                                 <x-button type="submit" variant="primary" size="sm">Adicionar EPI</x-button>
                             </div>
@@ -174,7 +256,30 @@
                         @endif
                         <div class="space-y-2">
                             @forelse($funcionario->episVinculos as $epiVinculo)
-                                <div class="grid grid-cols-1 md:grid-cols-5 gap-2 border border-gray-200 rounded p-3">
+                                @php
+                                    $dataVencimentoEpi = $epiVinculo->data_vencimento ?: $epiVinculo->data_prevista_troca;
+                                    $diasParaTroca = $dataVencimentoEpi
+                                        ? now()->startOfDay()->diffInDays($dataVencimentoEpi->copy()->startOfDay(), false)
+                                        : null;
+                                    $badgeEpi = null;
+                                    $classeBadgeEpi = '';
+
+                                    if (!is_null($diasParaTroca)) {
+                                        if ($diasParaTroca < 0) {
+                                            $badgeEpi = 'EPI vencido há ' . abs($diasParaTroca) . ' dia(s)';
+                                            $classeBadgeEpi = 'bg-red-100 text-red-700 border-red-200';
+                                        } elseif ($diasParaTroca <= 30) {
+                                            $badgeEpi = 'Troca prevista em ' . $diasParaTroca . ' dia(s)';
+                                            $classeBadgeEpi = 'bg-amber-100 text-amber-700 border-amber-200';
+                                        }
+                                    }
+                                @endphp
+                                <div class="grid grid-cols-1 md:grid-cols-8 gap-2 border border-gray-200 rounded p-3">
+                                    @if($badgeEpi)
+                                        <div class="md:col-span-8">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold border {{ $classeBadgeEpi }}">{{ $badgeEpi }}</span>
+                                        </div>
+                                    @endif
                                     <form method="POST" action="{{ route('rh.funcionarios.epis.update', [$funcionario, $epiVinculo]) }}" class="contents">
                                         @csrf
                                         @method('PUT')
@@ -184,7 +289,11 @@
                                             @endforeach
                                         </select>
                                         <input type="date" name="data_entrega" value="{{ optional($epiVinculo->data_entrega)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
-                                        <input type="date" name="data_prevista_troca" value="{{ optional($epiVinculo->data_prevista_troca)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                                        <input type="date" name="data_vencimento" value="{{ optional($dataVencimentoEpi)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                        <input type="text" name="marca" value="{{ $epiVinculo->marca }}" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Marca" required>
+                                        <input type="number" name="quantidade" min="1" step="1" value="{{ $epiVinculo->quantidade }}" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Quantidade" required>
+                                        <input type="text" name="tamanho" value="{{ $epiVinculo->tamanho }}" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Tamanho" required>
+                                        <input type="text" name="numero_ca" value="{{ $epiVinculo->numero_ca }}" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Nº CA" required>
                                         <input type="text" name="status" value="{{ $epiVinculo->status }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
                                         <div class="flex gap-2 justify-end">
                                             @if($isRhRoute)
@@ -332,7 +441,17 @@
                             <x-form-input name="periodo_aquisitivo_fim" type="date" label="Aquisitivo Fim" required />
                             <x-form-input name="periodo_gozo_inicio" type="date" label="Gozo Início" />
                             <x-form-input name="periodo_gozo_fim" type="date" label="Gozo Fim" />
-                            <x-form-input name="status" label="Status" :value="'pendente'" required />
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="status" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                                    @foreach(['pendente' => 'Pendente', 'programada' => 'Programada', 'gozo' => 'Em gozo', 'concluida' => 'Concluída'] as $valor => $rotulo)
+                                        <option value="{{ $valor }}">{{ $rotulo }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="md:col-span-5 text-xs text-gray-600 bg-cyan-50 border border-cyan-200 rounded p-2">
+                                O prazo concessivo termina em até 12 meses após o fim do período aquisitivo. O sistema sinaliza férias próximas do vencimento.
+                            </div>
                             <div class="md:col-span-5 flex justify-end">
                                 <x-button type="submit" variant="primary" size="sm">Adicionar Férias</x-button>
                             </div>
@@ -340,7 +459,35 @@
                         @endif
                         <div class="space-y-2">
                             @forelse($funcionario->ferias as $ferias)
+                                @php
+                                    $prazoConcessivo = $ferias->periodo_aquisitivo_fim
+                                        ? $ferias->periodo_aquisitivo_fim->copy()->addYear()->startOfDay()
+                                        : null;
+                                    $diasConcessivo = $prazoConcessivo
+                                        ? now()->startOfDay()->diffInDays($prazoConcessivo, false)
+                                        : null;
+                                    $badgeFerias = null;
+                                    $classeBadgeFerias = '';
+
+                                    if (!is_null($diasConcessivo)) {
+                                        if ($diasConcessivo < 0) {
+                                            $badgeFerias = 'Prazo concessivo vencido há ' . abs($diasConcessivo) . ' dia(s)';
+                                            $classeBadgeFerias = 'bg-red-100 text-red-700 border-red-200';
+                                        } elseif ($diasConcessivo <= 60) {
+                                            $badgeFerias = 'Prazo concessivo vence em ' . $diasConcessivo . ' dia(s)';
+                                            $classeBadgeFerias = 'bg-amber-100 text-amber-700 border-amber-200';
+                                        }
+                                    }
+                                @endphp
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-2 border border-gray-200 rounded p-3">
+                                    @if($prazoConcessivo)
+                                        <div class="md:col-span-6 flex flex-wrap items-center gap-2 text-xs">
+                                            <span class="text-gray-600">Prazo concessivo até {{ $prazoConcessivo->format('d/m/Y') }}</span>
+                                            @if($badgeFerias)
+                                                <span class="inline-flex items-center px-2 py-1 rounded font-semibold border {{ $classeBadgeFerias }}">{{ $badgeFerias }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                     <form method="POST" action="{{ route('rh.funcionarios.ferias.update', [$funcionario, $ferias]) }}" class="contents">
                                         @csrf
                                         @method('PUT')
@@ -348,7 +495,11 @@
                                         <input type="date" name="periodo_aquisitivo_fim" value="{{ optional($ferias->periodo_aquisitivo_fim)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
                                         <input type="date" name="periodo_gozo_inicio" value="{{ optional($ferias->periodo_gozo_inicio)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
                                         <input type="date" name="periodo_gozo_fim" value="{{ optional($ferias->periodo_gozo_fim)->format('Y-m-d') }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                                        <input type="text" name="status" value="{{ $ferias->status }}" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                        <select name="status" class="border border-gray-300 rounded px-2 py-1 text-sm" required>
+                                            @foreach(['pendente' => 'Pendente', 'programada' => 'Programada', 'gozo' => 'Em gozo', 'concluida' => 'Concluída'] as $valor => $rotulo)
+                                                <option value="{{ $valor }}" @selected($ferias->status === $valor)>{{ $rotulo }}</option>
+                                            @endforeach
+                                        </select>
                                         <div class="flex gap-2 justify-end">
                                             @if($isRhRoute)
                                             <x-button type="submit" variant="secondary" size="sm">Salvar</x-button>
