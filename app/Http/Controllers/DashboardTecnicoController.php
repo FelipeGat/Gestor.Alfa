@@ -231,10 +231,88 @@ class DashboardTecnicoController extends Controller
             ->orderBy('data_atendimento')
             ->get();
 
+        // ====== AGENDA GLOBAL DOS TÉCNICOS ======
+        $agendaInicio = $dataInicio->copy()->startOfYear();
+        $agendaFim = $dataFim->copy()->endOfYear();
+
+        $agendaTecnicos = Funcionario::query()
+            ->where('ativo', true)
+            ->whereHas('user')
+            ->with('user:id,name,funcionario_id')
+            ->orderBy('nome')
+            ->get(['id', 'nome'])
+            ->map(function (Funcionario $funcionario) {
+                return [
+                    'id' => (int) $funcionario->id,
+                    'nome' => (string) ($funcionario->user?->name ?: $funcionario->nome),
+                ];
+            })
+            ->values();
+
+        $agendaEventos = Atendimento::query()
+            ->with([
+                'cliente:id,nome,nome_fantasia,razao_social',
+                'empresa:id,nome_fantasia',
+                'assunto:id,nome',
+                'funcionario.user:id,name,funcionario_id',
+            ])
+            ->whereNotNull('funcionario_id')
+            ->where(function ($query) use ($agendaInicio, $agendaFim) {
+                $query->whereBetween('data_inicio_agendamento', [$agendaInicio, $agendaFim])
+                    ->orWhereBetween('data_atendimento', [$agendaInicio, $agendaFim]);
+            })
+            ->when($empresaId, fn ($query) => $query->where('empresa_id', $empresaId))
+            ->when($statusFiltro, fn ($query) => $query->where('status_atual', $statusFiltro))
+            ->whereHas('funcionario', fn ($query) => $query->where('ativo', true)->whereHas('user'))
+            ->orderByRaw('COALESCE(data_inicio_agendamento, data_atendimento) asc')
+            ->get([
+                'id',
+                'numero_atendimento',
+                'funcionario_id',
+                'cliente_id',
+                'empresa_id',
+                'assunto_id',
+                'status_atual',
+                'prioridade',
+                'is_orcamento',
+                'descricao',
+                'telefone_solicitante',
+                'data_inicio_agendamento',
+                'data_fim_agendamento',
+                'data_atendimento',
+            ])
+            ->map(function (Atendimento $atendimento) {
+                $inicio = $atendimento->data_inicio_agendamento ?? $atendimento->data_atendimento;
+                $fim = $atendimento->data_fim_agendamento;
+
+                return [
+                    'id' => (int) $atendimento->id,
+                    'numero_atendimento' => (string) ($atendimento->numero_atendimento ?: ('#' . $atendimento->id)),
+                    'tecnico_id' => (int) $atendimento->funcionario_id,
+                    'tecnico_nome' => (string) ($atendimento->funcionario?->user?->name ?? '—'),
+                    'cliente_nome' => (string) ($atendimento->cliente?->nome_fantasia ?: ($atendimento->cliente?->nome ?: ($atendimento->cliente?->razao_social ?? 'Sem cliente'))),
+                    'empresa_nome' => (string) ($atendimento->empresa?->nome_fantasia ?? '—'),
+                    'assunto_nome' => (string) ($atendimento->assunto?->nome ?? 'Sem assunto'),
+                    'status' => (string) ($atendimento->status_atual ?? '—'),
+                    'prioridade' => (string) ($atendimento->prioridade ?? 'baixa'),
+                    'tipo_demanda' => $atendimento->is_orcamento ? 'orcamento' : 'atendimento',
+                    'descricao' => (string) ($atendimento->descricao ?? ''),
+                    'telefone_solicitante' => (string) ($atendimento->telefone_solicitante ?? ''),
+                    'data_atendimento' => optional($inicio)->format('Y-m-d'),
+                    'inicio' => optional($inicio)->format('H:i'),
+                    'fim' => optional($fim)->format('H:i'),
+                    'url' => route('atendimentos.edit', $atendimento),
+                ];
+            })
+            ->filter(fn (array $item) => !empty($item['data_atendimento']))
+            ->values();
+
         return view('dashboard-tecnico.index', compact(
             'indicadores',
             'tecnicos',
             'atendimentosNaoIniciados',
+            'agendaTecnicos',
+            'agendaEventos',
             'empresas',
             'todosStatus',
             'empresaId',

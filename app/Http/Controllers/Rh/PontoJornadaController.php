@@ -756,6 +756,8 @@ class PontoJornadaController extends Controller
                 'dias_pontuais' => 0,
                 'ajustes_segundos' => 0,
                 'banco_horas_base_segundos' => 0,
+                'tempo_ocioso_bruto_segundos' => 0,
+                'atendimentos_utilizados' => [],
             ];
         }
 
@@ -781,7 +783,51 @@ class PontoJornadaController extends Controller
 
         $jornadaLegalTotal = (int) ($resumoJornadaLegal['segundos_trabalhados'] ?? 0);
         $produtividade = $jornadaLegalTotal > 0 ? round(($totalTempoAtendimento / $jornadaLegalTotal) * 100, 2) : 0;
-        $tempoOcioso = max(0, $jornadaLegalTotal - $totalTempoAtendimento);
+        $tempoOciosoBruto = $jornadaLegalTotal - $totalTempoAtendimento;
+        $tempoOcioso = max(0, $tempoOciosoBruto);
+
+        $formatarSegundos = static function (int $segundos): string {
+            $valor = max(0, $segundos);
+            $horas = intdiv($valor, 3600);
+            $minutos = intdiv($valor % 3600, 60);
+            $segundosRestantes = $valor % 60;
+
+            return sprintf('%02d:%02d:%02d', $horas, $minutos, $segundosRestantes);
+        };
+
+        $atendimentosUtilizados = (clone $baseAtendimentos)
+            ->with([
+                'funcionario:id,nome',
+                'cliente:id,nome,razao_social',
+            ])
+            ->orderByRaw('COALESCE(data_atendimento, created_at) desc')
+            ->get([
+                'id',
+                'numero_atendimento',
+                'funcionario_id',
+                'cliente_id',
+                'status_atual',
+                'data_atendimento',
+                'created_at',
+                'tempo_execucao_segundos',
+            ])
+            ->map(function (Atendimento $atendimento) use ($formatarSegundos) {
+                $dataReferencia = $atendimento->data_atendimento ?? $atendimento->created_at;
+
+                return [
+                    'id' => (int) $atendimento->id,
+                    'numero' => (string) ($atendimento->numero_atendimento ?: ('#' . $atendimento->id)),
+                    'funcionario' => (string) ($atendimento->funcionario?->nome ?? '—'),
+                    'cliente' => (string) ($atendimento->cliente?->nome ?: ($atendimento->cliente?->razao_social ?? '—')),
+                    'status' => (string) ($atendimento->status_atual ?? '—'),
+                    'data_referencia' => $dataReferencia?->format('d/m/Y H:i') ?? '—',
+                    'origem_data' => $atendimento->data_atendimento ? 'data_atendimento' : 'created_at',
+                    'tempo_execucao_segundos' => (int) ($atendimento->tempo_execucao_segundos ?? 0),
+                    'tempo_execucao_formatado' => $formatarSegundos((int) ($atendimento->tempo_execucao_segundos ?? 0)),
+                ];
+            })
+            ->values()
+            ->all();
 
         $diasPrevistos = (int) ($resumoJornadaLegal['dias_previstos'] ?? 0);
         $diasComPresenca = (int) ($resumoJornadaLegal['dias_com_presenca'] ?? 0);
@@ -815,6 +861,8 @@ class PontoJornadaController extends Controller
             'dias_pontuais' => $diasPontuais,
             'ajustes_segundos' => $ajustesSegundos,
             'banco_horas_base_segundos' => (int) ($resumoJornadaLegal['banco_horas_segundos'] ?? 0),
+            'tempo_ocioso_bruto_segundos' => $tempoOciosoBruto,
+            'atendimentos_utilizados' => $atendimentosUtilizados,
         ];
     }
 

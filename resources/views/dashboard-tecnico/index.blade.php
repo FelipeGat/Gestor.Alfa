@@ -280,10 +280,370 @@
                 </div>
             </div>
 
+              <div class="bg-white border border-gray-200 shadow-sm rounded-2xl p-5 lg:p-6 mb-8"
+                 x-data="{
+                    agendaEventos: {{ \Illuminate\Support\Js::from($agendaEventos ?? []) }},
+                    agendaTecnicos: {{ \Illuminate\Support\Js::from($agendaTecnicos ?? []) }},
+                    diasSemana: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                    meses: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+                    viewAtual: 'semana',
+                    dataAtual: new Date().toISOString().slice(0, 10),
+                    diaSelecionado: new Date().toISOString().slice(0, 10),
+                    tecnicoSelecionado: '',
+                    mostrarDiasLivres: true,
+                    tituloPeriodo: '',
+                    celulasCalendario: [],
+                    eventosDia: [],
+                    tecnicosLivresDia: [],
+                    kpiPeriodo: 0,
+                    kpiDia: 0,
+                    kpiLivres: 0,
+
+                    init() {
+                        this.recalcularAgenda();
+                    },
+                    parseDate(valor) {
+                        return new Date(`${valor}T00:00:00`);
+                    },
+                    formatarDataBr(valor) {
+                        const data = this.parseDate(valor);
+                        return data.toLocaleDateString('pt-BR');
+                    },
+                    setView(view) {
+                        this.viewAtual = view;
+                        this.recalcularAgenda();
+                    },
+                    navegarPeriodo(direcao) {
+                        const base = this.parseDate(this.dataAtual);
+                        if (this.viewAtual === 'dia') {
+                            base.setDate(base.getDate() + direcao);
+                            this.diaSelecionado = base.toISOString().slice(0, 10);
+                        } else if (this.viewAtual === 'semana') {
+                            base.setDate(base.getDate() + (7 * direcao));
+                        } else {
+                            base.setMonth(base.getMonth() + direcao);
+                        }
+                        this.dataAtual = base.toISOString().slice(0, 10);
+                        this.recalcularAgenda();
+                    },
+                    selecionarDia(dataStr) {
+                        this.diaSelecionado = dataStr;
+                        this.dataAtual = dataStr;
+                        this.recalcularAgenda();
+                    },
+                    eventosFiltrados() {
+                        const tecnicoId = this.tecnicoSelecionado ? String(this.tecnicoSelecionado) : null;
+                        return this.agendaEventos.filter(item => !tecnicoId || String(item.tecnico_id) === tecnicoId);
+                    },
+                    totalTecnicosContexto() {
+                        if (this.tecnicoSelecionado) {
+                            return 1;
+                        }
+                        return this.agendaTecnicos.length;
+                    },
+                    idsTecnicosComAgendaNoDia(dataStr) {
+                        const ids = new Set();
+                        this.eventosFiltrados().forEach(item => {
+                            if (item.data_atendimento === dataStr) {
+                                ids.add(String(item.tecnico_id));
+                            }
+                        });
+                        return ids;
+                    },
+                    tecnicosLivresNoDia(dataStr) {
+                        const idsComAgenda = this.idsTecnicosComAgendaNoDia(dataStr);
+                        if (this.tecnicoSelecionado) {
+                            const tecnico = this.agendaTecnicos.find(item => String(item.id) === String(this.tecnicoSelecionado));
+                            if (!tecnico) {
+                                return [];
+                            }
+                            return idsComAgenda.has(String(tecnico.id)) ? [] : [tecnico];
+                        }
+
+                        return this.agendaTecnicos.filter(item => !idsComAgenda.has(String(item.id)));
+                    },
+                    eventosDoDia(dataStr) {
+                        return this.eventosFiltrados()
+                            .filter(item => item.data_atendimento === dataStr)
+                            .sort((a, b) => (a.inicio || '00:00').localeCompare(b.inicio || '00:00'));
+                    },
+                    periodoAtual() {
+                        const base = this.parseDate(this.dataAtual);
+                        if (this.viewAtual === 'dia') {
+                            const ini = new Date(base);
+                            ini.setHours(0, 0, 0, 0);
+                            const fim = new Date(base);
+                            fim.setHours(23, 59, 59, 999);
+                            return { ini, fim };
+                        }
+
+                        if (this.viewAtual === 'semana') {
+                            const ini = new Date(base);
+                            ini.setDate(base.getDate() - base.getDay());
+                            ini.setHours(0, 0, 0, 0);
+                            const fim = new Date(ini);
+                            fim.setDate(ini.getDate() + 6);
+                            fim.setHours(23, 59, 59, 999);
+                            return { ini, fim };
+                        }
+
+                        const ini = new Date(base.getFullYear(), base.getMonth(), 1, 0, 0, 0, 0);
+                        const fim = new Date(base.getFullYear(), base.getMonth() + 1, 0, 23, 59, 59, 999);
+                        return { ini, fim };
+                    },
+                    recalcularCalendario() {
+                        const base = this.parseDate(this.dataAtual);
+                        const hoje = new Date();
+                        const celulas = [];
+
+                        if (this.viewAtual === 'dia') {
+                            this.tituloPeriodo = `Dia ${base.toLocaleDateString('pt-BR')}`;
+                            this.celulasCalendario = [];
+                            return;
+                        }
+
+                        if (this.viewAtual === 'semana') {
+                            const inicioSemana = new Date(base);
+                            inicioSemana.setDate(base.getDate() - base.getDay());
+                            inicioSemana.setHours(0, 0, 0, 0);
+                            const fimSemana = new Date(inicioSemana);
+                            fimSemana.setDate(inicioSemana.getDate() + 6);
+
+                            this.tituloPeriodo = `Semana de ${inicioSemana.toLocaleDateString('pt-BR')} até ${fimSemana.toLocaleDateString('pt-BR')}`;
+
+                            for (let i = 0; i < 7; i++) {
+                                const data = new Date(inicioSemana);
+                                data.setDate(inicioSemana.getDate() + i);
+                                const dataStr = data.toISOString().slice(0, 10);
+                                const eventos = this.eventosDoDia(dataStr);
+                                const livres = this.tecnicosLivresNoDia(dataStr);
+
+                                celulas.push({
+                                    data: dataStr,
+                                    diaNumero: data.getDate(),
+                                    foraMes: false,
+                                    hoje: data.toDateString() === hoje.toDateString(),
+                                    selecionado: dataStr === this.diaSelecionado,
+                                    eventos,
+                                    livres,
+                                });
+                            }
+
+                            this.celulasCalendario = celulas;
+                            return;
+                        }
+
+                        const ano = base.getFullYear();
+                        const mes = base.getMonth();
+                        this.tituloPeriodo = `${this.meses[mes]} ${ano}`;
+
+                        const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
+                        const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
+                        const ultimoDiaMesAnterior = new Date(ano, mes, 0).getDate();
+
+                        for (let i = primeiroDiaSemana - 1; i >= 0; i--) {
+                            const dia = ultimoDiaMesAnterior - i;
+                            celulas.push({
+                                data: null,
+                                diaNumero: dia,
+                                foraMes: true,
+                                hoje: false,
+                                selecionado: false,
+                                eventos: [],
+                                livres: [],
+                            });
+                        }
+
+                        for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+                            const data = new Date(ano, mes, dia);
+                            const dataStr = data.toISOString().slice(0, 10);
+                            const eventos = this.eventosDoDia(dataStr);
+                            const livres = this.tecnicosLivresNoDia(dataStr);
+
+                            celulas.push({
+                                data: dataStr,
+                                diaNumero: dia,
+                                foraMes: false,
+                                hoje: data.toDateString() === hoje.toDateString(),
+                                selecionado: dataStr === this.diaSelecionado,
+                                eventos,
+                                livres,
+                            });
+                        }
+
+                        this.celulasCalendario = celulas;
+                    },
+                    recalcularPainelDia() {
+                        this.eventosDia = this.eventosDoDia(this.diaSelecionado);
+                        this.tecnicosLivresDia = this.tecnicosLivresNoDia(this.diaSelecionado);
+                    },
+                    recalcularKpis() {
+                        const { ini, fim } = this.periodoAtual();
+                        const eventosPeriodo = this.eventosFiltrados().filter(item => {
+                            const data = this.parseDate(item.data_atendimento);
+                            return data >= ini && data <= fim;
+                        });
+
+                        this.kpiPeriodo = eventosPeriodo.length;
+                        this.kpiDia = this.eventosDia.length;
+                        this.kpiLivres = this.tecnicosLivresDia.length;
+                    },
+                    recalcularAgenda() {
+                        this.recalcularCalendario();
+                        this.recalcularPainelDia();
+                        this.recalcularKpis();
+                    },
+                    chipPrioridade(prioridade) {
+                        if (prioridade === 'alta') return 'bg-red-100 text-red-800';
+                        if (prioridade === 'media') return 'bg-amber-100 text-amber-800';
+                        return 'bg-cyan-100 text-cyan-800';
+                    }
+                 }"
+                 x-init="init()">
+                <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-5">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Agenda Global dos Técnicos</h3>
+                        <p class="text-sm text-gray-500 mt-1">Visão consolidada para Comercial e Suporte com período diário, semanal e mensal.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 xl:justify-end">
+                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold border transition" :class="viewAtual === 'dia' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'" @click="setView('dia')">Dia</button>
+                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold border transition" :class="viewAtual === 'semana' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'" @click="setView('semana')">Semana</button>
+                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold border transition" :class="viewAtual === 'mes' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'" @click="setView('mes')">Mês</button>
+
+                        <select class="rounded-lg border-gray-300 text-sm min-w-[220px]" x-model="tecnicoSelecionado" @change="recalcularAgenda()">
+                            <option value="">Todos os técnicos</option>
+                            <template x-for="tecnico in agendaTecnicos" :key="tecnico.id">
+                                <option :value="tecnico.id" x-text="tecnico.nome"></option>
+                            </template>
+                        </select>
+
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+                            <input type="checkbox" class="rounded border-gray-300 text-indigo-600" x-model="mostrarDiasLivres" @change="recalcularAgenda()">
+                            Mostrar dias livres
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                    <div class="border border-gray-200 rounded-xl p-3.5 bg-white">
+                        <p class="text-xs uppercase font-semibold text-gray-500">Atendimentos no período</p>
+                        <p class="text-2xl font-bold text-gray-800" x-text="kpiPeriodo"></p>
+                    </div>
+                    <div class="border border-gray-200 rounded-xl p-3.5 bg-white">
+                        <p class="text-xs uppercase font-semibold text-gray-500">Atendimentos no dia selecionado</p>
+                        <p class="text-2xl font-bold text-gray-800" x-text="kpiDia"></p>
+                    </div>
+                    <div class="border border-emerald-200 rounded-xl p-3.5 bg-emerald-50/50">
+                        <p class="text-xs uppercase font-semibold text-gray-500">Técnicos livres no dia</p>
+                        <p class="text-2xl font-bold text-emerald-700" x-text="kpiLivres"></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="px-3 py-1.5 rounded-md border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 transition" @click="navegarPeriodo(-1)">◀</button>
+                        <button type="button" class="px-3 py-1.5 rounded-md border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 transition" @click="navegarPeriodo(1)">▶</button>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-700" x-text="tituloPeriodo"></p>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+                    <div class="xl:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:self-start" x-show="viewAtual !== 'dia'" x-cloak>
+                        <div class="grid grid-cols-7 bg-slate-800 text-white text-[11px] font-semibold uppercase tracking-wide">
+                            <template x-for="dia in diasSemana" :key="dia">
+                                <div class="px-2 py-2 text-center" x-text="dia"></div>
+                            </template>
+                        </div>
+
+                        <div class="grid grid-cols-7 bg-gray-200 gap-px">
+                            <template x-for="(celula, idx) in celulasCalendario" :key="`${celula.data || 'empty'}-${idx}`">
+                                <button type="button"
+                                        class="min-h-[112px] p-2 text-left bg-white hover:bg-slate-50 transition"
+                                        :class="{
+                                            'opacity-60 bg-gray-50 cursor-default hover:bg-gray-50': celula.foraMes,
+                                            'ring-2 ring-[#3f9cae] bg-cyan-50': celula.selecionado,
+                                            'bg-cyan-50/60': celula.hoje && !celula.selecionado
+                                        }"
+                                        @click="if (!celula.foraMes && celula.data) selecionarDia(celula.data)">
+                                    <p class="text-xs font-bold text-gray-800" x-text="celula.diaNumero"></p>
+
+                                    <template x-if="!celula.foraMes">
+                                        <div class="mt-1 space-y-1">
+                                            <template x-for="(evento, eventIdx) in celula.eventos.slice(0, 2)" :key="`${evento.id}-${eventIdx}`">
+                                                <div class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold truncate"
+                                                     :class="chipPrioridade(evento.prioridade)">
+                                                    <span x-text="`${evento.inicio || '--:--'} #${evento.numero_atendimento} ${evento.tecnico_nome}`"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="celula.eventos.length > 2">
+                                                <div class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-gray-100 text-gray-600" x-text="`+${celula.eventos.length - 2} agenda(s)`"></div>
+                                            </template>
+                                            <template x-if="mostrarDiasLivres && celula.livres.length > 0">
+                                                <div class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700" x-text="`${celula.livres.length} livre(s)`"></div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl shadow-sm bg-white">
+                        <div class="px-4 py-3 border-b border-gray-100 bg-slate-50 rounded-t-xl">
+                            <p class="text-sm font-semibold text-gray-700" x-text="`Agenda de ${formatarDataBr(diaSelecionado)}`"></p>
+                            <p class="text-xs text-gray-500" x-text="`${eventosDia.length} atendimento(s) | ${tecnicosLivresDia.length} técnico(s) livre(s)`"></p>
+                        </div>
+
+                        <div class="max-h-[420px] overflow-auto p-3 space-y-3">
+                            <template x-if="eventosDia.length === 0">
+                                <div class="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-500 text-center">Nenhum atendimento agendado para este dia.</div>
+                            </template>
+
+                            <template x-for="evento in eventosDia" :key="evento.id">
+                                <a :href="evento.url" class="block border border-gray-200 rounded-lg p-3 hover:bg-gray-50 hover:shadow-sm transition">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <p class="text-xs font-bold text-gray-700" x-text="`#${evento.numero_atendimento}`"></p>
+                                        <p class="text-xs font-bold text-teal-700" x-text="evento.inicio ? `${evento.inicio}${evento.fim ? ' às ' + evento.fim : ''}` : 'Sem horário'"></p>
+                                    </div>
+                                    <p class="text-sm font-semibold text-gray-900" x-text="evento.cliente_nome"></p>
+                                    <p class="text-xs text-gray-600 mt-1" x-text="`Técnico: ${evento.tecnico_nome}`"></p>
+                                    <div class="mt-2 flex items-center gap-1 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-slate-100 text-slate-700" x-text="evento.tipo_demanda"></span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold" :class="chipPrioridade(evento.prioridade)" x-text="evento.prioridade"></span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700" x-text="evento.status.replace('_', ' ')"></span>
+                                    </div>
+                                </a>
+                            </template>
+
+                            <template x-if="mostrarDiasLivres && tecnicosLivresDia.length > 0">
+                                <div class="border border-emerald-200 bg-emerald-50 rounded-lg p-3">
+                                    <p class="text-xs font-semibold uppercase text-emerald-700 mb-2">Técnicos livres neste dia</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="tecnico in tecnicosLivresDia" :key="tecnico.id">
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-emerald-700 border border-emerald-200" x-text="tecnico.nome"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Painel de Acompanhamento -->
-            <div class="bg-white shadow rounded-xl p-6 mb-8">
-                <h3 class="text-base font-semibold text-gray-700 mb-6">Acompanhamento em Tempo Real</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="tecnicosGrid">
+            <div class="bg-white border border-gray-200 shadow-sm rounded-2xl p-5 lg:p-6 mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Acompanhamento em Tempo Real</h3>
+                        <p class="text-sm text-gray-500">Monitoramento do status atual dos técnicos em execução, pausa ou livres.</p>
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-700">
+                        <span class="font-semibold">Técnicos no painel:</span>
+                        <span class="font-bold text-slate-900">{{ $tecnicos->count() }}</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5" id="tecnicosGrid">
             @forelse($tecnicos as $tecnicoData)
                 @php
                     $funcionario = $tecnicoData['funcionario'];
@@ -433,7 +793,7 @@
                     </div>
                 </div>
             @empty
-                <div class="empty-state">
+                <div class="empty-state border border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 col-span-full">
                     <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
@@ -445,17 +805,23 @@
 
             <!-- Atendimentos Não Iniciados -->
             @if($atendimentosNaoIniciados->count() > 0)
-            <div class="bg-white shadow rounded-xl p-6">
-                <h3 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Atendimentos Agendados Não Iniciados ({{ $atendimentosNaoIniciados->count() }})
-                </h3>
+            <div class="bg-white border border-gray-200 shadow-sm rounded-2xl p-5 lg:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Atendimentos Agendados Não Iniciados
+                    </h3>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+                        {{ $atendimentosNaoIniciados->count() }} pendente(s)
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Chamados com agendamento no período selecionado que ainda não foram iniciados pelo técnico.</p>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <table class="w-full text-sm text-left border border-gray-200 rounded-xl overflow-hidden">
+                        <thead class="text-[11px] text-gray-700 uppercase bg-slate-100">
                             <tr>
                                 <th class="px-4 py-3">Técnico</th>
                                 <th class="px-4 py-3">Cliente</th>
@@ -467,24 +833,24 @@
                         </thead>
                         <tbody>
                             @foreach($atendimentosNaoIniciados as $atendimento)
-                            <tr class="bg-white border-b hover:bg-gray-50">
-                                <td class="px-4 py-3 font-medium text-gray-900">{{ $atendimento->funcionario->user->name ?? 'N/D' }}</td>
-                                <td class="px-4 py-3">{{ $atendimento->cliente->nome_fantasia ?? 'N/D' }}</td>
-                                <td class="px-4 py-3">{{ $atendimento->assunto->nome ?? 'N/D' }}</td>
+                            <tr class="bg-white border-b border-gray-100 hover:bg-slate-50 transition">
+                                <td class="px-4 py-3 font-semibold text-gray-900">{{ $atendimento->funcionario->user->name ?? 'N/D' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $atendimento->cliente->nome_fantasia ?? 'N/D' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $atendimento->assunto->nome ?? 'N/D' }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                    <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full
                                         {{ $atendimento->prioridade === 'alta' ? 'bg-red-100 text-red-800' : '' }}
                                         {{ $atendimento->prioridade === 'media' ? 'bg-orange-100 text-orange-800' : '' }}
                                         {{ $atendimento->prioridade === 'baixa' ? 'bg-blue-100 text-blue-800' : '' }}">
                                         {{ strtoupper($atendimento->prioridade) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3">{{ $atendimento->data_atendimento ? \Carbon\Carbon::parse($atendimento->data_atendimento)->format('d/m/Y H:i') : 'N/D' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $atendimento->data_atendimento ? \Carbon\Carbon::parse($atendimento->data_atendimento)->format('d/m/Y H:i') : 'N/D' }}</td>
                                 <td class="px-4 py-3">
                                     @if($atendimento->data_atendimento < now())
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">ATRASADO</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">ATRASADO</span>
                                     @else
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">AGUARDANDO</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">AGUARDANDO</span>
                                     @endif
                                 </td>
                             </tr>
@@ -645,25 +1011,32 @@
     <style>
     .tecnico-card {
         background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e5e7eb;
         border-left: 4px solid #cbd5e1;
-        transition: all 0.3s;
+        transition: all 0.2s ease;
+    }
+
+    .tecnico-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
     }
 
     .tecnico-card.status-execucao {
         border-left-color: #059669;
-        background: linear-gradient(to right, rgba(5, 150, 105, 0.05) 0%, white 100%);
+        background: linear-gradient(to right, rgba(5, 150, 105, 0.06) 0%, #ffffff 42%);
     }
 
     .tecnico-card.status-pausa {
         border-left-color: #f59e0b;
-        background: linear-gradient(to right, rgba(245, 158, 11, 0.05) 0%, white 100%);
+        background: linear-gradient(to right, rgba(245, 158, 11, 0.07) 0%, #ffffff 42%);
     }
 
     .tecnico-card.status-livre {
         border-left-color: #cbd5e1;
+        background: linear-gradient(to right, rgba(148, 163, 184, 0.06) 0%, #ffffff 42%);
     }
 
 
@@ -698,6 +1071,18 @@
 
     .tempo-valor {
         font-family: 'Courier New', monospace;
+    }
+
+    .tecnico-livre-msg {
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 14px;
+    }
+
+    .tecnico-livre-msg p {
+        color: #475569;
+        font-weight: 600;
     }
     </style>
 
