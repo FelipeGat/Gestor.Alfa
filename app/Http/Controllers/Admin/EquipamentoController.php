@@ -31,8 +31,8 @@ class EquipamentoController extends Controller
         // Equipamentos
         $equipamentosQuery = Equipamento::with(['cliente', 'setor', 'responsavel']);
 
-        if ($request->filled('search_equipamento')) {
-            $search = $request->search_equipamento;
+        if ($request->filled('search')) {
+            $search = $request->search;
             $equipamentosQuery->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
                     ->orWhere('modelo', 'like', "%{$search}%")
@@ -54,13 +54,13 @@ class EquipamentoController extends Controller
         // Setores
         $setoresQuery = EquipamentoSetor::with(['cliente', 'equipamentos']);
 
-        if ($request->filled('search_setor')) {
-            $search = $request->search_setor;
+        if ($request->filled('search')) {
+            $search = $request->search;
             $setoresQuery->where('nome', 'like', "%{$search}%");
         }
 
-        if ($request->filled('cliente_id_setor')) {
-            $setoresQuery->where('cliente_id', $request->cliente_id_setor);
+        if ($request->filled('cliente_id')) {
+            $setoresQuery->where('cliente_id', $request->cliente_id);
         }
 
         $setores = $setoresQuery->orderBy('nome')->get();
@@ -68,16 +68,16 @@ class EquipamentoController extends Controller
         // Responsáveis
         $responsaveisQuery = EquipamentoResponsavel::with(['cliente', 'equipamentos']);
 
-        if ($request->filled('search_responsavel')) {
-            $search = $request->search_responsavel;
+        if ($request->filled('search')) {
+            $search = $request->search;
             $responsaveisQuery->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
                     ->orWhere('cargo', 'like', "%{$search}%");
             });
         }
 
-        if ($request->filled('cliente_id_responsavel')) {
-            $responsaveisQuery->where('cliente_id', $request->cliente_id_responsavel);
+        if ($request->filled('cliente_id')) {
+            $responsaveisQuery->where('cliente_id', $request->cliente_id);
         }
 
         $responsaveis = $responsaveisQuery->orderBy('nome')->get();

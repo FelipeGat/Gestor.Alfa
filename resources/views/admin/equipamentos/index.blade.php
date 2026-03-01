@@ -21,6 +21,47 @@
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
+            {{-- Filtros (comuns a todas as abas) --}}
+            <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
+                    <input type="hidden" name="tab" :value="request('tab', 'equipamentos')">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <x-input-label value="Pesquisar" />
+                            <x-text-input type="text" name="search" :value="request('search')" placeholder="Digite para pesquisar..." class="w-full" />
+                        </div>
+                        <div>
+                            <x-input-label value="Cliente" />
+                            <select name="cliente_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Todos</option>
+                                @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
+                                    <option value="{{ $cliente->id }}" @selected(request('cliente_id') == $cliente->id)>
+                                        {{ $cliente->nome_exibicao }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <x-input-label value="Status" />
+                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Todos</option>
+                                <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
+                                <option value="inativo" @selected(request('status')=='inativo')>Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 pt-2">
+                        <x-button type="submit" variant="primary" size="sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Filtrar
+                        </x-button>
+                        <a href="{{ route('admin.equipamentos.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Limpar</a>
+                    </div>
+                </form>
+            </div>
+
             {{-- Card de Abas --}}
             <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <div class="border-b border-gray-200">
@@ -40,48 +81,6 @@
 
             {{-- Aba: Equipamentos --}}
             <div id="tab-equipamentos" class="tab-content active space-y-6">
-                
-                {{-- Filtros --}}
-                <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
-                        <input type="hidden" name="tab" value="equipamentos">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="md:col-span-2">
-                                <x-input-label value="Pesquisar Equipamento" />
-                                <x-text-input type="text" name="search_equipamento" :value="request('search_equipamento')" placeholder="Nome, modelo, fabricante ou nº série" class="w-full" />
-                            </div>
-                            <div>
-                                <x-input-label value="Cliente" />
-                                <select name="cliente_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Todos</option>
-                                    @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
-                                        <option value="{{ $cliente->id }}" @selected(request('cliente_id') == $cliente->id)>
-                                            {{ $cliente->nome_exibicao }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <x-input-label value="Status" />
-                                <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Todos</option>
-                                    <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
-                                    <option value="inativo" @selected(request('status')=='inativo')>Inativo</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 pt-2">
-                            <x-button type="submit" variant="primary" size="sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                Filtrar
-                            </x-button>
-                            <a href="{{ route('admin.equipamentos.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Limpar</a>
-                        </div>
-                    </form>
-                </div>
-
                 @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
                 <div class="flex justify-start">
                     <x-button href="{{ route('admin.equipamentos.create') }}" variant="success" size="sm" class="min-w-[130px]">
@@ -175,40 +174,6 @@
 
             {{-- Aba: Setores --}}
             <div id="tab-setores" class="tab-content space-y-6">
-                
-                {{-- Filtros --}}
-                <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
-                        <input type="hidden" name="tab" value="setores">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="md:col-span-2">
-                                <x-input-label value="Pesquisar Setor" />
-                                <x-text-input type="text" name="search_setor" :value="request('search_setor')" placeholder="Nome do setor" class="w-full" />
-                            </div>
-                            <div>
-                                <x-input-label value="Cliente" />
-                                <select name="cliente_id_setor" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Todos</option>
-                                    @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
-                                        <option value="{{ $cliente->id }}" @selected(request('cliente_id_setor') == $cliente->id)>
-                                            {{ $cliente->nome_exibicao }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 pt-2">
-                            <x-button type="submit" variant="primary" size="sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                Filtrar
-                            </x-button>
-                            <a href="{{ route('admin.equipamentos.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Limpar</a>
-                        </div>
-                    </form>
-                </div>
-
                 @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
                 <div class="flex justify-start">
                     <x-button href="{{ route('admin.setores.create') }}" variant="success" size="sm" class="min-w-[130px]">
@@ -292,40 +257,6 @@
 
             {{-- Aba: Responsáveis --}}
             <div id="tab-responsaveis" class="tab-content space-y-6">
-                
-                {{-- Filtros --}}
-                <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
-                        <input type="hidden" name="tab" value="responsaveis">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="md:col-span-2">
-                                <x-input-label value="Pesquisar Responsável" />
-                                <x-text-input type="text" name="search_responsavel" :value="request('search_responsavel')" placeholder="Nome ou cargo" class="w-full" />
-                            </div>
-                            <div>
-                                <x-input-label value="Cliente" />
-                                <select name="cliente_id_responsavel" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Todos</option>
-                                    @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
-                                        <option value="{{ $cliente->id }}" @selected(request('cliente_id_responsavel') == $cliente->id)>
-                                            {{ $cliente->nome_exibicao }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 pt-2">
-                            <x-button type="submit" variant="primary" size="sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                Filtrar
-                            </x-button>
-                            <a href="{{ route('admin.equipamentos.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Limpar</a>
-                        </div>
-                    </form>
-                </div>
-
                 @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
                 <div class="flex justify-start">
                     <x-button href="{{ route('admin.responsaveis.create') }}" variant="success" size="sm" class="min-w-[130px]">
