@@ -1,14 +1,6 @@
 <x-app-layout>
     @push('styles')
-    <style>
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .tab-btn.active {
-            background-color: #3f9cae;
-            color: white;
-            border-color: #3f9cae;
-        }
-    </style>
+    @vite('resources/css/atendimentos/index.css')
     @endpush
 
     <x-slot name="breadcrumb">
@@ -21,14 +13,13 @@
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Filtros (comuns a todas as abas) --}}
+            {{-- Filtros --}}
             <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
-                    <input type="hidden" name="tab" :value="request('tab', 'equipamentos')">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="md:col-span-2">
                             <x-input-label value="Pesquisar" />
-                            <x-text-input type="text" name="search" :value="request('search')" placeholder="Digite para pesquisar..." class="w-full" />
+                            <x-text-input type="text" name="search" :value="request('search')" placeholder="Nome, modelo, fabricante ou nº série" class="w-full" />
                         </div>
                         <div>
                             <x-input-label value="Cliente" />
@@ -62,239 +53,83 @@
                 </form>
             </div>
 
-            {{-- Card de Abas --}}
-            <div class="bg-white rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex gap-2 p-4" aria-label="Tabs">
-                        <button type="button" class="tab-btn active px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="equipamentos">
-                            Equipamentos ({{ $equipamentos->count() }})
-                        </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="setores">
-                            Setores ({{ $setores->count() }})
-                        </button>
-                        <button type="button" class="tab-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-50 transition" data-tab="responsaveis">
-                            Responsáveis ({{ $responsaveis->count() }})
-                        </button>
-                    </nav>
+            {{-- Resumo --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-500 shadow-sm">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Equipamentos</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalEquipamentos }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg border-l-4 border-green-500 shadow-sm">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ $equipamentosAtivos }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg border-l-4 border-red-500 shadow-sm">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Inativos</p>
+                    <p class="text-3xl font-bold text-red-600 mt-2">{{ $equipamentosInativos }}</p>
                 </div>
             </div>
 
-            {{-- Aba: Equipamentos --}}
-            <div id="tab-equipamentos" class="tab-content active space-y-6">
-                @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
-                <div class="flex justify-start">
-                    <x-button href="{{ route('admin.equipamentos.create') }}" variant="success" size="sm" class="min-w-[130px]">
-                        <x-slot name="iconLeft">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                        </x-slot>
-                        Adicionar
-                    </x-button>
-                </div>
-                @endif
-
-                @if($equipamentos->count())
-                @php
-                    $columns = [
-                        ['label' => 'ID'],
-                        ['label' => 'Cliente'],
-                        ['label' => 'Equipamento'],
-                        ['label' => 'Modelo'],
-                        ['label' => 'Setor'],
-                        ['label' => 'Responsável'],
-                        ['label' => 'Status'],
-                        ['label' => 'Ações'],
-                    ];
-                @endphp
-                <x-table :columns="$columns" :data="$equipamentos" :actions="false">
-                    @foreach($equipamentos as $equipamento)
-                    <tr class="hover:bg-gray-50 transition">
-                        <x-table-cell :nowrap="true">{{ $equipamento->id }}</x-table-cell>
-                        <x-table-cell>{{ $equipamento->cliente->nome_exibicao }}</x-table-cell>
-                        <x-table-cell class="font-medium text-gray-900">{{ $equipamento->nome }}</x-table-cell>
-                        <x-table-cell>{{ $equipamento->modelo ?? '-' }}</x-table-cell>
-                        <x-table-cell>{{ $equipamento->setor->nome ?? '-' }}</x-table-cell>
-                        <x-table-cell>{{ $equipamento->responsavel->nome ?? '-' }}</x-table-cell>
-                        <x-table-cell>
-                            <x-status-badge :ativo="$equipamento->ativo" />
-                        </x-table-cell>
-                        <x-table-cell>
-                            <x-actions
-                                :edit-url="route('admin.equipamentos.edit', $equipamento->id)"
-                                :delete-url="route('admin.equipamentos.destroy', $equipamento->id)"
-                                :show-view="false"
-                                confirm-delete-message="Tem certeza que deseja excluir este equipamento?"
-                            />
-                        </x-table-cell>
-                    </tr>
-                    @endforeach
-                </x-table>
-                @else
-                <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-medium text-gray-900">Nenhum equipamento encontrado</h3>
-                </div>
-                @endif
+            {{-- Botão Adicionar --}}
+            @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
+            <div class="flex justify-start">
+                <x-button href="{{ route('admin.equipamentos.create') }}" variant="success" size="sm" class="min-w-[130px]">
+                    <x-slot name="iconLeft">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                    </x-slot>
+                    Adicionar
+                </x-button>
             </div>
+            @endif
 
-            {{-- Aba: Setores --}}
-            <div id="tab-setores" class="tab-content space-y-6">
-                @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
-                <div class="flex justify-start">
-                    <x-button href="{{ route('admin.setores.create') }}" variant="success" size="sm" class="min-w-[130px]">
-                        <x-slot name="iconLeft">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                        </x-slot>
-                        Adicionar
-                    </x-button>
-                </div>
-                @endif
-
-                @if($setores->count())
-                @php
-                    $columns = [
-                        ['label' => 'ID'],
-                        ['label' => 'Cliente'],
-                        ['label' => 'Setor'],
-                        ['label' => 'Descrição'],
-                        ['label' => 'Equipamentos'],
-                        ['label' => 'Ações'],
-                    ];
-                @endphp
-                <x-table :columns="$columns" :data="$setores" :actions="false">
-                    @foreach($setores as $setor)
-                    <tr class="hover:bg-gray-50 transition">
-                        <x-table-cell :nowrap="true">{{ $setor->id }}</x-table-cell>
-                        <x-table-cell>{{ $setor->cliente->nome_exibicao }}</x-table-cell>
-                        <x-table-cell class="font-medium text-gray-900">{{ $setor->nome }}</x-table-cell>
-                        <x-table-cell>{{ $setor->descricao ?? '-' }}</x-table-cell>
-                        <x-table-cell>
-                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold uppercase" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
-                                {{ $setor->equipamentos_count }} {{ $setor->equipamentos_count == 1 ? 'Equip.' : 'Equips.' }}
-                            </span>
-                        </x-table-cell>
-                        <x-table-cell>
-                            <x-actions
-                                :edit-url="route('admin.setores.edit', $setor->id)"
-                                :delete-url="route('admin.setores.destroy', $setor->id)"
-                                :show-view="false"
-                                confirm-delete-message="Tem certeza que deseja excluir este setor?"
-                            />
-                        </x-table-cell>
-                    </tr>
-                    @endforeach
-                </x-table>
-                @else
-                <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-medium text-gray-900">Nenhum setor encontrado</h3>
-                </div>
-                @endif
+            {{-- Tabela --}}
+            @if($equipamentos->count())
+            @php
+                $columns = [
+                    ['label' => 'ID'],
+                    ['label' => 'Cliente'],
+                    ['label' => 'Equipamento'],
+                    ['label' => 'Modelo'],
+                    ['label' => 'Setor'],
+                    ['label' => 'Responsável'],
+                    ['label' => 'Status'],
+                    ['label' => 'Ações'],
+                ];
+            @endphp
+            <x-table :columns="$columns" :data="$equipamentos" :actions="false">
+                @foreach($equipamentos as $equipamento)
+                <tr class="hover:bg-gray-50 transition">
+                    <x-table-cell :nowrap="true">{{ $equipamento->id }}</x-table-cell>
+                    <x-table-cell>{{ $equipamento->cliente->nome_exibicao }}</x-table-cell>
+                    <x-table-cell class="font-medium text-gray-900">{{ $equipamento->nome }}</x-table-cell>
+                    <x-table-cell>{{ $equipamento->modelo ?? '-' }}</x-table-cell>
+                    <x-table-cell>{{ $equipamento->setor->nome ?? '-' }}</x-table-cell>
+                    <x-table-cell>{{ $equipamento->responsavel->nome ?? '-' }}</x-table-cell>
+                    <x-table-cell>
+                        <x-status-badge :ativo="$equipamento->ativo" />
+                    </x-table-cell>
+                    <x-table-cell>
+                        <x-actions
+                            :edit-url="route('admin.equipamentos.edit', $equipamento->id)"
+                            :delete-url="route('admin.equipamentos.destroy', $equipamento->id)"
+                            :show-view="false"
+                            confirm-delete-message="Tem certeza que deseja excluir este equipamento?"
+                        />
+                    </x-table-cell>
+                </tr>
+                @endforeach
+            </x-table>
+            @else
+            <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">Nenhum equipamento encontrado</h3>
+                <p class="text-sm text-gray-500 mt-2">Cadastre um novo equipamento para começar</p>
             </div>
-
-            {{-- Aba: Responsáveis --}}
-            <div id="tab-responsaveis" class="tab-content space-y-6">
-                @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
-                <div class="flex justify-start">
-                    <x-button href="{{ route('admin.responsaveis.create') }}" variant="success" size="sm" class="min-w-[130px]">
-                        <x-slot name="iconLeft">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                        </x-slot>
-                        Adicionar
-                    </x-button>
-                </div>
-                @endif
-
-                @if($responsaveis->count())
-                @php
-                    $columns = [
-                        ['label' => 'ID'],
-                        ['label' => 'Cliente'],
-                        ['label' => 'Nome'],
-                        ['label' => 'Cargo'],
-                        ['label' => 'Contato'],
-                        ['label' => 'Equipamentos'],
-                        ['label' => 'Ações'],
-                    ];
-                @endphp
-                <x-table :columns="$columns" :data="$responsaveis" :actions="false">
-                    @foreach($responsaveis as $responsavel)
-                    <tr class="hover:bg-gray-50 transition">
-                        <x-table-cell :nowrap="true">{{ $responsavel->id }}</x-table-cell>
-                        <x-table-cell>{{ $responsavel->cliente->nome_exibicao }}</x-table-cell>
-                        <x-table-cell class="font-medium text-gray-900">{{ $responsavel->nome }}</x-table-cell>
-                        <x-table-cell>{{ $responsavel->cargo ?? '-' }}</x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            @if($responsavel->telefone || $responsavel->email)
-                                <div class="flex flex-col">
-                                    @if($responsavel->telefone)
-                                        <span class="text-xs text-gray-600">{{ $responsavel->telefone }}</span>
-                                    @endif
-                                    @if($responsavel->email)
-                                        <span class="text-xs text-gray-600">{{ $responsavel->email }}</span>
-                                    @endif
-                                </div>
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
-                        </x-table-cell>
-                        <x-table-cell>
-                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold uppercase" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
-                                {{ $responsavel->equipamentos_count }} {{ $responsavel->equipamentos_count == 1 ? 'Equip.' : 'Equips.' }}
-                            </span>
-                        </x-table-cell>
-                        <x-table-cell>
-                            <x-actions
-                                :edit-url="route('admin.responsaveis.edit', $responsavel->id)"
-                                :delete-url="route('admin.responsaveis.destroy', $responsavel->id)"
-                                :show-view="false"
-                                confirm-delete-message="Tem certeza que deseja excluir este responsável?"
-                            />
-                        </x-table-cell>
-                    </tr>
-                    @endforeach
-                </x-table>
-                @else
-                <div class="bg-white rounded-lg p-12 text-center" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-medium text-gray-900">Nenhum responsável encontrado</h3>
-                </div>
-                @endif
-            </div>
+            @endif
 
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            // Verifica se há uma aba salva na URL (após filtro)
-            const urlParams = new URLSearchParams(window.location.search);
-            const activeTab = urlParams.get('tab') || 'equipamentos';
-
-            // Ativa a aba correta
-            tabButtons.forEach(button => {
-                if (button.getAttribute('data-tab') === activeTab) {
-                    button.classList.add('active');
-                }
-                button.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-
-                    // Remove active class from all buttons and contents
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-
-                    // Add active class to clicked button and corresponding content
-                    this.classList.add('active');
-                    document.getElementById('tab-' + tabName).classList.add('active');
-                });
-            });
-        });
-    </script>
-    @endpush
 </x-app-layout>
