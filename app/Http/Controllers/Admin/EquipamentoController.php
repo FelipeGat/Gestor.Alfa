@@ -28,16 +28,12 @@ class EquipamentoController extends Controller
             'Acesso não autorizado'
         );
 
-        $query = Equipamento::with(['cliente', 'setor', 'responsavel']);
+        // Equipamentos
+        $equipamentosQuery = Equipamento::with(['cliente', 'setor', 'responsavel']);
 
-        // Filtros
-        if ($request->filled('cliente_id')) {
-            $query->where('cliente_id', $request->cliente_id);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
+        if ($request->filled('search_equipamento')) {
+            $search = $request->search_equipamento;
+            $equipamentosQuery->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
                     ->orWhere('modelo', 'like', "%{$search}%")
                     ->orWhere('fabricante', 'like', "%{$search}%")
@@ -45,11 +41,30 @@ class EquipamentoController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where('ativo', $request->status === 'ativo');
+        $equipamentos = $equipamentosQuery->orderByDesc('created_at')->get();
+
+        // Setores
+        $setoresQuery = EquipamentoSetor::with(['cliente', 'equipamentos']);
+
+        if ($request->filled('search_setor')) {
+            $search = $request->search_setor;
+            $setoresQuery->where('nome', 'like', "%{$search}%");
         }
 
-        $equipamentos = $query->orderByDesc('created_at')->paginate(15);
+        $setores = $setoresQuery->orderBy('nome')->get();
+
+        // Responsáveis
+        $responsaveisQuery = EquipamentoResponsavel::with(['cliente', 'equipamentos']);
+
+        if ($request->filled('search_responsavel')) {
+            $search = $request->search_responsavel;
+            $responsaveisQuery->where(function ($q) use ($search) {
+                $q->where('nome', 'like', "%{$search}%")
+                    ->orWhere('cargo', 'like', "%{$search}%");
+            });
+        }
+
+        $responsaveis = $responsaveisQuery->orderBy('nome')->get();
 
         // Estatísticas
         $totalEquipamentos = Equipamento::count();
@@ -58,6 +73,8 @@ class EquipamentoController extends Controller
 
         return view('admin.equipamentos.index', compact(
             'equipamentos',
+            'setores',
+            'responsaveis',
             'totalEquipamentos',
             'equipamentosAtivos',
             'equipamentosInativos'
