@@ -129,15 +129,6 @@
                         </x-table-cell>
                         <x-table-cell :nowrap="true">
                             <div class="flex items-center gap-2">
-                                @if(auth()->user()->canPermissao('equipamentos', 'ler'))
-                                    <a href="{{ route('admin.equipamentos.show', $equipamento->id) }}" 
-                                       class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    </a>
-                                @endif
                                 @if(auth()->user()->canPermissao('equipamentos', 'alterar'))
                                     <a href="{{ route('admin.equipamentos.edit', $equipamento->id) }}" 
                                        class="text-blue-600 hover:text-blue-900" title="Editar">
@@ -212,15 +203,6 @@
                         </x-table-cell>
                         <x-table-cell :nowrap="true">
                             <div class="flex items-center gap-2">
-                                @if(auth()->user()->canPermissao('equipamentos', 'ler'))
-                                    <a href="{{ route('admin.setores.show', $setor->id) }}" 
-                                       class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    </a>
-                                @endif
                                 @if(auth()->user()->canPermissao('equipamentos', 'alterar'))
                                     <a href="{{ route('admin.setores.edit', $setor->id) }}" 
                                        class="text-blue-600 hover:text-blue-900" title="Editar">
@@ -310,15 +292,6 @@
                         </x-table-cell>
                         <x-table-cell :nowrap="true">
                             <div class="flex items-center gap-2">
-                                @if(auth()->user()->canPermissao('equipamentos', 'ler'))
-                                    <a href="{{ route('admin.responsaveis.show', $responsavel->id) }}" 
-                                       class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    </a>
-                                @endif
                                 @if(auth()->user()->canPermissao('equipamentos', 'alterar'))
                                     <a href="{{ route('admin.responsaveis.edit', $responsavel->id) }}" 
                                        class="text-blue-600 hover:text-blue-900" title="Editar">
