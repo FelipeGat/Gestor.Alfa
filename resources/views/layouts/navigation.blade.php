@@ -161,22 +161,13 @@
                             Setores
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.responsaveis') }}" 
+                        <a href="{{ route('portal.equipamentos.responsaveis') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Responsáveis" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Responsáveis"
                             @click.stop>
                             Responsáveis
-                        </a>
-
-                        <a href="{{ route('portal.equipamentos.pmoc') }}" 
-                            class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Plano de Manutenção (PMOC)" 
-                            @click.stop>
-                            Plano de Manutenção (PMOC)
                         </a>
                     </div>
                 </div>
