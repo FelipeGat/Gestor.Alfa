@@ -143,10 +143,6 @@
                 {{ $slot ?? '' }}
             @endif
         </main>
-
-        @if(!$isFuncionarioPortal)
-            @include('components.dashboard-fab')
-        @endif
     </div>
     @stack('scripts')
     <script>
