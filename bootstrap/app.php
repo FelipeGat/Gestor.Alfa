@@ -28,7 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.api' => \App\Http\Middleware\RateLimitApi::class,
             'rate.forms' => \App\Http\Middleware\RateLimitForms::class,
             'api.version' => \App\Http\Middleware\ApiVersion::class,
-            'no.cache' => \App\Http\Middleware\PreventBackAfterLogout::class,
         ]);
 
         $middleware->web(append: [
