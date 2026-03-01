@@ -156,15 +156,6 @@
 
     <!-- Page Content -->
     <main class="pb-16 lg:pb-0 portal-content">
-        <!-- Breadcrumb (opcional) -->
-        @isset($breadcrumb)
-        <div class="bg-white border-b border-gray-200">
-            <div class="px-4 sm:px-6 lg:px-8 py-2">
-                {{ $breadcrumb }}
-            </div>
-        </div>
-        @endisset
-
         <!-- Toast Notifications -->
         <x-toast />
 
