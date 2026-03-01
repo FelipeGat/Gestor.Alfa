@@ -282,6 +282,41 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     // Assuntos
     Route::resource('assuntos', AssuntoController::class);
 
+    // Equipamentos
+    Route::prefix('equipamentos')->name('admin.equipamentos.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\EquipamentoController::class, 'index'])->name('index');
+        Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\EquipamentoController::class, 'store'])->name('store');
+        Route::get('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'show'])->name('show');
+        Route::get('/{equipamento}/editar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'edit'])->name('edit');
+        Route::put('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'update'])->name('update');
+        Route::delete('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'destroy'])->name('destroy');
+        Route::get('/{equipamento}/qrcode', [\App\Http\Controllers\Admin\EquipamentoController::class, 'gerarQrCode'])->name('qrcode');
+        Route::get('/api/cliente/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListByCliente'])->name('api.cliente');
+
+        // Setores
+        Route::prefix('setores')->name('setores.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'index'])->name('index');
+            Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'store'])->name('store');
+            Route::get('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'show'])->name('show');
+            Route::get('/{setor}/editar', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'edit'])->name('edit');
+            Route::put('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'update'])->name('update');
+            Route::delete('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'destroy'])->name('destroy');
+        });
+
+        // Responsáveis
+        Route::prefix('responsaveis')->name('responsaveis.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'index'])->name('index');
+            Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'store'])->name('store');
+            Route::get('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'show'])->name('show');
+            Route::get('/{responsavel}/editar', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'edit'])->name('edit');
+            Route::put('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'update'])->name('update');
+            Route::delete('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'destroy'])->name('destroy');
+        });
+    });
+
     // Categorias Financeiras
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias.index');
     Route::get('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'create'])->name('categorias.create');

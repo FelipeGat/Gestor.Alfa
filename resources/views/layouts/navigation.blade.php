@@ -322,6 +322,12 @@
                             Assuntos
                         </x-nav-link>
 
+                        @if($isAdmin)
+                        <x-nav-link :href="route('admin.equipamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="equipamentos">
+                            Equipamentos
+                        </x-nav-link>
+                        @endif
+
                         @if($isAdmin || $isFinanceiro)
                         <x-nav-link :href="route('categorias.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="categorias">
                             Categorias
@@ -531,6 +537,9 @@
                 <x-responsive-nav-link :href="route('fornecedores.index')" data-tab-icon="fornecedores">Fornecedores</x-responsive-nav-link>
                 @endif
                 <x-responsive-nav-link :href="route('assuntos.index')" data-tab-icon="assuntos">Assuntos</x-responsive-nav-link>
+                @if($isAdmin)
+                <x-responsive-nav-link :href="route('admin.equipamentos.index')" data-tab-icon="equipamentos">Equipamentos</x-responsive-nav-link>
+                @endif
                 @if($isAdmin || $isFinanceiro)
                 <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>
                 @endif
