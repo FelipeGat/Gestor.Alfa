@@ -527,10 +527,13 @@
 .portal-filters {
     background: white;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid var(--portal-primary);
+    border-right: 1px solid var(--portal-primary);
+    border-bottom: 1px solid var(--portal-primary);
+    border-left: 1px solid var(--portal-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     padding: 1rem;
     margin-bottom: 1.5rem;
-    border-top: 4px solid var(--portal-primary);
 }
 
 .portal-filters-grid {
