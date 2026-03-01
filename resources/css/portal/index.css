@@ -313,8 +313,11 @@
 .portal-table-card {
     background: white;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border-top: 4px solid var(--portal-primary);
+    border-right: 1px solid var(--portal-primary);
+    border-bottom: 1px solid var(--portal-primary);
+    border-left: 1px solid var(--portal-primary);
     margin-bottom: 1.5rem;
     overflow: hidden;
 }
