@@ -6,8 +6,7 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Gestão', 'url' => route('gestao.index')],
-            ['label' => 'Equipamentos', 'url' => route('admin.equipamentos.index')],
+            ['label' => 'Cadastros', 'url' => route('cadastros.index')],
             ['label' => 'Responsáveis']
         ]" />
     </x-slot>
@@ -37,18 +36,12 @@
 
             @if(auth()->user()->canPermissao('equipamentos', 'incluir'))
             <div class="flex justify-start gap-3">
-                <x-button href="{{ route('admin.equipamentos.responsaveis.create') }}" variant="success" size="sm">
+                <x-button href="{{ route('admin.responsaveis.create') }}" variant="success" size="sm">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
                     Novo Responsável
                 </x-button>
-                <a href="{{ route('admin.equipamentos.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-md transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Voltar
-                </a>
             </div>
             @endif
 
@@ -95,7 +88,7 @@
                     <x-table-cell :nowrap="true">
                         <div class="flex items-center gap-2">
                             @if(auth()->user()->canPermissao('equipamentos', 'ler'))
-                                <a href="{{ route('admin.equipamentos.responsaveis.show', $responsavel->id) }}" 
+                                <a href="{{ route('admin.responsaveis.show', $responsavel->id) }}" 
                                    class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -104,7 +97,7 @@
                                 </a>
                             @endif
                             @if(auth()->user()->canPermissao('equipamentos', 'alterar'))
-                                <a href="{{ route('admin.equipamentos.responsaveis.edit', $responsavel->id) }}" 
+                                <a href="{{ route('admin.responsaveis.edit', $responsavel->id) }}" 
                                    class="text-blue-600 hover:text-blue-900" title="Editar">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -112,7 +105,7 @@
                                 </a>
                             @endif
                             @if(auth()->user()->canPermissao('equipamentos', 'excluir'))
-                                <form action="{{ route('admin.equipamentos.responsaveis.destroy', $responsavel->id) }}" 
+                                <form action="{{ route('admin.responsaveis.destroy', $responsavel->id) }}" 
                                       method="POST" 
                                       class="inline-block"
                                       onsubmit="return confirm('Tem certeza que deseja excluir este responsável?')">

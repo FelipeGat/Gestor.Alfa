@@ -2,9 +2,8 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Gestão', 'url' => route('gestao.index')],
-            ['label' => 'Equipamentos', 'url' => route('admin.equipamentos.index')],
-            ['label' => 'Responsáveis', 'url' => route('admin.equipamentos.responsaveis.index')],
+            ['label' => 'Cadastros', 'url' => route('cadastros.index')],
+            ['label' => 'Responsáveis', 'url' => route('admin.responsaveis.index')],
             ['label' => 'Novo Responsável']
         ]" />
     </x-slot>
