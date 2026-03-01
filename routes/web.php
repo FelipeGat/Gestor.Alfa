@@ -284,17 +284,13 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
 
     // Equipamentos
     Route::prefix('equipamentos')->name('admin.equipamentos.')->group(function () {
+        // Rotas sem parâmetros dinâmicos (devem vir primeiro)
         Route::get('/', [\App\Http\Controllers\Admin\EquipamentoController::class, 'index'])->name('index');
         Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\Admin\EquipamentoController::class, 'store'])->name('store');
-        Route::get('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'show'])->name('show');
-        Route::get('/{equipamento}/editar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'edit'])->name('edit');
-        Route::put('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'update'])->name('update');
-        Route::delete('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'destroy'])->name('destroy');
-        Route::get('/{equipamento}/qrcode', [\App\Http\Controllers\Admin\EquipamentoController::class, 'gerarQrCode'])->name('qrcode');
         Route::get('/api/cliente/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListByCliente'])->name('api.cliente');
 
-        // Setores
+        // Setores (antes de /{equipamento})
         Route::prefix('setores')->name('setores.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'index'])->name('index');
             Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'create'])->name('create');
@@ -305,7 +301,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
             Route::delete('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'destroy'])->name('destroy');
         });
 
-        // Responsáveis
+        // Responsáveis (antes de /{equipamento})
         Route::prefix('responsaveis')->name('responsaveis.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'index'])->name('index');
             Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'create'])->name('create');
@@ -315,6 +311,13 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
             Route::put('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'update'])->name('update');
             Route::delete('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'destroy'])->name('destroy');
         });
+
+        // Rotas com parâmetros dinâmicos (devem vir por último)
+        Route::get('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'show'])->name('show');
+        Route::get('/{equipamento}/editar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'edit'])->name('edit');
+        Route::put('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'update'])->name('update');
+        Route::delete('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'destroy'])->name('destroy');
+        Route::get('/{equipamento}/qrcode', [\App\Http\Controllers\Admin\EquipamentoController::class, 'gerarQrCode'])->name('qrcode');
     });
 
     // Categorias Financeiras
