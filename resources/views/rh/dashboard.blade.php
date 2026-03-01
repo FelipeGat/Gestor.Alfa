@@ -8,21 +8,94 @@
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <form method="GET" action="{{ route('rh.dashboard') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Data início</label>
-                        <input type="date" name="inicio" value="{{ $filtros['inicio'] }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                @php
+                    $dataAtualFiltro = !empty($filtros['inicio'])
+                        ? \Carbon\Carbon::parse($filtros['inicio'])
+                        : now();
+                    $mesAnterior = $dataAtualFiltro->copy()->subMonth();
+                    $proximoMes = $dataAtualFiltro->copy()->addMonth();
+                    $mesesNomes = [
+                        1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+                        5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+                        9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro',
+                    ];
+                    $mesAtualNome = ($mesesNomes[$dataAtualFiltro->month] ?? $dataAtualFiltro->format('m')) . '/' . $dataAtualFiltro->year;
+                @endphp
+
+                <form method="GET" action="{{ route('rh.dashboard') }}" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('rh.dashboard', array_filter([
+                                    'inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'),
+                                    'fim' => $mesAnterior->endOfMonth()->format('Y-m-d'),
+                                    'funcionario_id' => $filtros['funcionario_id'] ?? null,
+                                ])) }}"
+                                    class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                                    title="Mês anterior">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+
+                                <div class="flex-1 text-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
+                                    {{ $mesAtualNome }}
+                                </div>
+
+                                <a href="{{ route('rh.dashboard', array_filter([
+                                    'inicio' => $proximoMes->startOfMonth()->format('Y-m-d'),
+                                    'fim' => $proximoMes->endOfMonth()->format('Y-m-d'),
+                                    'funcionario_id' => $filtros['funcionario_id'] ?? null,
+                                ])) }}"
+                                    class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm"
+                                    title="Próximo mês">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Funcionário</label>
+                            <select name="funcionario_id" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                <option value="">Todos</option>
+                                @foreach($funcionariosFiltro as $funcionarioFiltro)
+                                    <option value="{{ $funcionarioFiltro->id }}" @selected((string) ($filtros['funcionario_id'] ?? '') === (string) $funcionarioFiltro->id)>
+                                        {{ $funcionarioFiltro->nome }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="text-sm text-gray-600 md:text-right">
+                            Período: <span class="font-semibold">{{ $periodoLabel }}</span>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Data fim</label>
-                        <input type="date" name="fim" value="{{ $filtros['fim'] }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    </div>
-                    <div class="flex gap-2">
-                        <x-button type="submit" variant="primary" size="sm">Aplicar período</x-button>
-                        <x-button href="{{ route('rh.dashboard') }}" variant="secondary" size="sm">Limpar</x-button>
-                    </div>
-                    <div class="text-sm text-gray-600 md:text-right">
-                        Período: <span class="font-semibold">{{ $periodoLabel }}</span>
+
+                    <div x-data="{ mostrarPeriodo: false }">
+                        <button type="button" @click="mostrarPeriodo = !mostrarPeriodo" class="text-sm text-[#3f9cae] hover:text-[#2d7a8a] font-medium flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="mostrarPeriodo ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span x-text="mostrarPeriodo ? 'Ocultar período personalizado' : 'Escolher período personalizado'"></span>
+                        </button>
+
+                        <div x-show="mostrarPeriodo" x-transition class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data início</label>
+                                <input type="date" name="inicio" value="{{ $filtros['inicio'] }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data fim</label>
+                                <input type="date" name="fim" value="{{ $filtros['fim'] }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div class="flex sm:items-end gap-2">
+                                <x-button type="submit" variant="primary" size="sm">Filtrar</x-button>
+                                <x-button href="{{ route('rh.dashboard') }}" variant="secondary" size="sm">Limpar</x-button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -32,6 +105,7 @@
                     'faltas_hoje' => ['color' => '#ef4444', 'text' => 'text-red-600'],
                     'atrasos_hoje' => ['color' => '#f59e0b', 'text' => 'text-amber-600'],
                     'saidas_antecipadas' => ['color' => '#3b82f6', 'text' => 'text-blue-600'],
+                    'trabalho_domingo_feriado' => ['color' => '#7c3aed', 'text' => 'text-violet-600'],
                     'atestados_mes' => ['color' => '#8b5cf6', 'text' => 'text-violet-600'],
                     'banco_horas_acima_20h' => ['color' => '#16a34a', 'text' => 'text-green-600'],
                     'banco_horas_abaixo_menos_20h' => ['color' => '#dc2626', 'text' => 'text-red-700'],

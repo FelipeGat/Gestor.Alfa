@@ -20,6 +20,8 @@ class Jornada extends Model
         'tolerancia_saida_min',
         'tolerancia_intervalo_min',
         'minimo_horas_para_extra',
+        'percentual_hora_extra_semana',
+        'percentual_hora_extra_domingo_feriado',
         'permitir_ponto_fora_horario',
         'ativo',
     ];
@@ -32,6 +34,8 @@ class Jornada extends Model
         'tolerancia_saida_min' => 'integer',
         'tolerancia_intervalo_min' => 'integer',
         'minimo_horas_para_extra' => 'integer',
+        'percentual_hora_extra_semana' => 'decimal:2',
+        'percentual_hora_extra_domingo_feriado' => 'decimal:2',
         'permitir_ponto_fora_horario' => 'boolean',
         'ativo' => 'boolean',
     ];

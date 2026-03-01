@@ -10,6 +10,7 @@ use App\Models\FuncionarioBeneficio;
 use App\Models\FuncionarioDocumento;
 use App\Models\FuncionarioEpi;
 use App\Models\FuncionarioJornada;
+use App\Models\Epi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -22,7 +23,8 @@ class FuncionarioRhDadosController extends Controller
     public function storeDocumento(Request $request, Funcionario $funcionario): RedirectResponse
     {
         $dados = $request->validate([
-            'tipo' => ['required', 'string', 'max:100'],
+            'tipo' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => trim((string) $request->input('tipo_customizado')) === '')],
+            'tipo_customizado' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => strtoupper(trim((string) $request->input('tipo'))) === 'OUTRO')],
             'numero' => ['nullable', 'string', 'max:120'],
             'data_emissao' => ['nullable', 'date'],
             'data_vencimento' => ['nullable', 'date', 'after_or_equal:data_emissao'],
@@ -30,6 +32,9 @@ class FuncionarioRhDadosController extends Controller
             'arquivo_upload' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,webp,doc,docx', 'max:5120'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['tipo'] = $this->resolverTipoDocumento($dados);
+        unset($dados['tipo_customizado']);
 
         if ($request->hasFile('arquivo_upload')) {
             $dados['arquivo'] = $request->file('arquivo_upload')->store('rh/documentos-funcionarios', 'public');
@@ -47,7 +52,8 @@ class FuncionarioRhDadosController extends Controller
         $this->assertPertence($funcionario, $documento->funcionario_id);
 
         $dados = $request->validate([
-            'tipo' => ['required', 'string', 'max:100'],
+            'tipo' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => trim((string) $request->input('tipo_customizado')) === '')],
+            'tipo_customizado' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => strtoupper(trim((string) $request->input('tipo'))) === 'OUTRO')],
             'numero' => ['nullable', 'string', 'max:120'],
             'data_emissao' => ['nullable', 'date'],
             'data_vencimento' => ['nullable', 'date', 'after_or_equal:data_emissao'],
@@ -55,6 +61,9 @@ class FuncionarioRhDadosController extends Controller
             'arquivo_upload' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,webp,doc,docx', 'max:5120'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['tipo'] = $this->resolverTipoDocumento($dados);
+        unset($dados['tipo_customizado']);
 
         $arquivoAnterior = $documento->arquivo;
 
@@ -106,8 +115,13 @@ class FuncionarioRhDadosController extends Controller
 
     public function storeEpi(Request $request, Funcionario $funcionario): RedirectResponse
     {
+        if ((string) $request->input('epi_id') === '__NOVO__') {
+            $request->merge(['epi_id' => null]);
+        }
+
         $dados = $request->validate([
-            'epi_id' => ['required', 'exists:epis,id'],
+            'epi_id' => ['nullable', Rule::exists('epis', 'id'), Rule::requiredIf(fn () => trim((string) $request->input('epi_nome_customizado')) === '')],
+            'epi_nome_customizado' => ['nullable', 'string', 'max:120', Rule::requiredIf(fn () => trim((string) $request->input('epi_id')) === '')],
             'data_entrega' => ['required', 'date'],
             'marca' => ['required', 'string', 'max:120'],
             'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
@@ -116,6 +130,9 @@ class FuncionarioRhDadosController extends Controller
             'data_vencimento' => ['required', 'date', 'after_or_equal:data_entrega'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['epi_id'] = $this->resolverEpiId($dados);
+        unset($dados['epi_nome_customizado']);
 
         $dados['data_prevista_troca'] = $dados['data_vencimento'];
 
@@ -128,8 +145,13 @@ class FuncionarioRhDadosController extends Controller
     {
         $this->assertPertence($funcionario, $funcionarioEpi->funcionario_id);
 
+        if ((string) $request->input('epi_id') === '__NOVO__') {
+            $request->merge(['epi_id' => null]);
+        }
+
         $dados = $request->validate([
-            'epi_id' => ['required', 'exists:epis,id'],
+            'epi_id' => ['nullable', Rule::exists('epis', 'id'), Rule::requiredIf(fn () => trim((string) $request->input('epi_nome_customizado')) === '')],
+            'epi_nome_customizado' => ['nullable', 'string', 'max:120', Rule::requiredIf(fn () => trim((string) $request->input('epi_id')) === '')],
             'data_entrega' => ['required', 'date'],
             'marca' => ['required', 'string', 'max:120'],
             'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
@@ -138,6 +160,9 @@ class FuncionarioRhDadosController extends Controller
             'data_vencimento' => ['required', 'date', 'after_or_equal:data_entrega'],
             'status' => ['required', 'string', 'max:50'],
         ]);
+
+        $dados['epi_id'] = $this->resolverEpiId($dados);
+        unset($dados['epi_nome_customizado']);
 
         $dados['data_prevista_troca'] = $dados['data_vencimento'];
 
@@ -357,6 +382,42 @@ class FuncionarioRhDadosController extends Controller
     private function assertPertence(Funcionario $funcionario, int $funcionarioId): void
     {
         abort_if($funcionario->id !== $funcionarioId, 404);
+    }
+
+    private function resolverTipoDocumento(array $dados): string
+    {
+        $tipoSelecionado = trim((string) ($dados['tipo'] ?? ''));
+        $tipoCustomizado = trim((string) ($dados['tipo_customizado'] ?? ''));
+
+        if ($tipoCustomizado !== '' && strtoupper($tipoSelecionado) === 'OUTRO') {
+            return $tipoCustomizado;
+        }
+
+        if ($tipoCustomizado !== '' && $tipoSelecionado === '') {
+            return $tipoCustomizado;
+        }
+
+        return $tipoSelecionado;
+    }
+
+    private function resolverEpiId(array $dados): int
+    {
+        if (!empty($dados['epi_id'])) {
+            return (int) $dados['epi_id'];
+        }
+
+        $nomeEpi = trim((string) ($dados['epi_nome_customizado'] ?? ''));
+
+        $epi = Epi::query()->firstOrCreate(
+            ['nome' => $nomeEpi],
+            [
+                'ca' => $dados['numero_ca'] ?? 'N/I',
+                'validade_ca' => null,
+                'vida_util_meses' => null,
+            ]
+        );
+
+        return (int) $epi->id;
     }
 
 }

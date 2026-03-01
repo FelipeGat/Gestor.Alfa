@@ -25,11 +25,17 @@ class DashboardRhController extends Controller
     public function index(Request $request)
     {
         [$inicioPeriodo, $fimPeriodo, $filtros, $filtrosQuery] = $this->resolverPeriodo($request);
+        $funcionarioId = !empty($filtros['funcionario_id']) ? (int) $filtros['funcionario_id'] : null;
 
-        $hoje = $fimPeriodo->copy()->startOfDay();
+        $hoje = Carbon::today()->startOfDay();
         $limite = $hoje->copy()->addDays(30);
 
-        $data = $this->montarDadosDashboard($hoje, $limite, $inicioPeriodo, $fimPeriodo);
+        $data = $this->montarDadosDashboard($hoje, $limite, $inicioPeriodo, $fimPeriodo, $funcionarioId);
+
+        $funcionariosFiltro = Funcionario::query()
+            ->where('ativo', true)
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
 
         return view('rh.dashboard', [
             'funcionariosAtivos' => $data['resumo']['funcionarios_ativos'],
@@ -42,6 +48,7 @@ class DashboardRhController extends Controller
             'risco' => $data['risco'],
             'filtros' => $filtros,
             'filtrosQuery' => $filtrosQuery,
+            'funcionariosFiltro' => $funcionariosFiltro,
             'periodoLabel' => $inicioPeriodo->format('d/m/Y') . ' até ' . $fimPeriodo->format('d/m/Y'),
         ]);
     }
@@ -49,10 +56,11 @@ class DashboardRhController extends Controller
     public function relatorio(Request $request, string $indicador)
     {
         [$inicioPeriodo, $fimPeriodo, $filtros, $filtrosQuery] = $this->resolverPeriodo($request);
+        $funcionarioId = !empty($filtros['funcionario_id']) ? (int) $filtros['funcionario_id'] : null;
 
-        $hoje = $fimPeriodo->copy()->startOfDay();
+        $hoje = Carbon::today()->startOfDay();
         $limite = $hoje->copy()->addDays(30);
-        $data = $this->montarDadosDashboard($hoje, $limite, $inicioPeriodo, $fimPeriodo);
+        $data = $this->montarDadosDashboard($hoje, $limite, $inicioPeriodo, $fimPeriodo, $funcionarioId);
 
         $relatorios = [
             ...$data['monitoramento'],
@@ -85,6 +93,7 @@ class DashboardRhController extends Controller
         $validated = $request->validate([
             'inicio' => ['nullable', 'date'],
             'fim' => ['nullable', 'date'],
+            'funcionario_id' => ['nullable', 'integer', 'exists:funcionarios,id'],
         ]);
 
         $inicioInformado = $validated['inicio'] ?? null;
@@ -105,37 +114,45 @@ class DashboardRhController extends Controller
         $filtros = [
             'inicio' => $inicio->toDateString(),
             'fim' => $fim->toDateString(),
+            'funcionario_id' => $validated['funcionario_id'] ?? null,
         ];
 
         $filtrosQuery = array_filter([
             'inicio' => $inicioInformado,
             'fim' => $fimInformado,
+            'funcionario_id' => $validated['funcionario_id'] ?? null,
         ]);
 
         return [$inicio, $fim, $filtros, $filtrosQuery];
     }
 
-    private function montarDadosDashboard(Carbon $hoje, Carbon $limite, Carbon $inicioPeriodo, Carbon $fimPeriodo): array
+    private function montarDadosDashboard(Carbon $hoje, Carbon $limite, Carbon $inicioPeriodo, Carbon $fimPeriodo, ?int $funcionarioId = null): array
     {
         $inicioPeriodo = $inicioPeriodo->copy()->startOfDay();
         $fimPeriodo = $fimPeriodo->copy()->endOfDay();
 
-        $funcionariosAtivos = Funcionario::query()
-            ->where('ativo', true)
-            ->get(['id', 'nome']);
+        $funcionariosAtivosQuery = Funcionario::query()->where('ativo', true);
+        if ($funcionarioId) {
+            $funcionariosAtivosQuery->where('id', $funcionarioId);
+        }
+
+        $funcionariosAtivos = $funcionariosAtivosQuery->get(['id', 'nome']);
 
         $funcionariosAtivosIds = $funcionariosAtivos->pluck('id')->all();
-        $funcionariosComJornadaAtiva = $this->funcionariosComJornadaAtiva($hoje);
+        $funcionariosComJornadaAtiva = $this->funcionariosComJornadaAtiva($hoje, $funcionariosAtivosIds);
 
         $monitoramento = $this->montarMonitoramento($hoje, $inicioPeriodo, $fimPeriodo, $funcionariosAtivos, $funcionariosAtivosIds, $funcionariosComJornadaAtiva);
-        $performance = $this->montarPerformance($inicioPeriodo, $fimPeriodo);
-        $risco = $this->montarRisco($hoje, $limite, $funcionariosAtivos, $funcionariosComJornadaAtiva);
+        $performance = $this->montarPerformance($inicioPeriodo, $fimPeriodo, $funcionariosAtivosIds);
+        $risco = $this->montarRisco($hoje, $limite, $funcionariosAtivos, $funcionariosComJornadaAtiva, $funcionariosAtivosIds);
 
-        $totaisBancoHoras = Atendimento::query()
-            ->whereNotNull('funcionario_id')
-            ->whereBetween('created_at', [$inicioPeriodo, $fimPeriodo])
-            ->selectRaw('COALESCE(SUM(tempo_execucao_segundos), 0) as total_segundos')
-            ->value('total_segundos') ?? 0;
+        $totaisBancoHoras = 0;
+        if (!empty($funcionariosAtivosIds)) {
+            $totaisBancoHoras = Atendimento::query()
+                ->whereIn('funcionario_id', $funcionariosAtivosIds)
+                ->whereBetween('created_at', [$inicioPeriodo, $fimPeriodo])
+                ->selectRaw('COALESCE(SUM(tempo_execucao_segundos), 0) as total_segundos')
+                ->value('total_segundos') ?? 0;
+        }
 
         return [
             'resumo' => [
@@ -151,21 +168,128 @@ class DashboardRhController extends Controller
     private function montarMonitoramento(Carbon $hoje, Carbon $inicioMes, Carbon $fimMes, Collection $funcionariosAtivos, array $funcionariosAtivosIds, array $funcionariosComJornadaAtiva): array
     {
         $baseFaltasIds = !empty($funcionariosComJornadaAtiva) ? $funcionariosComJornadaAtiva : $funcionariosAtivosIds;
+        $jornadasHoje = $this->jornadasVigentesPorFuncionarioNoDia($hoje, $baseFaltasIds);
+        $idsTrabalhaHoje = collect($jornadasHoje)
+            ->filter(fn (FuncionarioJornada $vinculo) => $this->funcionarioTrabalhaNoDia($vinculo, $hoje))
+            ->keys()
+            ->all();
+
+        if (empty($idsTrabalhaHoje)) {
+            $idsTrabalhaHoje = $baseFaltasIds;
+        }
 
         $usaRegistroLegal = Schema::hasTable('registro_pontos_portal')
             && Schema::hasTable('funcionario_jornadas')
             && Schema::hasTable('jornadas');
 
         if ($usaRegistroLegal) {
-            $jornadasHoje = $this->jornadasVigentesPorFuncionarioNoDia($hoje, $baseFaltasIds);
+            $dataHoje = $hoje->toDateString();
+            $filtroDiaAtual = function ($query) use ($dataHoje) {
+                $query->whereDate('data_referencia', $dataHoje)
+                    ->orWhereDate('entrada_em', $dataHoje)
+                    ->orWhereDate('saida_em', $dataHoje);
+            };
+
+            $jornadasHojeTrabalha = collect($jornadasHoje)
+                ->filter(fn (FuncionarioJornada $vinculo) => $this->funcionarioTrabalhaNoDia($vinculo, $hoje));
+
+            $funcionariosAtivosPorId = $funcionariosAtivos->keyBy('id');
+            $registrosPontoHoje = RegistroPontoPortal::query()
+                ->whereIn('funcionario_id', $funcionariosAtivosIds)
+                ->where(function ($query) use ($filtroDiaAtual) {
+                    $filtroDiaAtual($query);
+                })
+                ->get();
+
+            $trabalhoDomingoFeriadoHoje = $registrosPontoHoje
+                ->map(function (RegistroPontoPortal $registro) use ($hoje, $jornadasHoje, $funcionariosAtivosPorId) {
+                    $funcionarioId = (int) $registro->funcionario_id;
+                    $vinculo = $jornadasHoje[$funcionarioId] ?? null;
+
+                    $ehDomingoOuFeriadoHoje = $hoje->isSunday()
+                        || ($vinculo instanceof FuncionarioJornada && $this->ehFeriadoAtreladoNaJornada($vinculo, $hoje));
+
+                    $trabalhaNoDia = $vinculo instanceof FuncionarioJornada
+                        && $this->funcionarioTrabalhaNoDia($vinculo, $hoje);
+
+                    if (!$ehDomingoOuFeriadoHoje && $trabalhaNoDia) {
+                        return null;
+                    }
+
+                    $segundosTrabalhados = $this->calcularSegundosTrabalhadosRegistroLegal($registro);
+                    if ($segundosTrabalhados <= 0) {
+                        return null;
+                    }
+
+                    $jornada = $vinculo?->jornada;
+                    $horaEntradaBase = $jornada?->hora_entrada_padrao ?: $jornada?->hora_inicio;
+                    $horaSaidaBase = $jornada?->hora_saida_padrao ?: $jornada?->hora_fim;
+                    $intervaloBase = (int) ($jornada?->intervalo_minutos ?? 60);
+
+                    $entradaPrevista = $horaEntradaBase ? Carbon::parse($hoje->toDateString() . ' ' . $horaEntradaBase) : null;
+                    $saidaPrevista = $horaSaidaBase ? Carbon::parse($hoje->toDateString() . ' ' . $horaSaidaBase) : null;
+                    if ($entradaPrevista && $saidaPrevista && $saidaPrevista->lessThanOrEqualTo($entradaPrevista)) {
+                        $saidaPrevista->addDay();
+                    }
+
+                    $intervaloInicioPrevisto = $entradaPrevista ? $entradaPrevista->copy()->addHours(4) : null;
+                    $intervaloFimPrevisto = $intervaloInicioPrevisto ? $intervaloInicioPrevisto->copy()->addMinutes($intervaloBase) : null;
+
+                    $entradaRegistrada = $registro->entrada_em ? Carbon::parse($registro->entrada_em) : null;
+                    $intervaloInicioRegistrado = $registro->intervalo_inicio_em ? Carbon::parse($registro->intervalo_inicio_em) : null;
+                    $intervaloFimRegistrado = $registro->intervalo_fim_em ? Carbon::parse($registro->intervalo_fim_em) : null;
+                    $saidaRegistrada = $registro->saida_em ? Carbon::parse($registro->saida_em) : null;
+
+                    $atrasoEntrada = ($entradaPrevista && $entradaRegistrada && $entradaRegistrada->gt($entradaPrevista))
+                        ? $entradaRegistrada->diffInMinutes($entradaPrevista)
+                        : 0;
+
+                    $atrasoIntervaloInicio = ($intervaloInicioPrevisto && $intervaloInicioRegistrado && $intervaloInicioRegistrado->gt($intervaloInicioPrevisto))
+                        ? $intervaloInicioRegistrado->diffInMinutes($intervaloInicioPrevisto)
+                        : 0;
+
+                    $retornoAdiantado = ($intervaloFimPrevisto && $intervaloFimRegistrado && $intervaloFimRegistrado->lt($intervaloFimPrevisto))
+                        ? $intervaloFimPrevisto->diffInMinutes($intervaloFimRegistrado)
+                        : 0;
+
+                    $saidaAposHorario = ($saidaPrevista && $saidaRegistrada && $saidaRegistrada->gt($saidaPrevista))
+                        ? $saidaRegistrada->diffInMinutes($saidaPrevista)
+                        : 0;
+
+                    $percentualExtra = (float) ($jornada?->percentual_hora_extra_domingo_feriado ?? 100);
+
+                    $nomeFuncionario = optional($funcionariosAtivosPorId->get($funcionarioId))->nome
+                        ?? optional($vinculo?->funcionario)->nome
+                        ?? '—';
+
+                    return [
+                        'funcionario' => $nomeFuncionario,
+                        'dia' => $hoje->format('d/m/Y'),
+                        'entrada' => $entradaRegistrada?->format('H:i') ?? '—',
+                        'atraso_entrada' => $atrasoEntrada,
+                        'intervalo_inicio' => $intervaloInicioRegistrado?->format('H:i') ?? '—',
+                        'atraso_intervalo_inicio' => $atrasoIntervaloInicio,
+                        'intervalo_fim' => $intervaloFimRegistrado?->format('H:i') ?? '—',
+                        'retorno_adiantado' => $retornoAdiantado,
+                        'saida' => $saidaRegistrada?->format('H:i') ?? '—',
+                        'saida_apos_horario' => $saidaAposHorario,
+                        'extra_segundos' => $segundosTrabalhados,
+                        'extra_percentual' => $percentualExtra,
+                    ];
+                })
+                ->filter()
+                ->values();
+
             $registrosHoje = RegistroPontoPortal::query()
-                ->whereIn('funcionario_id', array_keys($jornadasHoje))
-                ->whereDate('data_referencia', $hoje->toDateString())
+                ->whereIn('funcionario_id', $jornadasHojeTrabalha->keys()->all())
+                ->where(function ($query) use ($filtroDiaAtual) {
+                    $filtroDiaAtual($query);
+                })
                 ->get()
                 ->keyBy('funcionario_id');
 
             $faltasHoje = $funcionariosAtivos
-                ->whereIn('id', array_keys($jornadasHoje))
+                ->whereIn('id', $jornadasHojeTrabalha->keys()->all())
                 ->reject(function (Funcionario $funcionario) use ($registrosHoje) {
                     $registro = $registrosHoje->get($funcionario->id);
 
@@ -173,7 +297,7 @@ class DashboardRhController extends Controller
                 })
                 ->values();
 
-            $atrasosHoje = collect($jornadasHoje)
+            $atrasosHoje = $jornadasHojeTrabalha
                 ->map(function (FuncionarioJornada $vinculo, int $funcionarioId) use ($registrosHoje, $hoje) {
                     $registro = $registrosHoje->get($funcionarioId);
                     if (!$registro || !$registro->entrada_em || !$vinculo->jornada) {
@@ -204,7 +328,7 @@ class DashboardRhController extends Controller
                 ->sortByDesc('atraso_minutos')
                 ->values();
 
-            $saidasAntecipadas = collect($jornadasHoje)
+            $saidasAntecipadas = $jornadasHojeTrabalha
                 ->map(function (FuncionarioJornada $vinculo, int $funcionarioId) use ($registrosHoje, $hoje) {
                     $registro = $registrosHoje->get($funcionarioId);
                     if (!$registro || !$registro->saida_em || !$vinculo->jornada) {
@@ -238,8 +362,9 @@ class DashboardRhController extends Controller
                 ->sortByDesc('antecipacao_minutos')
                 ->values();
         } else {
+            $trabalhoDomingoFeriadoHoje = collect();
             $registrosHojeIds = Atendimento::query()
-                ->whereNotNull('funcionario_id')
+                ->whereIn('funcionario_id', $idsTrabalhaHoje)
                 ->whereDate('created_at', $hoje)
                 ->pluck('funcionario_id')
                 ->unique()
@@ -247,13 +372,13 @@ class DashboardRhController extends Controller
                 ->all();
 
             $faltasHoje = $funcionariosAtivos
-                ->whereIn('id', $baseFaltasIds)
+                ->whereIn('id', $idsTrabalhaHoje)
                 ->reject(fn (Funcionario $funcionario) => in_array($funcionario->id, $registrosHojeIds, true))
                 ->values();
 
             $atrasosHoje = Atendimento::query()
                 ->with('funcionario:id,nome')
-                ->whereNotNull('funcionario_id')
+                ->whereIn('funcionario_id', $idsTrabalhaHoje)
                 ->whereNotNull('data_inicio_agendamento')
                 ->whereNotNull('iniciado_em')
                 ->whereDate('data_inicio_agendamento', $hoje)
@@ -263,7 +388,7 @@ class DashboardRhController extends Controller
 
             $saidasAntecipadas = Atendimento::query()
                 ->with('funcionario:id,nome')
-                ->whereNotNull('funcionario_id')
+                ->whereIn('funcionario_id', $idsTrabalhaHoje)
                 ->whereNotNull('data_fim_agendamento')
                 ->whereNotNull('finalizado_em')
                 ->whereDate('data_fim_agendamento', $hoje)
@@ -276,6 +401,7 @@ class DashboardRhController extends Controller
         if (Schema::hasTable('afastamentos')) {
             $atestadosMesRows = Afastamento::query()
                 ->with('funcionario:id,nome')
+                ->whereIn('funcionario_id', $funcionariosAtivosIds)
                 ->whereRaw('LOWER(tipo) like ?', ['%atestado%'])
                 ->whereBetween('data_inicio', [$inicioMes->toDateString(), $fimMes->toDateString()])
                 ->orderByDesc('data_inicio')
@@ -356,6 +482,22 @@ class DashboardRhController extends Controller
                         ];
                     })->all(),
             ],
+            'trabalho_domingo_feriado' => [
+                'title' => 'Trabalho em domingo/feriado hoje',
+                'description' => 'Registros de ponto em dia não previsto na jornada, com destaque para horas extras do dia.',
+                'count' => $trabalhoDomingoFeriadoHoje->count(),
+                'columns' => ['Funcionário', 'Dia', 'Entrada', 'Atraso entrada', 'Saída almoço (atraso)', 'Retorno almoço (adiantado)', 'Saída (após horário)', 'Extra do dia'],
+                'rows' => $trabalhoDomingoFeriadoHoje->map(fn (array $item) => [
+                    $item['funcionario'],
+                    $item['dia'],
+                    $item['entrada'],
+                    $item['atraso_entrada'] . ' min',
+                    $item['intervalo_inicio'] . ' (+' . $item['atraso_intervalo_inicio'] . ' min)',
+                    $item['intervalo_fim'] . ' (-' . $item['retorno_adiantado'] . ' min)',
+                    $item['saida'] . ' (+' . $item['saida_apos_horario'] . ' min)',
+                    $this->formatarSegundos($item['extra_segundos']) . ' @ ' . number_format($item['extra_percentual'], 0, ',', '.') . '%',
+                ])->all(),
+            ],
             'atestados_mes' => [
                 'title' => 'Atestados no Mês',
                 'description' => 'Afastamentos do tipo atestado no mês corrente.',
@@ -400,11 +542,44 @@ class DashboardRhController extends Controller
         ];
     }
 
-    private function montarPerformance(Carbon $inicioPeriodo, Carbon $fimPeriodo): array
+    private function montarPerformance(Carbon $inicioPeriodo, Carbon $fimPeriodo, array $funcionariosIds): array
     {
+        if (empty($funcionariosIds)) {
+            return [
+                'media_avaliacao_funcionario' => [
+                    'title' => 'Média de avaliação por funcionário',
+                    'description' => 'Score operacional (1-5) calculado a partir da pontualidade dos atendimentos agendados.',
+                    'count' => 0,
+                    'columns' => ['Funcionário', 'Média', 'Atendimentos Avaliados', 'Índice de Atraso'],
+                    'rows' => [],
+                ],
+                'ranking_top5_tecnicos' => [
+                    'title' => 'Ranking Top 5 técnicos',
+                    'description' => 'Classificação por maior média de avaliação operacional no período filtrado.',
+                    'count' => 0,
+                    'columns' => ['Posição', 'Funcionário', 'Média', 'Atendimentos Avaliados'],
+                    'rows' => [],
+                ],
+                'ranking_maior_indice_atraso' => [
+                    'title' => 'Ranking de maior índice de atraso',
+                    'description' => 'Percentual de atendimentos iniciados com atraso no período filtrado.',
+                    'count' => 0,
+                    'columns' => ['Posição', 'Funcionário', 'Índice de Atraso', 'Atendimentos Avaliados'],
+                    'rows' => [],
+                ],
+                'ultima_avaliacao_negativa' => [
+                    'title' => 'Última avaliação negativa recebida',
+                    'description' => 'Último atendimento com nota operacional baixa (<= 2).',
+                    'count' => 0,
+                    'columns' => ['Atendimento', 'Funcionário', 'Data Prevista', 'Início Registrado', 'Atraso', 'Nota'],
+                    'rows' => [],
+                ],
+            ];
+        }
+
         $atendimentos = Atendimento::query()
             ->with('funcionario:id,nome')
-            ->whereNotNull('funcionario_id')
+            ->whereIn('funcionario_id', $funcionariosIds)
             ->whereNotNull('data_inicio_agendamento')
             ->whereBetween('data_inicio_agendamento', [$inicioPeriodo, $fimPeriodo])
             ->orderByDesc('data_inicio_agendamento')
@@ -529,13 +704,14 @@ class DashboardRhController extends Controller
         ];
     }
 
-    private function montarRisco(Carbon $hoje, Carbon $limite, Collection $funcionariosAtivos, array $funcionariosComJornadaAtiva): array
+    private function montarRisco(Carbon $hoje, Carbon $limite, Collection $funcionariosAtivos, array $funcionariosComJornadaAtiva, array $funcionariosIds): array
     {
         $documentosVencendoRows = [];
         $asoVencidoRows = [];
         if (Schema::hasTable('funcionario_documentos')) {
             $documentosVencendoRows = FuncionarioDocumento::query()
                 ->with('funcionario:id,nome')
+                ->whereIn('funcionario_id', $funcionariosIds)
                 ->whereNotNull('data_vencimento')
                 ->whereBetween('data_vencimento', [$hoje->toDateString(), $limite->toDateString()])
                 ->orderBy('data_vencimento')
@@ -543,6 +719,7 @@ class DashboardRhController extends Controller
 
             $asoVencidoRows = FuncionarioDocumento::query()
                 ->with('funcionario:id,nome')
+                ->whereIn('funcionario_id', $funcionariosIds)
                 ->whereRaw('LOWER(tipo) like ?', ['%aso%'])
                 ->whereNotNull('data_vencimento')
                 ->whereDate('data_vencimento', '<', $hoje)
@@ -554,6 +731,7 @@ class DashboardRhController extends Controller
         if (Schema::hasTable('funcionario_epis')) {
             $episVencidosRows = FuncionarioEpi::query()
                 ->with(['funcionario:id,nome', 'epi:id,nome,validade_ca'])
+                ->whereIn('funcionario_id', $funcionariosIds)
                 ->where(function ($query) use ($hoje) {
                     $query->where(function ($sub) use ($hoje) {
                         $sub->whereNotNull('data_prevista_troca')
@@ -571,6 +749,7 @@ class DashboardRhController extends Controller
         if (Schema::hasTable('ferias')) {
             $feriasVencidasRows = Ferias::query()
                 ->with('funcionario:id,nome')
+                ->whereIn('funcionario_id', $funcionariosIds)
                 ->whereNotNull('periodo_gozo_fim')
                 ->whereDate('periodo_gozo_fim', '<', $hoje)
                 ->where('status', '!=', 'concluida')
@@ -645,13 +824,18 @@ class DashboardRhController extends Controller
         ];
     }
 
-    private function funcionariosComJornadaAtiva(Carbon $data): array
+    private function funcionariosComJornadaAtiva(Carbon $data, array $funcionariosIds = []): array
     {
         if (!Schema::hasTable('funcionario_jornadas')) {
             return [];
         }
 
-        return FuncionarioJornada::query()
+        $query = FuncionarioJornada::query();
+        if (!empty($funcionariosIds)) {
+            $query->whereIn('funcionario_id', $funcionariosIds);
+        }
+
+        return $query
             ->whereDate('data_inicio', '<=', $data->toDateString())
             ->where(function ($query) use ($data) {
                 $query->whereNull('data_fim')
@@ -670,7 +854,12 @@ class DashboardRhController extends Controller
         }
 
         return FuncionarioJornada::query()
-            ->with(['funcionario:id,nome', 'jornada:id,hora_inicio,hora_fim,hora_entrada_padrao,hora_saida_padrao,intervalo_minutos'])
+            ->with([
+                'funcionario:id,nome',
+                'jornada:id,hora_inicio,hora_fim,hora_entrada_padrao,hora_saida_padrao,intervalo_minutos,tipo_jornada,dias_trabalhados',
+                'jornada.escalas:jornada_id,dia_semana,hora_entrada,hora_saida,intervalo_minutos',
+                'jornada.feriados:id,nome,data,ativo,recorrente_anual',
+            ])
             ->whereIn('funcionario_id', $funcionariosIds)
             ->whereDate('data_inicio', '<=', $data->toDateString())
             ->where(function ($query) use ($data) {
@@ -682,6 +871,62 @@ class DashboardRhController extends Controller
             ->groupBy('funcionario_id')
             ->map(fn (Collection $itens) => $itens->first())
             ->all();
+    }
+
+    private function funcionarioTrabalhaNoDia(FuncionarioJornada $vinculo, Carbon $dia): bool
+    {
+        $jornada = $vinculo->jornada;
+        if (!$jornada instanceof Jornada) {
+            return $dia->isWeekday();
+        }
+
+        $diaSemana = (int) $dia->dayOfWeekIso;
+        $trabalha = false;
+
+        if (($jornada->tipo_jornada ?? 'fixa') === 'escala') {
+            $trabalha = $jornada->escalas->contains(fn ($escala) => (int) $escala->dia_semana === $diaSemana);
+        } else {
+            $dias = collect($jornada->dias_trabalhados ?? [1, 2, 3, 4, 5])
+                ->map(fn ($d) => (int) $d)
+                ->all();
+            $trabalha = in_array($diaSemana, $dias, true);
+        }
+
+        if (!$trabalha) {
+            return false;
+        }
+
+        return !$jornada->feriados->contains(function ($feriado) use ($dia) {
+            if (!$feriado->ativo || !$feriado->data) {
+                return false;
+            }
+
+            if ($feriado->recorrente_anual) {
+                return $feriado->data->format('m-d') === $dia->format('m-d');
+            }
+
+            return $feriado->data->toDateString() === $dia->toDateString();
+        });
+    }
+
+    private function ehFeriadoAtreladoNaJornada(FuncionarioJornada $vinculo, Carbon $dia): bool
+    {
+        $jornada = $vinculo->jornada;
+        if (!$jornada instanceof Jornada) {
+            return false;
+        }
+
+        return $jornada->feriados->contains(function ($feriado) use ($dia) {
+            if (!$feriado->ativo || !$feriado->data) {
+                return false;
+            }
+
+            if ($feriado->recorrente_anual) {
+                return $feriado->data->format('m-d') === $dia->format('m-d');
+            }
+
+            return $feriado->data->toDateString() === $dia->toDateString();
+        });
     }
 
     private function calcularBancoHorasPorFuncionario(Carbon $inicio, Carbon $fim, array $funcionariosIds): array
@@ -791,7 +1036,7 @@ class DashboardRhController extends Controller
             $fim->addDay();
         }
 
-        $segundos = $fim->diffInSeconds($inicio);
+        $segundos = $fim->diffInSeconds($inicio, true);
         $intervalo = ((int) $jornada->intervalo_minutos) * 60;
 
         return max(0, $segundos - $intervalo);
@@ -851,5 +1096,31 @@ class DashboardRhController extends Controller
         $minutos = intdiv($valor % 3600, 60);
 
         return sprintf('%s%02d:%02d', $sinal, $horas, $minutos);
+    }
+
+    private function calcularSegundosTrabalhadosRegistroLegal(RegistroPontoPortal $registro): int
+    {
+        if (!$registro->entrada_em || !$registro->saida_em) {
+            return 0;
+        }
+
+        $entrada = Carbon::parse($registro->entrada_em);
+        $saida = Carbon::parse($registro->saida_em);
+
+        if ($saida->lessThanOrEqualTo($entrada)) {
+            return 0;
+        }
+
+        $segundos = $saida->diffInSeconds($entrada, true);
+
+        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
+            $inicioIntervalo = Carbon::parse($registro->intervalo_inicio_em);
+            $fimIntervalo = Carbon::parse($registro->intervalo_fim_em);
+            if ($fimIntervalo->gt($inicioIntervalo)) {
+                $segundos -= $fimIntervalo->diffInSeconds($inicioIntervalo, true);
+            }
+        }
+
+        return max(0, $segundos);
     }
 }
