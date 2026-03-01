@@ -33,8 +33,8 @@
             <!-- Título e KPIs -->
             <div class="mt-4">
                 <h2 class="text-lg font-bold text-gray-900" id="agendaTitulo"></h2>
-                
-                <div class="grid grid-cols-3 gap-3 mt-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
                     <div class="rounded-lg p-3 bg-white border border-gray-200">
                         <div class="text-xs font-bold text-gray-500 uppercase">Período</div>
                         <div class="text-2xl font-bold text-gray-900 mt-1" id="kpiPeriodo">0</div>
