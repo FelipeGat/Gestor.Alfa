@@ -127,29 +127,13 @@
                                 </span>
                             @endif
                         </x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.equipamentos.edit', $equipamento->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900" title="Editar">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </a>
-                                @if(auth()->user()->canPermissao('equipamentos', 'excluir'))
-                                    <form action="{{ route('admin.equipamentos.destroy', $equipamento->id) }}" 
-                                          method="POST" 
-                                          class="inline-block"
-                                          onsubmit="return confirm('Tem certeza que deseja excluir este equipamento?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Excluir">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
+                        <x-table-cell>
+                            <x-actions
+                                :edit-url="route('admin.equipamentos.edit', $equipamento->id)"
+                                :delete-url="route('admin.equipamentos.destroy', $equipamento->id)"
+                                :show-view="false"
+                                confirm-delete-message="Tem certeza que deseja excluir este equipamento?"
+                            />
                         </x-table-cell>
                     </tr>
                     @endforeach
@@ -199,29 +183,13 @@
                                 {{ $setor->equipamentos_count }} equipamento(s)
                             </span>
                         </x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.setores.edit', $setor->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900" title="Editar">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </a>
-                                @if(auth()->user()->canPermissao('equipamentos', 'excluir'))
-                                    <form action="{{ route('admin.setores.destroy', $setor->id) }}" 
-                                          method="POST" 
-                                          class="inline-block"
-                                          onsubmit="return confirm('Tem certeza que deseja excluir este setor?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Excluir">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
+                        <x-table-cell>
+                            <x-actions
+                                :edit-url="route('admin.setores.edit', $setor->id)"
+                                :delete-url="route('admin.setores.destroy', $setor->id)"
+                                :show-view="false"
+                                confirm-delete-message="Tem certeza que deseja excluir este setor?"
+                            />
                         </x-table-cell>
                     </tr>
                     @endforeach
@@ -286,29 +254,13 @@
                                 {{ $responsavel->equipamentos_count }} equipamento(s)
                             </span>
                         </x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.responsaveis.edit', $responsavel->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900" title="Editar">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </a>
-                                @if(auth()->user()->canPermissao('equipamentos', 'excluir'))
-                                    <form action="{{ route('admin.responsaveis.destroy', $responsavel->id) }}" 
-                                          method="POST" 
-                                          class="inline-block"
-                                          onsubmit="return confirm('Tem certeza que deseja excluir este responsável?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Excluir">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
+                        <x-table-cell>
+                            <x-actions
+                                :edit-url="route('admin.responsaveis.edit', $responsavel->id)"
+                                :delete-url="route('admin.responsaveis.destroy', $responsavel->id)"
+                                :show-view="false"
+                                confirm-delete-message="Tem certeza que deseja excluir este responsável?"
+                            />
                         </x-table-cell>
                     </tr>
                     @endforeach
