@@ -61,7 +61,7 @@
                                 </span>
                             </td>
                             <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
-                            <td class="text-center">
+                            <td>
                                 <button type="button"
                                     onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
                                     class="p-2 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
