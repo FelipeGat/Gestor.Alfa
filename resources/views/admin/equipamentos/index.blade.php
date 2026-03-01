@@ -116,16 +116,8 @@
                         <x-table-cell>{{ $equipamento->modelo ?? '-' }}</x-table-cell>
                         <x-table-cell>{{ $equipamento->setor->nome ?? '-' }}</x-table-cell>
                         <x-table-cell>{{ $equipamento->responsavel->nome ?? '-' }}</x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            @if($equipamento->ativo)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Ativo
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    Inativo
-                                </span>
-                            @endif
+                        <x-table-cell>
+                            <x-status-badge :ativo="$equipamento->ativo" />
                         </x-table-cell>
                         <x-table-cell>
                             <x-actions
