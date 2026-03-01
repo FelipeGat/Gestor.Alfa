@@ -59,14 +59,18 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Funcionário</label>
-                            <select name="funcionario_id" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <option value="">Todos</option>
-                                @foreach($funcionariosFiltro as $funcionarioFiltro)
-                                    <option value="{{ $funcionarioFiltro->id }}" @selected((string) ($filtros['funcionario_id'] ?? '') === (string) $funcionarioFiltro->id)>
-                                        {{ $funcionarioFiltro->nome }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="flex items-center gap-2">
+                                <select name="funcionario_id" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+                                    <option value="">Todos</option>
+                                    @foreach($funcionariosFiltro as $funcionarioFiltro)
+                                        <option value="{{ $funcionarioFiltro->id }}" @selected((string) ($filtros['funcionario_id'] ?? '') === (string) $funcionarioFiltro->id)>
+                                            {{ $funcionarioFiltro->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-button type="submit" variant="primary" size="sm">Filtrar</x-button>
+                                <x-button href="{{ route('rh.dashboard') }}" variant="secondary" size="sm">Limpar</x-button>
+                            </div>
                         </div>
 
                         <div class="text-sm text-gray-600 md:text-right">
@@ -105,10 +109,10 @@
                     'faltas_hoje' => ['color' => '#ef4444', 'text' => 'text-red-600'],
                     'atrasos_hoje' => ['color' => '#f59e0b', 'text' => 'text-amber-600'],
                     'saidas_antecipadas' => ['color' => '#3b82f6', 'text' => 'text-blue-600'],
+                    'faltas_mes' => ['color' => '#b91c1c', 'text' => 'text-red-700'],
+                    'atrasos_mes' => ['color' => '#b45309', 'text' => 'text-amber-700'],
+                    'saidas_antecipadas_mes' => ['color' => '#1d4ed8', 'text' => 'text-blue-700'],
                     'trabalho_domingo_feriado' => ['color' => '#7c3aed', 'text' => 'text-violet-600'],
-                    'atestados_mes' => ['color' => '#8b5cf6', 'text' => 'text-violet-600'],
-                    'banco_horas_acima_20h' => ['color' => '#16a34a', 'text' => 'text-green-600'],
-                    'banco_horas_abaixo_menos_20h' => ['color' => '#dc2626', 'text' => 'text-red-700'],
                 ];
 
                 $performanceCards = [
@@ -116,6 +120,9 @@
                     'ranking_top5_tecnicos' => ['color' => '#16a34a', 'text' => 'text-green-600'],
                     'ranking_maior_indice_atraso' => ['color' => '#f59e0b', 'text' => 'text-amber-600'],
                     'ultima_avaliacao_negativa' => ['color' => '#ef4444', 'text' => 'text-red-600'],
+                    'atestados_mes' => ['color' => '#8b5cf6', 'text' => 'text-violet-600'],
+                    'banco_horas_acima_20h' => ['color' => '#16a34a', 'text' => 'text-green-600'],
+                    'banco_horas_abaixo_menos_20h' => ['color' => '#dc2626', 'text' => 'text-red-700'],
                 ];
 
                 $riscoCards = [
@@ -155,7 +162,7 @@
             </div>
 
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Monitoramento Diário</h2>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Monitoramento</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     @foreach($monitoramento as $slug => $card)
                         @php
