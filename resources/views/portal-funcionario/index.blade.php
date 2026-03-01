@@ -1,7 +1,7 @@
 <x-portal-funcionario-layout>
     <div class="py-6">
         <!-- Boas-vindas -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-gray-900">
                     Olá, {{ Auth::user()->name }}!
@@ -10,7 +10,7 @@
             </div>
 
             <!-- Estatísticas (KPIs) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 max-w-[700px] mx-auto">
                 <x-kpi-card 
                     title="Chamados Abertos" 
                     :value="$totalAbertos" 
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Botões de Acesso Rápido -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[800px] mx-auto">
                 <!-- Registro de Ponto -->
                 <x-card href="{{ route('portal-funcionario.ponto') }}" clickable class="group">
                     <div class="flex items-center gap-4">
