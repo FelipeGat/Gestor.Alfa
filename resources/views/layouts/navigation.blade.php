@@ -11,6 +11,8 @@
     $isComercial = $user && method_exists($user, 'perfis') ? ($user->perfis()->where('slug', 'comercial')->exists() || $user->tipo === 'comercial') : false;
     $isCliente = $user && isset($user->tipo) ? $user->tipo === 'cliente' : false;
     $isFuncionario = $user && isset($user->tipo) ? $user->tipo === 'funcionario' : false;
+    $canPortalFuncionario = $user && !$isCliente && !empty($user->funcionario_id)
+        && ($isFuncionario || $isAdmin || $isAdministrativo || $isFinanceiro || $isComercial);
     @endphp
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -402,6 +404,12 @@
                             Editar Usuário
                         </x-dropdown-link>
 
+                        @if($canPortalFuncionario)
+                        <x-dropdown-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">
+                            Portal Funcionário
+                        </x-dropdown-link>
+                        @endif
+
                         <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                             @csrf
                             <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 w-full text-left">
@@ -427,6 +435,11 @@
             <x-responsive-nav-link :href="route('profile.edit')">
                 Editar Usuário
             </x-responsive-nav-link>
+            @if($canPortalFuncionario)
+            <x-responsive-nav-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">
+                Portal Funcionário
+            </x-responsive-nav-link>
+            @endif
             <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                 @csrf
                 <button type="submit" class="inline-flex items-center w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 text-left">
@@ -483,7 +496,7 @@
                 @if($isAdmin || $isComercial)
                 <x-responsive-nav-link :href="route('dashboard.comercial')" data-tab-icon="dashboard-comercial">Dashboard Comercial</x-responsive-nav-link>
                 @endif
-                @if($isFuncionario)
+                @if($canPortalFuncionario)
                 <x-responsive-nav-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">Portal do Funcionário</x-responsive-nav-link>
                 @endif
                 @if($isAdmin || $isFinanceiro)
