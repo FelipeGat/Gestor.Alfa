@@ -376,7 +376,8 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::delete(
             '/cancelar-agendamento/{orcamento}',
             [FinanceiroController::class, 'cancelarAgendamento']
-        )->name('cancelar-agendamento');
+        )->middleware('rate.forms')
+            ->name('cancelar-agendamento');
 
         // Home Financeiro (página de cards)
         Route::get('/home', function () {
@@ -406,7 +407,8 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::patch(
             '/contas-a-receber/{cobranca}/reabrir',
             [ContasReceberController::class, 'reabrir']
-        )->name('contasareceber.reabrir');
+        )->middleware('rate.forms')
+            ->name('contasareceber.reabrir');
 
         // Recibo de cobrança
         Route::get(
@@ -418,7 +420,8 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
         Route::patch(
             '/movimentacao/{cobranca}/estornar',
             [ContasReceberController::class, 'estornar']
-        )->name('movimentacao.estornar');
+        )->middleware('rate.forms')
+            ->name('movimentacao.estornar');
 
         /*
         |----------------------------------------------------------------------
@@ -432,31 +435,37 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             ->name('contas-financeiras.create');
 
         Route::post('/contas-financeiras', [ContasFinanceirasController::class, 'store'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.store');
 
         Route::get('/contas-financeiras/{contaFinanceira}/editar', [ContasFinanceirasController::class, 'edit'])
             ->name('contas-financeiras.edit');
 
         Route::put('/contas-financeiras/{contaFinanceira}', [ContasFinanceirasController::class, 'update'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.update');
 
         Route::delete('/contas-financeiras/{contaFinanceira}', [ContasFinanceirasController::class, 'destroy'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.destroy');
 
         Route::patch(
             '/contas-a-receber/{cobranca}/pagar',
             [ContasReceberController::class, 'pagar']
-        )->name('contasareceber.pagar');
+        )->middleware('rate.forms')
+            ->name('contasareceber.pagar');
 
         Route::patch(
             '/contas-a-receber/baixa-multipla',
             [ContasReceberController::class, 'pagarMultiplas']
-        )->name('contasareceber.baixa-multipla');
+        )->middleware('rate.forms')
+            ->name('contasareceber.baixa-multipla');
 
         Route::delete(
             '/contas-a-receber/{cobranca}',
             [ContasReceberController::class, 'destroy']
-        )->name('contasareceber.destroy');
+        )->middleware('rate.forms')
+            ->name('contasareceber.destroy');
 
         // Contas Fixas
         Route::post(
@@ -569,10 +578,13 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
 
         // Ajuste Manual, Transferência e Injeção de Receita
         Route::post('/contas-financeiras/ajuste-manual', [FinanceiroController::class, 'ajusteManual'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.ajuste-manual');
         Route::post('/contas-financeiras/transferencia', [FinanceiroController::class, 'transferencia'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.transferencia');
         Route::post('/contas-financeiras/injecao-receita', [FinanceiroController::class, 'injecaoReceita'])
+            ->middleware('rate.forms')
             ->name('contas-financeiras.injecao-receita');
     });
 
@@ -581,7 +593,7 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
     | FORNECEDORES
     |--------------------------------------------------------------------------
     */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'dashboard.comercial', 'primeiro_acesso'])->group(function () {
     Route::resource('fornecedores', FornecedorController::class)->parameters([
         'fornecedores' => 'fornecedor',
     ]);
