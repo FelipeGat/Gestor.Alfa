@@ -99,9 +99,8 @@
         <div class="relative px-4 py-3 portal-content">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <x-application-logo class="h-7 w-auto" />
-                    <span class="text-gray-800 font-semibold text-sm">Portal do Funcionário</span>
                 </div>
 
                 <!-- Logout -->
