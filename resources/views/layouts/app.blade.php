@@ -67,9 +67,13 @@
 
 <body class="font-sans antialiased">
     @php
+        $isPortalCliente = request()->routeIs('portal.*');
         $isFuncionarioPortal = auth()->check()
             && auth()->user()->tipo === 'funcionario'
             && request()->routeIs('portal-funcionario.*');
+        $mostrarRodapeSessao = auth()->check() && !$isPortalCliente && !$isFuncionarioPortal;
+        $loginIniciadoEm = session('sessao_login_iniciada_em');
+        $ultimaAtividadeEm = session('sessao_ultima_atividade_em');
     @endphp
 
     <div class="min-h-screen bg-gray-100">
@@ -127,6 +131,33 @@
                 {{ $slot ?? '' }}
             @endif
         </main>
+
+        @if($mostrarRodapeSessao)
+            <footer class="mt-6 px-4 sm:px-6 lg:px-8 pb-4">
+                <div class="max-w-7xl mx-auto text-[11px] text-gray-500 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-gray-200 pt-2">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span>Usuário: <span class="font-medium text-gray-600">{{ auth()->user()->name }}</span></span>
+                        <span class="hidden sm:inline">•</span>
+                        <span>Acesso feito: <span id="sessao-horario-acesso" data-login-iniciado="{{ $loginIniciadoEm ?? now()->toIso8601String() }}" class="font-medium text-gray-600">--:--</span></span>
+                        <span id="sessao-separador-inercia" class="hidden sm:inline hidden">•</span>
+                        <span id="sessao-bloco-inercia" class="hidden">
+                            Você está a <span id="sessao-tempo-inercia" data-ultima-atividade="{{ $ultimaAtividadeEm ?? now()->toIso8601String() }}" class="font-medium text-gray-600">0</span> minutos sem usar o sistema, ele será fechado em <span id="sessao-tempo-restante-fechar" class="font-medium text-gray-600">10</span> minutos.
+                        </span>
+                    </div>
+
+                    <a href="https://wa.me/552731093265" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-gray-500 hover:text-green-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M20.52 3.48A11.8 11.8 0 0 0 12.07 0C5.43 0 .03 5.4.03 12.04c0 2.12.55 4.19 1.6 6.01L0 24l6.1-1.6a12 12 0 0 0 5.96 1.52h.01c6.63 0 12.03-5.4 12.03-12.04 0-3.22-1.25-6.24-3.58-8.4zM12.07 21.9h-.01a9.86 9.86 0 0 1-5.03-1.38l-.36-.21-3.62.95.97-3.53-.24-.37a9.85 9.85 0 0 1-1.52-5.3c0-5.45 4.43-9.88 9.89-9.88 2.64 0 5.12 1.03 6.98 2.9a9.8 9.8 0 0 1 2.9 6.98c0 5.45-4.44 9.88-9.9 9.88zm5.42-7.41c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.95 1.18-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47a8.9 8.9 0 0 1-1.65-2.06c-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.64-.93-2.25-.25-.59-.5-.5-.68-.5h-.58c-.2 0-.53.08-.8.38-.28.3-1.05 1.03-1.05 2.52s1.08 2.93 1.23 3.13c.15.2 2.11 3.22 5.1 4.52.71.3 1.27.48 1.7.62.72.23 1.37.2 1.88.12.57-.09 1.78-.73 2.03-1.43.25-.7.25-1.31.18-1.43-.08-.12-.28-.2-.58-.35z"/>
+                        </svg>
+                        <span>Em caso de dúvidas, entre em contato com nosso Suporte (27 3109-3265)</span>
+                    </a>
+                </div>
+
+                <form id="sessao-auto-logout-form" method="POST" action="{{ route('logout') }}" class="hidden" onsubmit="if(window.limparAbasSessao){window.limparAbasSessao();}">
+                    @csrf
+                </form>
+            </footer>
+        @endif
 
         @if(!$isFuncionarioPortal)
             @include('components.dashboard-fab')
@@ -487,7 +518,7 @@
                     const url = link.getAttribute('href');
                     const label = link.getAttribute('data-tab-label') || link.textContent.trim();
                     const icon = link.getAttribute('data-tab-icon');
-                    
+
                     // Verificar se a URL é válida antes de prevenir o comportamento padrão
                     if (url && url !== '#' && !url.startsWith('javascript:')) {
                         e.preventDefault();
@@ -519,6 +550,73 @@
             inicializarAbas();
             renderAbas();
             setTimeout(initTabsScroll, 0);
+
+            const loginEl = document.getElementById('sessao-horario-acesso');
+            const inerciaEl = document.getElementById('sessao-tempo-inercia');
+            const restanteFecharEl = document.getElementById('sessao-tempo-restante-fechar');
+            const blocoInerciaEl = document.getElementById('sessao-bloco-inercia');
+            const separadorInerciaEl = document.getElementById('sessao-separador-inercia');
+            const autoLogoutForm = document.getElementById('sessao-auto-logout-form');
+
+            if (loginEl && inerciaEl && restanteFecharEl) {
+                const parseIso = (value) => {
+                    const parsed = value ? new Date(value) : new Date();
+                    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+                };
+
+                const formatarHoraMinuto = (data) => {
+                    const horas = data.getHours().toString().padStart(2, '0');
+                    const minutos = data.getMinutes().toString().padStart(2, '0');
+                    return `${horas}:${minutos}`;
+                };
+
+                const inicioLogin = parseIso(loginEl.dataset.loginIniciado);
+                let ultimaInteracao = parseIso(inerciaEl.dataset.ultimaAtividade);
+                const limiteInerciaSegundos = 5 * 60;
+                const janelaAvisoFechamentoSegundos = 10 * 60;
+                const limiteTotalFechamentoSegundos = limiteInerciaSegundos + janelaAvisoFechamentoSegundos;
+                let logoutDisparado = false;
+
+                const atualizarContadores = () => {
+                    const agora = new Date();
+                    const segundosInercia = (agora.getTime() - ultimaInteracao.getTime()) / 1000;
+
+                    const minutosInercia = Math.max(0, Math.floor(segundosInercia / 60));
+                    let minutosParaFechar = 10;
+                    const mostrarBlocoInercia = segundosInercia >= limiteInerciaSegundos;
+
+                    if (segundosInercia > limiteInerciaSegundos) {
+                        minutosParaFechar = Math.max(0, Math.ceil((limiteTotalFechamentoSegundos - segundosInercia) / 60));
+                    }
+
+                    loginEl.textContent = formatarHoraMinuto(inicioLogin);
+                    inerciaEl.textContent = `${minutosInercia}`;
+                    restanteFecharEl.textContent = `${minutosParaFechar}`;
+
+                    if (blocoInerciaEl) {
+                        blocoInerciaEl.classList.toggle('hidden', !mostrarBlocoInercia);
+                    }
+
+                    if (separadorInerciaEl) {
+                        separadorInerciaEl.classList.toggle('hidden', !mostrarBlocoInercia);
+                    }
+
+                    if (!logoutDisparado && segundosInercia >= limiteTotalFechamentoSegundos && autoLogoutForm) {
+                        logoutDisparado = true;
+                        autoLogoutForm.submit();
+                    }
+                };
+
+                const registrarInteracao = () => {
+                    ultimaInteracao = new Date();
+                    atualizarContadores();
+                };
+
+                window.addEventListener('click', registrarInteracao, { passive: true });
+
+                atualizarContadores();
+                setInterval(atualizarContadores, 1000);
+            }
         });
     </script>
 </body>
