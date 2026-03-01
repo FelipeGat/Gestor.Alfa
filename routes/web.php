@@ -295,28 +295,6 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         Route::get('/api/cliente/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListByCliente'])->name('api.cliente');
     });
 
-    // Setores de Equipamentos
-    Route::prefix('setores')->name('admin.setores.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'index'])->name('index');
-        Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'store'])->name('store');
-        Route::get('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'show'])->name('show');
-        Route::get('/{setor}/editar', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'edit'])->name('edit');
-        Route::put('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'update'])->name('update');
-        Route::delete('/{setor}', [\App\Http\Controllers\Admin\EquipamentoSetorController::class, 'destroy'])->name('destroy');
-    });
-
-    // Responsáveis por Equipamentos
-    Route::prefix('responsaveis')->name('admin.responsaveis.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'index'])->name('index');
-        Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'store'])->name('store');
-        Route::get('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'show'])->name('show');
-        Route::get('/{responsavel}/editar', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'edit'])->name('edit');
-        Route::put('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'update'])->name('update');
-        Route::delete('/{responsavel}', [\App\Http\Controllers\Admin\EquipamentoResponsavelController::class, 'destroy'])->name('destroy');
-    });
-
     // Categorias Financeiras
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias.index');
     Route::get('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'create'])->name('categorias.create');
