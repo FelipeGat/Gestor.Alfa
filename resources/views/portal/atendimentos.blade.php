@@ -75,7 +75,7 @@
                             <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <button type="button"
-                                    onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
+                                    onclick="openModal('showHistorico{{ $atendimento->id }}')"
                                     class="p-2 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
                                     title="Ver Detalhes">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -121,7 +121,7 @@
 
                                         {{-- Footer com Botões --}}
                                         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-                                            <x-button variant="danger" size="sm" class="min-w-[130px]" onclick="window.showHistorico{{ $atendimento->id }}.close()">
+                                            <x-button variant="danger" size="sm" class="min-w-[130px]" onclick="closeModal('showHistorico{{ $atendimento->id }}')">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
@@ -209,4 +209,21 @@
         @endif
 
     </div>
+
+    <script>
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.showModal();
+            // Remove foco do botão para evitar borda dupla
+            setTimeout(function() {
+                const button = modal.querySelector('button');
+                if (button) button.blur();
+            }, 0);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.close();
+        }
+    </script>
 </x-app-layout>
