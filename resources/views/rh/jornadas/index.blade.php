@@ -58,6 +58,7 @@
                         <x-form-input name="minimo_horas_para_extra" type="number" label="Mín. para hora extra (min)" :value="30" required />
                         <x-form-input name="percentual_hora_extra_semana" type="number" step="0.01" min="0" label="% hora extra na semana" :value="50" required />
                         <x-form-input name="percentual_hora_extra_domingo_feriado" type="number" step="0.01" min="0" label="% hora extra domingo/feriado" :value="100" required />
+                        <x-form-input name="dias_permitidos_alteracao_apos_fechamento" type="number" min="0" max="365" label="Dias para alterar após fechamento" :value="0" required />
                     </div>
 
                     <div class="js-escala-section hidden">
@@ -179,6 +180,7 @@
                                 <x-form-input name="minimo_horas_para_extra" type="number" label="Mín. extra" :value="$jornada->minimo_horas_para_extra" required />
                                 <x-form-input name="percentual_hora_extra_semana" type="number" step="0.01" min="0" label="% hora extra semana" :value="$jornada->percentual_hora_extra_semana ?? 50" required />
                                 <x-form-input name="percentual_hora_extra_domingo_feriado" type="number" step="0.01" min="0" label="% hora extra domingo/feriado" :value="$jornada->percentual_hora_extra_domingo_feriado ?? 100" required />
+                                <x-form-input name="dias_permitidos_alteracao_apos_fechamento" type="number" min="0" max="365" label="Dias para alterar após fechamento" :value="$jornada->dias_permitidos_alteracao_apos_fechamento ?? 0" required />
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 js-escala-section @if($jornada->tipo_jornada !== 'escala') hidden @endif">

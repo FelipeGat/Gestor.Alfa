@@ -47,6 +47,7 @@ class DashboardRhController extends Controller
             'episVencendo' => $data['risco']['epi_vencido']['count'],
             'feriasVencidas' => $data['risco']['ferias_vencidas']['count'],
             'bancoHorasSegundos' => (int) $data['resumo']['banco_horas_segundos'],
+            'bancoHorasFormatado' => $this->formatarSegundos((int) $data['resumo']['banco_horas_segundos'], true),
             'monitoramento' => $data['monitoramento'],
             'performance' => $data['performance'],
             'risco' => $data['risco'],
@@ -158,8 +159,11 @@ class DashboardRhController extends Controller
         ];
         $monitoramento = Arr::except($monitoramento, $indicadoresMoverParaPerformance);
 
-        $totaisBancoHorasSaldo = (int) collect($bancoHorasFuncionarios)
-            ->sum(fn (array $item) => max(0, (int) ($item['saldo_segundos'] ?? 0)));
+        $totaisBancoHorasSaldo = $this->calcularSaldoBancoHorasPorExtrasEAtrasos(
+            $inicioPeriodo,
+            $fimApuracao,
+            $funcionariosAtivosIds
+        );
 
         return [
             'resumo' => [
@@ -170,6 +174,113 @@ class DashboardRhController extends Controller
             'performance' => $performance,
             'risco' => $risco,
         ];
+    }
+
+    private function calcularSaldoBancoHorasPorExtrasEAtrasos(Carbon $inicio, Carbon $fim, array $funcionariosIds): int
+    {
+        if (empty($funcionariosIds)) {
+            return 0;
+        }
+
+        $usaRegistroLegal = Schema::hasTable('registro_pontos_portal')
+            && Schema::hasTable('funcionario_jornadas')
+            && Schema::hasTable('jornadas');
+
+        if (!$usaRegistroLegal) {
+            return 0;
+        }
+
+        $registrosPeriodo = RegistroPontoPortal::query()
+            ->whereIn('funcionario_id', $funcionariosIds)
+            ->where(function ($query) use ($inicio, $fim) {
+                $query->whereBetween('data_referencia', [$inicio->toDateString(), $fim->toDateString()])
+                    ->orWhereBetween('entrada_em', [$inicio, $fim])
+                    ->orWhereBetween('saida_em', [$inicio, $fim]);
+            })
+            ->get(['funcionario_id', 'data_referencia', 'entrada_em', 'intervalo_inicio_em', 'intervalo_fim_em', 'saida_em']);
+
+        $registrosPorDia = $registrosPeriodo
+            ->map(function (RegistroPontoPortal $registro) {
+                $dia = $registro->data_referencia
+                    ? Carbon::parse($registro->data_referencia)->toDateString()
+                    : ($registro->entrada_em
+                        ? Carbon::parse($registro->entrada_em)->toDateString()
+                        : ($registro->saida_em ? Carbon::parse($registro->saida_em)->toDateString() : null));
+
+                if (!$dia) {
+                    return null;
+                }
+
+                return [
+                    'chave' => ((int) $registro->funcionario_id) . '|' . $dia,
+                    'registro' => $registro,
+                ];
+            })
+            ->filter()
+            ->groupBy('chave')
+            ->map(fn ($itens) => $itens->first()['registro']);
+
+        $extras50Segundos = 0;
+        $extras100Segundos = 0;
+        $atrasosSegundos = 0;
+
+        $cursor = $inicio->copy()->startOfDay();
+        $fimDia = $fim->copy()->startOfDay();
+
+        while ($cursor->lte($fimDia)) {
+            $dia = $cursor->copy();
+            $diaStr = $dia->toDateString();
+            $jornadasDia = $this->jornadasVigentesPorFuncionarioNoDia($dia, $funcionariosIds);
+
+            foreach ($funcionariosIds as $funcionarioId) {
+                $vinculo = $jornadasDia[(int) $funcionarioId] ?? null;
+                if (!$vinculo instanceof FuncionarioJornada) {
+                    continue;
+                }
+
+                $chaveRegistro = (int) $funcionarioId . '|' . $diaStr;
+                $registro = $registrosPorDia->get($chaveRegistro);
+                if (!$registro) {
+                    continue;
+                }
+
+                $ehDomingoOuFeriado = $dia->isSunday() || $this->ehFeriadoAtreladoNaJornada($vinculo, $dia);
+
+                if ($ehDomingoOuFeriado) {
+                    $extras100Segundos += $this->calcularSegundosTrabalhadosRegistroLegal($registro);
+                    continue;
+                }
+
+                if (!$this->funcionarioTrabalhaNoDia($vinculo, $dia)) {
+                    continue;
+                }
+
+                $segundosPrevistos = $this->segundosDiariosJornada($vinculo->jornada);
+                if ($segundosPrevistos <= 0) {
+                    $segundosPrevistos = self::SEGUNDOS_META_DIARIA;
+                }
+
+                $segundosTrabalhados = $this->calcularSegundosApuradosBancoDia($registro, $vinculo, $dia);
+                $saldoSegundos = $segundosTrabalhados - $segundosPrevistos;
+
+                $toleranciaSegundos = max(
+                    0,
+                    (int) ($vinculo->jornada?->tolerancia_entrada_min ?? 0),
+                    (int) ($vinculo->jornada?->tolerancia_saida_min ?? 0),
+                    (int) ($vinculo->jornada?->tolerancia_intervalo_min ?? 0)
+                ) * 60;
+
+                if ($saldoSegundos > $toleranciaSegundos) {
+                    $extras50Segundos += $saldoSegundos;
+                } elseif ($saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos) {
+                    $atrasosSegundos += abs($saldoSegundos);
+                }
+            }
+
+            $cursor->addDay();
+        }
+
+        return (int) (($extras50Segundos + $extras100Segundos) - $atrasosSegundos);
     }
 
     private function resolverDataReferencia(Carbon $inicioPeriodo, Carbon $fimPeriodo): Carbon

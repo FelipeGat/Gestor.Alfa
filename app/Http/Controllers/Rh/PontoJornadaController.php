@@ -10,6 +10,7 @@ use App\Models\Funcionario;
 use App\Models\Jornada;
 use App\Models\RegistroPontoPortal;
 use App\Models\RhAjustePonto;
+use App\Models\RhFechamentoPonto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class PontoJornadaController extends Controller
 {
@@ -26,9 +28,37 @@ class PontoJornadaController extends Controller
 
     public function index(Request $request)
     {
-        $funcionarioId = $request->integer('funcionario_id');
-        $inicio = $request->filled('inicio') ? Carbon::parse($request->input('inicio'))->startOfDay() : Carbon::now()->startOfMonth();
-        $fim = $request->filled('fim') ? Carbon::parse($request->input('fim'))->endOfDay() : Carbon::now()->endOfMonth();
+        $funcionarioId = $request->filled('funcionario_id') ? $request->integer('funcionario_id') : null;
+
+        $inicioInformado = $request->filled('inicio');
+        $fimInformado = $request->filled('fim');
+
+        if ($inicioInformado) {
+            $inicio = Carbon::parse($request->input('inicio'))->startOfDay();
+        } elseif (!$funcionarioId) {
+            $inicio = Carbon::today()->startOfDay();
+        } else {
+            $inicio = Carbon::now()->startOfMonth();
+        }
+
+        if ($fimInformado) {
+            $fim = Carbon::parse($request->input('fim'))->endOfDay();
+        } elseif (!$funcionarioId) {
+            $fim = Carbon::today()->endOfDay();
+        } else {
+            $fim = Carbon::now()->endOfMonth();
+        }
+
+        if (
+            !$funcionarioId
+            && $inicioInformado
+            && $fimInformado
+            && $inicio->isSameDay(Carbon::today()->startOfMonth())
+            && $fim->isSameDay(Carbon::today()->endOfMonth())
+        ) {
+            $inicio = Carbon::today()->startOfDay();
+            $fim = Carbon::today()->endOfDay();
+        }
 
         if ($inicio->gt($fim)) {
             [$inicio, $fim] = [$fim->copy()->startOfDay(), $inicio->copy()->endOfDay()];
@@ -42,7 +72,30 @@ class PontoJornadaController extends Controller
         $funcionarios = Funcionario::query()->where('ativo', true)->orderBy('nome')->get(['id', 'nome']);
         $funcionariosEscopo = $funcionariosQuery->get(['id', 'nome']);
 
-        $jornadaLegal = $this->montarJornadaLegal($funcionariosEscopo, $inicio, $fim, $request);
+        $funcionariosEscopoIds = $funcionariosEscopo->pluck('id')->all();
+        $ajustesSecaoUmColecao = RhAjustePonto::query()
+            ->whereIn('funcionario_id', $funcionariosEscopoIds)
+            ->whereBetween('ajustado_em', [$inicio, $fim])
+            ->get(['funcionario_id', 'ajustado_em', 'justificativa']);
+
+        $ajustesSecaoUmLinhas = collect();
+        $ajustesSecaoUmCampos = collect();
+        $ajustesSecaoUmColecao->each(function (RhAjustePonto $ajuste) use (&$ajustesSecaoUmLinhas, &$ajustesSecaoUmCampos) {
+                $data = optional($ajuste->ajustado_em)?->toDateString();
+                if (!$data) {
+                    return;
+                }
+
+            $chaveLinha = ((int) $ajuste->funcionario_id) . '|' . $data;
+            $ajustesSecaoUmLinhas->put($chaveLinha, true);
+
+            $campoBatida = $this->extrairCampoBatidaDeAjuste($ajuste);
+            if ($campoBatida) {
+                $ajustesSecaoUmCampos->put($chaveLinha . '|' . $campoBatida, true);
+            }
+        });
+
+        $jornadaLegal = $this->montarJornadaLegal($funcionariosEscopo, $inicio, $fim, $request, $ajustesSecaoUmLinhas, $ajustesSecaoUmCampos);
         $indicadores = $this->montarIndicadoresProdutividade($funcionariosEscopo, $inicio, $fim, $jornadaLegal['resumo']);
 
         $ajustesQuery = RhAjustePonto::query()
@@ -65,12 +118,25 @@ class PontoJornadaController extends Controller
                 DB::raw('funcionarios.nome as name'),
             ]);
 
+        $competenciaAtual = $inicio->copy()->startOfMonth();
+        $fechamentoDisponivel = Schema::hasTable('rh_fechamentos_ponto');
+        $fechamentosCompetencia = $fechamentoDisponivel
+            ? RhFechamentoPonto::query()
+                ->where('competencia', $competenciaAtual->toDateString())
+                ->whereIn('funcionario_id', $funcionarios->pluck('id')->all())
+                ->get(['funcionario_id', 'fechado_em'])
+                ->keyBy(fn (RhFechamentoPonto $item) => (int) $item->funcionario_id)
+            : collect();
+
         return view('rh.ponto-jornada', [
             'funcionarios' => $funcionarios,
             'jornadaLegal' => $jornadaLegal,
             'indicadores' => $indicadores,
             'ajustes' => $ajustes,
             'autorizadores' => $autorizadores,
+            'fechamentosCompetencia' => $fechamentosCompetencia,
+            'competenciaAtualFechamento' => $competenciaAtual->toDateString(),
+            'fechamentoDisponivel' => $fechamentoDisponivel,
             'tiposAjuste' => $this->tiposAjuste(),
             'filtros' => [
                 'funcionario_id' => $funcionarioId,
@@ -78,6 +144,123 @@ class PontoJornadaController extends Controller
                 'fim' => $fim->toDateString(),
             ],
         ]);
+    }
+
+    public function storeAjusteSecaoUm(Request $request)
+    {
+        $validated = $request->validate([
+            'funcionario_id' => ['required', 'exists:funcionarios,id'],
+            'data_referencia' => ['required', 'date'],
+            'campo_batida' => ['required', 'in:entrada_em,intervalo_inicio_em,intervalo_fim_em,saida_em'],
+            'horario_batida' => ['required', 'date_format:H:i'],
+            'tipo_ajuste' => ['required', 'in:esquecimento,batida_duplicidade,atestado_medico,acompanhamento_medico'],
+            'motivo_lancamento_manual' => ['required', 'string', 'min:5', 'max:1000'],
+            'autorizado_por_user_id' => ['required', 'exists:users,id'],
+            'inicio' => ['nullable', 'date'],
+            'fim' => ['nullable', 'date'],
+            'funcionario_id_filtro' => ['nullable', 'integer', 'exists:funcionarios,id'],
+        ], [
+            'tipo_ajuste.required' => 'Selecione o tipo do ajuste.',
+            'horario_batida.required' => 'Informe o horário da batida.',
+            'horario_batida.date_format' => 'O horário da batida deve estar no formato HH:MM.',
+            'motivo_lancamento_manual.required' => 'Informe o motivo do lançamento manual.',
+            'autorizado_por_user_id.required' => 'Informe quem autorizou.',
+        ]);
+
+        $funcionarioId = (int) $validated['funcionario_id'];
+        $dataReferencia = Carbon::parse($validated['data_referencia'])->startOfDay();
+        $campoBatida = $validated['campo_batida'];
+
+        if ($this->edicaoPontoBloqueada($funcionarioId, $dataReferencia)) {
+            throw ValidationException::withMessages([
+                'horario_batida' => 'Prazo para alterar este ponto expirado após o fechamento da competência.',
+            ]);
+        }
+
+        $registro = RegistroPontoPortal::query()->firstOrNew([
+            'funcionario_id' => $funcionarioId,
+            'data_referencia' => $dataReferencia->toDateString(),
+        ]);
+
+        $horarioBatida = Carbon::createFromFormat(
+            'Y-m-d H:i',
+            $dataReferencia->toDateString() . ' ' . $validated['horario_batida']
+        );
+
+        $registro->{$campoBatida} = $horarioBatida;
+        $registro->registrado_por_user_id = Auth::id();
+        $registro->save();
+
+        $labelsCampos = [
+            'entrada_em' => 'Entrada',
+            'intervalo_inicio_em' => 'Saída almoço',
+            'intervalo_fim_em' => 'Retorno almoço',
+            'saida_em' => 'Saída',
+        ];
+
+        RhAjustePonto::create([
+            'funcionario_id' => $funcionarioId,
+            'atendimento_id' => null,
+            'minutos_ajuste' => 0,
+            'tipo_ajuste' => $validated['tipo_ajuste'],
+            'justificativa' => sprintf(
+                'Lançamento manual na Seção 1 (%s em %s às %s) [campo:%s]. Motivo: %s',
+                $labelsCampos[$campoBatida] ?? $campoBatida,
+                $dataReferencia->format('d/m/Y'),
+                $horarioBatida->format('H:i'),
+                $campoBatida,
+                trim($validated['motivo_lancamento_manual'])
+            ),
+            'ajustado_por_user_id' => Auth::id(),
+            'autorizado_por_user_id' => (int) $validated['autorizado_por_user_id'],
+            'ajustado_em' => $dataReferencia->copy()->setTimeFrom(now()),
+        ]);
+
+        return redirect()
+            ->route('rh.ponto-jornada.index', array_filter([
+                'inicio' => $validated['inicio'] ?? null,
+                'fim' => $validated['fim'] ?? null,
+                'funcionario_id' => $validated['funcionario_id_filtro'] ?? null,
+            ]))
+            ->with('success', 'Ajuste manual lançado com sucesso na Seção 1.');
+    }
+
+    public function storeFechamentoPonto(Request $request)
+    {
+        if (!Schema::hasTable('rh_fechamentos_ponto')) {
+            return redirect()
+                ->back()
+                ->with('error', 'Fechamento de ponto indisponível até aplicar as migrações pendentes.');
+        }
+
+        $validated = $request->validate([
+            'funcionario_id' => ['required', 'exists:funcionarios,id'],
+            'competencia' => ['required', 'date'],
+            'inicio' => ['nullable', 'date'],
+            'fim' => ['nullable', 'date'],
+            'funcionario_id_filtro' => ['nullable', 'integer', 'exists:funcionarios,id'],
+        ]);
+
+        $competencia = Carbon::parse($validated['competencia'])->startOfMonth();
+
+        RhFechamentoPonto::query()->updateOrCreate(
+            [
+                'funcionario_id' => (int) $validated['funcionario_id'],
+                'competencia' => $competencia->toDateString(),
+            ],
+            [
+                'fechado_em' => now(),
+                'fechado_por_user_id' => Auth::id(),
+            ]
+        );
+
+        return redirect()
+            ->route('rh.ponto-jornada.index', array_filter([
+                'inicio' => $validated['inicio'] ?? null,
+                'fim' => $validated['fim'] ?? null,
+                'funcionario_id' => $validated['funcionario_id_filtro'] ?? null,
+            ]))
+            ->with('success', 'Fechamento do ponto registrado com sucesso.');
     }
 
     public function storeAjuste(Request $request)
@@ -112,10 +295,28 @@ class PontoJornadaController extends Controller
             ->with('success', 'Ajuste manual de ponto registrado com sucesso.');
     }
 
-    private function montarJornadaLegal(Collection $funcionariosEscopo, Carbon $inicio, Carbon $fim, Request $request): array
+    private function montarJornadaLegal(
+        Collection $funcionariosEscopo,
+        Carbon $inicio,
+        Carbon $fim,
+        Request $request,
+        Collection $ajustesSecaoUmLinhas,
+        Collection $ajustesSecaoUmCampos
+    ): array
     {
+        $mostrarTodosNoDiaAtual = !$request->filled('funcionario_id')
+            && !$request->filled('inicio')
+            && !$request->filled('fim');
+
         $rows = collect();
         $totaisSemanais = [];
+        $totaisSecaoUm = [
+            'faltas_qtd' => 0,
+            'atrasos_qtd' => 0,
+            'extras_50_segundos' => 0,
+            'extras_100_segundos' => 0,
+            'atrasos_segundos' => 0,
+        ];
         $resumo = [
             'dias_previstos' => 0,
             'dias_com_presenca' => 0,
@@ -130,6 +331,7 @@ class PontoJornadaController extends Controller
             return [
                 'rows' => collect(),
                 'resumo' => $resumo,
+                'totais_secao_1' => $totaisSecaoUm,
             ];
         }
 
@@ -144,6 +346,7 @@ class PontoJornadaController extends Controller
             : collect();
 
         $jornadasPorFuncionario = $this->jornadasAtivasPorFuncionario($funcionariosIds, $inicio, $fim);
+        $fechamentosPorCompetencia = $this->mapaFechamentosPorCompetencia($funcionariosIds, $inicio, $fim);
 
         $cursor = $inicio->copy()->startOfDay();
         $fimDia = $fim->copy()->startOfDay();
@@ -155,13 +358,24 @@ class PontoJornadaController extends Controller
                 $registro = $registros->get($chave);
                 $jornadaVinculo = $this->jornadaVigenteNoDia($jornadasPorFuncionario->get($funcionario->id, collect()), $cursor);
 
-                if (!$jornadaVinculo && !$registro) {
+                if (!$jornadaVinculo && !$registro && !$mostrarTodosNoDiaAtual) {
                     continue;
                 }
 
                 $regra = $this->resolverRegraDia($jornadaVinculo?->jornada, $cursor);
+                $horarioSugeridoEntrada = $this->resolverHorarioPadraoBatidaPorRegra($cursor, $regra, 'entrada_em')->format('H:i');
+                $horarioSugeridoIntervaloInicio = $this->resolverHorarioPadraoBatidaPorRegra($cursor, $regra, 'intervalo_inicio_em')->format('H:i');
+                $horarioSugeridoIntervaloFim = $this->resolverHorarioPadraoBatidaPorRegra($cursor, $regra, 'intervalo_fim_em')->format('H:i');
+                $horarioSugeridoSaida = $this->resolverHorarioPadraoBatidaPorRegra($cursor, $regra, 'saida_em')->format('H:i');
+                $prazoDiasAlteracao = (int) ($jornadaVinculo?->jornada?->dias_permitidos_alteracao_apos_fechamento ?? 0);
+                $edicaoBloqueada = $this->calcularBloqueioEdicaoPorFechamento(
+                    $fechamentosPorCompetencia,
+                    (int) $funcionario->id,
+                    $cursor,
+                    $prazoDiasAlteracao
+                );
 
-                if (!$regra['trabalha'] && !$registro) {
+                if (!$regra['trabalha'] && !$registro && !$mostrarTodosNoDiaAtual) {
                     continue;
                 }
 
@@ -173,12 +387,28 @@ class PontoJornadaController extends Controller
                     $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
                     $possuiBatidas = $this->possuiBatidasNoDia($registro);
                     $extrasPercentuais = $this->calcularExtrasPorPercentual($segundosTrabalhados, 0, $regra);
+                    $chaveAjuste = (int) $funcionario->id . '|' . $cursor->toDateString();
+                    $corrigidoManual = (bool) $ajustesSecaoUmLinhas->get($chaveAjuste, false);
+                    $totaisSecaoUm['extras_50_segundos'] += (int) ($extrasPercentuais['extra_50'] ?? 0);
+                    $totaisSecaoUm['extras_100_segundos'] += (int) ($extrasPercentuais['extra_100'] ?? 0);
                     $resumo['segundos_trabalhados'] += $segundosTrabalhados;
                     $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
 
                     $rows->push([
                         'funcionario' => $funcionario->nome,
                         'data' => $cursor->format('d/m/Y'),
+                        'data_iso' => $cursor->toDateString(),
+                        'funcionario_id' => (int) $funcionario->id,
+                        'corrigido_manual' => $corrigidoManual,
+                        'entrada_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|entrada_em', false),
+                        'intervalo_inicio_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|intervalo_inicio_em', false),
+                        'intervalo_fim_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|intervalo_fim_em', false),
+                        'saida_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|saida_em', false),
+                        'entrada_sugerida' => $horarioSugeridoEntrada,
+                        'intervalo_inicio_sugerida' => $horarioSugeridoIntervaloInicio,
+                        'intervalo_fim_sugerida' => $horarioSugeridoIntervaloFim,
+                        'saida_sugerida' => $horarioSugeridoSaida,
+                        'edicao_bloqueada' => $edicaoBloqueada,
                         'dia' => $this->nomeDiaSemana($cursor),
                         'eh_domingo' => $regra['eh_domingo'],
                         'eh_feriado' => $regra['eh_feriado'],
@@ -219,6 +449,10 @@ class PontoJornadaController extends Controller
                 $saldoSegundos = $segundosTrabalhados - $segundosPrevistos;
 
                 $resumo['horas_extras_segundos'] += $extrasPercentuais['extra_50'] + $extrasPercentuais['extra_100'];
+                $totaisSecaoUm['extras_50_segundos'] += (int) ($extrasPercentuais['extra_50'] ?? 0);
+                $totaisSecaoUm['extras_100_segundos'] += (int) ($extrasPercentuais['extra_100'] ?? 0);
+                $chaveAjuste = (int) $funcionario->id . '|' . $cursor->toDateString();
+                $corrigidoManual = (bool) $ajustesSecaoUmLinhas->get($chaveAjuste, false);
 
                 $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
 
@@ -233,9 +467,30 @@ class PontoJornadaController extends Controller
                     $resumo['dias_pontuais']++;
                 }
 
+                if ($status === 'Falta') {
+                    $totaisSecaoUm['faltas_qtd']++;
+                }
+
+                if ($saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos) {
+                    $totaisSecaoUm['atrasos_qtd']++;
+                    $totaisSecaoUm['atrasos_segundos'] += abs($saldoSegundos);
+                }
+
                 $rows->push([
                     'funcionario' => $funcionario->nome,
                     'data' => $cursor->format('d/m/Y'),
+                    'data_iso' => $cursor->toDateString(),
+                    'funcionario_id' => (int) $funcionario->id,
+                    'corrigido_manual' => $corrigidoManual,
+                    'entrada_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|entrada_em', false),
+                    'intervalo_inicio_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|intervalo_inicio_em', false),
+                    'intervalo_fim_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|intervalo_fim_em', false),
+                    'saida_corrigida_manual' => (bool) $ajustesSecaoUmCampos->get($chaveAjuste . '|saida_em', false),
+                    'entrada_sugerida' => $horarioSugeridoEntrada,
+                    'intervalo_inicio_sugerida' => $horarioSugeridoIntervaloInicio,
+                    'intervalo_fim_sugerida' => $horarioSugeridoIntervaloFim,
+                    'saida_sugerida' => $horarioSugeridoSaida,
+                    'edicao_bloqueada' => $edicaoBloqueada,
                     'dia' => $this->nomeDiaSemana($cursor),
                     'eh_domingo' => $regra['eh_domingo'],
                     'eh_feriado' => $regra['eh_feriado'],
@@ -267,6 +522,7 @@ class PontoJornadaController extends Controller
         return [
             'rows' => $rows->values(),
             'resumo' => $resumo,
+            'totais_secao_1' => $totaisSecaoUm,
         ];
     }
 
@@ -763,6 +1019,66 @@ class PontoJornadaController extends Controller
         return ['extra_50' => 0, 'extra_100' => 0];
     }
 
+    private function mapaFechamentosPorCompetencia(array $funcionariosIds, Carbon $inicio, Carbon $fim): Collection
+    {
+        if (empty($funcionariosIds) || !Schema::hasTable('rh_fechamentos_ponto')) {
+            return collect();
+        }
+
+        $inicioCompetencia = $inicio->copy()->startOfMonth()->toDateString();
+        $fimCompetencia = $fim->copy()->startOfMonth()->toDateString();
+
+        return RhFechamentoPonto::query()
+            ->whereIn('funcionario_id', $funcionariosIds)
+            ->whereBetween('competencia', [$inicioCompetencia, $fimCompetencia])
+            ->get(['funcionario_id', 'competencia', 'fechado_em'])
+            ->keyBy(function (RhFechamentoPonto $fechamento) {
+                return (int) $fechamento->funcionario_id . '|' . $fechamento->competencia->copy()->startOfMonth()->toDateString();
+            });
+    }
+
+    private function calcularBloqueioEdicaoPorFechamento(Collection $fechamentosPorCompetencia, int $funcionarioId, Carbon $dia, int $prazoDias): bool
+    {
+        $chave = $funcionarioId . '|' . $dia->copy()->startOfMonth()->toDateString();
+        /** @var RhFechamentoPonto|null $fechamento */
+        $fechamento = $fechamentosPorCompetencia->get($chave);
+
+        if (!$fechamento || !$fechamento->fechado_em) {
+            return false;
+        }
+
+        $limite = $fechamento->fechado_em->copy()->addDays(max(0, $prazoDias))->endOfDay();
+
+        return now()->gt($limite);
+    }
+
+    private function edicaoPontoBloqueada(int $funcionarioId, Carbon $dataReferencia): bool
+    {
+        if (!Schema::hasTable('rh_fechamentos_ponto')) {
+            return false;
+        }
+
+        $competencia = $dataReferencia->copy()->startOfMonth()->toDateString();
+
+        /** @var RhFechamentoPonto|null $fechamento */
+        $fechamento = RhFechamentoPonto::query()
+            ->where('funcionario_id', $funcionarioId)
+            ->where('competencia', $competencia)
+            ->first(['funcionario_id', 'competencia', 'fechado_em']);
+
+        if (!$fechamento || !$fechamento->fechado_em) {
+            return false;
+        }
+
+        $jornadas = $this->jornadasAtivasPorFuncionario([$funcionarioId], $dataReferencia->copy()->startOfDay(), $dataReferencia->copy()->endOfDay());
+        $vinculo = $this->jornadaVigenteNoDia($jornadas->get($funcionarioId, collect()), $dataReferencia);
+        $prazoDias = (int) ($vinculo?->jornada?->dias_permitidos_alteracao_apos_fechamento ?? 0);
+
+        $limite = $fechamento->fechado_em->copy()->addDays(max(0, $prazoDias))->endOfDay();
+
+        return now()->gt($limite);
+    }
+
     private function nomeDiaSemana(Carbon $dia): string
     {
         return [
@@ -783,7 +1099,69 @@ class PontoJornadaController extends Controller
             'hora_extra' => 'Hora Extra',
             'desconto_falta' => 'Desconto/Falta',
             'compensacao' => 'Compensação',
+            'esquecimento' => 'Esquecimento',
+            'batida_duplicidade' => 'Batida em Duplicidade',
+            'atestado_medico' => 'Atestado Médico',
+            'acompanhamento_medico' => 'Acompanhamento Médico',
             'outro' => 'Outro',
         ];
+    }
+
+    private function resolverHorarioPadraoBatida(int $funcionarioId, Carbon $dia, string $campoBatida): Carbon
+    {
+        $jornadas = $this->jornadasAtivasPorFuncionario([$funcionarioId], $dia->copy()->startOfDay(), $dia->copy()->endOfDay());
+        $vinculo = $this->jornadaVigenteNoDia($jornadas->get($funcionarioId, collect()), $dia);
+        $regra = $this->resolverRegraDia($vinculo?->jornada, $dia);
+
+        return $this->resolverHorarioPadraoBatidaPorRegra($dia, $regra, $campoBatida);
+    }
+
+    private function resolverHorarioPadraoBatidaPorRegra(Carbon $dia, array $regra, string $campoBatida): Carbon
+    {
+
+        $horaEntrada = $regra['hora_entrada'] ?: '08:00:00';
+        $horaSaida = $regra['hora_saida'] ?: '18:00:00';
+        $intervaloMinutos = max(0, (int) ($regra['intervalo_minutos'] ?? 60));
+
+        $entrada = Carbon::parse($dia->toDateString() . ' ' . $horaEntrada);
+        $intervaloInicio = $entrada->copy()->addHours(4);
+        $intervaloFim = $intervaloInicio->copy()->addMinutes($intervaloMinutos);
+        $saida = Carbon::parse($dia->toDateString() . ' ' . $horaSaida);
+
+        if ($saida->lessThanOrEqualTo($entrada)) {
+            $saida->addDay();
+        }
+
+        return match ($campoBatida) {
+            'entrada_em' => $entrada,
+            'intervalo_inicio_em' => $intervaloInicio,
+            'intervalo_fim_em' => $intervaloFim,
+            'saida_em' => $saida,
+            default => $entrada,
+        };
+    }
+
+    private function extrairCampoBatidaDeAjuste(RhAjustePonto $ajuste): ?string
+    {
+        $justificativa = (string) ($ajuste->justificativa ?? '');
+
+        if (preg_match('/\[campo:(entrada_em|intervalo_inicio_em|intervalo_fim_em|saida_em)\]/', $justificativa, $matches)) {
+            return $matches[1] ?? null;
+        }
+
+        if (stripos($justificativa, '(Entrada') !== false) {
+            return 'entrada_em';
+        }
+        if (stripos($justificativa, '(Saída almoço') !== false) {
+            return 'intervalo_inicio_em';
+        }
+        if (stripos($justificativa, '(Retorno almoço') !== false) {
+            return 'intervalo_fim_em';
+        }
+        if (stripos($justificativa, '(Saída') !== false) {
+            return 'saida_em';
+        }
+
+        return null;
     }
 }
