@@ -79,10 +79,8 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
-        $setores = \App\Models\EquipamentoSetor::orderBy('nome')->get();
-        $responsaveis = \App\Models\EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.create', compact('clientes', 'setores', 'responsaveis'));
+        return view('admin.equipamentos.create', compact('clientes'));
     }
 
     /**
@@ -106,8 +104,8 @@ class EquipamentoController extends Controller
             'modelo' => 'nullable|string|max:255',
             'fabricante' => 'nullable|string|max:255',
             'numero_serie' => 'nullable|string|max:255',
-            'setor_id' => 'nullable|exists:equipamento_setores,id',
-            'responsavel_id' => 'nullable|exists:equipamento_responsaveis,id',
+            'setor_nome' => 'nullable|string|max:255',
+            'responsavel_nome' => 'nullable|string|max:255',
             'ultima_manutencao' => 'nullable|date',
             'ultima_limpeza' => 'nullable|date',
             'periodicidade_manutencao_meses' => 'nullable|integer|min:1|max:120',
@@ -116,14 +114,34 @@ class EquipamentoController extends Controller
             'ativo' => 'nullable|boolean',
         ]);
 
+        // Criar ou buscar setor
+        $setorId = null;
+        if ($request->filled('setor_nome')) {
+            $setor = EquipamentoSetor::firstOrCreate(
+                ['cliente_id' => $request->cliente_id, 'nome' => $request->setor_nome],
+                ['cliente_id' => $request->cliente_id]
+            );
+            $setorId = $setor->id;
+        }
+
+        // Criar ou buscar responsável
+        $responsavelId = null;
+        if ($request->filled('responsavel_nome')) {
+            $responsavel = EquipamentoResponsavel::firstOrCreate(
+                ['cliente_id' => $request->cliente_id, 'nome' => $request->responsavel_nome],
+                ['cliente_id' => $request->cliente_id]
+            );
+            $responsavelId = $responsavel->id;
+        }
+
         Equipamento::create([
             'cliente_id' => $request->cliente_id,
             'nome' => $request->nome,
             'modelo' => $request->modelo,
             'fabricante' => $request->fabricante,
             'numero_serie' => $request->numero_serie,
-            'setor_id' => $request->setor_id,
-            'responsavel_id' => $request->responsavel_id,
+            'setor_id' => $setorId,
+            'responsavel_id' => $responsavelId,
             'ultima_manutencao' => $request->ultima_manutencao,
             'ultima_limpeza' => $request->ultima_limpeza,
             'periodicidade_manutencao_meses' => $request->periodicidade_manutencao_meses ?? 6,
@@ -172,10 +190,8 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
-        $setores = EquipamentoSetor::orderBy('nome')->get();
-        $responsaveis = EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.edit', compact('equipamento', 'clientes', 'setores', 'responsaveis'));
+        return view('admin.equipamentos.edit', compact('equipamento', 'clientes'));
     }
 
     /**
@@ -199,8 +215,8 @@ class EquipamentoController extends Controller
             'modelo' => 'nullable|string|max:255',
             'fabricante' => 'nullable|string|max:255',
             'numero_serie' => 'nullable|string|max:255',
-            'setor_id' => 'nullable|exists:equipamento_setores,id',
-            'responsavel_id' => 'nullable|exists:equipamento_responsaveis,id',
+            'setor_nome' => 'nullable|string|max:255',
+            'responsavel_nome' => 'nullable|string|max:255',
             'ultima_manutencao' => 'nullable|date',
             'ultima_limpeza' => 'nullable|date',
             'periodicidade_manutencao_meses' => 'nullable|integer|min:1|max:120',
@@ -209,14 +225,34 @@ class EquipamentoController extends Controller
             'ativo' => 'nullable|boolean',
         ]);
 
+        // Criar ou buscar setor
+        $setorId = null;
+        if ($request->filled('setor_nome')) {
+            $setor = EquipamentoSetor::firstOrCreate(
+                ['cliente_id' => $equipamento->cliente_id, 'nome' => $request->setor_nome],
+                ['cliente_id' => $equipamento->cliente_id]
+            );
+            $setorId = $setor->id;
+        }
+
+        // Criar ou buscar responsável
+        $responsavelId = null;
+        if ($request->filled('responsavel_nome')) {
+            $responsavel = EquipamentoResponsavel::firstOrCreate(
+                ['cliente_id' => $equipamento->cliente_id, 'nome' => $request->responsavel_nome],
+                ['cliente_id' => $equipamento->cliente_id]
+            );
+            $responsavelId = $responsavel->id;
+        }
+
         $equipamento->update([
             'cliente_id' => $request->cliente_id,
             'nome' => $request->nome,
             'modelo' => $request->modelo,
             'fabricante' => $request->fabricante,
             'numero_serie' => $request->numero_serie,
-            'setor_id' => $request->setor_id,
-            'responsavel_id' => $request->responsavel_id,
+            'setor_id' => $setorId,
+            'responsavel_id' => $responsavelId,
             'ultima_manutencao' => $request->ultima_manutencao,
             'ultima_limpeza' => $request->ultima_limpeza,
             'periodicidade_manutencao_meses' => $request->periodicidade_manutencao_meses ?? 6,

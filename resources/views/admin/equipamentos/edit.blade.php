@@ -68,29 +68,15 @@
                             </div>
 
                             <div>
-                                <x-input-label for="setor_id" value="Setor" />
-                                <select id="setor_id" name="setor_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Selecione um setor</option>
-                                    @foreach($setores as $setor)
-                                        <option value="{{ $setor->id }}" @selected(old('setor_id', $equipamento->setor_id) == $setor->id)>
-                                            {{ $setor->nome }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error :messages="$errors->get('setor_id')" class="mt-2" />
+                                <x-input-label for="setor_nome" value="Setor" />
+                                <x-text-input id="setor_nome" name="setor_nome" type="text" class="mt-1 block w-full" :value="old('setor_nome', $equipamento->setor->nome ?? '')" placeholder="Ex: RH, TI, Produção..." />
+                                <x-input-error :messages="$errors->get('setor_nome')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-input-label for="responsavel_id" value="Responsável" />
-                                <select id="responsavel_id" name="responsavel_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Selecione um responsável</option>
-                                    @foreach($responsaveis as $responsavel)
-                                        <option value="{{ $responsavel->id }}" @selected(old('responsavel_id', $equipamento->responsavel_id) == $responsavel->id)>
-                                            {{ $responsavel->nome }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error :messages="$errors->get('responsavel_id')" class="mt-2" />
+                                <x-input-label for="responsavel_nome" value="Responsável" />
+                                <x-text-input id="responsavel_nome" name="responsavel_nome" type="text" class="mt-1 block w-full" :value="old('responsavel_nome', $equipamento->responsavel->nome ?? '')" placeholder="Ex: João Silva" />
+                                <x-input-error :messages="$errors->get('responsavel_nome')" class="mt-2" />
                             </div>
                         </div>
                     </div>
