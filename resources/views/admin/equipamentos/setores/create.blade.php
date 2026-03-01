@@ -16,7 +16,7 @@
                     <p class="text-sm text-gray-500 mt-1">Preencha as informações abaixo para cadastrar um novo setor</p>
                 </div>
 
-                <form action="{{ route('admin.equipamentos.setores.store') }}" method="POST" class="p-6 space-y-6">
+                <form action="{{ route('admin.setores.store') }}" method="POST" class="p-6 space-y-6">
                     @csrf
 
                     <div>

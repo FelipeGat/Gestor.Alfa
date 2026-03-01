@@ -16,7 +16,7 @@
                     <p class="text-sm text-gray-500 mt-1">Preencha as informações abaixo para cadastrar um novo responsável</p>
                 </div>
 
-                <form action="{{ route('admin.equipamentos.responsaveis.store') }}" method="POST" class="p-6 space-y-6">
+                <form action="{{ route('admin.responsaveis.store') }}" method="POST" class="p-6 space-y-6">
                     @csrf
 
                     <div>

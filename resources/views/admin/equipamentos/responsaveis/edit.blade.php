@@ -16,7 +16,7 @@
                     <p class="text-sm text-gray-500 mt-1">Atualize as informações do responsável</p>
                 </div>
 
-                <form action="{{ route('admin.equipamentos.responsaveis.update', $responsavel->id) }}" method="POST" class="p-6 space-y-6">
+                <form action="{{ route('admin.responsaveis.update', $responsavel->id) }}" method="POST" class="p-6 space-y-6">
                     @csrf
                     @method('PUT')
 

@@ -16,7 +16,7 @@
                     <p class="text-sm text-gray-500 mt-1">Atualize as informações do setor</p>
                 </div>
 
-                <form action="{{ route('admin.equipamentos.setores.update', $setor->id) }}" method="POST" class="p-6 space-y-6">
+                <form action="{{ route('admin.setores.update', $setor->id) }}" method="POST" class="p-6 space-y-6">
                     @csrf
                     @method('PUT')
 
