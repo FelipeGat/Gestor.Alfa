@@ -209,32 +209,53 @@
     background: white;
     border-radius: 0.5rem;
     padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-left: 4px solid var(--portal-secondary);
+    border-top: 1px solid var(--portal-secondary);
+    border-right: 1px solid var(--portal-secondary);
+    border-bottom: 1px solid var(--portal-secondary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .portal-stat-card--blue {
-    border-left-color: var(--portal-secondary);
+    border-left-color: #3b82f6;
+    border-top-color: #3b82f6;
+    border-right-color: #3b82f6;
+    border-bottom-color: #3b82f6;
 }
 
 .portal-stat-card--green {
-    border-left-color: var(--portal-success);
+    border-left-color: #22c55e;
+    border-top-color: #22c55e;
+    border-right-color: #22c55e;
+    border-bottom-color: #22c55e;
 }
 
 .portal-stat-card--yellow {
-    border-left-color: var(--portal-warning);
+    border-left-color: #f59e0b;
+    border-top-color: #f59e0b;
+    border-right-color: #f59e0b;
+    border-bottom-color: #f59e0b;
 }
 
 .portal-stat-card--orange {
     border-left-color: #f97316;
+    border-top-color: #f97316;
+    border-right-color: #f97316;
+    border-bottom-color: #f97316;
 }
 
 .portal-stat-card--red {
-    border-left-color: var(--portal-danger);
+    border-left-color: #ef4444;
+    border-top-color: #ef4444;
+    border-right-color: #ef4444;
+    border-bottom-color: #ef4444;
 }
 
 .portal-stat-card--gray {
     border-left-color: var(--portal-gray-300);
+    border-top-color: var(--portal-gray-300);
+    border-right-color: var(--portal-gray-300);
+    border-bottom-color: var(--portal-gray-300);
 }
 
 .portal-stat-label {
@@ -250,6 +271,30 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--portal-gray-900);
+}
+
+.portal-stat-card--blue .portal-stat-value {
+    color: #3b82f6;
+}
+
+.portal-stat-card--green .portal-stat-value {
+    color: #22c55e;
+}
+
+.portal-stat-card--yellow .portal-stat-value {
+    color: #f59e0b;
+}
+
+.portal-stat-card--orange .portal-stat-value {
+    color: #f97316;
+}
+
+.portal-stat-card--red .portal-stat-value {
+    color: #ef4444;
+}
+
+.portal-stat-card--gray .portal-stat-value {
+    color: var(--portal-gray-600);
 }
 
 @media (min-width: 640px) {
