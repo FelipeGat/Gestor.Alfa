@@ -7,7 +7,25 @@
     </x-slot>
 
     <div class="pb-8 pt-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6"
+             x-data="{
+                modalAjusteAberto: false,
+                ajusteSecao1: {
+                    funcionario_id: '',
+                    funcionario_nome: '',
+                    data_referencia: '',
+                    campo_batida: '',
+                    campo_label: '',
+                    horario_batida: ''
+                },
+                abrirModalAjuste(payload) {
+                    this.ajusteSecao1 = payload;
+                    this.modalAjusteAberto = true;
+                },
+                fecharModalAjuste() {
+                    this.modalAjusteAberto = false;
+                }
+             }">
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 @php
                     $dataAtualFiltro = !empty($filtros['inicio'])
@@ -106,6 +124,54 @@
                 </form>
             </div>
 
+            @if(!empty($fechamentoDisponivel))
+                <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Fechamento de Ponto</h2>
+                    <form method="POST" action="{{ route('rh.ponto-jornada.fechamentos.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        @csrf
+                        <input type="hidden" name="competencia" value="{{ $competenciaAtualFechamento }}">
+                        <input type="hidden" name="inicio" value="{{ $filtros['inicio'] }}">
+                        <input type="hidden" name="fim" value="{{ $filtros['fim'] }}">
+                        <input type="hidden" name="funcionario_id_filtro" value="{{ $filtros['funcionario_id'] ?? '' }}">
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Funcionário para fechamento</label>
+                            <select name="funcionario_id" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                                <option value="">Selecione</option>
+                                @foreach($funcionarios as $funcionario)
+                                    <option value="{{ $funcionario->id }}" @selected((string) ($filtros['funcionario_id'] ?? '') === (string) $funcionario->id)>{{ $funcionario->nome }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Competência</label>
+                            <input type="text" value="{{ \Carbon\Carbon::parse($competenciaAtualFechamento)->format('m/Y') }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50" readonly>
+                        </div>
+
+                        <div class="flex">
+                            <x-button type="submit" variant="primary" size="sm">Marcar Fechamento</x-button>
+                        </div>
+                    </form>
+
+                    @if($fechamentosCompetencia->isNotEmpty())
+                        <div class="mt-4 border-t border-gray-200 pt-4">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Funcionários já fechados nesta competência</p>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($funcionarios as $funcionario)
+                                    @php $fechamento = $fechamentosCompetencia->get((int) $funcionario->id); @endphp
+                                    @if($fechamento)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                            {{ $funcionario->nome }} · {{ optional($fechamento->fechado_em)->format('d/m/Y H:i') }}
+                                        </span>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">SEÇÃO 1 – Jornada Legal (Registro de Ponto do Portal)</h2>
                 @php
@@ -130,6 +196,8 @@
                             $estiloLinha = '';
                             $ehFalta = ($linha['status'] ?? '') === 'Falta';
                             $tipoCelula = $ehFalta ? 'danger' : 'default';
+                            $ehDomingoOuFeriado = !empty($linha['eh_domingo']) || !empty($linha['eh_feriado']);
+                            $edicaoBloqueada = !empty($linha['edicao_bloqueada']);
 
                             if (!empty($linha['eh_feriado'])) {
                                 $estiloLinha = 'background-color: #fff7ed;';
@@ -138,7 +206,22 @@
                             }
                         @endphp
                         <tr @if($estiloLinha) style="{{ $estiloLinha }}" @endif>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['funcionario'] }}</x-table-cell>
+                            @php
+                                $partesNome = collect(explode(' ', trim((string) ($linha['funcionario'] ?? ''))))
+                                    ->filter(fn ($p) => $p !== '')
+                                    ->values();
+                                $primeiroNome = $partesNome->first() ?? '—';
+                                $ultimoSobrenome = $partesNome->count() > 1 ? $partesNome->last() : '';
+                                $nomeExibicao = trim($primeiroNome . ' ' . $ultimoSobrenome);
+
+                                if (mb_strlen($nomeExibicao) > 18 && $ultimoSobrenome !== '') {
+                                    $inicialPrimeiro = mb_substr($primeiroNome, 0, 1);
+                                    $nomeExibicao = $inicialPrimeiro . '. ' . $ultimoSobrenome;
+                                }
+                            @endphp
+                            <x-table-cell :type="$tipoCelula">
+                                <span class="whitespace-nowrap" title="{{ $linha['funcionario'] }}">{{ $nomeExibicao }}</span>
+                            </x-table-cell>
                             <x-table-cell :type="$tipoCelula">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $linha['data'] }}</span>
@@ -155,10 +238,80 @@
                                     <div class="text-xs text-amber-800 mt-1">{{ $linha['feriado_nome'] }}</div>
                                 @endif
                             </x-table-cell>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['entrada'] }}</x-table-cell>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_inicio'] }}</x-table-cell>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_fim'] }}</x-table-cell>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['saida'] }}</x-table-cell>
+                            @php
+                                $classeEntrada = !empty($linha['entrada_corrigida_manual'])
+                                    ? 'text-blue-700 font-semibold'
+                                    : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-gray-800');
+                                $classeIntervaloInicio = !empty($linha['intervalo_inicio_corrigida_manual'])
+                                    ? 'text-blue-700 font-semibold'
+                                    : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-gray-800');
+                                $classeIntervaloFim = !empty($linha['intervalo_fim_corrigida_manual'])
+                                    ? 'text-blue-700 font-semibold'
+                                    : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-gray-800');
+                                $classeSaida = !empty($linha['saida_corrigida_manual'])
+                                    ? 'text-blue-700 font-semibold'
+                                    : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-gray-800');
+                            @endphp
+                            <x-table-cell :type="$tipoCelula">
+                                @php $podeEditarEntrada = (!$edicaoBloqueada) && (($linha['entrada'] ?? '—') === '—' || !empty($linha['entrada_corrigida_manual'])); @endphp
+                                @if($podeEditarEntrada)
+                                    @php
+                                        $classeEntradaEditavel = !empty($linha['entrada_corrigida_manual'])
+                                            ? 'text-blue-700 font-semibold'
+                                            : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-blue-700 font-semibold');
+                                    @endphp
+                                    <button type="button"
+                                            class="{{ $classeEntradaEditavel }} hover:underline underline-offset-2"
+                                            @click="abrirModalAjuste({ funcionario_id: {{ (int) ($linha['funcionario_id'] ?? 0) }}, funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }}, data_referencia: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }}, campo_batida: 'entrada_em', campo_label: 'Entrada', horario_batida: {{ \Illuminate\Support\Js::from($linha['entrada_sugerida'] ?? '08:00') }} })">{{ $linha['entrada'] ?? '—' }}</button>
+                                @else
+                                    <span class="{{ $classeEntrada }}">{{ $linha['entrada'] }}</span>
+                                @endif
+                            </x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
+                                @php $podeEditarIntervaloInicio = (!$edicaoBloqueada) && (($linha['intervalo_inicio'] ?? '—') === '—' || !empty($linha['intervalo_inicio_corrigida_manual'])); @endphp
+                                @if($podeEditarIntervaloInicio)
+                                    @php
+                                        $classeIntervaloInicioEditavel = !empty($linha['intervalo_inicio_corrigida_manual'])
+                                            ? 'text-blue-700 font-semibold'
+                                            : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-blue-700 font-semibold');
+                                    @endphp
+                                    <button type="button"
+                                            class="{{ $classeIntervaloInicioEditavel }} hover:underline underline-offset-2"
+                                            @click="abrirModalAjuste({ funcionario_id: {{ (int) ($linha['funcionario_id'] ?? 0) }}, funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }}, data_referencia: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }}, campo_batida: 'intervalo_inicio_em', campo_label: 'Saída almoço', horario_batida: {{ \Illuminate\Support\Js::from($linha['intervalo_inicio_sugerida'] ?? '12:00') }} })">{{ $linha['intervalo_inicio'] ?? '—' }}</button>
+                                @else
+                                    <span class="{{ $classeIntervaloInicio }}">{{ $linha['intervalo_inicio'] }}</span>
+                                @endif
+                            </x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
+                                @php $podeEditarIntervaloFim = (!$edicaoBloqueada) && (($linha['intervalo_fim'] ?? '—') === '—' || !empty($linha['intervalo_fim_corrigida_manual'])); @endphp
+                                @if($podeEditarIntervaloFim)
+                                    @php
+                                        $classeIntervaloFimEditavel = !empty($linha['intervalo_fim_corrigida_manual'])
+                                            ? 'text-blue-700 font-semibold'
+                                            : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-blue-700 font-semibold');
+                                    @endphp
+                                    <button type="button"
+                                            class="{{ $classeIntervaloFimEditavel }} hover:underline underline-offset-2"
+                                            @click="abrirModalAjuste({ funcionario_id: {{ (int) ($linha['funcionario_id'] ?? 0) }}, funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }}, data_referencia: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }}, campo_batida: 'intervalo_fim_em', campo_label: 'Retorno almoço', horario_batida: {{ \Illuminate\Support\Js::from($linha['intervalo_fim_sugerida'] ?? '13:00') }} })">{{ $linha['intervalo_fim'] ?? '—' }}</button>
+                                @else
+                                    <span class="{{ $classeIntervaloFim }}">{{ $linha['intervalo_fim'] }}</span>
+                                @endif
+                            </x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
+                                @php $podeEditarSaida = (!$edicaoBloqueada) && (($linha['saida'] ?? '—') === '—' || !empty($linha['saida_corrigida_manual'])); @endphp
+                                @if($podeEditarSaida)
+                                    @php
+                                        $classeSaidaEditavel = !empty($linha['saida_corrigida_manual'])
+                                            ? 'text-blue-700 font-semibold'
+                                            : ($ehDomingoOuFeriado ? 'text-red-700 font-semibold' : 'text-blue-700 font-semibold');
+                                    @endphp
+                                    <button type="button"
+                                            class="{{ $classeSaidaEditavel }} hover:underline underline-offset-2"
+                                            @click="abrirModalAjuste({ funcionario_id: {{ (int) ($linha['funcionario_id'] ?? 0) }}, funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }}, data_referencia: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }}, campo_batida: 'saida_em', campo_label: 'Saída', horario_batida: {{ \Illuminate\Support\Js::from($linha['saida_sugerida'] ?? '18:00') }} })">{{ $linha['saida'] ?? '—' }}</button>
+                                @else
+                                    <span class="{{ $classeSaida }}">{{ $linha['saida'] }}</span>
+                                @endif
+                            </x-table-cell>
                             @php
                                 $saldoSegundos = (int) ($linha['saldo_segundos'] ?? 0);
                                 $toleranciaSegundos = (int) ($linha['tolerancia_segundos'] ?? 0);
@@ -265,56 +418,8 @@
             </div>
 
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Ajuste Manual</h2>
-                <form method="POST" action="{{ route('rh.ponto-jornada.ajustes.store') }}" class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                    @csrf
-                    <input type="hidden" name="inicio" value="{{ $filtros['inicio'] }}">
-                    <input type="hidden" name="fim" value="{{ $filtros['fim'] }}">
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Funcionário</label>
-                        <select name="funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
-                            <option value="">Selecione</option>
-                            @foreach($funcionarios as $funcionario)
-                                <option value="{{ $funcionario->id }}" @selected((int) old('funcionario_id', $filtros['funcionario_id']) === (int) $funcionario->id)>{{ $funcionario->nome }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Ajuste</label>
-                        <select name="tipo_ajuste" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
-                            <option value="">Selecione</option>
-                            @foreach($tiposAjuste as $valor => $label)
-                                <option value="{{ $valor }}" @selected(old('tipo_ajuste') === $valor)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <x-form-input name="atendimento_id" type="number" label="Atendimento (opcional)" placeholder="ID" />
-                    <x-form-input name="minutos_ajuste" type="number" label="Minutos (+/-)" required placeholder="Ex.: 30 ou -15" />
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Autorizado por</label>
-                        <select name="autorizado_por_user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
-                            <option value="">Selecione</option>
-                            @foreach($autorizadores as $usuario)
-                                <option value="{{ $usuario->id }}" @selected((int) old('autorizado_por_user_id') === (int) $usuario->id)>{{ $usuario->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="md:col-span-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Justificativa</label>
-                        <textarea name="justificativa" rows="3" required class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Justificativa obrigatória para o ajuste manual">{{ old('justificativa') }}</textarea>
-                    </div>
-
-                    <div class="md:col-span-6 flex justify-end">
-                        <x-button type="submit" variant="primary" size="sm">Registrar Ajuste</x-button>
-                    </div>
-                </form>
-
-                <div class="mt-6 border-t border-gray-200 pt-4">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Relatório de Ajustes Manuais</h2>
+                <div class="border-t border-gray-200 pt-4">
                     <h3 class="text-md font-semibold text-gray-900 mb-3">Histórico de Ajustes</h3>
                     <div class="space-y-3 max-h-[420px] overflow-auto pr-1">
                         @forelse($ajustes as $ajuste)
@@ -330,6 +435,66 @@
                             <p class="text-sm text-gray-500">Nenhum ajuste registrado no período.</p>
                         @endforelse
                     </div>
+                </div>
+            </div>
+
+            <div x-show="modalAjusteAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="fecharModalAjuste()"></div>
+                <div class="relative bg-white rounded-lg w-full max-w-xl p-6 shadow-xl">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Lançamento Manual - Seção 1</h3>
+
+                    <form method="POST" action="{{ route('rh.ponto-jornada.ajustes-secao-um.store') }}" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="funcionario_id" :value="ajusteSecao1.funcionario_id">
+                        <input type="hidden" name="data_referencia" :value="ajusteSecao1.data_referencia">
+                        <input type="hidden" name="campo_batida" :value="ajusteSecao1.campo_batida">
+                        <input type="hidden" name="inicio" value="{{ $filtros['inicio'] }}">
+                        <input type="hidden" name="fim" value="{{ $filtros['fim'] }}">
+                        <input type="hidden" name="funcionario_id_filtro" value="{{ $filtros['funcionario_id'] ?? '' }}">
+
+                        <div class="text-sm text-gray-700 bg-blue-50 border border-blue-100 rounded p-3">
+                            <p><span class="font-semibold">Funcionário:</span> <span x-text="ajusteSecao1.funcionario_nome"></span></p>
+                            <p><span class="font-semibold">Data:</span> <span x-text="ajusteSecao1.data_referencia"></span></p>
+                            <p><span class="font-semibold">Campo:</span> <span x-text="ajusteSecao1.campo_label"></span></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Horário da Batida</label>
+                            <input type="time" name="horario_batida" :value="ajusteSecao1.horario_batida" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
+                            <p class="text-xs text-gray-500 mt-1">Preenchido com o horário previsto da jornada, mas você pode alterar.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo do Ajuste</label>
+                            <select name="tipo_ajuste" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
+                                <option value="">Selecione</option>
+                                <option value="esquecimento">Esquecimento</option>
+                                <option value="batida_duplicidade">Batida em Duplicidade</option>
+                                <option value="atestado_medico">Atestado Médico</option>
+                                <option value="acompanhamento_medico">Acompanhamento Médico</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo do lançamento Manual</label>
+                            <textarea name="motivo_lancamento_manual" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2" required></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quem Autorizou</label>
+                            <select name="autorizado_por_user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2" required>
+                                <option value="">Selecione</option>
+                                @foreach($autorizadores as $usuario)
+                                    <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <x-button type="button" variant="secondary" size="sm" @click="fecharModalAjuste()">Cancelar</x-button>
+                            <x-button type="submit" variant="primary" size="sm">Lançar Ajuste</x-button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
