@@ -38,10 +38,10 @@
                 detalhesBatida: {
                     funcionario_nome: '',
                     data_referencia: '',
-                    entrada: { horario: '—', foto_url: null, latitude: null, longitude: null },
-                    intervalo_inicio: { horario: '—', foto_url: null, latitude: null, longitude: null },
-                    intervalo_fim: { horario: '—', foto_url: null, latitude: null, longitude: null },
-                    saida: { horario: '—', foto_url: null, latitude: null, longitude: null }
+                    entrada: { horario: '—', foto_url: null, latitude: null, longitude: null, endereco: null },
+                    intervalo_inicio: { horario: '—', foto_url: null, latitude: null, longitude: null, endereco: null },
+                    intervalo_fim: { horario: '—', foto_url: null, latitude: null, longitude: null, endereco: null },
+                    saida: { horario: '—', foto_url: null, latitude: null, longitude: null, endereco: null }
                 },
                 indicadorSelecionado: {
                     titulo: '',
@@ -50,6 +50,7 @@
                     descricao: '',
                     componentes: []
                 },
+                cacheEnderecos: {},
                 abrirModalAjuste(payload) {
                     this.ajusteSecao1 = payload;
                     this.modalAjusteAberto = true;
@@ -85,9 +86,70 @@
                 abrirModalDetalhesBatida(payload) {
                     this.detalhesBatida = payload;
                     this.modalDetalhesBatidaAberto = true;
+                    this.resolverEnderecosBatida();
                 },
                 fecharModalDetalhesBatida() {
                     this.modalDetalhesBatidaAberto = false;
+                },
+                coordenadasValidas(latitude, longitude) {
+                    return latitude !== null
+                        && latitude !== ''
+                        && longitude !== null
+                        && longitude !== '';
+                },
+                linkGoogleMaps(latitude, longitude) {
+                    return `https://www.google.com/maps?q=${encodeURIComponent(`${latitude},${longitude}`)}`;
+                },
+                async buscarEndereco(latitude, longitude) {
+                    if (!this.coordenadasValidas(latitude, longitude)) {
+                        return null;
+                    }
+
+                    const chave = `${latitude},${longitude}`;
+                    if (this.cacheEnderecos[chave]) {
+                        return this.cacheEnderecos[chave];
+                    }
+
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&zoom=18&addressdetails=1`;
+                        const resposta = await fetch(url, {
+                            headers: {
+                                'Accept-Language': 'pt-BR,pt;q=0.9',
+                            },
+                        });
+
+                        if (!resposta.ok) {
+                            throw new Error('Falha ao consultar endereço');
+                        }
+
+                        const dados = await resposta.json();
+                        const endereco = dados?.display_name || null;
+                        this.cacheEnderecos[chave] = endereco;
+
+                        return endereco;
+                    } catch (error) {
+                        this.cacheEnderecos[chave] = null;
+                        return null;
+                    }
+                },
+                async resolverEnderecosBatida() {
+                    const campos = ['entrada', 'intervalo_inicio', 'intervalo_fim', 'saida'];
+
+                    for (const campo of campos) {
+                        const ponto = this.detalhesBatida[campo] || {};
+                        if (!this.coordenadasValidas(ponto.latitude, ponto.longitude)) {
+                            this.detalhesBatida[campo] = { ...ponto, endereco: null };
+                            continue;
+                        }
+
+                        this.detalhesBatida[campo] = { ...ponto, endereco: 'Carregando endereço...' };
+                        const endereco = await this.buscarEndereco(ponto.latitude, ponto.longitude);
+
+                        this.detalhesBatida[campo] = {
+                            ...ponto,
+                            endereco: endereco || `Coordenadas: ${ponto.latitude}, ${ponto.longitude}`,
+                        };
+                    }
                 },
                 abrirModalIndicador(payload) {
                     this.indicadorSelecionado = payload;
@@ -870,7 +932,14 @@
                         <div class="border border-gray-200 rounded p-3">
                             <p class="text-sm font-semibold text-gray-800 mb-2">Entrada</p>
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.entrada.horario || '—'"></span></p>
-                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.entrada.latitude ?? '—') + ', ' + (detalhesBatida.entrada.longitude ?? '—')"></span></p>
+                            <p class="text-sm text-gray-700">Localização:
+                                <template x-if="coordenadasValidas(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)">
+                                    <a :href="linkGoogleMaps(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.entrada.endereco || ('Coordenadas: ' + detalhesBatida.entrada.latitude + ', ' + detalhesBatida.entrada.longitude)"></a>
+                                </template>
+                                <template x-if="!coordenadasValidas(detalhesBatida.entrada.latitude, detalhesBatida.entrada.longitude)">
+                                    <span>—</span>
+                                </template>
+                            </p>
                             <template x-if="detalhesBatida.entrada.foto_url">
                                 <a :href="detalhesBatida.entrada.foto_url" target="_blank" rel="noopener" class="inline-block mt-2">
                                     <img :src="detalhesBatida.entrada.foto_url" alt="Foto entrada" class="h-28 w-28 object-cover rounded border border-gray-200">
@@ -881,19 +950,40 @@
                         <div class="border border-gray-200 rounded p-3">
                             <p class="text-sm font-semibold text-gray-800 mb-2">Saída almoço</p>
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_inicio.horario || '—'"></span></p>
-                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.intervalo_inicio.latitude ?? '—') + ', ' + (detalhesBatida.intervalo_inicio.longitude ?? '—')"></span></p>
+                            <p class="text-sm text-gray-700">Localização:
+                                <template x-if="coordenadasValidas(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)">
+                                    <a :href="linkGoogleMaps(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_inicio.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_inicio.latitude + ', ' + detalhesBatida.intervalo_inicio.longitude)"></a>
+                                </template>
+                                <template x-if="!coordenadasValidas(detalhesBatida.intervalo_inicio.latitude, detalhesBatida.intervalo_inicio.longitude)">
+                                    <span>—</span>
+                                </template>
+                            </p>
                         </div>
 
                         <div class="border border-gray-200 rounded p-3">
                             <p class="text-sm font-semibold text-gray-800 mb-2">Retorno almoço</p>
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_fim.horario || '—'"></span></p>
-                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.intervalo_fim.latitude ?? '—') + ', ' + (detalhesBatida.intervalo_fim.longitude ?? '—')"></span></p>
+                            <p class="text-sm text-gray-700">Localização:
+                                <template x-if="coordenadasValidas(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)">
+                                    <a :href="linkGoogleMaps(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.intervalo_fim.endereco || ('Coordenadas: ' + detalhesBatida.intervalo_fim.latitude + ', ' + detalhesBatida.intervalo_fim.longitude)"></a>
+                                </template>
+                                <template x-if="!coordenadasValidas(detalhesBatida.intervalo_fim.latitude, detalhesBatida.intervalo_fim.longitude)">
+                                    <span>—</span>
+                                </template>
+                            </p>
                         </div>
 
                         <div class="border border-gray-200 rounded p-3">
                             <p class="text-sm font-semibold text-gray-800 mb-2">Saída</p>
                             <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.saida.horario || '—'"></span></p>
-                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.saida.latitude ?? '—') + ', ' + (detalhesBatida.saida.longitude ?? '—')"></span></p>
+                            <p class="text-sm text-gray-700">Localização:
+                                <template x-if="coordenadasValidas(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)">
+                                    <a :href="linkGoogleMaps(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)" target="_blank" rel="noopener" class="text-blue-700 hover:underline" x-text="detalhesBatida.saida.endereco || ('Coordenadas: ' + detalhesBatida.saida.latitude + ', ' + detalhesBatida.saida.longitude)"></a>
+                                </template>
+                                <template x-if="!coordenadasValidas(detalhesBatida.saida.latitude, detalhesBatida.saida.longitude)">
+                                    <span>—</span>
+                                </template>
+                            </p>
                             <template x-if="detalhesBatida.saida.foto_url">
                                 <a :href="detalhesBatida.saida.foto_url" target="_blank" rel="noopener" class="inline-block mt-2">
                                     <img :src="detalhesBatida.saida.foto_url" alt="Foto saída" class="h-28 w-28 object-cover rounded border border-gray-200">
