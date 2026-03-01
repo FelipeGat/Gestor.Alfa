@@ -18,6 +18,14 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Prevenir voltar para páginas restritas após logout -->
+    <script>
+        if (window.history && window.history.pushState) {
+            // Limpar estado do histórico para prevenir voltar
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
 </head>
 
 <body class="font-sans text-gray-900 antialiased">

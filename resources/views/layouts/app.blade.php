@@ -63,24 +63,6 @@
         }
     </style>
 
-    <!-- Prevenir navegação com botão voltar após logout -->
-    <script>
-        (function() {
-            var isHandlingBack = false;
-            
-            if (window.history && window.history.pushState) {
-                window.history.pushState(null, null, window.location.href);
-                window.onpopstate = function () {
-                    if (!isHandlingBack) {
-                        isHandlingBack = true;
-                        // Redireciona para login sem criar entrada no histórico
-                        window.location.replace('/login');
-                    }
-                };
-            }
-        })();
-    </script>
-
 </head>
 
 <body class="font-sans antialiased">
