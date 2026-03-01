@@ -33,21 +33,31 @@ class PontoJornadaController extends Controller
         $inicioInformado = $request->filled('inicio');
         $fimInformado = $request->filled('fim');
 
-        if (!$funcionarioId) {
+        if ($inicioInformado) {
+            $inicio = Carbon::parse($request->input('inicio'))->startOfDay();
+        } elseif (!$funcionarioId) {
             $inicio = Carbon::today()->startOfDay();
+        } else {
+            $inicio = Carbon::now()->startOfMonth();
+        }
+
+        if ($fimInformado) {
+            $fim = Carbon::parse($request->input('fim'))->endOfDay();
+        } elseif (!$funcionarioId) {
             $fim = Carbon::today()->endOfDay();
         } else {
-            if ($inicioInformado) {
-                $inicio = Carbon::parse($request->input('inicio'))->startOfDay();
-            } else {
-                $inicio = Carbon::now()->startOfMonth();
-            }
+            $fim = Carbon::now()->endOfMonth();
+        }
 
-            if ($fimInformado) {
-                $fim = Carbon::parse($request->input('fim'))->endOfDay();
-            } else {
-                $fim = Carbon::now()->endOfMonth();
-            }
+        if (
+            !$funcionarioId
+            && $inicioInformado
+            && $fimInformado
+            && $inicio->isSameDay(Carbon::today()->startOfMonth())
+            && $fim->isSameDay(Carbon::today()->endOfMonth())
+        ) {
+            $inicio = Carbon::today()->startOfDay();
+            $fim = Carbon::today()->endOfDay();
         }
 
         if ($inicio->gt($fim)) {
