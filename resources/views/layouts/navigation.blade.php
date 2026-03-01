@@ -41,7 +41,9 @@
                 {{-- ============ ATENDIMENTOS ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(34, 197, 94, 0.1); color: #22c55e;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Atendimentos
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -49,13 +51,23 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.atendimentos') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Meus Atendimentos" @click.stop>
+                        <a href="{{ route('portal.atendimentos') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Meus Atendimentos" 
+                            @click.stop>
                             Meus Atendimentos
                         </a>
 
-                        <a href="{{ route('portal.chamado.novo') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#22c55e'; this.style.backgroundColor='rgba(34, 197, 94, 0.08)'; this.style.borderBottom='2px solid #22c55e'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Abrir Novo Chamado" @click.stop>
+                        <a href="{{ route('portal.chamado.novo') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Abrir Novo Chamado" 
+                            @click.stop>
                             Abrir Novo Chamado
                         </a>
                     </div>
@@ -65,7 +77,9 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Financeiro
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -73,17 +87,32 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.financeiro') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Dashboard Financeiro" @click.stop>
+                        <a href="{{ route('portal.financeiro') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Dashboard Financeiro" 
+                            @click.stop>
                             Dashboard Financeiro
                         </a>
 
-                        <a href="{{ route('portal.boletos') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Boletos" @click.stop>
+                        <a href="{{ route('portal.boletos') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Boletos" 
+                            @click.stop>
                             Boletos
                         </a>
 
-                        <a href="{{ route('portal.notas') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='rgba(59, 130, 246, 0.08)'; this.style.borderBottom='2px solid #3b82f6'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Notas Fiscais" @click.stop>
+                        <a href="{{ route('portal.notas') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Notas Fiscais" 
+                            @click.stop>
                             Notas Fiscais
                         </a>
                     </div>
@@ -93,7 +122,9 @@
                 {{-- ============ EQUIPAMENTOS ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(147, 51, 234, 0.1); color: #9333ea;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Equipamentos
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -101,25 +132,50 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-56 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.equipamentos.index') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Dashboard Equipamentos" @click.stop>
+                        <a href="{{ route('portal.equipamentos.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Dashboard Equipamentos" 
+                            @click.stop>
                             Dashboard Equipamentos
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.lista') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Lista de Equipamentos" @click.stop>
+                        <a href="{{ route('portal.equipamentos.lista') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Lista de Equipamentos" 
+                            @click.stop>
                             Lista de Equipamentos
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.setores') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Setores" @click.stop>
+                        <a href="{{ route('portal.equipamentos.setores') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Setores" 
+                            @click.stop>
                             Setores
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.responsaveis') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Responsáveis" @click.stop>
+                        <a href="{{ route('portal.equipamentos.responsaveis') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Responsáveis" 
+                            @click.stop>
                             Responsáveis
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.pmoc') }}" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#9333ea'; this.style.backgroundColor='rgba(147, 51, 234, 0.08)'; this.style.borderBottom='2px solid #9333ea'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="portal" data-tab-link data-tab-label="Plano de Manutenção (PMOC)" @click.stop>
+                        <a href="{{ route('portal.equipamentos.pmoc') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="portal" 
+                            data-tab-link 
+                            data-tab-label="Plano de Manutenção (PMOC)" 
+                            @click.stop>
                             Plano de Manutenção (PMOC)
                         </a>
                     </div>
@@ -129,7 +185,9 @@
                 {{-- ============ GESTÃO ============ --}}
                 @if($isAdmin || $isComercial || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Gestão
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -137,42 +195,54 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="dashboard">
+                        <a href="{{ route('dashboard') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="dashboard">
                             Dashboard Operacional
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('dashboard.tecnico')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="dashboard-tecnico">
+                        <a href="{{ route('dashboard.tecnico') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="dashboard-tecnico">
                             Dashboard Técnico
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin || $isComercial)
-                        <x-nav-link :href="route('dashboard.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="dashboard-comercial">
+                        <a href="{{ route('dashboard.comercial') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="dashboard-comercial">
                             Dashboard Comercial
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('financeiro.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="financeiro">
+                        <a href="{{ route('financeiro.dashboard') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="financeiro">
                             Dashboard Financeiro
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('rh.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                        <a href="{{ route('rh.dashboard') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="rh">
                             Dashboard RH
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('atendimentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="atendimentos">
+                        <a href="{{ route('atendimentos.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="atendimentos">
                             Atendimentos
-                        </x-nav-link>
+                        </a>
                         @endif
                     </div>
                 </div>
@@ -181,7 +251,9 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isAdmin || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Financeiro
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -189,31 +261,43 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <x-nav-link :href="route('financeiro.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="financeiro">
+                        <a href="{{ route('financeiro.dashboard') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="financeiro">
                             Dashboard Financeiro
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('financeiro.contas-financeiras.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="bancos">
+                        <a href="{{ route('financeiro.contas-financeiras.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="bancos">
                             Bancos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('financeiro.cobrar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="cobras">
+                        <a href="{{ route('financeiro.cobrar') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="cobras">
                             Cobrar
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('financeiro.contasareceber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="contas-receber">
+                        <a href="{{ route('financeiro.contasareceber') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="contas-receber">
                             Receber
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('financeiro.contasapagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="contas-pagar">
+                        <a href="{{ route('financeiro.contasapagar') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="contas-pagar">
                             Pagar
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('financeiro.movimentacao')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="movimentacao">
+                        <a href="{{ route('financeiro.movimentacao') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="movimentacao">
                             Extrato
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -221,7 +305,9 @@
                 {{-- ============ COMERCIAL ============ --}}
                 @if($isAdmin || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Comercial
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -229,23 +315,31 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <x-nav-link :href="route('dashboard.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="dashboard-comercial">
+                        <a href="{{ route('dashboard.comercial') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="dashboard-comercial">
                             Dashboard Comercial
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('orcamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="orcamentos">
+                        <a href="{{ route('orcamentos.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="orcamentos">
                             Orçamentos
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('itemcomercial.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="produtos">
+                        <a href="{{ route('itemcomercial.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="produtos">
                             Produtos / Serviços
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('pre-clientes.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="pre-clientes">
+                        <a href="{{ route('pre-clientes.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="pre-clientes">
                             Pré-Clientes
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -253,7 +347,9 @@
                 {{-- ============ RH ============ --}}
                 @if($isRhAdmin)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         RH
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -261,26 +357,36 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
-                        <x-nav-link :href="route('rh.dashboard')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                        class="portal-nav-dropdown flex flex-col">
+                        <a href="{{ route('rh.dashboard') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="rh">
                             Dashboard RH
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('rh.funcionarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="funcionarios">
+                        <a href="{{ route('rh.funcionarios.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="funcionarios">
                             Funcionários
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('rh.ponto-jornada.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                        <a href="{{ route('rh.ponto-jornada.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="rh">
                             Ponto & Jornada
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('rh.jornadas.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                        <a href="{{ route('rh.jornadas.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="rh">
                             Cadastro de Jornada
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('rh.feriados.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="rh">
+                        <a href="{{ route('rh.feriados.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="rh">
                             Cadastro de Feriados
-                        </x-nav-link>
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -288,7 +394,9 @@
                 {{-- ============ CADASTROS ============ --}}
                 @if($isAdmin || $isFinanceiro || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Cadastros
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -296,42 +404,56 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('empresas.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="empresas">
+                        <a href="{{ route('empresas.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="empresas">
                             Empresas
-                        </x-nav-link>
+                        </a>
 
-                        <x-nav-link :href="route('usuarios.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="usuarios">
+                        <a href="{{ route('usuarios.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="usuarios">
                             Usuários
-                        </x-nav-link>
+                        </a>
                         @endif
 
-                        <x-nav-link :href="route('clientes.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="clientes">
+                        <a href="{{ route('clientes.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="clientes">
                             Clientes
-                        </x-nav-link>
+                        </a>
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('fornecedores.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="fornecedores">
+                        <a href="{{ route('fornecedores.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="fornecedores">
                             Fornecedores
-                        </x-nav-link>
+                        </a>
                         @endif
 
-                        <x-nav-link :href="route('assuntos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="assuntos">
+                        <a href="{{ route('assuntos.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="assuntos">
                             Assuntos
-                        </x-nav-link>
+                        </a>
 
                         @if($isAdmin)
-                        <x-nav-link :href="route('admin.equipamentos.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="equipamentos">
+                        <a href="{{ route('admin.equipamentos.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="equipamentos">
                             Equipamentos
-                        </x-nav-link>
+                        </a>
                         @endif
 
                         @if($isAdmin || $isFinanceiro)
-                        <x-nav-link :href="route('categorias.index')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="categorias">
+                        <a href="{{ route('categorias.index') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="categorias">
                             Categorias
-                        </x-nav-link>
+                        </a>
                         @endif
                     </div>
                 </div>
@@ -340,7 +462,9 @@
                 {{-- ============ RELATÓRIOS ============ --}}
                 @if($isAdmin)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" class="font-semibold flex items-center gap-1 hover:text-gray-900 transition-colors rounded px-2 py-1" :style="openMenu ? 'background-color: rgba(63, 156, 174, 0.1); color: #3f9cae;' : 'color: #374151;'">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
                         Relatórios
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -348,39 +472,47 @@
                     </button>
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="absolute mt-2 w-64 bg-white border rounded shadow-md z-50 flex flex-col p-1">
+                        class="portal-nav-dropdown flex flex-col">
 
-                        <div class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <div class="portal-nav-label">
                             Financeiro
                         </div>
 
-                        <div class="pl-3">
-                            <x-nav-link :href="route('relatorios.custos-orcamentos')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                                Custos x Orçamentos
-                            </x-nav-link>
+                        <a href="{{ route('relatorios.custos-orcamentos') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="relatorios">
+                            Custos x Orçamentos
+                        </a>
 
-                            <x-nav-link :href="route('relatorios.custos-gerencial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                                Gerencial de Custos
-                            </x-nav-link>
+                        <a href="{{ route('relatorios.custos-gerencial') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="relatorios">
+                            Gerencial de Custos
+                        </a>
 
-                            <x-nav-link :href="route('relatorios.contas-receber')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                                Contas a Receber
-                            </x-nav-link>
+                        <a href="{{ route('relatorios.contas-receber') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="relatorios">
+                            Contas a Receber
+                        </a>
 
-                            <x-nav-link :href="route('relatorios.contas-pagar')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                                Contas a Pagar
-                            </x-nav-link>
-                        </div>
+                        <a href="{{ route('relatorios.contas-pagar') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="relatorios">
+                            Contas a Pagar
+                        </a>
 
-                        <div class="mt-1 border-t border-gray-100 px-4 pt-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <div class="portal-nav-divider"></div>
+
+                        <div class="portal-nav-label">
                             Comercial
                         </div>
 
-                        <div class="pl-3">
-                            <x-nav-link :href="route('relatorios.comercial')" class="block transition-colors rounded" style="color: #4b5563; padding: 8px 16px;" onmouseover="this.style.color='#3f9cae'; this.style.backgroundColor='rgba(156, 163, 175, 0.08)'; this.style.borderBottom='2px solid #3f9cae'" onmouseout="this.style.color='#4b5563'; this.style.backgroundColor='transparent'; this.style.borderBottom='none'" data-tab-icon="relatorios">
-                                Relatório Comercial
-                            </x-nav-link>
-                        </div>
+                        <a href="{{ route('relatorios.comercial') }}" 
+                            class="portal-nav-item"
+                            data-tab-icon="relatorios">
+                            Relatório Comercial
+                        </a>
                     </div>
                 </div>
                 @endif
