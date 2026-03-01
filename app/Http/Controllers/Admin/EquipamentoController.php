@@ -41,6 +41,14 @@ class EquipamentoController extends Controller
             });
         }
 
+        if ($request->filled('cliente_id')) {
+            $equipamentosQuery->where('cliente_id', $request->cliente_id);
+        }
+
+        if ($request->filled('status')) {
+            $equipamentosQuery->where('ativo', $request->status === 'ativo');
+        }
+
         $equipamentos = $equipamentosQuery->orderByDesc('created_at')->get();
 
         // Setores
@@ -49,6 +57,10 @@ class EquipamentoController extends Controller
         if ($request->filled('search_setor')) {
             $search = $request->search_setor;
             $setoresQuery->where('nome', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('cliente_id_setor')) {
+            $setoresQuery->where('cliente_id', $request->cliente_id_setor);
         }
 
         $setores = $setoresQuery->orderBy('nome')->get();
@@ -62,6 +74,10 @@ class EquipamentoController extends Controller
                 $q->where('nome', 'like', "%{$search}%")
                     ->orWhere('cargo', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->filled('cliente_id_responsavel')) {
+            $responsaveisQuery->where('cliente_id', $request->cliente_id_responsavel);
         }
 
         $responsaveis = $responsaveisQuery->orderBy('nome')->get();
