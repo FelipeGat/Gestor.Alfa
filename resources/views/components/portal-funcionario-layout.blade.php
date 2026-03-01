@@ -67,13 +67,20 @@
             border-bottom: 1px solid #e5e7eb;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
+
+        /* Centralizar conteúdo no desktop */
+        .portal-content {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 
 <body class="font-sans antialiased bg-gray-50">
     <!-- Header Mobile-First -->
     <header class="portal-header sticky top-0 z-50">
-        <div class="relative px-4 py-3">
+        <div class="relative px-4 py-3 portal-content">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center gap-2">
@@ -128,11 +135,11 @@
     </header>
 
     <!-- Page Content -->
-    <main class="pb-20">
+    <main class="pb-20 portal-content">
         <!-- Breadcrumb (opcional) -->
         @isset($breadcrumb)
         <div class="bg-white border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div class="px-4 sm:px-6 lg:px-8 py-2">
                 {{ $breadcrumb }}
             </div>
         </div>
