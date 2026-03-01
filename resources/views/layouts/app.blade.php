@@ -96,11 +96,16 @@
         <div id="sticky-wrapper" class="relative {{ $isFuncionarioPortal ? 'pt-0' : 'pt-12' }}">
             <!-- Page Heading -->
             @isset($header)
+            @php
+                $isPortalCliente = request()->routeIs('portal.*') && !$isFuncionarioPortal;
+            @endphp
+            @if(!$isPortalCliente)
             <header id="page-header" class="bg-white shadow">
-                <div class="{{ $isFuncionarioPortal ? 'w-full py-3 px-3' : 'max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8' }}">
+                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
+            @endif
             @endisset
 
             <!-- Breadcrumb -->

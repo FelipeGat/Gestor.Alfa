@@ -3,54 +3,42 @@
     @vite('resources/css/portal/index.css')
     @endpush
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
-                    Portal do Cliente
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Unidade:
-                    <span class="font-semibold text-[#3f9cae]">
-                        {{ $cliente->nome_exibicao }}
-                    </span>
-                </p>
-            </div>
-
-            @if(auth()->user()->clientes()->count() > 1)
-            <form method="POST" action="{{ route('portal.trocar-unidade') }}">
-                @csrf
-                <button
-                    type="submit"
-                    class="inline-flex items-center gap-2 px-4 py-2
-                           bg-[#3f9cae] hover:bg-[#2d7a8a]
-                           text-white text-sm font-semibold
-                           rounded-lg border-0 shadow transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 7a2 2 0 100-4 2 2 0 000 4zm0 0H4m16 0a2 2 0 100 4 2 2 0 000-4zm0 0h4"></path>
-                    </svg>
-                    <span class="hidden sm:inline">Trocar Unidade</span>
-                </button>
-            </form>
-            @endif
-        </div>
-    </x-slot>
-
     <div class="portal-wrapper">
 
-        {{-- Sessão Bem Vindo --}}
-        <div class="portal-header">
+        {{-- Sessão Bem Vindo (no topo) --}}
+        <div class="portal-welcome-card">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="portal-header-title">
-                        Bem-vindo, {{ auth()->user()->name }}! 👋
+                        Bem-vindo, {{ auth()->user()->name }}!
                     </h1>
                     <p class="portal-header-subtitle">
                         Gerencie seu Financeiro, Atendimentos e Documentos de forma centralizada e segura.
                     </p>
+                    <p class="text-sm text-gray-600 mt-2">
+                        Unidade:
+                        <span class="font-semibold text-[#3f9cae]">
+                            {{ $cliente->nome_exibicao }}
+                        </span>
+                    </p>
                 </div>
-                <div class="hidden lg:block text-5xl opacity-20">
-                    📊
+                <div class="flex items-center gap-4">
+                    @if(auth()->user()->clientes()->count() > 1)
+                    <form method="POST" action="{{ route('portal.trocar-unidade') }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2
+                                   bg-[#3f9cae] hover:bg-[#2d7a8a]
+                                   text-white text-sm font-semibold
+                                   rounded-lg border-0 shadow transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 7a2 2 0 100-4 2 2 0 000 4zm0 0H4m16 0a2 2 0 100 4 2 2 0 000-4zm0 0h4"></path>
+                            </svg>
+                            <span class="hidden sm:inline">Trocar Unidade</span>
+                        </button>
+                    </form>
+                    @endif
                 </div>
             </div>
         </div>
