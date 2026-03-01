@@ -57,15 +57,19 @@
                             <td>{{ $atendimento->assunto->nome ?? '—' }}</td>
                             <td>
                                 <span class="portal-badge portal-badge--info">
-                                    {{ $atendimento->status_atual ?? 'Indefinido' }}
+                                    {{ strtoupper($atendimento->status_atual ?? 'Indefinido') }}
                                 </span>
                             </td>
                             <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
-                            <td>
+                            <td class="text-center">
                                 <button type="button"
                                     onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
-                                    class="portal-btn portal-btn--primary portal-btn--sm">
-                                    Ver Detalhes
+                                    class="p-2 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
+                                    title="Ver Detalhes">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
                                 </button>
 
                                 <dialog id="showHistorico{{ $atendimento->id }}"
@@ -122,7 +126,7 @@
                             </div>
                         </div>
                         <span class="portal-badge portal-badge--info">
-                            {{ $atendimento->status_atual ?? 'Indefinido' }}
+                            {{ strtoupper($atendimento->status_atual ?? 'Indefinido') }}
                         </span>
                     </div>
                     <div class="portal-mobile-card-row">
@@ -140,7 +144,14 @@
                     <div class="portal-mobile-card-actions">
                         <button type="button"
                             onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
-                            class="portal-btn portal-btn--primary portal-btn--sm flex-1">
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 
+                                   bg-[#3f9cae] hover:bg-[#2d7a8a] 
+                                   text-white text-sm font-semibold 
+                                   rounded-lg border-0 shadow transition-all flex-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
                             Ver Detalhes
                         </button>
                     </div>
