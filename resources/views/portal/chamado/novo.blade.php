@@ -74,23 +74,23 @@
                     <div class="portal-filter-group">
                         <label class="portal-filter-label">Prioridade</label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <label class="flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-colors
+                            <label class="flex items-center justify-center p-3 border-2 rounded-full cursor-pointer transition-colors
                                 {{ request()->old('prioridade') === 'baixa' ? 'border-[#3f9cae] bg-[#3f9cae]/10' : 'border-gray-200 hover:border-[#3f9cae] hover:bg-[#3f9cae]/5' }}">
                                 <input type="radio" name="prioridade" value="baixa" class="sr-only"
                                     {{ request()->old('prioridade') === 'baixa' ? 'checked' : '' }}>
                                 <span class="text-sm font-medium text-gray-700">Baixa</span>
                             </label>
-                            <label class="flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-colors
+                            <label class="flex items-center justify-center p-3 border-2 rounded-full cursor-pointer transition-colors
                                 {{ !request()->old('prioridade') || request()->old('prioridade') === 'media' ? 'border-[#3f9cae] bg-[#3f9cae]/10' : 'border-gray-200 hover:border-[#3f9cae] hover:bg-[#3f9cae]/5' }}">
                                 <input type="radio" name="prioridade" value="media" class="sr-only" checked>
                                 <span class="text-sm font-medium text-gray-700">Média</span>
                             </label>
-                            <label class="flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-colors
+                            <label class="flex items-center justify-center p-3 border-2 rounded-full cursor-pointer transition-colors
                                 {{ request()->old('prioridade') === 'alta' ? 'border-[#3f9cae] bg-[#3f9cae]/10' : 'border-gray-200 hover:border-[#3f9cae] hover:bg-[#3f9cae]/5' }}">
                                 <input type="radio" name="prioridade" value="alta" class="sr-only">
                                 <span class="text-sm font-medium text-gray-700">Alta</span>
                             </label>
-                            <label class="flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-colors
+                            <label class="flex items-center justify-center p-3 border-2 rounded-full cursor-pointer transition-colors
                                 {{ request()->old('prioridade') === 'urgente' ? 'border-[#3f9cae] bg-[#3f9cae]/10' : 'border-gray-200 hover:border-[#3f9cae] hover:bg-[#3f9cae]/5' }}">
                                 <input type="radio" name="prioridade" value="urgente" class="sr-only">
                                 <span class="text-sm font-medium text-gray-700">Urgente</span>
