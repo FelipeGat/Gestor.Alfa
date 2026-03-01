@@ -25,26 +25,26 @@
                         <h3 class="text-sm font-medium text-gray-900 mb-4">Dados Básicos</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
-                                <x-label for="nome" value="Nome do Equipamento *" />
-                                <x-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome', $equipamento->nome)" required autofocus />
+                                <x-input-label for="nome" value="Nome do Equipamento *" />
+                                <x-text-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome', $equipamento->nome)" required autofocus />
                                 <x-input-error :messages="$errors->get('nome')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-label for="modelo" value="Modelo" />
-                                <x-input id="modelo" name="modelo" type="text" class="mt-1 block w-full" :value="old('modelo', $equipamento->modelo)" />
+                                <x-input-label for="modelo" value="Modelo" />
+                                <x-text-input id="modelo" name="modelo" type="text" class="mt-1 block w-full" :value="old('modelo', $equipamento->modelo)" />
                                 <x-input-error :messages="$errors->get('modelo')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-label for="fabricante" value="Fabricante" />
-                                <x-input id="fabricante" name="fabricante" type="text" class="mt-1 block w-full" :value="old('fabricante', $equipamento->fabricante)" />
+                                <x-input-label for="fabricante" value="Fabricante" />
+                                <x-text-input id="fabricante" name="fabricante" type="text" class="mt-1 block w-full" :value="old('fabricante', $equipamento->fabricante)" />
                                 <x-input-error :messages="$errors->get('fabricante')" class="mt-2" />
                             </div>
 
                             <div class="md:col-span-2">
-                                <x-label for="numero_serie" value="Número de Série" />
-                                <x-input id="numero_serie" name="numero_serie" type="text" class="mt-1 block w-full" :value="old('numero_serie', $equipamento->numero_serie)" />
+                                <x-input-label for="numero_serie" value="Número de Série" />
+                                <x-text-input id="numero_serie" name="numero_serie" type="text" class="mt-1 block w-full" :value="old('numero_serie', $equipamento->numero_serie)" />
                                 <x-input-error :messages="$errors->get('numero_serie')" class="mt-2" />
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                         <h3 class="text-sm font-medium text-gray-900 mb-4">Vinculação</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
-                                <x-label for="cliente_id" value="Cliente *" />
+                                <x-input-label for="cliente_id" value="Cliente *" />
                                 <select id="cliente_id" name="cliente_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                                     <option value="">Selecione um cliente</option>
                                     @foreach($clientes as $cliente)
@@ -68,7 +68,7 @@
                             </div>
 
                             <div>
-                                <x-label for="setor_id" value="Setor" />
+                                <x-input-label for="setor_id" value="Setor" />
                                 <select id="setor_id" name="setor_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Selecione um setor</option>
                                     @foreach($setores as $setor)
@@ -81,7 +81,7 @@
                             </div>
 
                             <div>
-                                <x-label for="responsavel_id" value="Responsável" />
+                                <x-input-label for="responsavel_id" value="Responsável" />
                                 <select id="responsavel_id" name="responsavel_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Selecione um responsável</option>
                                     @foreach($responsaveis as $responsavel)
@@ -100,26 +100,26 @@
                         <h3 class="text-sm font-medium text-gray-900 mb-4">Manutenção e Limpeza</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <x-label for="ultima_manutencao" value="Última Manutenção" />
-                                <x-input id="ultima_manutencao" name="ultima_manutencao" type="date" class="mt-1 block w-full" :value="old('ultima_manutencao', $equipamento->ultima_manutencao?->format('Y-m-d'))" />
+                                <x-input-label for="ultima_manutencao" value="Última Manutenção" />
+                                <x-text-input id="ultima_manutencao" name="ultima_manutencao" type="date" class="mt-1 block w-full" :value="old('ultima_manutencao', $equipamento->ultima_manutencao?->format('Y-m-d'))" />
                                 <x-input-error :messages="$errors->get('ultima_manutencao')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-label for="ultima_limpeza" value="Última Limpeza" />
-                                <x-input id="ultima_limpeza" name="ultima_limpeza" type="date" class="mt-1 block w-full" :value="old('ultima_limpeza', $equipamento->ultima_limpeza?->format('Y-m-d'))" />
+                                <x-input-label for="ultima_limpeza" value="Última Limpeza" />
+                                <x-text-input id="ultima_limpeza" name="ultima_limpeza" type="date" class="mt-1 block w-full" :value="old('ultima_limpeza', $equipamento->ultima_limpeza?->format('Y-m-d'))" />
                                 <x-input-error :messages="$errors->get('ultima_limpeza')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-label for="periodicidade_manutencao_meses" value="Periodicidade Manutenção (meses)" />
-                                <x-input id="periodicidade_manutencao_meses" name="periodicidade_manutencao_meses" type="number" min="1" max="120" class="mt-1 block w-full" :value="old('periodicidade_manutencao_meses', $equipamento->periodicidade_manutencao_meses)" />
+                                <x-input-label for="periodicidade_manutencao_meses" value="Periodicidade Manutenção (meses)" />
+                                <x-text-input id="periodicidade_manutencao_meses" name="periodicidade_manutencao_meses" type="number" min="1" max="120" class="mt-1 block w-full" :value="old('periodicidade_manutencao_meses', $equipamento->periodicidade_manutencao_meses)" />
                                 <x-input-error :messages="$errors->get('periodicidade_manutencao_meses')" class="mt-2" />
                             </div>
 
                             <div>
-                                <x-label for="periodicidade_limpeza_meses" value="Periodicidade Limpeza (meses)" />
-                                <x-input id="periodicidade_limpeza_meses" name="periodicidade_limpeza_meses" type="number" min="1" max="120" class="mt-1 block w-full" :value="old('periodicidade_limpeza_meses', $equipamento->periodicidade_limpeza_meses)" />
+                                <x-input-label for="periodicidade_limpeza_meses" value="Periodicidade Limpeza (meses)" />
+                                <x-text-input id="periodicidade_limpeza_meses" name="periodicidade_limpeza_meses" type="number" min="1" max="120" class="mt-1 block w-full" :value="old('periodicidade_limpeza_meses', $equipamento->periodicidade_limpeza_meses)" />
                                 <x-input-error :messages="$errors->get('periodicidade_limpeza_meses')" class="mt-2" />
                             </div>
                         </div>
@@ -127,7 +127,7 @@
 
                     {{-- Observações --}}
                     <div>
-                        <x-label for="observacoes" value="Observações" />
+                        <x-input-label for="observacoes" value="Observações" />
                         <textarea id="observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('observacoes', $equipamento->observacoes) }}</textarea>
                         <x-input-error :messages="$errors->get('observacoes')" class="mt-2" />
                     </div>

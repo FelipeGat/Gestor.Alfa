@@ -21,7 +21,7 @@
                     @csrf
 
                     <div>
-                        <x-label for="cliente_id" value="Cliente *" />
+                        <x-input-label for="cliente_id" value="Cliente *" />
                         <select id="cliente_id" name="cliente_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                             <option value="">Selecione um cliente</option>
                             @foreach($clientes as $cliente)
@@ -34,13 +34,13 @@
                     </div>
 
                     <div>
-                        <x-label for="nome" value="Nome do Setor *" />
-                        <x-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome')" required autofocus />
+                        <x-input-label for="nome" value="Nome do Setor *" />
+                        <x-text-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome')" required autofocus />
                         <x-input-error :messages="$errors->get('nome')" class="mt-2" />
                     </div>
 
                     <div>
-                        <x-label for="descricao" value="Descrição" />
+                        <x-input-label for="descricao" value="Descrição" />
                         <textarea id="descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('descricao') }}</textarea>
                         <x-input-error :messages="$errors->get('descricao')" class="mt-2" />
                     </div>

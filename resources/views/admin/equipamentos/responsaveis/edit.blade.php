@@ -22,7 +22,7 @@
                     @method('PUT')
 
                     <div>
-                        <x-label for="cliente_id" value="Cliente *" />
+                        <x-input-label for="cliente_id" value="Cliente *" />
                         <select id="cliente_id" name="cliente_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                             <option value="">Selecione um cliente</option>
                             @foreach($clientes as $cliente)
@@ -35,27 +35,27 @@
                     </div>
 
                     <div>
-                        <x-label for="nome" value="Nome *" />
-                        <x-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome', $responsavel->nome)" required autofocus />
+                        <x-input-label for="nome" value="Nome *" />
+                        <x-text-input id="nome" name="nome" type="text" class="mt-1 block w-full" :value="old('nome', $responsavel->nome)" required autofocus />
                         <x-input-error :messages="$errors->get('nome')" class="mt-2" />
                     </div>
 
                     <div>
-                        <x-label for="cargo" value="Cargo" />
-                        <x-input id="cargo" name="cargo" type="text" class="mt-1 block w-full" :value="old('cargo', $responsavel->cargo)" />
+                        <x-input-label for="cargo" value="Cargo" />
+                        <x-text-input id="cargo" name="cargo" type="text" class="mt-1 block w-full" :value="old('cargo', $responsavel->cargo)" />
                         <x-input-error :messages="$errors->get('cargo')" class="mt-2" />
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <x-label for="telefone" value="Telefone" />
-                            <x-input id="telefone" name="telefone" type="text" class="mt-1 block w-full" :value="old('telefone', $responsavel->telefone)" placeholder="(xx) xxxxx-xxxx" />
+                            <x-input-label for="telefone" value="Telefone" />
+                            <x-text-input id="telefone" name="telefone" type="text" class="mt-1 block w-full" :value="old('telefone', $responsavel->telefone)" placeholder="(xx) xxxxx-xxxx" />
                             <x-input-error :messages="$errors->get('telefone')" class="mt-2" />
                         </div>
 
                         <div>
-                            <x-label for="email" value="E-mail" />
-                            <x-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $responsavel->email)" />
+                            <x-input-label for="email" value="E-mail" />
+                            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $responsavel->email)" />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
                     </div>
