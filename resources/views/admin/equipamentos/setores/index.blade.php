@@ -15,7 +15,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- FILTROS --}}
-            <x-filter :action="route('admin.equipamentos.setores.index')" :show-clear-button="true">
+            <x-filter :action="route('admin.setores.index')" :show-clear-button="true">
                 <x-filter-field name="search" label="Pesquisar Setor" placeholder="Nome do setor" colSpan="lg:col-span-6" />
                 <x-filter-field name="cliente_id" label="Cliente" type="select" placeholder="Todos" colSpan="lg:col-span-6">
                     @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)

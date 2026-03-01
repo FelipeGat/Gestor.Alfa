@@ -52,7 +52,7 @@
                             </svg>
                             Salvar
                         </x-button>
-                        <a href="{{ route('admin.equipamentos.setores.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cancelar</a>
+                        <a href="{{ route('admin.setores.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cancelar</a>
                     </div>
                 </form>
             </div>
