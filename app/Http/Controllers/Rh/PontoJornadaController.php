@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PontoJornadaController extends Controller
@@ -225,6 +226,175 @@ class PontoJornadaController extends Controller
             ->with('success', 'Ajuste manual lançado com sucesso na Seção 1.');
     }
 
+    public function storeAjusteLote(Request $request)
+    {
+        $validated = $request->validate([
+            'funcionario_id' => ['required', 'exists:funcionarios,id'],
+            'data_inicio' => ['required', 'date'],
+            'data_fim' => ['required', 'date', 'after_or_equal:data_inicio'],
+            'tipo_lote' => ['required', 'in:atestado,batidas'],
+            'tipo_ajuste' => ['required', 'in:esquecimento,batida_duplicidade,atestado_medico,acompanhamento_medico'],
+            'horario_entrada' => ['nullable', 'date_format:H:i'],
+            'horario_intervalo_inicio' => ['nullable', 'date_format:H:i'],
+            'horario_intervalo_fim' => ['nullable', 'date_format:H:i'],
+            'horario_saida' => ['nullable', 'date_format:H:i'],
+            'sobrescrever_campos' => ['nullable', 'boolean'],
+            'motivo_lancamento_manual' => ['required', 'string', 'min:5', 'max:1000'],
+            'autorizado_por_user_id' => ['required', 'exists:users,id'],
+            'inicio' => ['nullable', 'date'],
+            'fim' => ['nullable', 'date'],
+            'funcionario_id_filtro' => ['nullable', 'integer', 'exists:funcionarios,id'],
+        ], [
+            'tipo_lote.required' => 'Selecione o tipo do lançamento em lote.',
+            'tipo_ajuste.required' => 'Selecione o tipo do ajuste.',
+            'motivo_lancamento_manual.required' => 'Informe o motivo do lançamento manual.',
+            'autorizado_por_user_id.required' => 'Informe quem autorizou.',
+        ]);
+
+        $horariosBatida = [
+            'entrada_em' => $validated['horario_entrada'] ?? null,
+            'intervalo_inicio_em' => $validated['horario_intervalo_inicio'] ?? null,
+            'intervalo_fim_em' => $validated['horario_intervalo_fim'] ?? null,
+            'saida_em' => $validated['horario_saida'] ?? null,
+        ];
+
+        if ($validated['tipo_lote'] === 'batidas' && collect($horariosBatida)->filter()->isEmpty()) {
+            throw ValidationException::withMessages([
+                'horario_entrada' => 'Informe pelo menos uma batida para o lançamento em lote.',
+            ]);
+        }
+
+        $funcionarioId = (int) $validated['funcionario_id'];
+        $dataInicio = Carbon::parse($validated['data_inicio'])->startOfDay();
+        $dataFim = Carbon::parse($validated['data_fim'])->startOfDay();
+        $sobrescreverCampos = (bool) ($validated['sobrescrever_campos'] ?? false);
+        $motivo = trim($validated['motivo_lancamento_manual']);
+
+        $labelsCampos = [
+            'entrada_em' => 'Entrada',
+            'intervalo_inicio_em' => 'Saída almoço',
+            'intervalo_fim_em' => 'Retorno almoço',
+            'saida_em' => 'Saída',
+        ];
+
+        $aplicados = 0;
+        $bloqueados = 0;
+        $semAlteracao = 0;
+
+        $cursor = $dataInicio->copy();
+        while ($cursor->lte($dataFim)) {
+            $dia = $cursor->copy();
+
+            if ($this->edicaoPontoBloqueada($funcionarioId, $dia)) {
+                $bloqueados++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $registro = RegistroPontoPortal::query()->firstOrNew([
+                'funcionario_id' => $funcionarioId,
+                'data_referencia' => $dia->toDateString(),
+            ]);
+
+            if ($validated['tipo_lote'] === 'atestado') {
+                $jaSemBatidas = !$registro->entrada_em
+                    && !$registro->intervalo_inicio_em
+                    && !$registro->intervalo_fim_em
+                    && !$registro->saida_em;
+
+                if ($jaSemBatidas) {
+                    $semAlteracao++;
+                    $cursor->addDay();
+                    continue;
+                }
+
+                $registro->entrada_em = null;
+                $registro->intervalo_inicio_em = null;
+                $registro->intervalo_fim_em = null;
+                $registro->saida_em = null;
+                $registro->registrado_por_user_id = Auth::id();
+                $registro->save();
+
+                RhAjustePonto::create([
+                    'funcionario_id' => $funcionarioId,
+                    'atendimento_id' => null,
+                    'minutos_ajuste' => 0,
+                    'tipo_ajuste' => $validated['tipo_ajuste'],
+                    'justificativa' => sprintf(
+                        'Lançamento em lote (Atestado) em %s. Motivo: %s',
+                        $dia->format('d/m/Y'),
+                        $motivo
+                    ),
+                    'ajustado_por_user_id' => Auth::id(),
+                    'autorizado_por_user_id' => (int) $validated['autorizado_por_user_id'],
+                    'ajustado_em' => $dia->copy()->setTimeFrom(now()),
+                ]);
+
+                $aplicados++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $camposAlterados = [];
+            foreach ($horariosBatida as $campo => $horario) {
+                if (!$horario) {
+                    continue;
+                }
+
+                if (!$sobrescreverCampos && !empty($registro->{$campo})) {
+                    continue;
+                }
+
+                $batida = Carbon::createFromFormat('Y-m-d H:i', $dia->toDateString() . ' ' . $horario);
+                $registro->{$campo} = $batida;
+                $camposAlterados[] = ($labelsCampos[$campo] ?? $campo) . ' ' . $batida->format('H:i');
+            }
+
+            if (empty($camposAlterados)) {
+                $semAlteracao++;
+                $cursor->addDay();
+                continue;
+            }
+
+            $registro->registrado_por_user_id = Auth::id();
+            $registro->save();
+
+            RhAjustePonto::create([
+                'funcionario_id' => $funcionarioId,
+                'atendimento_id' => null,
+                'minutos_ajuste' => 0,
+                'tipo_ajuste' => $validated['tipo_ajuste'],
+                'justificativa' => sprintf(
+                    'Lançamento em lote (Batidas) em %s [%s]. Motivo: %s',
+                    $dia->format('d/m/Y'),
+                    implode(' | ', $camposAlterados),
+                    $motivo
+                ),
+                'ajustado_por_user_id' => Auth::id(),
+                'autorizado_por_user_id' => (int) $validated['autorizado_por_user_id'],
+                'ajustado_em' => $dia->copy()->setTimeFrom(now()),
+            ]);
+
+            $aplicados++;
+            $cursor->addDay();
+        }
+
+        $mensagem = sprintf(
+            'Lançamento em lote concluído: %d dia(s) aplicado(s), %d bloqueado(s), %d sem alteração.',
+            $aplicados,
+            $bloqueados,
+            $semAlteracao
+        );
+
+        return redirect()
+            ->route('rh.ponto-jornada.index', array_filter([
+                'inicio' => $validated['inicio'] ?? null,
+                'fim' => $validated['fim'] ?? null,
+                'funcionario_id' => $validated['funcionario_id_filtro'] ?? null,
+            ]))
+            ->with($aplicados > 0 ? 'success' : 'error', $mensagem);
+    }
+
     public function storeFechamentoPonto(Request $request)
     {
         if (!Schema::hasTable('rh_fechamentos_ponto')) {
@@ -426,6 +596,7 @@ class PontoJornadaController extends Controller
                         'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                         'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
                         'status' => $possuiBatidas ? 'Sem jornada' : '',
+                        'detalhes_batida' => $this->montarDetalhesBatida($registro),
                     ]);
 
                     continue;
@@ -511,6 +682,7 @@ class PontoJornadaController extends Controller
                     'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                     'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
                     'status' => $status,
+                    'detalhes_batida' => $this->montarDetalhesBatida($registro),
                 ]);
             }
 
@@ -994,6 +1166,49 @@ class PontoJornadaController extends Controller
         }
 
         return $this->formatarSegundos($segundos);
+    }
+
+    private function montarDetalhesBatida(?RegistroPontoPortal $registro): array
+    {
+        return [
+            'entrada' => [
+                'horario' => $this->formatarHorario($registro?->entrada_em),
+                'foto_url' => $this->resolverUrlFotoBatida($registro?->entrada_foto_path),
+                'latitude' => $registro?->entrada_latitude,
+                'longitude' => $registro?->entrada_longitude,
+            ],
+            'intervalo_inicio' => [
+                'horario' => $this->formatarHorario($registro?->intervalo_inicio_em),
+                'foto_url' => null,
+                'latitude' => $registro?->intervalo_inicio_latitude,
+                'longitude' => $registro?->intervalo_inicio_longitude,
+            ],
+            'intervalo_fim' => [
+                'horario' => $this->formatarHorario($registro?->intervalo_fim_em),
+                'foto_url' => null,
+                'latitude' => $registro?->intervalo_fim_latitude,
+                'longitude' => $registro?->intervalo_fim_longitude,
+            ],
+            'saida' => [
+                'horario' => $this->formatarHorario($registro?->saida_em),
+                'foto_url' => $this->resolverUrlFotoBatida($registro?->saida_foto_path),
+                'latitude' => $registro?->saida_latitude,
+                'longitude' => $registro?->saida_longitude,
+            ],
+        ];
+    }
+
+    private function resolverUrlFotoBatida(?string $caminho): ?string
+    {
+        if (!$caminho) {
+            return null;
+        }
+
+        if (str_starts_with($caminho, 'http://') || str_starts_with($caminho, 'https://')) {
+            return $caminho;
+        }
+
+        return Storage::url($caminho);
     }
 
     private function normalizarBatidaParaMinuto($valor): ?Carbon

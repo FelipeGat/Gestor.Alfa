@@ -10,6 +10,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6"
              x-data="{
                 modalAjusteAberto: false,
+                modalLoteAberto: false,
+                     modalRelatorioAjustesAberto: false,
+                     modalDetalhesBatidaAberto: false,
                 ajusteSecao1: {
                     funcionario_id: '',
                     funcionario_nome: '',
@@ -18,12 +21,65 @@
                     campo_label: '',
                     horario_batida: ''
                 },
+                loteAjuste: {
+                    funcionario_id: '',
+                    funcionario_nome: '',
+                    data_inicio: '',
+                    data_fim: '',
+                    tipo_lote: 'atestado',
+                    tipo_ajuste: 'atestado_medico',
+                    horario_entrada: '',
+                    horario_intervalo_inicio: '',
+                    horario_intervalo_fim: '',
+                    horario_saida: '',
+                    sobrescrever_campos: false
+                },
+                detalhesBatida: {
+                    funcionario_nome: '',
+                    data_referencia: '',
+                    entrada: { horario: '—', foto_url: null, latitude: null, longitude: null },
+                    intervalo_inicio: { horario: '—', foto_url: null, latitude: null, longitude: null },
+                    intervalo_fim: { horario: '—', foto_url: null, latitude: null, longitude: null },
+                    saida: { horario: '—', foto_url: null, latitude: null, longitude: null }
+                },
                 abrirModalAjuste(payload) {
                     this.ajusteSecao1 = payload;
                     this.modalAjusteAberto = true;
                 },
                 fecharModalAjuste() {
                     this.modalAjusteAberto = false;
+                },
+                abrirModalLote(payload) {
+                    this.loteAjuste = {
+                        funcionario_id: payload.funcionario_id || '',
+                        funcionario_nome: payload.funcionario_nome || '',
+                        data_inicio: payload.data_inicio || '',
+                        data_fim: payload.data_fim || '',
+                        tipo_lote: payload.tipo_lote || 'atestado',
+                        tipo_ajuste: payload.tipo_ajuste || 'atestado_medico',
+                        horario_entrada: payload.horario_entrada || '',
+                        horario_intervalo_inicio: payload.horario_intervalo_inicio || '',
+                        horario_intervalo_fim: payload.horario_intervalo_fim || '',
+                        horario_saida: payload.horario_saida || '',
+                        sobrescrever_campos: false
+                    };
+                    this.modalLoteAberto = true;
+                },
+                fecharModalLote() {
+                    this.modalLoteAberto = false;
+                },
+                abrirModalRelatorioAjustes() {
+                    this.modalRelatorioAjustesAberto = true;
+                },
+                fecharModalRelatorioAjustes() {
+                    this.modalRelatorioAjustesAberto = false;
+                },
+                abrirModalDetalhesBatida(payload) {
+                    this.detalhesBatida = payload;
+                    this.modalDetalhesBatidaAberto = true;
+                },
+                fecharModalDetalhesBatida() {
+                    this.modalDetalhesBatidaAberto = false;
                 }
              }">
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -187,6 +243,7 @@
                         ['label' => 'Extra 50%'],
                         ['label' => 'Extra 100%'],
                         ['label' => 'Atraso'],
+                        ['label' => 'Ações'],
                     ];
                 @endphp
 
@@ -223,19 +280,21 @@
                                 <span class="whitespace-nowrap" title="{{ $linha['funcionario'] }}">{{ $nomeExibicao }}</span>
                             </x-table-cell>
                             <x-table-cell :type="$tipoCelula">
+                                @php
+                                    $dataCurta = (strlen((string) ($linha['data'] ?? '')) >= 5)
+                                        ? substr((string) $linha['data'], 0, 5)
+                                        : ($linha['data'] ?? '—');
+                                @endphp
                                 <div class="flex items-center gap-2">
-                                    <span>{{ $linha['data'] }}</span>
+                                    <span>{{ $dataCurta }}</span>
                                 </div>
                             </x-table-cell>
                             <x-table-cell :type="$tipoCelula">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $linha['dia'] ?? '—' }}</span>
-                                    @if(!empty($linha['eh_feriado']))
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color:#f59e0b; color:white;">Feriado</span>
-                                    @endif
                                 </div>
-                                @if(!empty($linha['feriado_nome']))
-                                    <div class="text-xs text-amber-800 mt-1">{{ $linha['feriado_nome'] }}</div>
+                                @if(!empty($linha['eh_feriado']))
+                                    <div class="text-xs text-amber-800 mt-1">Feriado</div>
                                 @endif
                             </x-table-cell>
                             @php
@@ -331,6 +390,67 @@
                             <x-table-cell :type="$tipoCelula">
                                 <span class="text-xs font-semibold {{ $destacarAtrasoColuna ? 'text-red-700' : 'text-gray-700' }}">{{ $linha['atraso'] ?? '—' }}</span>
                             </x-table-cell>
+                            <x-table-cell :type="$tipoCelula">
+                                @php
+                                    $semBatidasNoDia = (($linha['entrada'] ?? '—') === '—')
+                                        && (($linha['intervalo_inicio'] ?? '—') === '—')
+                                        && (($linha['intervalo_fim'] ?? '—') === '—')
+                                        && (($linha['saida'] ?? '—') === '—');
+                                @endphp
+                                <div class="flex items-center gap-1">
+                                    @if($semBatidasNoDia)
+                                        <button type="button"
+                                                class="p-2 rounded-full inline-flex items-center justify-center text-[#3f9cae] hover:bg-[#3f9cae]/10 transition"
+                                                title="Ajuste"
+                                                aria-label="Ajuste"
+                                                @click="abrirModalLote({
+                                                    funcionario_id: {{ (int) ($linha['funcionario_id'] ?? 0) }},
+                                                    funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }},
+                                                    data_inicio: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }},
+                                                    data_fim: {{ \Illuminate\Support\Js::from($linha['data_iso'] ?? '') }},
+                                                    tipo_lote: 'atestado',
+                                                    tipo_ajuste: 'atestado_medico'
+                                                })">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M17.414 2.586a2 2 0 010 2.828l-9.9 9.9a1 1 0 01-.45.263l-4 1a1 1 0 01-1.212-1.212l1-4a1 1 0 01.263-.45l9.9-9.9a2 2 0 012.828 0z" />
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <span class="p-2 rounded-full inline-flex items-center justify-center text-gray-300 bg-gray-100" title="Ajuste indisponível" aria-label="Ajuste indisponível">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M17.414 2.586a2 2 0 010 2.828l-9.9 9.9a1 1 0 01-.45.263l-4 1a1 1 0 01-1.212-1.212l1-4a1 1 0 01.263-.45l9.9-9.9a2 2 0 012.828 0z" />
+                                            </svg>
+                                        </span>
+                                    @endif
+
+                                    <button type="button"
+                                            class="p-2 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
+                                            title="Visualizar ajustes"
+                                            aria-label="Visualizar ajustes"
+                                            @click="abrirModalRelatorioAjustes()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 3C5 3 1.73 7.11 1.18 7.83a1 1 0 000 1.34C1.73 9.89 5 14 10 14s8.27-4.11 8.82-4.83a1 1 0 000-1.34C18.27 7.11 15 3 10 3zm0 9a3 3 0 110-6 3 3 0 010 6z" />
+                                        </svg>
+                                    </button>
+
+                                    <button type="button"
+                                            class="p-2 rounded-full inline-flex items-center justify-center text-gray-600 hover:bg-gray-100 transition"
+                                            title="Detalhes da batida"
+                                            aria-label="Detalhes da batida"
+                                            @click="abrirModalDetalhesBatida({
+                                                funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }},
+                                                data_referencia: {{ \Illuminate\Support\Js::from($linha['data'] ?? '') }},
+                                                entrada: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['entrada'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
+                                                intervalo_inicio: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_inicio'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
+                                                intervalo_fim: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_fim'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
+                                                saida: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['saida'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }}
+                                            })">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-9-3a1 1 0 112 0 1 1 0 01-2 0zm2 7a1 1 0 10-2 0 1 1 0 002 0zm-2-5a1 1 0 000 2v2a1 1 0 102 0v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </x-table-cell>
                         </tr>
                     @endforeach
                 </x-table>
@@ -424,27 +544,6 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Relatório de Ajustes Manuais</h2>
-                <div class="border-t border-gray-200 pt-4">
-                    <h3 class="text-md font-semibold text-gray-900 mb-3">Histórico de Ajustes</h3>
-                    <div class="space-y-3 max-h-[420px] overflow-auto pr-1">
-                        @forelse($ajustes as $ajuste)
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="font-semibold text-gray-800">{{ $ajuste->funcionario?->nome ?? '—' }}</p>
-                                <p class="text-sm text-gray-600">Tipo: {{ $tiposAjuste[$ajuste->tipo_ajuste] ?? $ajuste->tipo_ajuste }}</p>
-                                <p class="text-sm text-gray-600">Ajuste: {{ $ajuste->minutos_ajuste }} min</p>
-                                <p class="text-sm text-gray-600">Autorizado por: {{ $ajuste->autorizadoPor?->name ?? '—' }}</p>
-                                <p class="text-sm text-gray-600">Registrado por: {{ $ajuste->ajustadoPor?->name ?? '—' }} em {{ optional($ajuste->ajustado_em)->format('d/m/Y H:i') }}</p>
-                                <p class="text-sm text-gray-700 mt-1">{{ $ajuste->justificativa }}</p>
-                            </div>
-                        @empty
-                            <p class="text-sm text-gray-500">Nenhum ajuste registrado no período.</p>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
             <div x-show="modalAjusteAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/50" @click="fecharModalAjuste()"></div>
                 <div class="relative bg-white rounded-lg w-full max-w-xl p-6 shadow-xl">
@@ -502,6 +601,178 @@
                             <x-button type="submit" variant="primary" size="sm">Lançar Ajuste</x-button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div x-show="modalLoteAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="fecharModalLote()"></div>
+                <div class="relative bg-white rounded-lg w-full max-w-3xl p-6 shadow-xl">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Lançamento em Lote</h3>
+                    <p class="text-sm text-gray-600 mb-4">Aplique atestado ou batidas para um período sem preencher dia a dia.</p>
+
+                    <form method="POST" action="{{ route('rh.ponto-jornada.ajustes-lote.store') }}" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="inicio" value="{{ $filtros['inicio'] }}">
+                        <input type="hidden" name="fim" value="{{ $filtros['fim'] }}">
+                        <input type="hidden" name="funcionario_id_filtro" value="{{ $filtros['funcionario_id'] ?? '' }}">
+                        <input type="hidden" name="funcionario_id" :value="loteAjuste.funcionario_id">
+
+                        <div class="text-sm text-gray-700 bg-blue-50 border border-blue-100 rounded p-3">
+                            <p><span class="font-semibold">Funcionário:</span> <span x-text="loteAjuste.funcionario_nome"></span></p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Lançamento</label>
+                                <select name="tipo_lote" x-model="loteAjuste.tipo_lote" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                                    <option value="atestado">Atestado</option>
+                                    <option value="batidas">Batidas</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data início</label>
+                                <input type="date" name="data_inicio" x-model="loteAjuste.data_inicio" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data fim</label>
+                                <input type="date" name="data_fim" x-model="loteAjuste.data_fim" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo do Ajuste</label>
+                                <select name="tipo_ajuste" x-model="loteAjuste.tipo_ajuste" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                                    <option value="">Selecione</option>
+                                    <option value="atestado_medico">Atestado Médico</option>
+                                    <option value="acompanhamento_medico">Acompanhamento Médico</option>
+                                    <option value="esquecimento">Esquecimento</option>
+                                    <option value="batida_duplicidade">Batida em Duplicidade</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quem Autorizou</label>
+                                <select name="autorizado_por_user_id" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+                                    <option value="">Selecione</option>
+                                    @foreach($autorizadores as $usuario)
+                                        <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div x-show="loteAjuste.tipo_lote === 'batidas'" x-transition class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Entrada</label>
+                                <input type="time" name="horario_entrada" x-model="loteAjuste.horario_entrada" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Saída almoço</label>
+                                <input type="time" name="horario_intervalo_inicio" x-model="loteAjuste.horario_intervalo_inicio" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Retorno almoço</label>
+                                <input type="time" name="horario_intervalo_fim" x-model="loteAjuste.horario_intervalo_fim" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Saída</label>
+                                <input type="time" name="horario_saida" x-model="loteAjuste.horario_saida" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div class="flex items-end">
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" name="sobrescrever_campos" value="1" x-model="loteAjuste.sobrescrever_campos" class="rounded border-gray-300 text-[#3f9cae] focus:ring-[#3f9cae]">
+                                    Sobrescrever
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo do lançamento Manual</label>
+                            <textarea name="motivo_lancamento_manual" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2" required></textarea>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <x-button type="button" variant="secondary" size="sm" @click="fecharModalLote()">Cancelar</x-button>
+                            <x-button type="submit" variant="primary" size="sm">Aplicar Lançamento em Lote</x-button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div x-show="modalRelatorioAjustesAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="fecharModalRelatorioAjustes()"></div>
+                <div class="relative bg-white rounded-lg w-full max-w-4xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Relatório de Ajustes Manuais</h3>
+                        <button type="button" class="text-gray-500 hover:text-gray-700" @click="fecharModalRelatorioAjustes()">✕</button>
+                    </div>
+
+                    <div class="space-y-3 max-h-[520px] overflow-auto pr-1">
+                        @forelse($ajustes as $ajuste)
+                            <div class="border border-gray-200 rounded p-3">
+                                <p class="font-semibold text-gray-800">{{ $ajuste->funcionario?->nome ?? '—' }}</p>
+                                <p class="text-sm text-gray-600">Tipo: {{ $tiposAjuste[$ajuste->tipo_ajuste] ?? $ajuste->tipo_ajuste }}</p>
+                                <p class="text-sm text-gray-600">Ajuste: {{ $ajuste->minutos_ajuste }} min</p>
+                                <p class="text-sm text-gray-600">Autorizado por: {{ $ajuste->autorizadoPor?->name ?? '—' }}</p>
+                                <p class="text-sm text-gray-600">Registrado por: {{ $ajuste->ajustadoPor?->name ?? '—' }} em {{ optional($ajuste->ajustado_em)->format('d/m/Y H:i') }}</p>
+                                <p class="text-sm text-gray-700 mt-1">{{ $ajuste->justificativa }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">Nenhum ajuste registrado no período.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="modalDetalhesBatidaAberto" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="fecharModalDetalhesBatida()"></div>
+                <div class="relative bg-white rounded-lg w-full max-w-4xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Detalhes do Batimento de Ponto</h3>
+                            <p class="text-sm text-gray-600"><span x-text="detalhesBatida.funcionario_nome"></span> · <span x-text="detalhesBatida.data_referencia"></span></p>
+                        </div>
+                        <button type="button" class="text-gray-500 hover:text-gray-700" @click="fecharModalDetalhesBatida()">✕</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Entrada</p>
+                            <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.entrada.horario || '—'"></span></p>
+                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.entrada.latitude ?? '—') + ', ' + (detalhesBatida.entrada.longitude ?? '—')"></span></p>
+                            <template x-if="detalhesBatida.entrada.foto_url">
+                                <a :href="detalhesBatida.entrada.foto_url" target="_blank" rel="noopener" class="inline-block mt-2">
+                                    <img :src="detalhesBatida.entrada.foto_url" alt="Foto entrada" class="h-28 w-28 object-cover rounded border border-gray-200">
+                                </a>
+                            </template>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Saída almoço</p>
+                            <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_inicio.horario || '—'"></span></p>
+                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.intervalo_inicio.latitude ?? '—') + ', ' + (detalhesBatida.intervalo_inicio.longitude ?? '—')"></span></p>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Retorno almoço</p>
+                            <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.intervalo_fim.horario || '—'"></span></p>
+                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.intervalo_fim.latitude ?? '—') + ', ' + (detalhesBatida.intervalo_fim.longitude ?? '—')"></span></p>
+                        </div>
+
+                        <div class="border border-gray-200 rounded p-3">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Saída</p>
+                            <p class="text-sm text-gray-700">Horário: <span x-text="detalhesBatida.saida.horario || '—'"></span></p>
+                            <p class="text-sm text-gray-700">Localização: <span x-text="(detalhesBatida.saida.latitude ?? '—') + ', ' + (detalhesBatida.saida.longitude ?? '—')"></span></p>
+                            <template x-if="detalhesBatida.saida.foto_url">
+                                <a :href="detalhesBatida.saida.foto_url" target="_blank" rel="noopener" class="inline-block mt-2">
+                                    <img :src="detalhesBatida.saida.foto_url" alt="Foto saída" class="h-28 w-28 object-cover rounded border border-gray-200">
+                                </a>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
