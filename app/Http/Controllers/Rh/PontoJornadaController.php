@@ -26,9 +26,27 @@ class PontoJornadaController extends Controller
 
     public function index(Request $request)
     {
-        $funcionarioId = $request->integer('funcionario_id');
-        $inicio = $request->filled('inicio') ? Carbon::parse($request->input('inicio'))->startOfDay() : Carbon::now()->startOfMonth();
-        $fim = $request->filled('fim') ? Carbon::parse($request->input('fim'))->endOfDay() : Carbon::now()->endOfMonth();
+        $funcionarioId = $request->filled('funcionario_id') ? $request->integer('funcionario_id') : null;
+
+        $inicioInformado = $request->filled('inicio');
+        $fimInformado = $request->filled('fim');
+
+        if (!$funcionarioId) {
+            $inicio = Carbon::today()->startOfDay();
+            $fim = Carbon::today()->endOfDay();
+        } else {
+            if ($inicioInformado) {
+                $inicio = Carbon::parse($request->input('inicio'))->startOfDay();
+            } else {
+                $inicio = Carbon::now()->startOfMonth();
+            }
+
+            if ($fimInformado) {
+                $fim = Carbon::parse($request->input('fim'))->endOfDay();
+            } else {
+                $fim = Carbon::now()->endOfMonth();
+            }
+        }
 
         if ($inicio->gt($fim)) {
             [$inicio, $fim] = [$fim->copy()->startOfDay(), $inicio->copy()->endOfDay()];
@@ -114,8 +132,19 @@ class PontoJornadaController extends Controller
 
     private function montarJornadaLegal(Collection $funcionariosEscopo, Carbon $inicio, Carbon $fim, Request $request): array
     {
+        $mostrarTodosNoDiaAtual = !$request->filled('funcionario_id')
+            && !$request->filled('inicio')
+            && !$request->filled('fim');
+
         $rows = collect();
         $totaisSemanais = [];
+        $totaisSecaoUm = [
+            'faltas_qtd' => 0,
+            'atrasos_qtd' => 0,
+            'extras_50_segundos' => 0,
+            'extras_100_segundos' => 0,
+            'atrasos_segundos' => 0,
+        ];
         $resumo = [
             'dias_previstos' => 0,
             'dias_com_presenca' => 0,
@@ -130,6 +159,7 @@ class PontoJornadaController extends Controller
             return [
                 'rows' => collect(),
                 'resumo' => $resumo,
+                'totais_secao_1' => $totaisSecaoUm,
             ];
         }
 
@@ -155,13 +185,13 @@ class PontoJornadaController extends Controller
                 $registro = $registros->get($chave);
                 $jornadaVinculo = $this->jornadaVigenteNoDia($jornadasPorFuncionario->get($funcionario->id, collect()), $cursor);
 
-                if (!$jornadaVinculo && !$registro) {
+                if (!$jornadaVinculo && !$registro && !$mostrarTodosNoDiaAtual) {
                     continue;
                 }
 
                 $regra = $this->resolverRegraDia($jornadaVinculo?->jornada, $cursor);
 
-                if (!$regra['trabalha'] && !$registro) {
+                if (!$regra['trabalha'] && !$registro && !$mostrarTodosNoDiaAtual) {
                     continue;
                 }
 
@@ -173,6 +203,8 @@ class PontoJornadaController extends Controller
                     $segundosTrabalhados = $this->calcularSegundosTrabalhados($registro);
                     $possuiBatidas = $this->possuiBatidasNoDia($registro);
                     $extrasPercentuais = $this->calcularExtrasPorPercentual($segundosTrabalhados, 0, $regra);
+                    $totaisSecaoUm['extras_50_segundos'] += (int) ($extrasPercentuais['extra_50'] ?? 0);
+                    $totaisSecaoUm['extras_100_segundos'] += (int) ($extrasPercentuais['extra_100'] ?? 0);
                     $resumo['segundos_trabalhados'] += $segundosTrabalhados;
                     $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
 
@@ -219,6 +251,8 @@ class PontoJornadaController extends Controller
                 $saldoSegundos = $segundosTrabalhados - $segundosPrevistos;
 
                 $resumo['horas_extras_segundos'] += $extrasPercentuais['extra_50'] + $extrasPercentuais['extra_100'];
+                $totaisSecaoUm['extras_50_segundos'] += (int) ($extrasPercentuais['extra_50'] ?? 0);
+                $totaisSecaoUm['extras_100_segundos'] += (int) ($extrasPercentuais['extra_100'] ?? 0);
 
                 $this->acumularSegundosSemana($totaisSemanais, (int) $funcionario->id, $cursor, $segundosTrabalhados);
 
@@ -231,6 +265,15 @@ class PontoJornadaController extends Controller
 
                 if ($regra['trabalha'] && $status === 'OK') {
                     $resumo['dias_pontuais']++;
+                }
+
+                if ($status === 'Falta') {
+                    $totaisSecaoUm['faltas_qtd']++;
+                }
+
+                if ($saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos) {
+                    $totaisSecaoUm['atrasos_qtd']++;
+                    $totaisSecaoUm['atrasos_segundos'] += abs($saldoSegundos);
                 }
 
                 $rows->push([
@@ -267,6 +310,7 @@ class PontoJornadaController extends Controller
         return [
             'rows' => $rows->values(),
             'resumo' => $resumo,
+            'totais_secao_1' => $totaisSecaoUm,
         ];
     }
 

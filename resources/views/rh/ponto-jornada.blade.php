@@ -182,6 +182,41 @@
                     @endforeach
                 </x-table>
 
+                @php
+                    $totaisSecao1 = $jornadaLegal['totais_secao_1'] ?? [];
+                    $faltasQtd = (int) ($totaisSecao1['faltas_qtd'] ?? 0);
+                    $atrasosQtd = (int) ($totaisSecao1['atrasos_qtd'] ?? 0);
+                    $extras50Segundos = (int) ($totaisSecao1['extras_50_segundos'] ?? 0);
+                    $extras100Segundos = (int) ($totaisSecao1['extras_100_segundos'] ?? 0);
+                    $atrasosSegundos = (int) ($totaisSecao1['atrasos_segundos'] ?? 0);
+                @endphp
+
+                <div class="mt-4 border-t border-gray-200 pt-4">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-3">Totalizador da Seção 1</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+                        <div class="border border-gray-200 rounded p-3 bg-white">
+                            <p class="text-xs text-gray-600 uppercase">Quantidade de Faltas</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ $faltasQtd }}</p>
+                        </div>
+                        <div class="border border-gray-200 rounded p-3 bg-white">
+                            <p class="text-xs text-gray-600 uppercase">Quantidade de Atrasos</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ $atrasosQtd }}</p>
+                        </div>
+                        <div class="border border-gray-200 rounded p-3 bg-white">
+                            <p class="text-xs text-gray-600 uppercase">Total Horas Extras 50%</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $extras50Segundos)) }}</p>
+                        </div>
+                        <div class="border border-gray-200 rounded p-3 bg-white">
+                            <p class="text-xs text-gray-600 uppercase">Total Horas Extras 100%</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $extras100Segundos)) }}</p>
+                        </div>
+                        <div class="border border-gray-200 rounded p-3 bg-white">
+                            <p class="text-xs text-gray-600 uppercase">Total de Atrasos</p>
+                            <p class="text-xl font-bold text-red-700 mt-1">{{ gmdate('H:i', max(0, $atrasosSegundos)) }}</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="bg-white rounded-lg p-6" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
