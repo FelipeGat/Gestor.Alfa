@@ -30,7 +30,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($equipamentos as $equipamento)
             <a href="{{ route('portal.equipamentos.show', $equipamento->id) }}"
-                class="group bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
+                class="group bg-white rounded-lg overflow-hidden border border-[#3f9cae] shadow-sm hover:shadow-md transition-all cursor-pointer">
 
                 <!-- Header do Card -->
                 <div class="bg-gradient-to-r from-[#3f9cae] to-[#2d7a8a] p-4">
