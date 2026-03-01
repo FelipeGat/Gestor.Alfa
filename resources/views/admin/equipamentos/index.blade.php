@@ -171,8 +171,8 @@
                         <x-table-cell class="font-medium text-gray-900">{{ $setor->nome }}</x-table-cell>
                         <x-table-cell>{{ $setor->descricao ?? '-' }}</x-table-cell>
                         <x-table-cell>
-                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
-                                {{ $setor->equipamentos_count }} equip.
+                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold uppercase" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
+                                {{ $setor->equipamentos_count }} {{ $setor->equipamentos_count == 1 ? 'Equip.' : 'Equips.' }}
                             </span>
                         </x-table-cell>
                         <x-table-cell>
@@ -242,8 +242,8 @@
                             @endif
                         </x-table-cell>
                         <x-table-cell>
-                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
-                                {{ $responsavel->equipamentos_count }} equip.
+                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold uppercase" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
+                                {{ $responsavel->equipamentos_count }} {{ $responsavel->equipamentos_count == 1 ? 'Equip.' : 'Equips.' }}
                             </span>
                         </x-table-cell>
                         <x-table-cell>
