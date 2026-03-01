@@ -342,6 +342,13 @@
                     $extras50Segundos = (int) ($totaisSecao1['extras_50_segundos'] ?? 0);
                     $extras100Segundos = (int) ($totaisSecao1['extras_100_segundos'] ?? 0);
                     $atrasosSegundos = (int) ($totaisSecao1['atrasos_segundos'] ?? 0);
+                    $formatarSegundosTotal = function (int $segundos): string {
+                        $valor = max(0, $segundos);
+                        $horas = intdiv($valor, 3600);
+                        $minutos = intdiv($valor % 3600, 60);
+
+                        return sprintf('%02d:%02d', $horas, $minutos);
+                    };
                 @endphp
 
                 <div class="mt-4 border-t border-gray-200 pt-4">
@@ -357,15 +364,15 @@
                         </div>
                         <div class="border border-gray-200 rounded p-3 bg-white">
                             <p class="text-xs text-gray-600 uppercase">Total Horas Extras 50%</p>
-                            <p class="text-xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $extras50Segundos)) }}</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ $formatarSegundosTotal($extras50Segundos) }}</p>
                         </div>
                         <div class="border border-gray-200 rounded p-3 bg-white">
                             <p class="text-xs text-gray-600 uppercase">Total Horas Extras 100%</p>
-                            <p class="text-xl font-bold text-gray-800 mt-1">{{ gmdate('H:i', max(0, $extras100Segundos)) }}</p>
+                            <p class="text-xl font-bold text-gray-800 mt-1">{{ $formatarSegundosTotal($extras100Segundos) }}</p>
                         </div>
                         <div class="border border-gray-200 rounded p-3 bg-white">
                             <p class="text-xs text-gray-600 uppercase">Total de Atrasos</p>
-                            <p class="text-xl font-bold text-red-700 mt-1">{{ gmdate('H:i', max(0, $atrasosSegundos)) }}</p>
+                            <p class="text-xl font-bold text-red-700 mt-1">{{ $formatarSegundosTotal($atrasosSegundos) }}</p>
                         </div>
                     </div>
                 </div>
