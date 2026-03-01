@@ -90,6 +90,11 @@
                 padding-right: 2rem;
             }
         }
+
+        /* Safe area para dispositivos iOS */
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     </style>
 </head>
 
@@ -103,8 +108,8 @@
                     <x-application-logo class="h-7 w-auto" />
                 </div>
 
-                <!-- Navegação Rápida -->
-                <nav class="flex gap-2 overflow-x-auto lg:overflow-visible pb-1 justify-center flex-nowrap w-full lg:w-auto order-last lg:order-none" x-data="{ activeTab: window.location.pathname }">
+                <!-- Navegação Rápida (Desktop) -->
+                <nav class="hidden lg:flex gap-2 overflow-visible pb-1 justify-center flex-nowrap" x-data="{ activeTab: window.location.pathname }">
                     <a href="{{ route('portal-funcionario.index') }}"
                        class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.index') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
                         <svg class="w-3.5 h-3.5 inline-block mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +155,7 @@
     </header>
 
     <!-- Page Content -->
-    <main class="pb-20 portal-content">
+    <main class="pb-16 lg:pb-0 portal-content">
         <!-- Breadcrumb (opcional) -->
         @isset($breadcrumb)
         <div class="bg-white border-b border-gray-200">
@@ -207,6 +212,40 @@
             sessionStorage.removeItem(ACTIVE_TAB_KEY);
         };
     </script>
+
+    <!-- Barra de Navegação Mobile (Inferior) -->
+    <nav class="fixed bottom-0 left-0 right-0 lg:hidden bg-white border-t border-gray-200 z-50 safe-area-bottom">
+        <div class="flex justify-around items-center">
+            <a href="{{ route('portal-funcionario.index') }}"
+               class="flex flex-col items-center justify-center w-full py-2 px-1 {{ request()->routeIs('portal-funcionario.index') ? 'text-[#3f9cae]' : 'text-gray-600' }}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-[10px] font-medium">Início</span>
+            </a>
+            <a href="{{ route('portal-funcionario.chamados') }}"
+               class="flex flex-col items-center justify-center w-full py-2 px-1 {{ request()->routeIs('portal-funcionario.chamados') ? 'text-[#3f9cae]' : 'text-gray-600' }}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <span class="text-[10px] font-medium">Chamados</span>
+            </a>
+            <a href="{{ route('portal-funcionario.agenda') }}"
+               class="flex flex-col items-center justify-center w-full py-2 px-1 {{ request()->routeIs('portal-funcionario.agenda') ? 'text-[#3f9cae]' : 'text-gray-600' }}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-[10px] font-medium">Agenda</span>
+            </a>
+            <a href="{{ route('portal-funcionario.ponto') }}"
+               class="flex flex-col items-center justify-center w-full py-2 px-1 {{ request()->routeIs('portal-funcionario.ponto') ? 'text-[#3f9cae]' : 'text-gray-600' }}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-[10px] font-medium">Ponto</span>
+            </a>
+        </div>
+    </nav>
 </body>
 
 </html>
