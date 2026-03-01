@@ -667,10 +667,10 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
         ->name('portal.equipamentos.qrcode');
 
     // Chamado via QR Code do equipamento (acessível sem autenticação via token)
-    Route::get('/portal/equipamento/chamado/{token}', [\App\Http\Controllers\Portal\PortalController::class, 'chamado'])
+    Route::get('/portal/equipamento/chamado/{token}', [\App\Http\Controllers\PortalController::class, 'chamado'])
         ->name('portal.equipamento.chamado');
 
-    Route::post('/portal/equipamento/chamado/{token}', [\App\Http\Controllers\Portal\PortalController::class, 'storeChamado'])
+    Route::post('/portal/equipamento/chamado/{token}', [\App\Http\Controllers\PortalController::class, 'storeChamadoQrCode'])
         ->name('portal.equipamento.chamado.store');
 
     Route::get(

@@ -496,9 +496,9 @@ class PortalController extends Controller
     }
 
     /**
-     * Processa formulário de chamado via QR Code
+     * Processa formulário de chamado via QR Code do equipamento
      */
-    public function storeChamado(Request $request, $token)
+    public function storeChamadoQrCode(Request $request, $token)
     {
         $equipamento = \App\Models\Equipamento::where('qrcode_token', $token)
             ->with('cliente')
