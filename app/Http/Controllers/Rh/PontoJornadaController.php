@@ -189,6 +189,9 @@ class PontoJornadaController extends Controller
                         'saida' => $this->formatarHorario($registro?->saida_em),
                         'segundos_trabalhados' => $segundosTrabalhados,
                         'segundos_previstos' => 0,
+                        'saldo_segundos' => 0,
+                        'tolerancia_segundos' => 0,
+                        'atraso' => '—',
                         'total' => $this->formatarSegundos($segundosTrabalhados),
                         'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                         'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),
@@ -207,6 +210,13 @@ class PontoJornadaController extends Controller
                     'extra_50' => (int) $apuracao['extra_50_segundos'],
                     'extra_100' => (int) $apuracao['extra_100_segundos'],
                 ];
+                $toleranciaSegundos = max(
+                    0,
+                    (int) ($regra['tolerancia_entrada_min'] ?? 0),
+                    (int) ($regra['tolerancia_saida_min'] ?? 0),
+                    (int) ($regra['tolerancia_intervalo_min'] ?? 0)
+                ) * 60;
+                $saldoSegundos = $segundosTrabalhados - $segundosPrevistos;
 
                 $resumo['horas_extras_segundos'] += $extrasPercentuais['extra_50'] + $extrasPercentuais['extra_100'];
 
@@ -236,6 +246,11 @@ class PontoJornadaController extends Controller
                     'saida' => $this->formatarHorario($registro?->saida_em),
                     'segundos_trabalhados' => $segundosTrabalhados,
                     'segundos_previstos' => $segundosPrevistos,
+                    'saldo_segundos' => $saldoSegundos,
+                    'tolerancia_segundos' => $toleranciaSegundos,
+                    'atraso' => ($saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos)
+                        ? $this->formatarSegundos(abs($saldoSegundos))
+                        : '—',
                     'total' => $this->formatarSegundos($segundosTrabalhados),
                     'extra_50' => $this->formatarSegundosOpcional($extrasPercentuais['extra_50']),
                     'extra_100' => $this->formatarSegundosOpcional($extrasPercentuais['extra_100']),

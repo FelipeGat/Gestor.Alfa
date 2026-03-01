@@ -120,7 +120,7 @@
                         ['label' => 'Total'],
                         ['label' => 'Extra 50%'],
                         ['label' => 'Extra 100%'],
-                        ['label' => 'Status'],
+                        ['label' => 'Atraso'],
                     ];
                 @endphp
 
@@ -132,9 +132,9 @@
                             $tipoCelula = $ehFalta ? 'danger' : 'default';
 
                             if (!empty($linha['eh_feriado'])) {
-                                $estiloLinha = 'background-color: #fef3c7;';
+                                $estiloLinha = 'background-color: #fff7ed;';
                             } elseif (!empty($linha['eh_domingo'])) {
-                                $estiloLinha = 'background-color: #fee2e2;';
+                                $estiloLinha = 'background-color: #fef2f2;';
                             }
                         @endphp
                         <tr @if($estiloLinha) style="{{ $estiloLinha }}" @endif>
@@ -159,22 +159,24 @@
                             <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_inicio'] }}</x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['intervalo_fim'] }}</x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['saida'] }}</x-table-cell>
-                            <x-table-cell :type="$tipoCelula">{{ $linha['total'] }}</x-table-cell>
+                            @php
+                                $saldoSegundos = (int) ($linha['saldo_segundos'] ?? 0);
+                                $toleranciaSegundos = (int) ($linha['tolerancia_segundos'] ?? 0);
+                                $destacarAtrasoTotal = $saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos;
+                                $destacarAcrescimoTotal = $saldoSegundos > 0 && $saldoSegundos > $toleranciaSegundos;
+                            @endphp
+                            <x-table-cell :type="$tipoCelula">
+                                <span class="{{ $destacarAtrasoTotal ? 'text-red-700 font-semibold' : ($destacarAcrescimoTotal ? 'text-green-700 font-semibold' : '') }}">{{ $linha['total'] }}</span>
+                            </x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['extra_50'] ?? '—' }}</x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['extra_100'] ?? '—' }}</x-table-cell>
+                            @php
+                                $saldoSegundos = (int) ($linha['saldo_segundos'] ?? 0);
+                                $toleranciaSegundos = (int) ($linha['tolerancia_segundos'] ?? 0);
+                                $destacarAtrasoColuna = $saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos;
+                            @endphp
                             <x-table-cell :type="$tipoCelula">
-                                @php
-                                    $ehExtra = in_array($linha['status'], ['Extra', 'Extra feriado'], true);
-                                    $ehDomingoOuFeriado = !empty($linha['eh_domingo']) || !empty($linha['eh_feriado']);
-                                    $statusClass = $ehFalta
-                                        ? 'text-red-700'
-                                        : ($ehExtra
-                                            ? 'text-amber-700'
-                                            : ($ehDomingoOuFeriado
-                                                ? 'text-red-700'
-                                                : 'text-gray-700'));
-                                @endphp
-                                <span class="text-xs font-semibold {{ $statusClass }}">{{ $linha['status'] }}</span>
+                                <span class="text-xs font-semibold {{ $destacarAtrasoColuna ? 'text-red-700' : 'text-gray-700' }}">{{ $linha['atraso'] ?? '—' }}</span>
                             </x-table-cell>
                         </tr>
                     @endforeach
