@@ -5,7 +5,7 @@
 
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
-            ['label' => 'Cadastros', 'url' => route('cadastros.index')],
+            ['label' => 'Gestão', 'url' => route('gestao.index')],
             ['label' => 'Equipamentos']
         ]" />
     </x-slot>
@@ -13,58 +13,36 @@
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Filtros --}}
-            <div class="bg-white rounded-lg p-4" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                <form action="{{ route('admin.equipamentos.index') }}" method="GET" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="md:col-span-2">
-                            <x-input-label value="Pesquisar" />
-                            <x-text-input type="text" name="search" :value="request('search')" placeholder="Nome, modelo, fabricante ou nº série" class="w-full" />
-                        </div>
-                        <div>
-                            <x-input-label value="Cliente" />
-                            <select name="cliente_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Todos</option>
-                                @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
-                                    <option value="{{ $cliente->id }}" @selected(request('cliente_id') == $cliente->id)>
-                                        {{ $cliente->nome_exibicao }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <x-input-label value="Status" />
-                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Todos</option>
-                                <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
-                                <option value="inativo" @selected(request('status')=='inativo')>Inativo</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 pt-2">
-                        <x-button type="submit" variant="primary" size="sm">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Filtrar
-                        </x-button>
-                        <a href="{{ route('admin.equipamentos.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Limpar</a>
-                    </div>
-                </form>
-            </div>
+            {{-- ================= FILTROS ================= --}}
+            <x-filter :action="route('admin.equipamentos.index')" :show-clear-button="true" class="mb-4">
+                <x-filter-field name="search" label="Pesquisar Equipamento" placeholder="Nome, modelo, fabricante ou nº série" colSpan="lg:col-span-6" />
+                <x-filter-field name="cliente_id" label="Cliente" type="select" placeholder="Todos" colSpan="lg:col-span-3">
+                    <option value="">Todos</option>
+                    @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
+                        <option value="{{ $cliente->id }}" @selected(request('cliente_id') == $cliente->id)>
+                            {{ $cliente->nome_exibicao }}
+                        </option>
+                    @endforeach
+                </x-filter-field>
+                <x-filter-field name="status" label="Status" type="select" placeholder="Todos" colSpan="lg:col-span-3">
+                    <option value="">Todos</option>
+                    <option value="ativo" @selected(request('status')=='ativo')>Ativo</option>
+                    <option value="inativo" @selected(request('status')=='inativo')>Inativo</option>
+                </x-filter-field>
+            </x-filter>
 
-            {{-- Resumo --}}
+            {{-- ================= RESUMO (KPIs) ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-6 rounded-lg border-l-4 border-blue-500 shadow-sm">
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #3b82f6; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Equipamentos</p>
                     <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalEquipamentos }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4 border-green-500 shadow-sm">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos</p>
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Equipamentos Ativos</p>
                     <p class="text-3xl font-bold text-green-600 mt-2">{{ $equipamentosAtivos }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg border-l-4 border-red-500 shadow-sm">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide">Inativos</p>
+                <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #ef4444; border-top: 1px solid #ef4444; border-right: 1px solid #ef4444; border-bottom: 1px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Equipamentos Inativos</p>
                     <p class="text-3xl font-bold text-red-600 mt-2">{{ $equipamentosInativos }}</p>
                 </div>
             </div>

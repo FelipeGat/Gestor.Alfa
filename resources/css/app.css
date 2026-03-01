@@ -6,3 +6,79 @@
 [x-cloak]{
 	display: none !important;
 }
+
+/* =========================
+   NAVBAR / MENU - PADRÃO DO SISTEMA
+   ========================= */
+.portal-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.portal-nav-btn:hover {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.08);
+}
+
+.portal-nav-btn[aria-expanded="true"],
+.portal-nav-btn--active {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.1);
+}
+
+.portal-nav-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 50;
+    min-width: 16rem;
+    max-width: 18rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.portal-nav-item {
+    display: block;
+    font-size: 0.875rem;
+    color: #4b5563;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portal-nav-item:hover {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.08);
+}
+
+.portal-nav-divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 0.5rem 0.75rem;
+}
+
+.portal-nav-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.75rem 0.25rem;
+}

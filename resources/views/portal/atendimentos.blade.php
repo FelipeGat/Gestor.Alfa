@@ -26,7 +26,7 @@
     <div class="portal-wrapper">
 
         @if($atendimentos->count() > 0)
-        <div class="portal-table-card">
+        <div class="rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
             <div class="portal-table-header">
                 <h3 class="portal-table-title">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,8 +37,8 @@
             </div>
 
             {{-- Versão Desktop (Tabela) --}}
-            <div class="portal-table-wrapper">
-                <table class="portal-table">
+            <div class="overflow-x-auto">
+                <table class="portal-table w-full">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -56,48 +56,77 @@
                             <td>{{ $atendimento->empresa->nome_fantasia ?? '—' }}</td>
                             <td>{{ $atendimento->assunto->nome ?? '—' }}</td>
                             <td>
-                                <span class="portal-badge portal-badge--info">
-                                    {{ $atendimento->status_atual ?? 'Indefinido' }}
+                                @php
+                                    $status = $atendimento->status_atual;
+                                    $badgeClass = 'portal-badge--gray';
+                                    
+                                    if(in_array($status, ['aberto', 'em_atendimento'])) {
+                                        $badgeClass = 'portal-badge--info';
+                                    } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
+                                        $badgeClass = 'portal-badge--warning';
+                                    } elseif($status === 'concluido') {
+                                        $badgeClass = 'portal-badge--success';
+                                    }
+                                @endphp
+                                <span class="portal-badge {{ $badgeClass }}">
+                                    {{ strtoupper(str_replace('_', ' ', $status ?? 'Indefinido')) }}
                                 </span>
                             </td>
                             <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <button type="button"
-                                    onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
-                                    class="portal-btn portal-btn--primary portal-btn--sm">
-                                    Ver Detalhes
+                                    onclick="openModal('showHistorico{{ $atendimento->id }}')"
+                                    class="p-2 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
+                                    title="Ver Detalhes">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
                                 </button>
 
                                 <dialog id="showHistorico{{ $atendimento->id }}"
                                     class="rounded-xl shadow-xl p-0 w-full max-w-2xl backdrop:bg-gray-900/50">
-                                    <form method="dialog" class="p-6">
-                                        <h3 class="text-lg font-bold mb-4 text-gray-900">
-                                            Histórico do Atendimento #{{ $atendimento->id }}
-                                        </h3>
-                                        @if($atendimento->andamentos && $atendimento->andamentos->count())
-                                        <div class="space-y-3 max-h-96 overflow-y-auto">
-                                            @foreach($atendimento->andamentos as $andamento)
-                                            <div class="border-b pb-2 last:border-0">
-                                                <div class="text-sm text-gray-800">
-                                                    {{ $andamento->descricao ?? '—' }}
+                                    <form method="dialog" class="p-0">
+                                        {{-- Header --}}
+                                        <div class="px-6 py-4 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
+                                            <h3 class="text-lg font-semibold text-gray-900">
+                                                Histórico do Atendimento #{{ $atendimento->id }}
+                                            </h3>
+                                        </div>
+
+                                        {{-- Corpo --}}
+                                        <div class="p-6">
+                                            @if($atendimento->andamentos && $atendimento->andamentos->count())
+                                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                                @foreach($atendimento->andamentos as $andamento)
+                                                <div class="border-b border-gray-200 pb-3 last:border-0">
+                                                    <div class="text-sm text-gray-800">
+                                                        {{ $andamento->descricao ?? '—' }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {{ $andamento->created_at->format('d/m/Y H:i') }}
+                                                    </div>
                                                 </div>
-                                                <div class="text-xs text-gray-500 mt-1">
-                                                    {{ $andamento->created_at->format('d/m/Y H:i') }}
-                                                </div>
+                                                @endforeach
                                             </div>
-                                            @endforeach
+                                            @else
+                                            <div class="text-gray-500 text-center py-8">
+                                                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <p class="text-sm font-medium">Nenhum andamento registrado.</p>
+                                            </div>
+                                            @endif
                                         </div>
-                                        @else
-                                        <div class="text-gray-500 text-center py-8">
-                                            Nenhum andamento disponível.
-                                        </div>
-                                        @endif
-                                        <div class="mt-6 text-right">
-                                            <button type="button"
-                                                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
-                                                onclick="window.showHistorico{{ $atendimento->id }}.close()">
+
+                                        {{-- Footer com Botões --}}
+                                        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                                            <x-button variant="danger" size="sm" class="min-w-[130px]" onclick="closeModal('showHistorico{{ $atendimento->id }}')">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
                                                 Fechar
-                                            </button>
+                                            </x-button>
                                         </div>
                                     </form>
                                 </dialog>
@@ -121,8 +150,20 @@
                                 {{ $atendimento->empresa->nome_fantasia ?? '—' }}
                             </div>
                         </div>
-                        <span class="portal-badge portal-badge--info">
-                            {{ $atendimento->status_atual ?? 'Indefinido' }}
+                        @php
+                            $status = $atendimento->status_atual;
+                            $badgeClass = 'portal-badge--gray';
+                            
+                            if(in_array($status, ['aberto', 'em_atendimento'])) {
+                                $badgeClass = 'portal-badge--info';
+                            } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
+                                $badgeClass = 'portal-badge--warning';
+                            } elseif($status === 'concluido') {
+                                $badgeClass = 'portal-badge--success';
+                            }
+                        @endphp
+                        <span class="portal-badge {{ $badgeClass }}">
+                            {{ strtoupper(str_replace('_', ' ', $status ?? 'Indefinido')) }}
                         </span>
                     </div>
                     <div class="portal-mobile-card-row">
@@ -140,7 +181,14 @@
                     <div class="portal-mobile-card-actions">
                         <button type="button"
                             onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
-                            class="portal-btn portal-btn--primary portal-btn--sm flex-1">
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 
+                                   bg-[#3f9cae] hover:bg-[#2d7a8a] 
+                                   text-white text-sm font-semibold 
+                                   rounded-lg border-0 shadow transition-all flex-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
                             Ver Detalhes
                         </button>
                     </div>
@@ -161,4 +209,21 @@
         @endif
 
     </div>
+
+    <script>
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.showModal();
+            // Remove foco do botão para evitar borda dupla
+            setTimeout(function() {
+                const button = modal.querySelector('button');
+                if (button) button.blur();
+            }, 0);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.close();
+        }
+    </script>
 </x-app-layout>

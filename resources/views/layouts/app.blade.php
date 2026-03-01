@@ -13,6 +13,17 @@
     <meta name="expires" content="0">
     <meta name="pragma" content="no-cache">
 
+    <!-- Prevenir restauração do bfcache após logout -->
+    <script>
+        // Detectar quando página for restaurada do bfcache (Back-Forward Cache)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Página veio do bfcache - forçar recarregamento para verificar sessão
+                window.location.reload();
+            }
+        });
+    </script>
+
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
@@ -60,6 +71,11 @@
 
         *:hover {
             scrollbar-color: #cbd5e1 transparent;
+        }
+
+        /* AlpineJS x-cloak - esconde elementos até o Alpine carregar */
+        [x-cloak] {
+            display: none !important;
         }
     </style>
 

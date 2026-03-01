@@ -72,8 +72,8 @@
                 </p>
             </a>
 
-            <!-- Card PMOC -->
-            <a href="{{ route('portal.equipamentos.pmoc') }}" class="portal-nav-card">
+            {{-- Card PMOC - Oculto temporariamente (plano de manutenção não será utilizado no momento) --}}
+            {{--<a href="{{ route('portal.equipamentos.pmoc') }}" class="portal-nav-card">
                 <div class="portal-nav-card-icon-wrapper">
                     <div class="portal-nav-card-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
                 <p class="portal-nav-card-description">
                     Relatório de manutenção preventiva
                 </p>
-            </a>
+            </a>--}}
         </div>
 
         <!-- Dashboard Resumo -->
