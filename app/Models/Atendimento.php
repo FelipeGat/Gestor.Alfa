@@ -10,6 +10,7 @@ use App\Models\Empresa;
 use App\Models\Funcionario;
 use App\Models\Assunto;
 use App\Models\Orcamento;
+use App\Models\Equipamento;
 
 class Atendimento extends Model
 {
@@ -18,6 +19,7 @@ class Atendimento extends Model
     protected $fillable = [
         'numero_atendimento',
         'cliente_id',
+        'equipamento_id',
         'nome_solicitante',
         'telefone_solicitante',
         'email_solicitante',
@@ -66,6 +68,11 @@ class Atendimento extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function equipamento()
+    {
+        return $this->belongsTo(Equipamento::class);
     }
 
     public function assunto()

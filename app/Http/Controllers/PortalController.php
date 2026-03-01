@@ -482,4 +482,55 @@ class PortalController extends Controller
 
         return $pdf->stream($filename);
     }
+
+    /**
+     * Exibe formulário de chamado via QR Code do equipamento
+     */
+    public function chamado($token)
+    {
+        $equipamento = \App\Models\Equipamento::where('qrcode_token', $token)
+            ->with(['setor', 'responsavel', 'cliente'])
+            ->firstOrFail();
+
+        return view('portal.equipamentos.chamado-publico', compact('equipamento'));
+    }
+
+    /**
+     * Processa formulário de chamado via QR Code
+     */
+    public function storeChamado(Request $request, $token)
+    {
+        $equipamento = \App\Models\Equipamento::where('qrcode_token', $token)
+            ->with('cliente')
+            ->firstOrFail();
+
+        $request->validate([
+            'descricao' => 'required|string|max:1000',
+            'prioridade' => 'required|in:baixa,media,alta,urgente',
+            'nome_solicitante' => 'nullable|string|max:255',
+            'telefone_solicitante' => 'nullable|string|max:20',
+            'email_solicitante' => 'nullable|email|max:255',
+        ]);
+
+        // Gerar número de atendimento
+        $ultimoRegistro = \App\Models\Atendimento::orderBy('numero_atendimento', 'desc')->first();
+        $numeroAtendimento = $ultimoRegistro ? $ultimoRegistro->numero_atendimento + 1 : 1;
+
+        $atendimento = \App\Models\Atendimento::create([
+            'numero_atendimento' => $numeroAtendimento,
+            'cliente_id' => $equipamento->cliente_id,
+            'equipamento_id' => $equipamento->id,
+            'nome_solicitante' => $request->nome_solicitante ?? $equipamento->responsavel->nome ?? null,
+            'telefone_solicitante' => $request->telefone_solicitante ?? null,
+            'email_solicitante' => $request->email_solicitante ?? null,
+            'assunto_id' => null,
+            'descricao' => $request->descricao,
+            'prioridade' => $request->prioridade,
+            'status_atual' => 'aberto',
+            'data_atendimento' => now(),
+        ]);
+
+        return redirect()->route('portal.equipamento.chamado', $token)
+            ->with('success', 'Chamado aberto com sucesso! Número: '.$numeroAtendimento);
+    }
 }
