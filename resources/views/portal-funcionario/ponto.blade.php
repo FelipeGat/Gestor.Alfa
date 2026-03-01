@@ -26,27 +26,26 @@
             @endif
 
             <!-- Marcadores de Horário -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                    <div class="text-xs text-gray-500 uppercase font-medium">Entrada</div>
-                    <div class="text-lg font-bold text-gray-900 mt-1">{{ optional($registroHoje?->entrada_em)->format('H:i') ?? '—' }}</div>
+            <div class="grid grid-cols-4 gap-3 mb-5">
+                <div class="p-3 rounded border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase">Entrada</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ optional($registroHoje?->entrada_em)->format('H:i') ?? '—' }}</div>
                 </div>
-                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                    <div class="text-xs text-gray-500 uppercase font-medium">Saída almoço</div>
-                    <div class="text-lg font-bold text-gray-900 mt-1">{{ optional($registroHoje?->intervalo_inicio_em)->format('H:i') ?? '—' }}</div>
+                <div class="p-3 rounded border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase">Saída almoço</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ optional($registroHoje?->intervalo_inicio_em)->format('H:i') ?? '—' }}</div>
                 </div>
-                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                    <div class="text-xs text-gray-500 uppercase font-medium">Retorno almoço</div>
-                    <div class="text-lg font-bold text-gray-900 mt-1">{{ optional($registroHoje?->intervalo_fim_em)->format('H:i') ?? '—' }}</div>
+                <div class="p-3 rounded border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase">Retorno almoço</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ optional($registroHoje?->intervalo_fim_em)->format('H:i') ?? '—' }}</div>
                 </div>
-                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                    <div class="text-xs text-gray-500 uppercase font-medium">Saída</div>
-                    <div class="text-lg font-bold text-gray-900 mt-1">{{ optional($registroHoje?->saida_em)->format('H:i') ?? '—' }}</div>
+                <div class="p-3 rounded border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase">Saída</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ optional($registroHoje?->saida_em)->format('H:i') ?? '—' }}</div>
                 </div>
             </div>
 
-            <!-- Formulário de Registro -->
-            <form id="form-ponto-unico" method="POST" action="{{ route('portal-funcionario.ponto.store') }}" enctype="multipart/form-data" class="space-y-4">
+            <form id="form-ponto-unico" method="POST" action="{{ route('portal-funcionario.ponto.store') }}" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <input type="hidden" name="tipo" value="{{ $proximoEvento }}">
                 <input type="hidden" name="latitude" id="ponto-latitude">
@@ -61,25 +60,34 @@
                     $jornadaConcluida = $registroHoje?->saida_em;
                 @endphp
 
-                @if($eventoPrecisaFoto && !$jornadaConcluida)
-                <div>
-                    <label for="ponto-foto" class="block text-sm font-medium text-gray-700 mb-2">
-                        📸 Foto obrigatória para {{ $eventos[$proximoEvento] ?? 'registro' }}
-                    </label>
-                    <input id="ponto-foto" type="file" name="foto" accept="image/*" capture="user" required 
-                           class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#3f9cae] focus:border-[#3f9cae]">
+                <div id="bloco-foto" class="{{ $eventoPrecisaFoto ? '' : 'hidden' }}">
+                    <label for="ponto-foto" class="block text-sm font-medium text-gray-700 mb-1">Foto obrigatória para {{ $eventos[$proximoEvento] ?? 'registro' }}</label>
+                    <input id="ponto-foto" type="file" name="foto" accept="image/*" capture="user" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
                 </div>
-                @endif
 
-                <div class="flex items-center justify-center gap-3 pt-2">
-                    <x-button id="btn-registrar-ponto" type="submit" variant="primary" size="md" 
-                              :disabled="$jornadaConcluida || (($bloqueioMinutosRestantes ?? 0) > 0)"
-                              :iconLeft="$jornadaConcluida ? null : '<svg class=\'w-5 h-5\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z\'></path></svg>'">
-                        {{ $jornadaConcluida ? '✅ Jornada concluída' : 'Registrar ' . ($eventos[$proximoEvento] ?? 'Ponto') }}
+                <div class="flex items-center justify-center gap-3">
+                    <x-button id="btn-registrar-ponto" type="submit" variant="primary" size="sm" :disabled="$jornadaConcluida || (($bloqueioMinutosRestantes ?? 0) > 0)">
+                        {{ $jornadaConcluida ? 'Jornada concluída' : 'Registrar ' . ($eventos[$proximoEvento] ?? 'Ponto') }}
                     </x-button>
-                    <span id="ponto-loading" class="text-sm text-gray-500 hidden">📍 Obtendo localização...</span>
+                    <span id="ponto-loading" class="text-sm text-gray-500 hidden">Obtendo localização...</span>
                 </div>
             </form>
+
+            <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                <div class="font-semibold mb-2">Como liberar GPS e câmera no Chrome</div>
+                <ol class="list-decimal pl-5 space-y-1">
+                    <li>Toque no ícone ao lado da URL (cadeado ou <strong>ⓘ</strong>).</li>
+                    <li>Abra <strong>Permissões</strong> do site.</li>
+                    <li>Defina <strong>Localização</strong> e <strong>Câmera</strong> como <strong>Permitir</strong>.</li>
+                    <li>Atualize a página e tente registrar novamente.</li>
+                </ol>
+                <div class="mt-2 text-xs text-amber-800">
+                    Se ainda bloquear no celular: Configurações do aparelho → Apps → Chrome → Permissões → habilite Localização e Câmera.
+                </div>
+                <div class="mt-1 text-xs text-amber-800">
+                    Em ambiente de testes, prefira acesso por <strong>localhost</strong> ou <strong>HTTPS</strong>.
+                </div>
+            </div>
         </x-card>
 
         <!-- Card de Histórico -->
@@ -224,35 +232,108 @@
             const justificativaInput = document.getElementById('justificativa-fora-atendimento');
 
             if (form && btn) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    if (btn.disabled) return;
-
-                    loading.classList.remove('hidden');
-                    btn.disabled = true;
-
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            function(position) {
-                                latInput.value = position.coords.latitude;
-                                lngInput.value = position.coords.longitude;
-
-                                // Verificar distância do atendimento (se disponível)
-                                form.submit();
-                            },
-                            function(error) {
-                                alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
-                                loading.classList.add('hidden');
-                                btn.disabled = false;
-                            },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                        );
-                    } else {
-                        alert('Seu navegador não suporta geolocalização.');
-                        loading.classList.add('hidden');
-                        btn.disabled = false;
+                const mensagemErroGeolocalizacao = (erro) => {
+                    if (!window.isSecureContext) {
+                        return 'Geolocalização bloqueada no Chrome em conexão não segura. Use HTTPS (ou localhost) para liberar o GPS. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
                     }
+
+                    if (!erro || typeof erro.code !== 'number') {
+                        return 'Não foi possível obter sua localização. Verifique GPS e permissões do navegador. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                    }
+
+                    if (erro.code === 1) {
+                        return 'Permissão de localização negada. Libere o acesso ao GPS para este site e tente novamente. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                    }
+
+                    if (erro.code === 2) {
+                        return 'Não foi possível determinar sua localização. Ative o GPS e tente novamente. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                    }
+
+                    if (erro.code === 3) {
+                        return 'Tempo esgotado ao obter localização. Tente novamente em local com melhor sinal.';
+                    }
+
+                    return 'Não foi possível obter sua localização. Verifique GPS e permissões do navegador. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                };
+
+                const statusPermissaoGeolocalizacao = async () => {
+                    if (!navigator.permissions || typeof navigator.permissions.query !== 'function') {
+                        return null;
+                    }
+
+                    try {
+                        const permissao = await navigator.permissions.query({ name: 'geolocation' });
+                        return permissao?.state || null;
+                    } catch (erro) {
+                        return null;
+                    }
+                };
+
+                const obterPosicaoAtual = async () => {
+                    const tentarObter = (opcoes) => new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, opcoes);
+                    });
+
+                    try {
+                        return await tentarObter({
+                            enableHighAccuracy: true,
+                            timeout: 12000,
+                            maximumAge: 0,
+                        });
+                    } catch (erroAltaPrecisao) {
+                        return await tentarObter({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 60000,
+                        });
+                    }
+                };
+
+                form.addEventListener('submit', async function(event) {
+                    event.preventDefault();
+
+                    if (!navigator.geolocation) {
+                        alert('Seu navegador não suporta geolocalização.');
+                        return;
+                    }
+
+                    if (!window.isSecureContext) {
+                        alert('No Chrome, o GPS só funciona em contexto seguro (HTTPS) ou localhost. A URL atual não está em contexto seguro. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.');
+                        return;
+                    }
+
+                    const permissaoGeolocalizacao = await statusPermissaoGeolocalizacao();
+                    if (permissaoGeolocalizacao === 'denied') {
+                        alert('A localização está bloqueada para este site no Chrome. Abra as permissões do site, permita "Localização" e recarregue a página.');
+                        return;
+                    }
+
+                    btn?.setAttribute('disabled', 'disabled');
+                    loading?.classList.remove('hidden');
+
+                    const resultadoGeolocalizacao = await obterPosicaoAtual()
+                      .then((posicao) => ({ posicao, erro: null }))
+                      .catch((erro) => ({ posicao: null, erro }));
+
+                    if (!resultadoGeolocalizacao.posicao) {
+                        btn?.removeAttribute('disabled');
+                        loading?.classList.add('hidden');
+                        alert(mensagemErroGeolocalizacao(resultadoGeolocalizacao.erro));
+                        return;
+                    }
+
+                    const posicao = resultadoGeolocalizacao.posicao;
+
+                    const latitude = Number(posicao.coords.latitude);
+                    const longitude = Number(posicao.coords.longitude);
+
+                    latInput.value = latitude;
+                    lngInput.value = longitude;
+                    foraAtendInput.value = '0';
+                    distanciaInput.value = '';
+                    justificativaInput.value = '';
+
+                    form.submit();
                 });
             }
         });

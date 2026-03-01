@@ -86,7 +86,10 @@ class JornadaController extends Controller
             'tolerancia_saida_min' => ['required', 'integer', 'min:0', 'max:180'],
             'tolerancia_intervalo_min' => ['required', 'integer', 'min:0', 'max:120'],
             'minimo_horas_para_extra' => ['required', 'integer', 'min:0', 'max:600'],
+            'percentual_hora_extra_semana' => ['required', 'numeric', 'min:0', 'max:300'],
+            'percentual_hora_extra_domingo_feriado' => ['required', 'numeric', 'min:0', 'max:300'],
             'permitir_ponto_fora_horario' => ['nullable', 'boolean'],
+            'dias_permitidos_alteracao_apos_fechamento' => ['required', 'integer', 'min:0', 'max:365'],
             'ativo' => ['nullable', 'boolean'],
             'feriado_ids' => ['nullable', 'array'],
             'feriado_ids.*' => ['integer', 'exists:feriados,id'],
@@ -128,6 +131,14 @@ class JornadaController extends Controller
             $payload['carga_horaria_semanal'] = str_replace(',', '.', trim($payload['carga_horaria_semanal']));
         }
 
+        if (isset($payload['percentual_hora_extra_semana']) && is_string($payload['percentual_hora_extra_semana'])) {
+            $payload['percentual_hora_extra_semana'] = str_replace(',', '.', trim($payload['percentual_hora_extra_semana']));
+        }
+
+        if (isset($payload['percentual_hora_extra_domingo_feriado']) && is_string($payload['percentual_hora_extra_domingo_feriado'])) {
+            $payload['percentual_hora_extra_domingo_feriado'] = str_replace(',', '.', trim($payload['percentual_hora_extra_domingo_feriado']));
+        }
+
         if (!empty($payload['escala']) && is_array($payload['escala'])) {
             foreach ($payload['escala'] as $dia => $dadosDia) {
                 if (isset($dadosDia['carga_horaria_dia']) && is_string($dadosDia['carga_horaria_dia'])) {
@@ -167,7 +178,10 @@ class JornadaController extends Controller
             'tolerancia_saida_min' => (int) $dados['tolerancia_saida_min'],
             'tolerancia_intervalo_min' => (int) $dados['tolerancia_intervalo_min'],
             'minimo_horas_para_extra' => (int) $dados['minimo_horas_para_extra'],
+            'percentual_hora_extra_semana' => (float) $dados['percentual_hora_extra_semana'],
+            'percentual_hora_extra_domingo_feriado' => (float) $dados['percentual_hora_extra_domingo_feriado'],
             'permitir_ponto_fora_horario' => (bool) Arr::get($dados, 'permitir_ponto_fora_horario', false),
+            'dias_permitidos_alteracao_apos_fechamento' => (int) $dados['dias_permitidos_alteracao_apos_fechamento'],
             'ativo' => (bool) Arr::get($dados, 'ativo', true),
             'hora_inicio' => $legadoInicio,
             'hora_fim' => $legadoFim,

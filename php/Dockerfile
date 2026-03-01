@@ -27,7 +27,8 @@ RUN docker-php-ext-install -j$(nproc) \
     intl \
     bcmath \
     opcache \
-    curl
+    curl \
+    calendar
 
 # Install Redis extension via pecl
 RUN pecl install redis && docker-php-ext-enable redis

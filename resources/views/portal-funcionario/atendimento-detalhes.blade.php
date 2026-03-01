@@ -1042,9 +1042,26 @@
             return `${totalMin} min`;
         }
 
-        function montarLinksNavegacao(origemLat, origemLng, destinoLat, destinoLng, destinoTexto) {
-            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origemLat},${origemLng}&destination=${encodeURIComponent(destinoTexto)}&travelmode=driving`;
-            const wazeUrl = `https://waze.com/ul?ll=${destinoLat},${destinoLng}&navigate=yes`;
+        function montarLinksNavegacao({ origemLat = null, origemLng = null, destinoLat = null, destinoLng = null, destinoTexto = '' } = {}) {
+            const destinoPreferencial = (destinoLat !== null && destinoLng !== null)
+                ? `${destinoLat},${destinoLng}`
+                : destinoTexto;
+
+            const googleParams = new URLSearchParams({
+                api: '1',
+                destination: destinoPreferencial,
+                travelmode: 'driving'
+            });
+
+            if (origemLat !== null && origemLng !== null) {
+                googleParams.set('origin', `${origemLat},${origemLng}`);
+            }
+
+            const googleMapsUrl = `https://www.google.com/maps/dir/?${googleParams.toString()}`;
+
+            const wazeUrl = (destinoLat !== null && destinoLng !== null)
+                ? `https://www.waze.com/ul?ll=${destinoLat},${destinoLng}&navigate=yes`
+                : `https://www.waze.com/ul?q=${encodeURIComponent(destinoTexto)}&navigate=yes`;
 
             const btnGoogle = document.getElementById('btnGoogleMaps');
             const btnWaze = document.getElementById('btnWaze');
@@ -1053,27 +1070,94 @@
             if (btnWaze) btnWaze.href = wazeUrl;
         }
 
+        function removerAcentos(texto) {
+            return texto
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function montarTentativasEndereco(enderecoDestino) {
+            const base = (enderecoDestino || '').trim().replace(/\s+/g, ' ');
+            if (!base) {
+                return [];
+            }
+
+            const baseSemAcento = removerAcentos(base);
+            const comAvenida = base
+                .replace(/\bAV\.?\s+/i, 'Avenida ')
+                .replace(/\bR\.?\s+/i, 'Rua ');
+            const comAvenidaSemAcento = removerAcentos(comAvenida);
+
+            return Array.from(new Set([
+                `${base}, Brasil`,
+                base,
+                `${comAvenida}, Brasil`,
+                comAvenida,
+                `${baseSemAcento}, Brasil`,
+                baseSemAcento,
+                `${comAvenidaSemAcento}, Brasil`,
+                comAvenidaSemAcento,
+            ])).filter(Boolean);
+        }
+
         async function geocodificarDestino(enderecoDestino) {
-            const endpoint = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(enderecoDestino)}`;
-            const resposta = await fetch(endpoint, {
-                headers: {
-                    'Accept': 'application/json'
+            const tentativas = montarTentativasEndereco(enderecoDestino);
+            let falhaRedeDetectada = false;
+
+            for (const consulta of tentativas) {
+                const params = new URLSearchParams({
+                    format: 'json',
+                    limit: '1',
+                    countrycodes: 'br',
+                    'accept-language': 'pt-BR',
+                    q: consulta,
+                });
+
+                const endpoint = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+                let resposta;
+                try {
+                    resposta = await fetch(endpoint, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                } catch (erroRede) {
+                    falhaRedeDetectada = true;
+                    continue;
                 }
-            });
 
-            if (!resposta.ok) {
-                throw new Error('Falha ao buscar coordenadas do cliente.');
+                if (!resposta.ok) {
+                    continue;
+                }
+
+                const dados = await resposta.json();
+                if (Array.isArray(dados) && dados.length) {
+                    return {
+                        lat: parseFloat(dados[0].lat),
+                        lng: parseFloat(dados[0].lon)
+                    };
+                }
             }
 
-            const dados = await resposta.json();
-            if (!Array.isArray(dados) || !dados.length) {
-                throw new Error('Não foi possível localizar o endereço do cliente no mapa.');
+            if (falhaRedeDetectada) {
+                throw new Error('Não foi possível conectar ao serviço de mapas neste momento. Você pode seguir com os botões Google Maps ou Waze abaixo.');
             }
 
-            return {
-                lat: parseFloat(dados[0].lat),
-                lng: parseFloat(dados[0].lon)
-            };
+            throw new Error('Não foi possível localizar o endereço do cliente no mapa.');
+        }
+
+        function mensagemAmigavelErroRota(erro) {
+            const mensagem = (erro && erro.message ? String(erro.message) : '').toLowerCase();
+
+            if (mensagem.includes('failed to fetch') || mensagem.includes('networkerror') || mensagem.includes('load failed')) {
+                return 'Não foi possível conectar ao serviço de mapas neste momento. Você pode seguir com os botões Google Maps ou Waze abaixo.';
+            }
+
+            if (mensagem.includes('localizar o endereço do cliente')) {
+                return 'Não encontramos esse endereço automaticamente no mapa. Use os botões Google Maps ou Waze abaixo para navegar por endereço.';
+            }
+
+            return erro?.message || 'Não foi possível calcular a rota agora. Use os botões Google Maps ou Waze abaixo.';
         }
 
         function obterGeolocalizacaoAtual() {
@@ -1083,18 +1167,54 @@
                     return;
                 }
 
-                navigator.geolocation.getCurrentPosition(
-                    (posicao) => resolve({
+                if (!window.isSecureContext) {
+                    reject(new Error('No Chrome, o GPS só funciona em contexto seguro (HTTPS) ou localhost.'));
+                    return;
+                }
+
+                const solicitarPosicao = (opcoes) => new Promise((resolvePosicao, rejectPosicao) => {
+                    navigator.geolocation.getCurrentPosition(resolvePosicao, rejectPosicao, opcoes);
+                });
+
+                const obterComFallback = async () => {
+                    try {
+                        return await solicitarPosicao({
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 30000,
+                        });
+                    } catch (erroAltaPrecisao) {
+                        return await solicitarPosicao({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 60000,
+                        });
+                    }
+                };
+
+                obterComFallback()
+                    .then((posicao) => resolve({
                         lat: posicao.coords.latitude,
                         lng: posicao.coords.longitude,
-                    }),
-                    () => reject(new Error('Não foi possível obter sua localização. Permita o acesso ao GPS e tente novamente.')),
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 30000,
-                    }
-                );
+                    }))
+                    .catch((erro) => {
+                        if (erro && erro.code === 1) {
+                            reject(new Error('Permissão de localização negada. Permita o acesso ao GPS nas configurações do navegador e tente novamente.'));
+                            return;
+                        }
+
+                        if (erro && erro.code === 2) {
+                            reject(new Error('Não foi possível identificar sua localização atual. Verifique se o GPS está ativo e tente novamente.'));
+                            return;
+                        }
+
+                        if (erro && erro.code === 3) {
+                            reject(new Error('Tempo esgotado ao obter localização. Tente novamente em local com melhor sinal de GPS.'));
+                            return;
+                        }
+
+                        reject(new Error('Não foi possível obter sua localização. Permita o acesso ao GPS e tente novamente.'));
+                    });
             });
         }
 
@@ -1153,12 +1273,15 @@
                 return;
             }
 
-            try {
-                atualizarRotaStatus('Obtendo sua localização atual...');
-                const origem = await obterGeolocalizacaoAtual();
+            montarLinksNavegacao({ destinoTexto });
 
+            try {
                 atualizarRotaStatus('Localizando endereço do cliente no mapa...');
                 const destino = await geocodificarDestino(destinoTexto);
+                montarLinksNavegacao({ destinoTexto, destinoLat: destino.lat, destinoLng: destino.lng });
+
+                atualizarRotaStatus('Obtendo sua localização atual...');
+                const origem = await obterGeolocalizacaoAtual();
 
                 atualizarRotaStatus('Calculando melhor percurso...');
                 const rota = await obterRota(origem, destino);
@@ -1171,11 +1294,17 @@
                 if (distanciaEl) distanciaEl.textContent = km;
                 if (duracaoEl) duracaoEl.textContent = duracao;
 
-                montarLinksNavegacao(origem.lat, origem.lng, destino.lat, destino.lng, destinoTexto);
+                montarLinksNavegacao({
+                    origemLat: origem.lat,
+                    origemLng: origem.lng,
+                    destinoLat: destino.lat,
+                    destinoLng: destino.lng,
+                    destinoTexto,
+                });
                 await renderizarMapaRota(origem, destino, rota);
                 atualizarRotaStatus('Rota calculada com sucesso.', '#047857');
             } catch (erro) {
-                atualizarRotaStatus(erro.message || 'Não foi possível calcular a rota agora.', '#b91c1c');
+                atualizarRotaStatus(mensagemAmigavelErroRota(erro), '#b91c1c');
             }
         }
 
