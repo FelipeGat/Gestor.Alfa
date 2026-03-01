@@ -64,6 +64,22 @@
                             <span id="ponto-loading" class="text-sm text-gray-500 hidden">Obtendo localização...</span>
                         </div>
                     </form>
+
+                    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                        <div class="font-semibold mb-2">Como liberar GPS e câmera no Chrome</div>
+                        <ol class="list-decimal pl-5 space-y-1">
+                            <li>Toque no ícone ao lado da URL (cadeado ou <strong>ⓘ</strong>).</li>
+                            <li>Abra <strong>Permissões</strong> do site.</li>
+                            <li>Defina <strong>Localização</strong> e <strong>Câmera</strong> como <strong>Permitir</strong>.</li>
+                            <li>Atualize a página e tente registrar novamente.</li>
+                        </ol>
+                        <div class="mt-2 text-xs text-amber-800">
+                            Se ainda bloquear no celular: Configurações do aparelho → Apps → Chrome → Permissões → habilite Localização e Câmera.
+                        </div>
+                        <div class="mt-1 text-xs text-amber-800">
+                            Em ambiente de testes, prefira acesso por <strong>localhost</strong> ou <strong>HTTPS</strong>.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -213,11 +229,60 @@
                 };
             };
 
+            const mensagemErroGeolocalizacao = (erro) => {
+                if (!window.isSecureContext) {
+                    return 'Geolocalização bloqueada em conexão não segura. Acesse o portal via HTTPS para usar o GPS. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                }
+
+                if (!erro || typeof erro.code !== 'number') {
+                    return 'Não foi possível obter sua localização. Verifique GPS e permissões do navegador. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                }
+
+                if (erro.code === 1) {
+                    return 'Permissão de localização negada. Libere o acesso ao GPS para este site e tente novamente. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                }
+
+                if (erro.code === 2) {
+                    return 'Não foi possível determinar sua localização. Ative o GPS e tente novamente. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                }
+
+                if (erro.code === 3) {
+                    return 'Tempo esgotado ao obter localização. Tente novamente em local com melhor sinal.';
+                }
+
+                return 'Não foi possível obter sua localização. Verifique GPS e permissões do navegador. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+            };
+
+            const solicitarPermissaoCamera = async () => {
+                if (!precisaFoto || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                    return true;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                    stream.getTracks().forEach(track => track.stop());
+                    return true;
+                } catch (erro) {
+                    return false;
+                }
+            };
+
             form.addEventListener('submit', async function (event) {
                 event.preventDefault();
 
+                if (precisaFoto) {
+                    const cameraPermitida = await solicitarPermissaoCamera();
+                    if (!cameraPermitida) {
+                        alert('Permissão de câmera negada ou indisponível. Libere o acesso à câmera para este site e selecione uma foto para continuar. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.');
+                        return;
+                    }
+                }
+
                 if (precisaFoto && fotoInput && !fotoInput.files.length) {
                     alert('Para entrada e saída é obrigatório enviar uma foto.');
+                    if (fotoInput && typeof fotoInput.click === 'function') {
+                        fotoInput.click();
+                    }
                     return;
                 }
 
@@ -229,20 +294,23 @@
                 btn?.setAttribute('disabled', 'disabled');
                 loading?.classList.remove('hidden');
 
-                const posicao = await new Promise((resolve, reject) => {
+                const resultadoGeolocalizacao = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         enableHighAccuracy: true,
                         timeout: 12000,
                         maximumAge: 0,
                     });
-                }).catch(() => null);
+                }).then((posicao) => ({ posicao, erro: null }))
+                  .catch((erro) => ({ posicao: null, erro }));
 
-                if (!posicao) {
+                if (!resultadoGeolocalizacao.posicao) {
                     btn?.removeAttribute('disabled');
                     loading?.classList.add('hidden');
-                    alert('Não foi possível obter sua localização. Ative o GPS e tente novamente.');
+                    alert(mensagemErroGeolocalizacao(resultadoGeolocalizacao.erro));
                     return;
                 }
+
+                const posicao = resultadoGeolocalizacao.posicao;
 
                 const latitude = Number(posicao.coords.latitude);
                 const longitude = Number(posicao.coords.longitude);
