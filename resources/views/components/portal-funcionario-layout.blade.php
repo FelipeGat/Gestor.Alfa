@@ -97,14 +97,46 @@
     <!-- Header Mobile-First -->
     <header class="portal-header sticky top-0 z-50">
         <div class="relative px-4 py-3 portal-content">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between lg:gap-4 flex-wrap lg:flex-nowrap">
                 <!-- Logo -->
-                <div class="flex items-center">
+                <div class="flex items-center flex-shrink-0">
                     <x-application-logo class="h-7 w-auto" />
                 </div>
 
+                <!-- Navegação Rápida -->
+                <nav class="flex gap-2 overflow-x-auto lg:overflow-visible pb-1 justify-center flex-nowrap w-full lg:w-auto order-last lg:order-none" x-data="{ activeTab: window.location.pathname }">
+                    <a href="{{ route('portal-funcionario.index') }}"
+                       class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.index') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        <svg class="w-3.5 h-3.5 inline-block mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        Início
+                    </a>
+                    <a href="{{ route('portal-funcionario.chamados') }}"
+                       class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.chamados') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        <svg class="w-3.5 h-3.5 inline-block mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Chamados
+                    </a>
+                    <a href="{{ route('portal-funcionario.agenda') }}"
+                       class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.agenda') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        <svg class="w-3.5 h-3.5 inline-block mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Agenda
+                    </a>
+                    <a href="{{ route('portal-funcionario.ponto') }}"
+                       class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.ponto') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        <svg class="w-3.5 h-3.5 inline-block mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Ponto
+                    </a>
+                </nav>
+
                 <!-- Logout -->
-                <form method="POST" action="{{ route('logout') }}" onsubmit="if(window.limparAbasSessao){window.limparAbasSessao();}">
+                <form method="POST" action="{{ route('logout') }}" onsubmit="if(window.limparAbasSessao){window.limparAbasSessao();}" class="flex-shrink-0">
                     @csrf
                     <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,38 +146,6 @@
                     </button>
                 </form>
             </div>
-
-            <!-- Navegação Rápida -->
-            <nav class="mt-3 flex gap-2 overflow-x-auto pb-1 justify-center" x-data="{ activeTab: window.location.pathname }">
-                <a href="{{ route('portal-funcionario.index') }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.index') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                    <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    Início
-                </a>
-                <a href="{{ route('portal-funcionario.chamados') }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.chamados') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                    <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Chamados
-                </a>
-                <a href="{{ route('portal-funcionario.agenda') }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.agenda') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                    <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Agenda
-                </a>
-                <a href="{{ route('portal-funcionario.ponto') }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors {{ request()->routeIs('portal-funcionario.ponto') ? 'bg-[#3f9cae] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                    <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ponto
-                </a>
-            </nav>
         </div>
     </header>
 
