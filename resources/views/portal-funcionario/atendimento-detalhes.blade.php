@@ -1167,17 +1167,37 @@
                     return;
                 }
 
-                navigator.geolocation.getCurrentPosition(
-                    (posicao) => resolve({
+                if (!window.isSecureContext) {
+                    reject(new Error('No Chrome, o GPS só funciona em contexto seguro (HTTPS) ou localhost.'));
+                    return;
+                }
+
+                const solicitarPosicao = (opcoes) => new Promise((resolvePosicao, rejectPosicao) => {
+                    navigator.geolocation.getCurrentPosition(resolvePosicao, rejectPosicao, opcoes);
+                });
+
+                const obterComFallback = async () => {
+                    try {
+                        return await solicitarPosicao({
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 30000,
+                        });
+                    } catch (erroAltaPrecisao) {
+                        return await solicitarPosicao({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 60000,
+                        });
+                    }
+                };
+
+                obterComFallback()
+                    .then((posicao) => resolve({
                         lat: posicao.coords.latitude,
                         lng: posicao.coords.longitude,
-                    }),
-                    (erro) => {
-                        if (!window.isSecureContext) {
-                            reject(new Error('Geolocalização bloqueada pelo navegador em conexão não segura. Acesse o portal em HTTPS para usar o GPS.'));
-                            return;
-                        }
-
+                    }))
+                    .catch((erro) => {
                         if (erro && erro.code === 1) {
                             reject(new Error('Permissão de localização negada. Permita o acesso ao GPS nas configurações do navegador e tente novamente.'));
                             return;
@@ -1194,13 +1214,7 @@
                         }
 
                         reject(new Error('Não foi possível obter sua localização. Permita o acesso ao GPS e tente novamente.'));
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 30000,
-                    }
-                );
+                    });
             });
         }
 

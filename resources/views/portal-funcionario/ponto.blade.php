@@ -231,7 +231,7 @@
 
             const mensagemErroGeolocalizacao = (erro) => {
                 if (!window.isSecureContext) {
-                    return 'Geolocalização bloqueada em conexão não segura. Acesse o portal via HTTPS para usar o GPS. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+                    return 'Geolocalização bloqueada no Chrome em conexão não segura. Use HTTPS (ou localhost) para liberar o GPS. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
                 }
 
                 if (!erro || typeof erro.code !== 'number') {
@@ -251,6 +251,39 @@
                 }
 
                 return 'Não foi possível obter sua localização. Verifique GPS e permissões do navegador. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.';
+            };
+
+            const statusPermissaoGeolocalizacao = async () => {
+                if (!navigator.permissions || typeof navigator.permissions.query !== 'function') {
+                    return null;
+                }
+
+                try {
+                    const permissao = await navigator.permissions.query({ name: 'geolocation' });
+                    return permissao?.state || null;
+                } catch (erro) {
+                    return null;
+                }
+            };
+
+            const obterPosicaoAtual = async () => {
+                const tentarObter = (opcoes) => new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, opcoes);
+                });
+
+                try {
+                    return await tentarObter({
+                        enableHighAccuracy: true,
+                        timeout: 12000,
+                        maximumAge: 0,
+                    });
+                } catch (erroAltaPrecisao) {
+                    return await tentarObter({
+                        enableHighAccuracy: false,
+                        timeout: 20000,
+                        maximumAge: 60000,
+                    });
+                }
             };
 
             const solicitarPermissaoCamera = async () => {
@@ -291,16 +324,22 @@
                     return;
                 }
 
+                if (!window.isSecureContext) {
+                    alert('No Chrome, o GPS só funciona em contexto seguro (HTTPS) ou localhost. A URL atual não está em contexto seguro. Veja o guia "Como liberar GPS e câmera no Chrome" abaixo.');
+                    return;
+                }
+
+                const permissaoGeolocalizacao = await statusPermissaoGeolocalizacao();
+                if (permissaoGeolocalizacao === 'denied') {
+                    alert('A localização está bloqueada para este site no Chrome. Abra as permissões do site, permita "Localização" e recarregue a página.');
+                    return;
+                }
+
                 btn?.setAttribute('disabled', 'disabled');
                 loading?.classList.remove('hidden');
 
-                const resultadoGeolocalizacao = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 12000,
-                        maximumAge: 0,
-                    });
-                }).then((posicao) => ({ posicao, erro: null }))
+                const resultadoGeolocalizacao = await obterPosicaoAtual()
+                  .then((posicao) => ({ posicao, erro: null }))
                   .catch((erro) => ({ posicao: null, erro }));
 
                 if (!resultadoGeolocalizacao.posicao) {

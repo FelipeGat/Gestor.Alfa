@@ -750,6 +750,12 @@ class PontoJornadaController extends Controller
                 'pontualidade_mensal' => 0,
                 'horas_extras_segundos' => 0,
                 'banco_horas_acumulado_segundos' => 0,
+                'jornada_legal_total_segundos' => 0,
+                'dias_previstos' => 0,
+                'dias_com_presenca' => 0,
+                'dias_pontuais' => 0,
+                'ajustes_segundos' => 0,
+                'banco_horas_base_segundos' => 0,
             ];
         }
 
@@ -757,7 +763,13 @@ class PontoJornadaController extends Controller
 
         $baseAtendimentos = Atendimento::query()
             ->whereIn('funcionario_id', $funcionariosIds)
-            ->whereBetween('created_at', [$inicio, $fim]);
+            ->where(function ($query) use ($inicio, $fim) {
+                $query->whereBetween('data_atendimento', [$inicio, $fim])
+                    ->orWhere(function ($subquery) use ($inicio, $fim) {
+                        $subquery->whereNull('data_atendimento')
+                            ->whereBetween('created_at', [$inicio, $fim]);
+                    });
+            });
 
         $totaisAtendimento = (clone $baseAtendimentos)
             ->selectRaw('COALESCE(SUM(tempo_execucao_segundos), 0) as total_segundos, COUNT(*) as total_atendimentos')
@@ -797,6 +809,12 @@ class PontoJornadaController extends Controller
             'pontualidade_mensal' => $pontualidadeMensal,
             'horas_extras_segundos' => $horasExtrasSegundos,
             'banco_horas_acumulado_segundos' => $bancoHorasAcumulado,
+            'jornada_legal_total_segundos' => $jornadaLegalTotal,
+            'dias_previstos' => $diasPrevistos,
+            'dias_com_presenca' => $diasComPresenca,
+            'dias_pontuais' => $diasPontuais,
+            'ajustes_segundos' => $ajustesSegundos,
+            'banco_horas_base_segundos' => (int) ($resumoJornadaLegal['banco_horas_segundos'] ?? 0),
         ];
     }
 
