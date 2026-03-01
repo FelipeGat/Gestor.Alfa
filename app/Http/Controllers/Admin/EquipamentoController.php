@@ -26,12 +26,11 @@ class EquipamentoController extends Controller
             'Acesso não autorizado'
         );
 
-        // Equipamentos
-        $equipamentosQuery = Equipamento::with(['cliente', 'setor', 'responsavel']);
+        $query = Equipamento::with(['cliente', 'setor', 'responsavel']);
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $equipamentosQuery->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
                     ->orWhere('modelo', 'like', "%{$search}%")
                     ->orWhere('fabricante', 'like', "%{$search}%")
@@ -40,45 +39,14 @@ class EquipamentoController extends Controller
         }
 
         if ($request->filled('cliente_id')) {
-            $equipamentosQuery->where('cliente_id', $request->cliente_id);
+            $query->where('cliente_id', $request->cliente_id);
         }
 
         if ($request->filled('status')) {
-            $equipamentosQuery->where('ativo', $request->status === 'ativo');
+            $query->where('ativo', $request->status === 'ativo');
         }
 
-        $equipamentos = $equipamentosQuery->orderByDesc('created_at')->get();
-
-        // Setores
-        $setoresQuery = EquipamentoSetor::with(['cliente', 'equipamentos']);
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $setoresQuery->where('nome', 'like', "%{$search}%");
-        }
-
-        if ($request->filled('cliente_id')) {
-            $setoresQuery->where('cliente_id', $request->cliente_id);
-        }
-
-        $setores = $setoresQuery->orderBy('nome')->get();
-
-        // Responsáveis
-        $responsaveisQuery = EquipamentoResponsavel::with(['cliente', 'equipamentos']);
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $responsaveisQuery->where(function ($q) use ($search) {
-                $q->where('nome', 'like', "%{$search}%")
-                    ->orWhere('cargo', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('cliente_id')) {
-            $responsaveisQuery->where('cliente_id', $request->cliente_id);
-        }
-
-        $responsaveis = $responsaveisQuery->orderBy('nome')->get();
+        $equipamentos = $query->orderByDesc('created_at')->paginate(15);
 
         // Estatísticas
         $totalEquipamentos = Equipamento::count();
@@ -87,8 +55,6 @@ class EquipamentoController extends Controller
 
         return view('admin.equipamentos.index', compact(
             'equipamentos',
-            'setores',
-            'responsaveis',
             'totalEquipamentos',
             'equipamentosAtivos',
             'equipamentosInativos'
@@ -111,14 +77,8 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
-        $setores = EquipamentoSetor::orderBy('nome')->get();
-        $responsaveis = EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.create', compact(
-            'clientes',
-            'setores',
-            'responsaveis'
-        ));
+        return view('admin.equipamentos.create', compact('clientes'));
     }
 
     /**
@@ -208,15 +168,8 @@ class EquipamentoController extends Controller
         );
 
         $clientes = Cliente::where('ativo', true)->orderBy('nome')->get();
-        $setores = EquipamentoSetor::orderBy('nome')->get();
-        $responsaveis = EquipamentoResponsavel::orderBy('nome')->get();
 
-        return view('admin.equipamentos.edit', compact(
-            'equipamento',
-            'clientes',
-            'setores',
-            'responsaveis'
-        ));
+        return view('admin.equipamentos.edit', compact('equipamento', 'clientes'));
     }
 
     /**
