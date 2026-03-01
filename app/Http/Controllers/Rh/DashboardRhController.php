@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Schema;
 
 class DashboardRhController extends Controller
 {
+    private const SEGUNDOS_META_DIARIA = 28800;
+    private const SEGUNDOS_META_MEIO_PERIODO = 14400;
+    private const SEGUNDOS_META_SEMANAL = 158400;
+
     public function index(Request $request)
     {
         [$inicioPeriodo, $fimPeriodo, $filtros, $filtrosQuery] = $this->resolverPeriodo($request);
@@ -154,13 +158,13 @@ class DashboardRhController extends Controller
         ];
         $monitoramento = Arr::except($monitoramento, $indicadoresMoverParaPerformance);
 
-        $totaisBancoHoras = (int) collect($bancoHorasFuncionarios)
+        $totaisBancoHorasSaldo = (int) collect($bancoHorasFuncionarios)
             ->sum(fn (array $item) => max(0, (int) ($item['saldo_segundos'] ?? 0)));
 
         return [
             'resumo' => [
                 'funcionarios_ativos' => $funcionariosAtivos->count(),
-                'banco_horas_segundos' => (int) $totaisBancoHoras,
+                'banco_horas_segundos' => (int) $totaisBancoHorasSaldo,
             ],
             'monitoramento' => $monitoramento,
             'performance' => $performance,
@@ -437,6 +441,7 @@ class DashboardRhController extends Controller
                 'title' => 'Trabalho em domingo/feriado no período',
                 'description' => 'Registros de ponto em dias não previstos na jornada dentro do período filtrado, com destaque para horas extras.',
                 'count' => $trabalhoDomingoFeriadoHoje->count(),
+                'extra_total_segundos' => (int) $trabalhoDomingoFeriadoHoje->sum(fn (array $item) => (int) ($item['extra_segundos'] ?? 0)),
                 'columns' => ['Funcionário', 'Dia', 'Entrada', 'Atraso entrada', 'Saída almoço (atraso)', 'Retorno almoço (adiantado)', 'Saída (após horário)', 'Extra do dia'],
                 'rows' => $trabalhoDomingoFeriadoHoje->map(fn (array $item) => [
                     $item['funcionario'],
@@ -1266,8 +1271,6 @@ class DashboardRhController extends Controller
             return [];
         }
 
-        $trabalhado = $this->obterTrabalhadoSegundosPorFuncionario($inicio, $fim, $funcionariosIds);
-
         $ajustes = Schema::hasTable('rh_ajustes_ponto')
             ? RhAjustePonto::query()
                 ->whereIn('funcionario_id', $funcionariosIds)
@@ -1277,34 +1280,93 @@ class DashboardRhController extends Controller
                 ->pluck('total', 'funcionario_id')
             : collect();
 
-        $jornadas = collect();
-        if (Schema::hasTable('funcionario_jornadas') && Schema::hasTable('jornadas')) {
-            $jornadas = FuncionarioJornada::query()
-                ->with('jornada:id,hora_inicio,hora_fim,hora_entrada_padrao,hora_saida_padrao,intervalo_minutos')
-                ->whereIn('funcionario_id', $funcionariosIds)
-                ->whereDate('data_inicio', '<=', $fim->toDateString())
-                ->where(function ($query) use ($inicio) {
-                    $query->whereNull('data_fim')
-                        ->orWhereDate('data_fim', '>=', $inicio->toDateString());
-                })
-                ->orderByDesc('data_inicio')
-                ->get()
-                ->groupBy('funcionario_id')
-                ->map(fn ($itens) => $itens->first());
-        }
-
         $funcionarios = Funcionario::query()
             ->whereIn('id', $funcionariosIds)
             ->get(['id', 'nome'])
             ->keyBy('id');
 
+        $totaisSemanais = [];
+        $totaisTrabalhados = [];
+
+        $usaRegistroLegal = Schema::hasTable('registro_pontos_portal')
+            && Schema::hasTable('funcionario_jornadas')
+            && Schema::hasTable('jornadas');
+
+        if ($usaRegistroLegal) {
+            $registrosPeriodo = RegistroPontoPortal::query()
+                ->whereIn('funcionario_id', $funcionariosIds)
+                ->where(function ($query) use ($inicio, $fim) {
+                    $query->whereBetween('data_referencia', [$inicio->toDateString(), $fim->toDateString()])
+                        ->orWhereBetween('entrada_em', [$inicio, $fim])
+                        ->orWhereBetween('saida_em', [$inicio, $fim]);
+                })
+                ->get(['funcionario_id', 'data_referencia', 'entrada_em', 'intervalo_inicio_em', 'intervalo_fim_em', 'saida_em']);
+
+            $registrosPorDia = $registrosPeriodo
+                ->map(function (RegistroPontoPortal $registro) {
+                    $dia = $registro->data_referencia
+                        ? Carbon::parse($registro->data_referencia)->toDateString()
+                        : ($registro->entrada_em
+                            ? Carbon::parse($registro->entrada_em)->toDateString()
+                            : ($registro->saida_em ? Carbon::parse($registro->saida_em)->toDateString() : null));
+
+                    if (!$dia) {
+                        return null;
+                    }
+
+                    return [
+                        'chave' => ((int) $registro->funcionario_id) . '|' . $dia,
+                        'registro' => $registro,
+                    ];
+                })
+                ->filter()
+                ->groupBy('chave')
+                ->map(fn ($itens) => $itens->first()['registro']);
+
+            $cursor = $inicio->copy()->startOfDay();
+            $fimDia = $fim->copy()->startOfDay();
+
+            while ($cursor->lte($fimDia)) {
+                $dia = $cursor->copy();
+                $diaStr = $dia->toDateString();
+                $jornadasDia = $this->jornadasVigentesPorFuncionarioNoDia($dia, $funcionariosIds);
+
+                foreach ($funcionariosIds as $funcionarioId) {
+                    $vinculo = $jornadasDia[(int) $funcionarioId] ?? null;
+                    if (!$vinculo instanceof FuncionarioJornada) {
+                        continue;
+                    }
+
+                    if (!$this->funcionarioTrabalhaNoDia($vinculo, $dia)) {
+                        continue;
+                    }
+
+                    $chaveRegistro = (int) $funcionarioId . '|' . $diaStr;
+                    $registro = $registrosPorDia->get($chaveRegistro);
+                    $segundosDia = $this->calcularSegundosApuradosBancoDia($registro, $vinculo, $dia);
+
+                    $chaveSemana = sprintf('%d|%s-W%s', (int) $funcionarioId, $dia->format('o'), $dia->format('W'));
+                    $totaisSemanais[$chaveSemana] = ($totaisSemanais[$chaveSemana] ?? 0) + $segundosDia;
+                    $totaisTrabalhados[(int) $funcionarioId] = ($totaisTrabalhados[(int) $funcionarioId] ?? 0) + $segundosDia;
+                }
+
+                $cursor->addDay();
+            }
+        }
+
         $resultado = [];
         foreach ($funcionariosIds as $funcionarioId) {
-            $vinculo = $jornadas->get($funcionarioId);
-            $previsto = $this->segundosPrevistosNoPeriodo($inicio, $fim, $vinculo);
-            $trabalhadoSegundos = (int) ($trabalhado[$funcionarioId] ?? 0);
+            $chaveFuncionario = (string) ((int) $funcionarioId) . '|';
+            $totaisSemanaisFuncionario = collect($totaisSemanais)
+                ->filter(fn (int $total, string $chave) => str_starts_with($chave, $chaveFuncionario));
+
+            $trabalhadoSegundos = (int) ($totaisTrabalhados[$funcionarioId] ?? 0);
+            $previsto = $totaisSemanaisFuncionario->count() * self::SEGUNDOS_META_SEMANAL;
             $ajusteSegundos = (int) ($ajustes[$funcionarioId] ?? 0);
-            $saldo = $trabalhadoSegundos + $ajusteSegundos - $previsto;
+            $saldo = (int) $totaisSemanaisFuncionario
+                ->reduce(fn (int $acumulado, int $totalSemana) => $acumulado + ($totalSemana - self::SEGUNDOS_META_SEMANAL), 0);
+
+            $saldo += $ajusteSegundos;
 
             $resultado[] = [
                 'funcionario_id' => $funcionarioId,
@@ -1317,6 +1379,51 @@ class DashboardRhController extends Controller
         }
 
         return $resultado;
+    }
+
+    private function calcularSegundosApuradosBancoDia(?RegistroPontoPortal $registro, FuncionarioJornada $vinculo, Carbon $dia): int
+    {
+        if (!$registro) {
+            return 0;
+        }
+
+        $entrada = $registro->entrada_em ? Carbon::parse($registro->entrada_em) : null;
+        $intervaloInicio = $registro->intervalo_inicio_em ? Carbon::parse($registro->intervalo_inicio_em) : null;
+        $intervaloFim = $registro->intervalo_fim_em ? Carbon::parse($registro->intervalo_fim_em) : null;
+        $saida = $registro->saida_em ? Carbon::parse($registro->saida_em) : null;
+
+        $segundosPrevistos = $this->segundosDiariosJornada($vinculo->jornada);
+        if ($segundosPrevistos <= 0) {
+            $segundosPrevistos = self::SEGUNDOS_META_DIARIA;
+        }
+
+        $limiteManha = min(self::SEGUNDOS_META_MEIO_PERIODO, $segundosPrevistos);
+        $limiteTarde = max(0, $segundosPrevistos - $limiteManha);
+
+        $segundosManha = 0;
+        if ($entrada && $intervaloInicio && $intervaloInicio->gt($entrada)) {
+            $segundosManha = min($limiteManha, $intervaloInicio->diffInSeconds($entrada, true));
+        }
+
+        $segundosTarde = 0;
+        if ($intervaloFim && $saida && $saida->gt($intervaloFim)) {
+            $segundosTarde = min($limiteTarde, $saida->diffInSeconds($intervaloFim, true));
+        }
+
+        $segundosTrabalhados = max(0, $segundosManha + $segundosTarde);
+
+        $entradaPrevista = $this->resolverHorariosJornadaNoDia($vinculo, $dia)['hora_entrada'] ?? null;
+        if ($entrada && $entradaPrevista) {
+            $inicioPrevisto = Carbon::parse($dia->toDateString() . ' ' . $entradaPrevista);
+            if ($entrada->lt($inicioPrevisto)) {
+                $toleranciaEntradaMin = max(0, (int) ($vinculo->jornada?->tolerancia_entrada_min ?? 0));
+                $janelaBonificada = $inicioPrevisto->copy()->addMinutes($toleranciaEntradaMin);
+                $descontoAntecipacao = $janelaBonificada->diffInSeconds($entrada, true);
+                $segundosTrabalhados = max(0, $segundosTrabalhados - $descontoAntecipacao);
+            }
+        }
+
+        return $segundosTrabalhados;
     }
 
     private function obterTrabalhadoSegundosPorFuncionario(Carbon $inicio, Carbon $fim, array $funcionariosIds)
@@ -1460,27 +1567,36 @@ class DashboardRhController extends Controller
 
     private function calcularSegundosTrabalhadosRegistroLegal(RegistroPontoPortal $registro): int
     {
-        if (!$registro->entrada_em || !$registro->saida_em) {
-            return 0;
-        }
+        $segundos = 0;
 
-        $entrada = Carbon::parse($registro->entrada_em);
-        $saida = Carbon::parse($registro->saida_em);
-
-        if ($saida->lessThanOrEqualTo($entrada)) {
-            return 0;
-        }
-
-        $segundos = $saida->diffInSeconds($entrada, true);
-
-        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-            $inicioIntervalo = Carbon::parse($registro->intervalo_inicio_em);
-            $fimIntervalo = Carbon::parse($registro->intervalo_fim_em);
-            if ($fimIntervalo->gt($inicioIntervalo)) {
-                $segundos -= $fimIntervalo->diffInSeconds($inicioIntervalo, true);
+        if ($registro->entrada_em && $registro->intervalo_inicio_em) {
+            $entrada = Carbon::parse($registro->entrada_em);
+            $intervaloInicio = Carbon::parse($registro->intervalo_inicio_em);
+            if ($intervaloInicio->gt($entrada)) {
+                $segundos += $intervaloInicio->diffInSeconds($entrada, true);
             }
         }
 
-        return max(0, $segundos);
+        if ($registro->intervalo_fim_em && $registro->saida_em) {
+            $intervaloFim = Carbon::parse($registro->intervalo_fim_em);
+            $saida = Carbon::parse($registro->saida_em);
+            if ($saida->gt($intervaloFim)) {
+                $segundos += $saida->diffInSeconds($intervaloFim, true);
+            }
+        }
+
+        if ($segundos > 0) {
+            return $segundos;
+        }
+
+        if ($registro->entrada_em && $registro->saida_em) {
+            $entrada = Carbon::parse($registro->entrada_em);
+            $saida = Carbon::parse($registro->saida_em);
+            if ($saida->gt($entrada)) {
+                return $saida->diffInSeconds($entrada, true);
+            }
+        }
+
+        return 0;
     }
 }
