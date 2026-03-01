@@ -170,9 +170,9 @@
                         <x-table-cell>{{ $setor->cliente->nome_exibicao }}</x-table-cell>
                         <x-table-cell class="font-medium text-gray-900">{{ $setor->nome }}</x-table-cell>
                         <x-table-cell>{{ $setor->descricao ?? '-' }}</x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $setor->equipamentos_count }} equipamento(s)
+                        <x-table-cell>
+                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
+                                {{ $setor->equipamentos_count }} equip.
                             </span>
                         </x-table-cell>
                         <x-table-cell>
@@ -241,9 +241,9 @@
                                 <span class="text-gray-400">-</span>
                             @endif
                         </x-table-cell>
-                        <x-table-cell :nowrap="true">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $responsavel->equipamentos_count }} equipamento(s)
+                        <x-table-cell>
+                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold" style="background-color: #dbeafe; color: #1e40af; width: 110px; justify-content: center;">
+                                {{ $responsavel->equipamentos_count }} equip.
                             </span>
                         </x-table-cell>
                         <x-table-cell>
