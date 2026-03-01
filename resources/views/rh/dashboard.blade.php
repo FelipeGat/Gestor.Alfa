@@ -157,7 +157,7 @@
 
                 <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Banco de Horas</p>
-                    <p class="text-3xl font-bold text-green-600 mt-2">{{ gmdate('H:i', max(0, $bancoHorasSegundos)) }}</p>
+                    <p class="text-3xl font-bold mt-2 {{ $bancoHorasSegundos < 0 ? 'text-red-600' : 'text-green-600' }}">{{ $bancoHorasFormatado }}</p>
                 </div>
             </div>
 
