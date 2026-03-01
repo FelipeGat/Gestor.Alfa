@@ -348,25 +348,24 @@
 }
 
 .portal-table thead {
-    background: var(--portal-gray-100);
+    background-color: rgba(63, 156, 174, 0.05);
+    border-bottom: 1px solid #3f9cae;
 }
 
 .portal-table thead th {
     padding: 0.75rem 1rem;
     text-align: left;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 700;
-    color: var(--portal-gray-600);
+    color: #374151;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--portal-gray-200);
 }
 
 .portal-table tbody td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--portal-gray-200);
+    border-bottom: 1px solid #e5e7eb;
     font-size: 0.875rem;
-    color: var(--portal-gray-700);
+    color: #1f2937;
 }
 
 .portal-table tbody tr:hover {
@@ -383,8 +382,11 @@
 .portal-mobile-card {
     background: white;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid var(--portal-primary);
+    border-top: 4px solid var(--portal-primary);
+    border-right: 1px solid var(--portal-primary);
+    border-bottom: 1px solid var(--portal-primary);
+    border-left: 1px solid var(--portal-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     padding: 1rem;
 }
 
