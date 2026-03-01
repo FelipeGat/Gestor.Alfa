@@ -293,6 +293,8 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         Route::delete('/{equipamento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'destroy'])->name('destroy');
         Route::get('/{equipamento}/qrcode', [\App\Http\Controllers\Admin\EquipamentoController::class, 'gerarQrCode'])->name('qrcode');
         Route::get('/api/cliente/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListByCliente'])->name('api.cliente');
+        Route::get('/api/setores/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListSetores'])->name('api.setores');
+        Route::get('/api/responsaveis/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListResponsaveis'])->name('api.responsaveis');
     });
 
     // Categorias Financeiras

@@ -300,6 +300,30 @@ class EquipamentoController extends Controller
     }
 
     /**
+     * API para buscar setores por cliente
+     */
+    public function apiListSetores($clienteId)
+    {
+        $setores = EquipamentoSetor::where('cliente_id', $clienteId)
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+
+        return response()->json($setores);
+    }
+
+    /**
+     * API para buscar responsáveis por cliente
+     */
+    public function apiListResponsaveis($clienteId)
+    {
+        $responsaveis = EquipamentoResponsavel::where('cliente_id', $clienteId)
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cargo']);
+
+        return response()->json($responsaveis);
+    }
+
+    /**
      * Gera QR Code do equipamento
      */
     public function gerarQrCode(Equipamento $equipamento)
