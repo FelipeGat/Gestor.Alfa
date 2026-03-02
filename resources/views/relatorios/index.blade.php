@@ -118,6 +118,60 @@
                     </a>
                 </div>
             </div>
+
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 mb-4 mt-8">Executivo</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <a href="{{ route('relatorios.modulo') }}" class="card-relatorio group block p-6">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="p-3 icone-bg rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 icone-cor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m3 6V7m3 10v-4m4 6H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Módulo de Relatórios</div>
+                            <div class="text-xs text-gray-500">Financeiro, Técnico, Comercial, RH e Painel Executivo</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" class="card-relatorio group block p-6">
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Relatório Financeiro</div>
+                            <div class="text-xs text-gray-500">Receita, despesa, lucro, margem e insights</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" class="card-relatorio group block p-6">
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Relatório Técnico</div>
+                            <div class="text-xs text-gray-500">Chamados, produtividade e tempo médio</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" class="card-relatorio group block p-6">
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Relatório Comercial (Novo)</div>
+                            <div class="text-xs text-gray-500">Conversão, ticket médio e performance</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('relatorios.modulo', ['tipo' => 'rh']) }}" class="card-relatorio group block p-6">
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Relatório RH</div>
+                            <div class="text-xs text-gray-500">Atrasos, faltas, banco de horas e absenteísmo</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('relatorios.modulo', ['tipo' => 'painel-executivo']) }}" class="card-relatorio group block p-6">
+                        <div class="text-center">
+                            <div class="font-bold text-gray-800 text-lg mb-1 group-hover:text-[#3f9cae] transition">Painel Executivo</div>
+                            <div class="text-xs text-gray-500">Consolidado financeiro, técnico, comercial e RH</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

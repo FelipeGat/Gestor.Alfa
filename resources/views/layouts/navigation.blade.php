@@ -559,6 +559,14 @@
                             Contas a Pagar
                         </a>
 
+                        <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Relatório Financeiro"
+                            data-tab-icon="relatorios">
+                            Relatório Financeiro
+                        </a>
+
                         <div class="portal-nav-divider"></div>
 
                         <div class="portal-nav-label">
@@ -571,6 +579,64 @@
                             data-tab-label="Relatório Comercial"
                             data-tab-icon="relatorios">
                             Relatório Comercial
+                        </a>
+
+                        <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Relatório Comercial Novo"
+                            data-tab-icon="relatorios">
+                            Relatório Comercial (Novo)
+                        </a>
+
+                        <div class="portal-nav-divider"></div>
+
+                        <div class="portal-nav-label">
+                            Técnico
+                        </div>
+
+                        <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Relatório Técnico"
+                            data-tab-icon="relatorios">
+                            Relatório Técnico
+                        </a>
+
+                        <div class="portal-nav-divider"></div>
+
+                        <div class="portal-nav-label">
+                            RH
+                        </div>
+
+                        <a href="{{ route('relatorios.modulo', ['tipo' => 'rh']) }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Relatório RH"
+                            data-tab-icon="relatorios">
+                            Relatório RH
+                        </a>
+
+                        <div class="portal-nav-divider"></div>
+
+                        <div class="portal-nav-label">
+                            Executivo
+                        </div>
+
+                        <a href="{{ route('relatorios.modulo') }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Módulo de Relatórios"
+                            data-tab-icon="relatorios">
+                            Módulo de Relatórios
+                        </a>
+
+                        <a href="{{ route('relatorios.modulo', ['tipo' => 'painel-executivo']) }}" 
+                            class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Painel Executivo"
+                            data-tab-icon="relatorios">
+                            Painel Executivo
                         </a>
                     </div>
                 </div>
@@ -773,6 +839,7 @@
                         <x-responsive-nav-link :href="route('relatorios.custos-gerencial')" data-tab-icon="relatorios">Gerencial de Custos</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.contas-receber')" data-tab-icon="relatorios">Contas a Receber</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.contas-pagar')" data-tab-icon="relatorios">Contas a Pagar</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'financeiro'])" data-tab-icon="relatorios">Relatório Financeiro</x-responsive-nav-link>
                     </div>
                 </details>
 
@@ -780,6 +847,29 @@
                     <summary class="font-semibold text-gray-600">Comercial</summary>
                     <div class="pl-4 space-y-1">
                         <x-responsive-nav-link :href="route('relatorios.comercial')" data-tab-icon="relatorios">Relatório Comercial</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Relatório Comercial (Novo)</x-responsive-nav-link>
+                    </div>
+                </details>
+
+                <details>
+                    <summary class="font-semibold text-gray-600">Técnico</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Relatório Técnico</x-responsive-nav-link>
+                    </div>
+                </details>
+
+                <details>
+                    <summary class="font-semibold text-gray-600">RH</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'rh'])" data-tab-icon="relatorios">Relatório RH</x-responsive-nav-link>
+                    </div>
+                </details>
+
+                <details>
+                    <summary class="font-semibold text-gray-600">Executivo</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('relatorios.modulo')" data-tab-icon="relatorios">Módulo de Relatórios</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'painel-executivo'])" data-tab-icon="relatorios">Painel Executivo</x-responsive-nav-link>
                     </div>
                 </details>
             </div>

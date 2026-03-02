@@ -161,6 +161,26 @@
                     </div>
                 </details>
 
+                @php
+                    $filtrosRapidosBase = request()->query();
+                    $contratoAtivo = request('tipo') === 'contrato';
+                    $notaFiscalAtiva = request('nota_fiscal') == '1';
+
+                    $filtrosContrato = $filtrosRapidosBase;
+                    if ($contratoAtivo) {
+                        unset($filtrosContrato['tipo']);
+                    } else {
+                        $filtrosContrato['tipo'] = 'contrato';
+                    }
+
+                    $filtrosNotaFiscal = $filtrosRapidosBase;
+                    if ($notaFiscalAtiva) {
+                        unset($filtrosNotaFiscal['nota_fiscal']);
+                    } else {
+                        $filtrosNotaFiscal['nota_fiscal'] = 1;
+                    }
+                @endphp
+
                 <div class="flex flex-wrap gap-2 mt-4">
                     <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('tipo', 'nota_fiscal'), ['status' => ['pendente']])) }}"
                         class="quick-filter-btn status-pendente {{ in_array('pendente', request('status', [])) ? 'active' : '' }}">
@@ -177,13 +197,13 @@
                         <span>Orçamento</span>
                         <span class="count">{{ $contadoresTipo['orcamento'] }}</span>
                     </a>
-                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status', 'nota_fiscal'), ['tipo' => 'contrato'])) }}"
-                        class="quick-filter-btn tipo-contrato {{ request('tipo') == 'contrato' ? 'active' : '' }}">
+                    <a href="{{ route('financeiro.contasareceber', $filtrosContrato) }}"
+                        class="quick-filter-btn tipo-contrato {{ $contratoAtivo ? 'active' : '' }}">
                         <span>Contrato</span>
                         <span class="count">{{ $contadoresTipo['contrato'] }}</span>
                     </a>
-                    <a href="{{ route('financeiro.contasareceber', array_merge(request()->except('status', 'tipo'), ['nota_fiscal' => 1])) }}"
-                        class="quick-filter-btn tipo-nota-fiscal {{ request('nota_fiscal') == '1' ? 'active' : '' }}">
+                    <a href="{{ route('financeiro.contasareceber', $filtrosNotaFiscal) }}"
+                        class="quick-filter-btn tipo-nota-fiscal {{ $notaFiscalAtiva ? 'active' : '' }}">
                         <span>Nota Fiscal</span>
                         <span class="count">{{ $contadoresNotaFiscal ?? 0 }}</span>
                     </a>

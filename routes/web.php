@@ -3,6 +3,12 @@
 use App\Http\Controllers\RelatorioComercialController;
 use App\Http\Controllers\RelatorioCustosOrcamentosController;
 use App\Http\Controllers\RelatorioFinanceiroController;
+use App\Http\Controllers\Relatorios\RelatoriosModuloController;
+use App\Http\Controllers\Relatorios\PainelExecutivoController;
+use App\Http\Controllers\Relatorios\RelatorioComercialController as RelatorioComercialApiController;
+use App\Http\Controllers\Relatorios\RelatorioFinanceiroController as RelatorioFinanceiroApiController;
+use App\Http\Controllers\Relatorios\RelatorioRHController;
+use App\Http\Controllers\Relatorios\RelatorioTecnicoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +32,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.contas-pagar.json');
     Route::get('/relatorios/comercial', [RelatorioComercialController::class, 'index'])
         ->name('relatorios.comercial');
+    Route::get('/relatorios/modulo', [RelatoriosModuloController::class, 'index'])
+        ->name('relatorios.modulo');
+    Route::get('/relatorios/modulo/imprimir', [RelatoriosModuloController::class, 'imprimir'])
+        ->name('relatorios.modulo.imprimir');
 
     // Cadastros
     Route::get('/cadastros', function () {
@@ -94,6 +104,12 @@ Route::middleware(['auth'])->prefix('api')->group(function () {
     Route::get('/clientes', [ClienteController::class, 'apiList']);
     Route::get('/contas-financeiras/{empresa_id}', [ContasFinanceirasController::class, 'apiListByEmpresa']);
     Route::get('/orcamentos-por-cliente/{cliente_id}', [\App\Http\Controllers\Api\FinanceiroOrcamentoController::class, 'orcamentosPorCliente']);
+
+    Route::get('/relatorios/financeiro', RelatorioFinanceiroApiController::class)->name('api.relatorios.financeiro');
+    Route::get('/relatorios/tecnico', RelatorioTecnicoController::class)->name('api.relatorios.tecnico');
+    Route::get('/relatorios/comercial', RelatorioComercialApiController::class)->name('api.relatorios.comercial');
+    Route::get('/relatorios/rh', RelatorioRHController::class)->name('api.relatorios.rh');
+    Route::get('/relatorios/painel-executivo', PainelExecutivoController::class)->name('api.relatorios.painel_executivo');
 });
 
 // API para buscar subcategorias e contas (fora de qualquer grupo prefixado, compatível com frontend)
