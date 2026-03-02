@@ -13,6 +13,13 @@
     $isFuncionario = $user && isset($user->tipo) ? $user->tipo === 'funcionario' : false;
     $canPortalFuncionario = $user && !$isCliente && !empty($user->funcionario_id)
         && ($isFuncionario || $isAdmin || $isAdministrativo || $isFinanceiro || $isComercial);
+
+    // Abreviação do nome
+    $userName = $user->name ?? 'Visitante';
+    $nameParts = explode(' ', trim($userName));
+    $displayName = count($nameParts) > 1 
+        ? $nameParts[0] . ' ' . end($nameParts) 
+        : $userName;
     @endphp
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,30 +194,131 @@
                         </svg>
                     </button>
 
+                    <div x-show="openMenu" 
+                        @click.outside="openMenu = false" 
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="portal-nav-dropdown p-2 w-64 overflow-y-auto max-h-[85vh] shadow-xl border border-gray-200"
+                        x-data="{ activeSection: null }"
+                        style="min-width: 16rem; max-width: 20rem; left: 0;">
+                        
+                        <div class="flex flex-col space-y-1">
+                            {{-- SECTION: DASHBOARDS --}}
+                            <div>
+                                <button @click="activeSection = (activeSection === 'dashboards' ? null : 'dashboards')" 
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    <span>Dashboards</span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'dashboards' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="activeSection === 'dashboards'" x-collapse class="pl-4 pb-1 space-y-1">
+                                    @if($isAdmin)
+                                    <a href="{{ route('dashboard') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Dashboard Operacional">Operacional</a>
+                                    <a href="{{ route('dashboard.tecnico') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Dashboard Técnico">Técnico</a>
+                                    @endif
+                                    @if($isAdmin || $isComercial)
+                                    <a href="{{ route('dashboard.comercial') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Dashboard Comercial">Comercial</a>
+                                    @endif
+                                    @if($isAdmin || $isFinanceiro)
+                                    <a href="{{ route('financeiro.dashboard') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Dashboard Financeiro">Financeiro</a>
+                                    @endif
+                                    @if($isAdmin || $isRhAdmin)
+                                    <a href="{{ route('rh.dashboard') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Dashboard RH">RH</a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- SECTION: CADASTROS --}}
+                            <div>
+                                <button @click="activeSection = (activeSection === 'cadastros' ? null : 'cadastros')" 
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    <span>Cadastros</span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'cadastros' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="activeSection === 'cadastros'" x-collapse class="pl-4 pb-1 space-y-1">
+                                    @if($isAdmin)
+                                    <a href="{{ route('empresas.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Empresas">Empresas</a>
+                                    <a href="{{ route('usuarios.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Usuários">Usuários</a>
+                                    @endif
+                                    <a href="{{ route('clientes.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Clientes">Clientes</a>
+                                    @if($isAdmin || $isFinanceiro)
+                                    <a href="{{ route('fornecedores.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Fornecedores">Fornecedores</a>
+                                    @endif
+                                    <a href="{{ route('assuntos.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Assuntos">Assuntos</a>
+                                    @if($isAdmin)
+                                    <a href="{{ route('admin.equipamentos.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Equipamentos">Equipamentos</a>
+                                    @endif
+                                    @if($isAdmin || $isFinanceiro)
+                                    <a href="{{ route('categorias.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Categorias">Categorias</a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- SECTION: RELATÓRIOS --}}
+                            <div>
+                                <button @click="activeSection = (activeSection === 'relatorios' ? null : 'relatorios')" 
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    <span>Relatórios</span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'relatorios' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="activeSection === 'relatorios'" x-collapse class="pl-4 pb-1 space-y-1">
+                                    @if($isAdmin)
+                                    <a href="{{ route('relatorios.modulo') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Todos Relatórios">Todos</a>
+                                    <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Financeiros">Financeiro</a>
+                                    <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Comerciais">Comercial</a>
+                                    <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Técnicos">Técnico</a>
+                                    <a href="{{ route('relatorios.modulo', ['tipo' => 'rh']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios RH">RH</a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- SECTION: RH --}}
+                            @if($isRhAdmin)
+                            <div>
+                                <button @click="activeSection = (activeSection === 'rh' ? null : 'rh')" 
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    <span>RH</span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'rh' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="activeSection === 'rh'" x-collapse class="pl-4 pb-1 space-y-1">
+                                    <a href="{{ route('rh.funcionarios.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Funcionários">Funcionários</a>
+                                    <a href="{{ route('rh.ponto-jornada.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Ponto & Jornada">Ponto & Jornada</a>
+                                    <a href="{{ route('rh.jornadas.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Jornada">Jornadas</a>
+                                    <a href="{{ route('rh.feriados.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Feriados">Feriados</a>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                {{-- ============ COMERCIAL ============ --}}
+                @if($isAdmin || $isComercial)
+                <div x-data="{ openMenu: false }" class="relative">
+                    <button @click="openMenu = !openMenu" 
+                        class="portal-nav-btn"
+                        :aria-expanded="openMenu">
+                        Comercial
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        @if($isAdmin)
-                        <a href="{{ route('dashboard') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Dashboard Operacional"
-                            data-tab-icon="dashboard">
-                            Dashboard Operacional
-                        </a>
-                        @endif
-
-                        @if($isAdmin)
-                        <a href="{{ route('dashboard.tecnico') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Dashboard Técnico"
-                            data-tab-icon="dashboard-tecnico">
-                            Dashboard Técnico
-                        </a>
-                        @endif
-
-                        @if($isAdmin || $isComercial)
                         <a href="{{ route('dashboard.comercial') }}" 
                             class="portal-nav-item"
                             data-tab-link
@@ -218,37 +326,30 @@
                             data-tab-icon="dashboard-comercial">
                             Dashboard Comercial
                         </a>
-                        @endif
 
-                        @if($isAdmin || $isFinanceiro)
-                        <a href="{{ route('financeiro.dashboard') }}" 
+                        <a href="{{ route('orcamentos.index') }}" 
                             class="portal-nav-item"
                             data-tab-link
-                            data-tab-label="Dashboard Financeiro"
-                            data-tab-icon="financeiro">
-                            Dashboard Financeiro
+                            data-tab-label="Orçamentos"
+                            data-tab-icon="orcamentos">
+                            Orçamentos
                         </a>
-                        @endif
 
-                        @if($isAdmin)
-                        <a href="{{ route('rh.dashboard') }}" 
+                        <a href="{{ route('itemcomercial.index') }}" 
                             class="portal-nav-item"
                             data-tab-link
-                            data-tab-label="Dashboard RH"
-                            data-tab-icon="rh">
-                            Dashboard RH
+                            data-tab-label="Produtos / Serviços"
+                            data-tab-icon="produtos">
+                            Produtos / Serviços
                         </a>
-                        @endif
 
-                        @if($isAdmin)
-                        <a href="{{ route('atendimentos.index') }}" 
+                        <a href="{{ route('pre-clientes.index') }}" 
                             class="portal-nav-item"
                             data-tab-link
-                            data-tab-label="Atendimentos"
-                            data-tab-icon="atendimentos">
-                            Atendimentos
+                            data-tab-label="Pré-Clientes"
+                            data-tab-icon="pre-clientes">
+                            Pré-Clientes
                         </a>
-                        @endif
                     </div>
                 </div>
                 @endif
@@ -319,202 +420,13 @@
                 </div>
                 @endif
 
-                {{-- ============ COMERCIAL ============ --}}
-                @if($isAdmin || $isComercial)
-                <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
-                        class="portal-nav-btn"
-                        :aria-expanded="openMenu">
-                        Comercial
-                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="portal-nav-dropdown flex flex-col">
-
-                        <a href="{{ route('dashboard.comercial') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Dashboard Comercial"
-                            data-tab-icon="dashboard-comercial">
-                            Dashboard Comercial
-                        </a>
-
-                        <a href="{{ route('orcamentos.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Orçamentos"
-                            data-tab-icon="orcamentos">
-                            Orçamentos
-                        </a>
-
-                        <a href="{{ route('itemcomercial.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Produtos / Serviços"
-                            data-tab-icon="produtos">
-                            Produtos / Serviços
-                        </a>
-
-                        <a href="{{ route('pre-clientes.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Pré-Clientes"
-                            data-tab-icon="pre-clientes">
-                            Pré-Clientes
-                        </a>
-                    </div>
-                </div>
-                @endif
-
-                {{-- ============ RH ============ --}}
-                @if($isRhAdmin)
-                <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
-                        class="portal-nav-btn"
-                        :aria-expanded="openMenu">
-                        RH
-                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="portal-nav-dropdown flex flex-col">
-                        <a href="{{ route('rh.dashboard') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Dashboard RH"
-                            data-tab-icon="rh">
-                            Dashboard RH
-                        </a>
-
-                        <a href="{{ route('rh.funcionarios.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Funcionários"
-                            data-tab-icon="funcionarios">
-                            Funcionários
-                        </a>
-
-                        <a href="{{ route('rh.ponto-jornada.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Ponto & Jornada"
-                            data-tab-icon="rh">
-                            Ponto & Jornada
-                        </a>
-
-                        <a href="{{ route('rh.jornadas.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Cadastro de Jornada"
-                            data-tab-icon="rh">
-                            Cadastro de Jornada
-                        </a>
-
-                        <a href="{{ route('rh.feriados.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Cadastro de Feriados"
-                            data-tab-icon="rh">
-                            Cadastro de Feriados
-                        </a>
-                    </div>
-                </div>
-                @endif
-
-                {{-- ============ CADASTROS ============ --}}
-                @if($isAdmin || $isFinanceiro || $isComercial)
-                <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
-                        class="portal-nav-btn"
-                        :aria-expanded="openMenu">
-                        Cadastros
-                        <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
-                        class="portal-nav-dropdown flex flex-col">
-
-                        @if($isAdmin)
-                        <a href="{{ route('empresas.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Empresas"
-                            data-tab-icon="empresas">
-                            Empresas
-                        </a>
-
-                        <a href="{{ route('usuarios.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Usuários"
-                            data-tab-icon="usuarios">
-                            Usuários
-                        </a>
-                        @endif
-
-                        <a href="{{ route('clientes.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Clientes"
-                            data-tab-icon="clientes">
-                            Clientes
-                        </a>
-
-                        @if($isAdmin || $isFinanceiro)
-                        <a href="{{ route('fornecedores.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Fornecedores"
-                            data-tab-icon="fornecedores">
-                            Fornecedores
-                        </a>
-                        @endif
-
-                        <a href="{{ route('assuntos.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Assuntos"
-                            data-tab-icon="assuntos">
-                            Assuntos
-                        </a>
-
-                        @if($isAdmin)
-                        <a href="{{ route('admin.equipamentos.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Equipamentos"
-                            data-tab-icon="equipamentos">
-                            Equipamentos
-                        </a>
-                        @endif
-
-                        @if($isAdmin || $isFinanceiro)
-                        <a href="{{ route('categorias.index') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Categorias"
-                            data-tab-icon="categorias">
-                            Categorias
-                        </a>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
-                {{-- ============ RELATÓRIOS ============ --}}
+                {{-- ============ SUPORTE ============ --}}
                 @if($isAdmin)
                 <div x-data="{ openMenu: false }" class="relative">
                     <button @click="openMenu = !openMenu" 
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
-                        Relatórios
+                        Suporte
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -522,121 +434,12 @@
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
-
-                        <div class="portal-nav-label">
-                            Financeiro
-                        </div>
-
-                        <a href="{{ route('relatorios.custos-orcamentos') }}" 
+                        <a href="{{ route('atendimentos.index') }}" 
                             class="portal-nav-item"
                             data-tab-link
-                            data-tab-label="Custos x Orçamentos"
-                            data-tab-icon="relatorios">
-                            Custos x Orçamentos
-                        </a>
-
-                        <a href="{{ route('relatorios.custos-gerencial') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Gerencial de Custos"
-                            data-tab-icon="relatorios">
-                            Gerencial de Custos
-                        </a>
-
-                        <a href="{{ route('relatorios.contas-receber') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Contas a Receber"
-                            data-tab-icon="relatorios">
-                            Contas a Receber
-                        </a>
-
-                        <a href="{{ route('relatorios.contas-pagar') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Contas a Pagar"
-                            data-tab-icon="relatorios">
-                            Contas a Pagar
-                        </a>
-
-                        <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Relatório Financeiro"
-                            data-tab-icon="relatorios">
-                            Relatório Financeiro
-                        </a>
-
-                        <div class="portal-nav-divider"></div>
-
-                        <div class="portal-nav-label">
-                            Comercial
-                        </div>
-
-                        <a href="{{ route('relatorios.comercial') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Relatório Comercial"
-                            data-tab-icon="relatorios">
-                            Relatório Comercial
-                        </a>
-
-                        <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Relatório Comercial Novo"
-                            data-tab-icon="relatorios">
-                            Relatório Comercial (Novo)
-                        </a>
-
-                        <div class="portal-nav-divider"></div>
-
-                        <div class="portal-nav-label">
-                            Técnico
-                        </div>
-
-                        <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Relatório Técnico"
-                            data-tab-icon="relatorios">
-                            Relatório Técnico
-                        </a>
-
-                        <div class="portal-nav-divider"></div>
-
-                        <div class="portal-nav-label">
-                            RH
-                        </div>
-
-                        <a href="{{ route('relatorios.modulo', ['tipo' => 'rh']) }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Relatório RH"
-                            data-tab-icon="relatorios">
-                            Relatório RH
-                        </a>
-
-                        <div class="portal-nav-divider"></div>
-
-                        <div class="portal-nav-label">
-                            Executivo
-                        </div>
-
-                        <a href="{{ route('relatorios.modulo') }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Módulo de Relatórios"
-                            data-tab-icon="relatorios">
-                            Módulo de Relatórios
-                        </a>
-
-                        <a href="{{ route('relatorios.modulo', ['tipo' => 'painel-executivo']) }}" 
-                            class="portal-nav-item"
-                            data-tab-link
-                            data-tab-label="Painel Executivo"
-                            data-tab-icon="relatorios">
-                            Painel Executivo
+                            data-tab-label="Atendimentos"
+                            data-tab-icon="atendimentos">
+                            Atendimentos
                         </a>
                     </div>
                 </div>
@@ -650,7 +453,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-500">
-                            {{ $user ? $user->name : 'Visitante' }}
+                            {{ $displayName }}
                         </button>
                     </x-slot>
 
@@ -745,35 +548,74 @@
         <details>
             <summary class="font-semibold text-gray-700">Gestão</summary>
             <div class="pl-4 space-y-1">
-                @if($isAdmin)
-                <x-responsive-nav-link :href="route('dashboard')" data-tab-icon="dashboard">Dashboard Operacional</x-responsive-nav-link>
-                @endif
-                @if($isAdmin || $isComercial)
-                <x-responsive-nav-link :href="route('dashboard.comercial')" data-tab-icon="dashboard-comercial">Dashboard Comercial</x-responsive-nav-link>
-                @endif
-                @if($canPortalFuncionario)
-                <x-responsive-nav-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">Portal do Funcionário</x-responsive-nav-link>
-                @endif
-                @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Financeiro</x-responsive-nav-link>
-                @endif
-                @if($isAdmin)
-                <x-responsive-nav-link :href="route('rh.dashboard')" data-tab-icon="rh">Dashboard RH</x-responsive-nav-link>
-                @endif
-                @if($isAdmin)
-                <x-responsive-nav-link :href="route('atendimentos.index')" data-tab-icon="atendimentos">Atendimentos</x-responsive-nav-link>
-                @endif
-            </div>
-        </details>
-        @endif
+                {{-- Dashboards --}}
+                <details>
+                    <summary class="text-sm font-medium text-gray-600">Dashboards</summary>
+                    <div class="pl-4 space-y-1">
+                        @if($isAdmin)
+                        <x-responsive-nav-link :href="route('dashboard')" data-tab-icon="dashboard">Dashboard Operacional</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('dashboard.tecnico')" data-tab-icon="dashboard-tecnico">Dashboard Técnico</x-responsive-nav-link>
+                        @endif
+                        @if($isAdmin || $isComercial)
+                        <x-responsive-nav-link :href="route('dashboard.comercial')" data-tab-icon="dashboard-comercial">Dashboard Comercial</x-responsive-nav-link>
+                        @endif
+                        @if($isAdmin || $isFinanceiro)
+                        <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Dashboard Financeiro</x-responsive-nav-link>
+                        @endif
+                        @if($isAdmin || $isRhAdmin)
+                        <x-responsive-nav-link :href="route('rh.dashboard')" data-tab-icon="rh">Dashboard RH</x-responsive-nav-link>
+                        @endif
+                    </div>
+                </details>
 
-        {{-- Financeiro --}}
-        @if($isAdmin || $isFinanceiro)
-        <details>
-            <summary class="font-semibold text-gray-700">Financeiro</summary>
-            <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Financeiro</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('cobrancas.index')" data-tab-icon="cobras">Cobranças</x-responsive-nav-link>
+                {{-- Cadastros --}}
+                <details>
+                    <summary class="text-sm font-medium text-gray-600">Cadastros</summary>
+                    <div class="pl-4 space-y-1">
+                        @if($isAdmin)
+                        <x-responsive-nav-link :href="route('empresas.index')" data-tab-icon="empresas">Empresas</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('usuarios.index')" data-tab-icon="usuarios">Usuários</x-responsive-nav-link>
+                        @endif
+                        <x-responsive-nav-link :href="route('clientes.index')" data-tab-icon="clientes">Clientes</x-responsive-nav-link>
+                        @if($isAdmin || $isFinanceiro)
+                        <x-responsive-nav-link :href="route('fornecedores.index')" data-tab-icon="fornecedores">Fornecedores</x-responsive-nav-link>
+                        @endif
+                        <x-responsive-nav-link :href="route('assuntos.index')" data-tab-icon="assuntos">Assuntos</x-responsive-nav-link>
+                        @if($isAdmin)
+                        <x-responsive-nav-link :href="route('admin.equipamentos.index')" data-tab-icon="equipamentos">Equipamentos</x-responsive-nav-link>
+                        @endif
+                        @if($isAdmin || $isFinanceiro)
+                        <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>
+                        @endif
+                    </div>
+                </details>
+
+                {{-- Relatórios --}}
+                <details>
+                    <summary class="text-sm font-medium text-gray-600">Relatórios</summary>
+                    <div class="pl-4 space-y-1">
+                        @if($isAdmin)
+                        <x-responsive-nav-link :href="route('relatorios.modulo')" data-tab-icon="relatorios">Todos os Relatórios</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'financeiro'])" data-tab-icon="relatorios">Financeiro</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Comercial</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Técnico</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'rh'])" data-tab-icon="relatorios">RH</x-responsive-nav-link>
+                        @endif
+                    </div>
+                </details>
+
+                {{-- RH --}}
+                @if($isRhAdmin)
+                <details>
+                    <summary class="text-sm font-medium text-gray-600">Recursos Humanos</summary>
+                    <div class="pl-4 space-y-1">
+                        <x-responsive-nav-link :href="route('rh.funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('rh.ponto-jornada.index')" data-tab-icon="rh">Ponto & Jornada</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('rh.jornadas.index')" data-tab-icon="rh">Cadastro de Jornada</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('rh.feriados.index')" data-tab-icon="rh">Cadastro de Feriados</x-responsive-nav-link>
+                    </div>
+                </details>
+                @endif
             </div>
         </details>
         @endif
@@ -791,87 +633,27 @@
         </details>
         @endif
 
-        {{-- Cadastros --}}
-        @if($isAdmin || $isFinanceiro || $isComercial)
+        {{-- Financeiro --}}
+        @if($isAdmin || $isFinanceiro)
         <details>
-            <summary class="font-semibold text-gray-700">Cadastros</summary>
+            <summary class="font-semibold text-gray-700">Financeiro</summary>
             <div class="pl-4 space-y-1">
-                @if($isAdmin)
-                <x-responsive-nav-link :href="route('empresas.index')" data-tab-icon="empresas">Empresas</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('usuarios.index')" data-tab-icon="usuarios">Usuários</x-responsive-nav-link>
-                @endif
-                <x-responsive-nav-link :href="route('clientes.index')" data-tab-icon="clientes">Clientes</x-responsive-nav-link>
-                @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('fornecedores.index')" data-tab-icon="fornecedores">Fornecedores</x-responsive-nav-link>
-                @endif
-                <x-responsive-nav-link :href="route('assuntos.index')" data-tab-icon="assuntos">Assuntos</x-responsive-nav-link>
-                @if($isAdmin)
-                <x-responsive-nav-link :href="route('admin.equipamentos.index')" data-tab-icon="equipamentos">Equipamentos</x-responsive-nav-link>
-                @endif
-                @if($isAdmin || $isFinanceiro)
-                <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>
-                @endif
+                <x-responsive-nav-link :href="route('financeiro.dashboard')" data-tab-icon="financeiro">Dashboard Financeiro</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.contas-financeiras.index')" data-tab-icon="bancos">Bancos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.cobrar')" data-tab-icon="cobras">Cobrar</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.contasareceber')" data-tab-icon="contas-receber">Receber</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.contasapagar')" data-tab-icon="contas-pagar">Pagar</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('financeiro.movimentacao')" data-tab-icon="movimentacao">Extrato</x-responsive-nav-link>
             </div>
         </details>
         @endif
 
-        {{-- RH --}}
-        @if($isRhAdmin)
-        <details>
-            <summary class="font-semibold text-gray-700">RH</summary>
-            <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('rh.dashboard')" data-tab-icon="rh">Dashboard RH</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('rh.funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('rh.ponto-jornada.index')" data-tab-icon="rh">Ponto & Jornada</x-responsive-nav-link>
-            </div>
-        </details>
-        @endif
-
-        {{-- Relatórios --}}
+        {{-- Suporte --}}
         @if($isAdmin)
         <details>
-            <summary class="font-semibold text-gray-700">Relatórios</summary>
+            <summary class="font-semibold text-gray-700">Suporte</summary>
             <div class="pl-4 space-y-1">
-                <details>
-                    <summary class="font-semibold text-gray-600">Financeiro</summary>
-                    <div class="pl-4 space-y-1">
-                        <x-responsive-nav-link :href="route('relatorios.custos-orcamentos')" data-tab-icon="relatorios">Custos x Orçamentos</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.custos-gerencial')" data-tab-icon="relatorios">Gerencial de Custos</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.contas-receber')" data-tab-icon="relatorios">Contas a Receber</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.contas-pagar')" data-tab-icon="relatorios">Contas a Pagar</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'financeiro'])" data-tab-icon="relatorios">Relatório Financeiro</x-responsive-nav-link>
-                    </div>
-                </details>
-
-                <details>
-                    <summary class="font-semibold text-gray-600">Comercial</summary>
-                    <div class="pl-4 space-y-1">
-                        <x-responsive-nav-link :href="route('relatorios.comercial')" data-tab-icon="relatorios">Relatório Comercial</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Relatório Comercial (Novo)</x-responsive-nav-link>
-                    </div>
-                </details>
-
-                <details>
-                    <summary class="font-semibold text-gray-600">Técnico</summary>
-                    <div class="pl-4 space-y-1">
-                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Relatório Técnico</x-responsive-nav-link>
-                    </div>
-                </details>
-
-                <details>
-                    <summary class="font-semibold text-gray-600">RH</summary>
-                    <div class="pl-4 space-y-1">
-                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'rh'])" data-tab-icon="relatorios">Relatório RH</x-responsive-nav-link>
-                    </div>
-                </details>
-
-                <details>
-                    <summary class="font-semibold text-gray-600">Executivo</summary>
-                    <div class="pl-4 space-y-1">
-                        <x-responsive-nav-link :href="route('relatorios.modulo')" data-tab-icon="relatorios">Módulo de Relatórios</x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'painel-executivo'])" data-tab-icon="relatorios">Painel Executivo</x-responsive-nav-link>
-                    </div>
-                </details>
+                <x-responsive-nav-link :href="route('atendimentos.index')" data-tab-icon="atendimentos">Atendimentos</x-responsive-nav-link>
             </div>
         </details>
         @endif
