@@ -1,30 +1,28 @@
-{{-- MODAL: NOVA/EDITAR CONTA A PAGAR --}}
-<x-modal name="modal-conta-pagar" maxWidth="2xl" title="Despesa Variada">
-    <form method="POST" action="{{ route('financeiro.contasapagar.store') }}" x-data="contaPagarModal()"
-        @editar-conta-pagar.window="
-            // Definir isEditing ANTES de carregar para garantir que resetForm não limpe nada
-            isEditing = true;
-            carregarConta($event.detail.contaId).then(() => {
-                // Aguardar o próximo tick para garantir que todos os campos foram atualizados
-                $nextTick(() => {
-                    // Abrir o modal com skipReset para evitar o reset automático do listener de open-modal
-                    $dispatch('open-modal', { name: 'modal-conta-pagar', skipReset: true });
-                });
-            }).catch(error => {
-                isEditing = false;
-                console.error('Erro ao carregar conta:', error);
+<form method="POST" action="{{ route('financeiro.contasapagar.store') }}" x-data="contaPagarModal()"
+    @submit.prevent="salvar()" @editar-conta-pagar.window="
+        // Definir isEditing ANTES de carregar para garantir que resetForm não limpe nada
+        isEditing = true;
+        carregarConta($event.detail.contaId).then(() => {
+            // Aguardar o próximo tick para garantir que todos os campos foram atualizados
+            $nextTick(() => {
+                // Abrir o modal com skipReset para evitar o reset automático do listener de open-modal
+                $dispatch('open-modal', { name: 'modal-conta-pagar', skipReset: true });
             });
-        " @open-modal.window="
-            if (typeof $event.detail === 'object') {
-                if ($event.detail.name === 'modal-conta-pagar' && !$event.detail.skipReset) {
-                    resetForm();
-                }
-            } else if ($event.detail === 'modal-conta-pagar') {
+        }).catch(error => {
+            isEditing = false;
+            console.error('Erro ao carregar conta:', error);
+        });
+    " @open-modal.window="
+        if (typeof $event.detail === 'object') {
+            if ($event.detail.name === 'modal-conta-pagar' && !$event.detail.skipReset) {
                 resetForm();
             }
-        ">
-        @csrf
-
+        } else if ($event.detail === 'modal-conta-pagar') {
+            resetForm();
+        }
+    ">
+    @csrf
+    <x-modal name="modal-conta-pagar" maxWidth="2xl" title="Despesa Variada">
         <div class="space-y-5">
             {{-- Fornecedor --}}
             <div>
@@ -224,21 +222,28 @@
                 </svg>
                 Cancelar
             </x-button>
-            <x-button type="submit" variant="primary" size="sm" class="min-w-[130px]">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <x-button type="submit" variant="primary" size="sm" class="min-w-[130px]" x-bind:disabled="loading">
+                <svg x-show="!loading" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                         clip-rule="evenodd" />
                 </svg>
-                Salvar
+                <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span x-text="loading ? 'Salvando...' : 'Salvar'"></span>
             </x-button>
         </x-slot>
-    </form>
-</x-modal>
+    </x-modal>
+</form>
 
 <script>
     function contaPagarModal() {
         return {
+            loading: false,
             categorias: @js(\App\Models\Categoria::where('ativo', true)->orderBy('nome')->get()),
             subcategorias: [],
             contas: [],
@@ -266,6 +271,33 @@
 
             // Estado para controlar se estamos editando ou criando
             isEditing: false,
+
+            async salvar() {
+                if (this.loading) return;
+
+                // Validações básicas
+                if (!this.centroCustoId) { alert('Por favor, selecione um Centro de Custo.'); return; }
+                if (!this.categoriaId) { alert('Por favor, selecione uma Categoria.'); return; }
+                if (!this.subcategoriaId) { alert('Por favor, selecione uma Subcategoria.'); return; }
+                if (!this.contaId) { alert('Por favor, selecione uma Conta.'); return; }
+                if (!this.descricao || this.descricao.trim() === '') { alert('Por favor, preencha a Descrição.'); return; }
+                if (!this.valor || parseFloat(this.valor) <= 0) { alert('Por favor, preencha um Valor válido.'); return; }
+                if (!this.dataVencimento) { alert('Por favor, selecione a Data de Vencimento.'); return; }
+
+                this.loading = true;
+                try {
+                    // Como o form agora envolve o x-modal, this.$el é o próprio form
+                    const form = this.$el;
+                    // Forçar a submissão nativa após o Alpine processar
+                    this.$nextTick(() => {
+                        HTMLFormElement.prototype.submit.call(form);
+                    });
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    this.loading = false;
+                    alert('Ocorreu um erro ao salvar. Por favor, tente novamente.');
+                }
+            },
 
             filtrarFornecedores() {
                 if (!this.fornecedorBusca || this.fornecedorBusca.length < 2) {
@@ -355,8 +387,9 @@
                 this.orcamentoId = '';
 
                 this.isEditing = false; // Garantir que saia do modo de edição
+                this.loading = false;
 
-                const form = this.$el.querySelector('form');
+                const form = this.$el;
                 if (form) {
                     form.reset();
                     // Restaurar action original para criação
@@ -428,7 +461,7 @@
                     }
 
                     // 5. Atualizar action e method do form
-                    const form = this.$el.querySelector('form');
+                    const form = this.$el;
                     if (form) {
                         form.setAttribute('action', `/financeiro/contas-a-pagar/${id}`);
                         let methodInput = form.querySelector('input[name="_method"]');
