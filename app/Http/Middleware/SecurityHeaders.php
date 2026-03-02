@@ -17,7 +17,7 @@ class SecurityHeaders
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
 
         // Headers de controle de cache para prevenir navegação após logout
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
