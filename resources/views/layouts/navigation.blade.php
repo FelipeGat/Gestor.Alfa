@@ -193,6 +193,8 @@
                         @if($isAdmin)
                         <a href="{{ route('dashboard') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Operacional"
                             data-tab-icon="dashboard">
                             Dashboard Operacional
                         </a>
@@ -201,6 +203,8 @@
                         @if($isAdmin)
                         <a href="{{ route('dashboard.tecnico') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Técnico"
                             data-tab-icon="dashboard-tecnico">
                             Dashboard Técnico
                         </a>
@@ -209,6 +213,8 @@
                         @if($isAdmin || $isComercial)
                         <a href="{{ route('dashboard.comercial') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Comercial"
                             data-tab-icon="dashboard-comercial">
                             Dashboard Comercial
                         </a>
@@ -217,6 +223,8 @@
                         @if($isAdmin || $isFinanceiro)
                         <a href="{{ route('financeiro.dashboard') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Financeiro"
                             data-tab-icon="financeiro">
                             Dashboard Financeiro
                         </a>
@@ -225,6 +233,8 @@
                         @if($isAdmin)
                         <a href="{{ route('rh.dashboard') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard RH"
                             data-tab-icon="rh">
                             Dashboard RH
                         </a>
@@ -233,6 +243,8 @@
                         @if($isAdmin)
                         <a href="{{ route('atendimentos.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Atendimentos"
                             data-tab-icon="atendimentos">
                             Atendimentos
                         </a>
@@ -258,36 +270,48 @@
 
                         <a href="{{ route('financeiro.dashboard') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Financeiro"
                             data-tab-icon="financeiro">
                             Dashboard Financeiro
                         </a>
 
                         <a href="{{ route('financeiro.contas-financeiras.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Bancos"
                             data-tab-icon="bancos">
                             Bancos
                         </a>
 
                         <a href="{{ route('financeiro.cobrar') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Cobrar"
                             data-tab-icon="cobras">
                             Cobrar
                         </a>
 
                         <a href="{{ route('financeiro.contasareceber') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Receber"
                             data-tab-icon="contas-receber">
                             Receber
                         </a>
 
                         <a href="{{ route('financeiro.contasapagar') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Pagar"
                             data-tab-icon="contas-pagar">
                             Pagar
                         </a>
 
                         <a href="{{ route('financeiro.movimentacao') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Extrato"
                             data-tab-icon="movimentacao">
                             Extrato
                         </a>
@@ -312,24 +336,32 @@
 
                         <a href="{{ route('dashboard.comercial') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard Comercial"
                             data-tab-icon="dashboard-comercial">
                             Dashboard Comercial
                         </a>
 
                         <a href="{{ route('orcamentos.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Orçamentos"
                             data-tab-icon="orcamentos">
                             Orçamentos
                         </a>
 
                         <a href="{{ route('itemcomercial.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Produtos / Serviços"
                             data-tab-icon="produtos">
                             Produtos / Serviços
                         </a>
 
                         <a href="{{ route('pre-clientes.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Pré-Clientes"
                             data-tab-icon="pre-clientes">
                             Pré-Clientes
                         </a>
@@ -353,30 +385,40 @@
                         class="portal-nav-dropdown flex flex-col">
                         <a href="{{ route('rh.dashboard') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Dashboard RH"
                             data-tab-icon="rh">
                             Dashboard RH
                         </a>
 
                         <a href="{{ route('rh.funcionarios.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Funcionários"
                             data-tab-icon="funcionarios">
                             Funcionários
                         </a>
 
                         <a href="{{ route('rh.ponto-jornada.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Ponto & Jornada"
                             data-tab-icon="rh">
                             Ponto & Jornada
                         </a>
 
                         <a href="{{ route('rh.jornadas.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Cadastro de Jornada"
                             data-tab-icon="rh">
                             Cadastro de Jornada
                         </a>
 
                         <a href="{{ route('rh.feriados.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Cadastro de Feriados"
                             data-tab-icon="rh">
                             Cadastro de Feriados
                         </a>
@@ -402,12 +444,16 @@
                         @if($isAdmin)
                         <a href="{{ route('empresas.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Empresas"
                             data-tab-icon="empresas">
                             Empresas
                         </a>
 
                         <a href="{{ route('usuarios.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Usuários"
                             data-tab-icon="usuarios">
                             Usuários
                         </a>
@@ -415,6 +461,8 @@
 
                         <a href="{{ route('clientes.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Clientes"
                             data-tab-icon="clientes">
                             Clientes
                         </a>
@@ -422,6 +470,8 @@
                         @if($isAdmin || $isFinanceiro)
                         <a href="{{ route('fornecedores.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Fornecedores"
                             data-tab-icon="fornecedores">
                             Fornecedores
                         </a>
@@ -429,6 +479,8 @@
 
                         <a href="{{ route('assuntos.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Assuntos"
                             data-tab-icon="assuntos">
                             Assuntos
                         </a>
@@ -436,6 +488,8 @@
                         @if($isAdmin)
                         <a href="{{ route('admin.equipamentos.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Equipamentos"
                             data-tab-icon="equipamentos">
                             Equipamentos
                         </a>
@@ -444,6 +498,8 @@
                         @if($isAdmin || $isFinanceiro)
                         <a href="{{ route('categorias.index') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Categorias"
                             data-tab-icon="categorias">
                             Categorias
                         </a>
@@ -473,24 +529,32 @@
 
                         <a href="{{ route('relatorios.custos-orcamentos') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Custos x Orçamentos"
                             data-tab-icon="relatorios">
                             Custos x Orçamentos
                         </a>
 
                         <a href="{{ route('relatorios.custos-gerencial') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Gerencial de Custos"
                             data-tab-icon="relatorios">
                             Gerencial de Custos
                         </a>
 
                         <a href="{{ route('relatorios.contas-receber') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Contas a Receber"
                             data-tab-icon="relatorios">
                             Contas a Receber
                         </a>
 
                         <a href="{{ route('relatorios.contas-pagar') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Contas a Pagar"
                             data-tab-icon="relatorios">
                             Contas a Pagar
                         </a>
@@ -503,6 +567,8 @@
 
                         <a href="{{ route('relatorios.comercial') }}" 
                             class="portal-nav-item"
+                            data-tab-link
+                            data-tab-label="Relatório Comercial"
                             data-tab-icon="relatorios">
                             Relatório Comercial
                         </a>
@@ -523,12 +589,12 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')" data-tab-icon="perfil">
+                        <x-dropdown-link :href="route('profile.edit')" data-tab-icon="perfil" data-tab-link data-tab-label="Editar Usuário">
                             Editar Usuário
                         </x-dropdown-link>
 
                         @if($canPortalFuncionario)
-                        <x-dropdown-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario">
+                        <x-dropdown-link :href="route('portal-funcionario.index')" data-tab-icon="portal-funcionario" data-tab-link data-tab-label="Portal Funcionário">
                             Portal Funcionário
                         </x-dropdown-link>
                         @endif
