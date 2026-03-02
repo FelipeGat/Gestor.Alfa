@@ -369,7 +369,7 @@
                                 }
                             @endphp
                             <x-table-cell :type="$tipoCelula">
-                                <span class="whitespace-nowrap" title="{{ $linha['funcionario'] }}">{{ $nomeExibicao }}</span>
+                                <span class="whitespace-nowrap text-gray-800" title="{{ $linha['funcionario'] }}">{{ $nomeExibicao }}</span>
                             </x-table-cell>
                             <x-table-cell :type="$tipoCelula">
                                 @php
@@ -378,12 +378,12 @@
                                         : ($linha['data'] ?? '—');
                                 @endphp
                                 <div class="flex items-center gap-2">
-                                    <span>{{ $dataCurta }}</span>
+                                    <span class="text-gray-800">{{ $dataCurta }}</span>
                                 </div>
                             </x-table-cell>
                             <x-table-cell :type="$tipoCelula">
                                 <div class="flex items-center gap-2">
-                                    <span>{{ $linha['dia'] ?? '—' }}</span>
+                                    <span class="text-gray-800">{{ $linha['dia'] ?? '—' }}</span>
                                 </div>
                                 @if(!empty($linha['eh_feriado']))
                                     <div class="text-xs text-amber-800 mt-1">Feriado</div>
@@ -463,14 +463,8 @@
                                     <span class="{{ $classeSaida }}">{{ $linha['saida'] }}</span>
                                 @endif
                             </x-table-cell>
-                            @php
-                                $saldoSegundos = (int) ($linha['saldo_segundos'] ?? 0);
-                                $toleranciaSegundos = (int) ($linha['tolerancia_segundos'] ?? 0);
-                                $destacarAtrasoTotal = $saldoSegundos < 0 && abs($saldoSegundos) > $toleranciaSegundos;
-                                $destacarAcrescimoTotal = $saldoSegundos > 0 && $saldoSegundos > $toleranciaSegundos;
-                            @endphp
                             <x-table-cell :type="$tipoCelula">
-                                <span class="{{ $destacarAtrasoTotal ? 'text-red-700 font-semibold' : ($destacarAcrescimoTotal ? 'text-green-700 font-semibold' : '') }}">{{ $linha['total'] }}</span>
+                                <span class="text-gray-800 font-semibold">{{ $linha['total'] }}</span>
                             </x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['extra_50'] ?? '—' }}</x-table-cell>
                             <x-table-cell :type="$tipoCelula">{{ $linha['extra_100'] ?? '—' }}</x-table-cell>
