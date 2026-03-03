@@ -15,7 +15,7 @@ class DashboardComercialMiddleware
             !$user ||
             !(
                 $user->tipo === 'comercial' ||
-                $user->perfis()->where('slug', 'admin')->exists()
+                $user->isAdminPanel()
             )
         ) {
             abort(403);
