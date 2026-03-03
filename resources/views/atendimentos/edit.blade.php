@@ -349,6 +349,61 @@
                 </div>
                 @endif
 
+                {{-- ===== AGENDAMENTO ===== --}}
+                @if($atendimento->data_inicio_agendamento)
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                            </svg>
+                            Agendamento
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-section">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs uppercase font-bold text-gray-500">Data do Agendamento</p>
+                                <button type="button" class="text-xs font-medium text-blue-600 hover:text-blue-800 btn-reagendar"
+                                    data-atendimento-id="{{ $atendimento->id }}"
+                                    data-funcionario-id="{{ $atendimento->funcionario_id }}"
+                                    data-data="{{ $atendimento->data_inicio_agendamento->format('Y-m-d') }}"
+                                    data-periodo="{{ $atendimento->periodo_agendamento }}"
+                                    data-hora="{{ $atendimento->data_inicio_agendamento->format('H:i') }}"
+                                    data-duracao="{{ $atendimento->duracao_agendamento_minutos ? intdiv($atendimento->duracao_agendamento_minutos, 60) : 1 }}">
+                                    Reagendar
+                                </button>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-900">
+                                {{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}
+                                @if($atendimento->data_inicio_agendamento->format('H:i') !== '00:00')
+                                    <span class="text-gray-500 font-normal">às {{ $atendimento->data_inicio_agendamento->format('H:i') }}</span>
+                                @endif
+                            </p>
+                        </div>
+
+                        <div class="form-section">
+                            <p class="text-xs uppercase font-bold text-gray-500 mb-1">Período</p>
+                            <p class="text-sm font-semibold text-gray-900">
+                                @php
+                                    $periodos = ['manha' => 'Manhã', 'tarde' => 'Tarde', 'noite' => 'Noite', 'dia_todo' => 'Dia Todo'];
+                                @endphp
+                                {{ $periodos[$atendimento->periodo_agendamento] ?? '—' }}
+                            </p>
+                        </div>
+
+                        <div class="form-section" style="margin-bottom: 0;">
+                            <p class="text-xs uppercase font-bold text-gray-500 mb-1">Técnico Responsável</p>
+                            <p class="text-sm font-semibold text-gray-900">
+                                {{ $atendimento->funcionario?->nome ?? 'Não atribuído' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 {{-- ===== DETALHES ===== --}}
                 <div class="card">
                     <div class="card-header">
@@ -399,3 +454,215 @@
     </div>
 
 </x-app-layout>
+
+{{-- Modal de Reagendamento --}}
+<div id="modal-reagendar-agendamento" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60;">
+    <div style="max-width:920px; margin:3vh auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.25);">
+        <div style="padding:14px 18px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-weight:700; color:#1f2937;" id="modal-titulo-reagendar">Reagendar Agendamento</h3>
+            <button type="button" id="fechar-modal-reagendar" style="font-size:20px; color:#6b7280;">&times;</button>
+        </div>
+        <div style="padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
+            <div>
+                <label class="text-sm font-medium text-gray-700">Técnico</label>
+                <select id="reagendar_funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    @foreach($funcionarios as $funcionario)
+                    <option value="{{ $funcionario->id }}">{{ $funcionario->nome }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Data</label>
+                <input id="reagendar_data" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Período</label>
+                <select id="reagendar_periodo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    <option value="dia_todo">Dia todo (08:00-17:00, 9 horas)</option>
+                    <option value="manha">Manhã (08:00-12:00)</option>
+                    <option value="tarde">Tarde (13:00-18:00)</option>
+                    <option value="noite">Noite (18:01-21:59)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Hora início</label>
+                <input id="reagendar_hora_inicio" type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Duração (horas)</label>
+                <select id="reagendar_duracao_horas" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Selecione</option>
+                    <option value="1">1 hora</option>
+                    <option value="2">2 horas</option>
+                    <option value="3">3 horas</option>
+                    <option value="4">4 horas</option>
+                    <option value="5">5 horas</option>
+                    <option value="6">6 horas</option>
+                    <option value="7">7 horas</option>
+                    <option value="8">8 horas</option>
+                    <option value="9">9 horas</option>
+                </select>
+            </div>
+        </div>
+        <div style="padding:0 18px 12px;">
+            <div class="text-sm font-semibold text-gray-700 mb-2">Agenda do dia (calendário por técnico)</div>
+            <div id="agenda-calendario-reagendar" style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;"></div>
+        </div>
+        <div style="padding:14px 18px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button" id="cancelar-reagendar" class="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancelar</button>
+            <button type="button" id="confirmar-reagendar" class="px-4 py-2 rounded-lg bg-[#3f9cae] text-white text-sm">Salvar reagendamento</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalReagendar = document.getElementById('modal-reagendar-agendamento');
+        const reagendarDataInput = document.getElementById('reagendar_data');
+        const reagendarPeriodoInput = document.getElementById('reagendar_periodo');
+        const reagendarFuncionarioInput = document.getElementById('reagendar_funcionario_id');
+        const reagendarHoraInicioInput = document.getElementById('reagendar_hora_inicio');
+        const reagendarDuracaoInput = document.getElementById('reagendar_duracao_horas');
+        const calendarioReagendarWrapper = document.getElementById('agenda-calendario-reagendar');
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        let contextoReagendar = null;
+
+        // Evento para selecionar "Dia todo" automaticamente
+        reagendarPeriodoInput.addEventListener('change', function() {
+            if (this.value === 'dia_todo') {
+                reagendarHoraInicioInput.value = '08:00';
+                reagendarDuracaoInput.value = '9';
+                reagendarHoraInicioInput.disabled = true;
+                reagendarDuracaoInput.disabled = true;
+            } else {
+                reagendarHoraInicioInput.disabled = false;
+                reagendarDuracaoInput.disabled = false;
+            }
+        });
+
+        // Abrir modal de reagendamento
+        document.querySelectorAll('.btn-reagendar').forEach(button => {
+            button.addEventListener('click', function() {
+                contextoReagendar = {
+                    atendimentoId: this.dataset.atendimentoId,
+                    funcionarioId: this.dataset.funcionarioId,
+                    data: this.dataset.data,
+                    periodo: this.dataset.periodo,
+                    hora: this.dataset.hora,
+                    duracao: this.dataset.duracao
+                };
+
+                reagendarFuncionarioInput.value = contextoReagendar.funcionarioId || '';
+                reagendarDataInput.value = contextoReagendar.data || new Date().toISOString().slice(0, 10);
+                reagendarPeriodoInput.value = contextoReagendar.periodo || '';
+                reagendarHoraInicioInput.value = contextoReagendar.hora || '';
+                reagendarDuracaoInput.value = contextoReagendar.duracao || '1';
+
+                if (reagendarPeriodoInput.value === 'dia_todo') {
+                    reagendarHoraInicioInput.disabled = true;
+                    reagendarDuracaoInput.disabled = true;
+                }
+
+                modalReagendar.style.display = 'block';
+                carregarAgendaReagendar();
+            });
+        });
+
+        // Fechar modal
+        document.getElementById('fechar-modal-reagendar').addEventListener('click', function() {
+            modalReagendar.style.display = 'none';
+            contextoReagendar = null;
+        });
+
+        document.getElementById('cancelar-reagendar').addEventListener('click', function() {
+            modalReagendar.style.display = 'none';
+            contextoReagendar = null;
+        });
+
+        // Carregar agenda
+        async function carregarAgendaReagendar() {
+            const data = reagendarDataInput.value;
+            const periodo = reagendarPeriodoInput.value;
+
+            if (!data) {
+                calendarioReagendarWrapper.innerHTML = '<div class="text-sm text-gray-500">Selecione a data para visualizar a agenda.</div>';
+                return;
+            }
+
+            calendarioReagendarWrapper.innerHTML = '<div class="text-sm text-gray-500">Carregando agenda...</div>';
+
+            try {
+                const url = `{{ route('agenda-tecnica.disponibilidade') }}?data=${encodeURIComponent(data)}${periodo ? `&periodo=${encodeURIComponent(periodo)}` : ''}`;
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const json = await response.json();
+
+                const blocos = (json.tecnicos || []).map(tecnico => {
+                    const agendaTecnico = (json.agendamentos || []).filter(item => String(item.funcionario_id) === String(tecnico.id));
+                    const linhas = agendaTecnico.length
+                        ? agendaTecnico.map(item => `<div style="font-size:12px;color:#374151;margin-top:3px;">${item.inicio} - ${item.fim} • #${item.numero_atendimento} • ${item.cliente}</div>`).join('')
+                        : '<div style="font-size:12px;color:#16a34a;margin-top:3px;">Livre</div>';
+
+                    return `<div style="border-bottom:1px solid #f3f4f6;padding:8px 0;"><div style="font-weight:600;font-size:13px;">${tecnico.nome}</div>${linhas}</div>`;
+                });
+
+                calendarioReagendarWrapper.innerHTML = blocos.length ? blocos.join('') : '<div class="text-sm text-gray-500">Nenhum técnico encontrado.</div>';
+            } catch (error) {
+                calendarioReagendarWrapper.innerHTML = '<div class="text-sm text-red-600">Não foi possível carregar a agenda.</div>';
+            }
+        }
+
+        // Confirmar reagendamento
+        document.getElementById('confirmar-reagendar').addEventListener('click', function() {
+            if (!contextoReagendar) {
+                return;
+            }
+
+            const funcionarioId = reagendarFuncionarioInput.value;
+            const data = reagendarDataInput.value;
+            const periodo = reagendarPeriodoInput.value;
+            const horaInicio = reagendarHoraInicioInput.value;
+            const duracaoHoras = reagendarDuracaoInput.value;
+
+            if (!funcionarioId || !data || !periodo || !horaInicio || !duracaoHoras) {
+                alert('Preencha todos os campos de reagendamento.');
+                return;
+            }
+
+            if (!contextoReagendar.atendimentoId) {
+                alert('Não foi possível identificar o atendimento para reagendar.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/atendimentos/${contextoReagendar.atendimentoId}/reagendar-agendamento`;
+
+            const payload = {
+                _token: token,
+                funcionario_id: funcionarioId,
+                data_agendamento: data,
+                periodo_agendamento: periodo,
+                hora_inicio: horaInicio,
+                duracao_horas: duracaoHoras,
+            };
+
+            Object.entries(payload).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // Carregar agenda ao mudar data/período
+        reagendarDataInput.addEventListener('change', carregarAgendaReagendar);
+        reagendarPeriodoInput.addEventListener('change', carregarAgendaReagendar);
+    });
+</script>

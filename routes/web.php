@@ -362,6 +362,11 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         [AtendimentoController::class, 'atualizarCampo']
     );
 
+    Route::post(
+        '/atendimentos/{atendimento}/reagendar-agendamento',
+        [AtendimentoController::class, 'reagendarAgendamento']
+    )->name('atendimentos.reagendar-agendamento');
+
     Route::get('/agenda-tecnica/disponibilidade', [AgendaTecnicaController::class, 'disponibilidade'])
         ->name('agenda-tecnica.disponibilidade');
 

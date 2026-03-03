@@ -197,7 +197,8 @@
                             <th>Técnico</th>
                             <th style="width: 100px; text-align: center;">Prioridade</th>
                             <th style="width: 120px; text-align: center;">Status</th>
-                            <th style="width: 100px;">Data</th>
+                            <th style="width: 100px;">Data Criação</th>
+                            <th style="width: 110px;">Data Agendamento</th>
                             <th style="width: 100px; text-align: center;">Ações</th>
                         </tr>
                     </thead>
@@ -280,8 +281,22 @@
                                 </select>
                             </td>
 
-                            {{-- Data --}}
-                            <td>{{ $atendimento->data_atendimento->format('d/m/Y') }}</td>
+                            {{-- Data Criação --}}
+                            <td>{{ $atendimento->created_at->format('d/m/Y') }}</td>
+
+                            {{-- Data Agendamento --}}
+                            <td>
+                                @if($atendimento->data_inicio_agendamento)
+                                    <div class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                        </svg>
+                                        <span class="font-medium">{{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
 
                             {{-- Ações --}}
                             <td style="text-align: center;">

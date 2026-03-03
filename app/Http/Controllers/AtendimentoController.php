@@ -23,6 +23,23 @@ class AtendimentoController extends Controller
             'assunto',
             'empresa',
             'funcionario'
+        ])
+        ->select([
+            'id',
+            'numero_atendimento',
+            'cliente_id',
+            'nome_solicitante',
+            'telefone_solicitante',
+            'assunto_id',
+            'prioridade',
+            'empresa_id',
+            'funcionario_id',
+            'status_atual',
+            'data_atendimento',
+            'data_inicio_agendamento',
+            'data_fim_agendamento',
+            'periodo_agendamento',
+            'created_at'
         ]);
 
         // 🔎 BUSCA (cliente ou solicitante)
@@ -115,7 +132,10 @@ class AtendimentoController extends Controller
             'andamentos.user'
         ]);
 
-        return view('atendimentos.edit', compact('atendimento'));
+        return view('atendimentos.edit', [
+            'atendimento' => $atendimento,
+            'funcionarios' => Funcionario::where('ativo', true)->orderBy('nome')->get(['id', 'nome'])
+        ]);
     }
 
     public function store(Request $request, AgendaTecnicaService $agendaService)
@@ -271,5 +291,66 @@ class AtendimentoController extends Controller
         return redirect()
             ->route('atendimentos.index')
             ->with('success', 'Atendimento excluído com sucesso!');
+    }
+
+    /**
+     * Reagendar agendamento de atendimento
+     */
+    public function reagendarAgendamento(
+        Request $request,
+        Atendimento $atendimento,
+        AgendaTecnicaService $agendaService
+    ) {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial' && $user->tipo !== 'tecnico',
+            403,
+            'Acesso não autorizado'
+        );
+
+        $request->validate([
+            'funcionario_id' => ['required', 'exists:funcionarios,id'],
+            'data_agendamento' => ['required', 'date_format:Y-m-d'],
+            'periodo_agendamento' => ['required', Rule::in(array_keys(AgendaTecnicaService::PERIODOS))],
+            'hora_inicio' => ['required', 'date_format:H:i'],
+            'duracao_horas' => ['required', 'integer', 'min:1', 'max:9'],
+        ]);
+
+        if (! $atendimento->funcionario_id) {
+            throw ValidationException::withMessages([
+                'atendimento' => 'Atendimento não possui técnico atribuído.',
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $atendimento, $agendaService) {
+            $funcionarioAntigo = Funcionario::find($atendimento->funcionario_id);
+            $funcionarioNovo = Funcionario::find($request->funcionario_id);
+
+            $agendaService->reprogramarAtendimento(
+                $atendimento,
+                (int) $request->funcionario_id,
+                $request->data_agendamento,
+                $request->periodo_agendamento,
+                $request->hora_inicio,
+                (int) $request->duracao_horas
+            );
+
+            // Atualizar data_atendimento para sincronizar com agendamento
+            $atendimento->update([
+                'data_atendimento' => $request->data_agendamento,
+            ]);
+
+            $mensagem = "Agendamento reagendado com sucesso.";
+            
+            if ($funcionarioAntigo?->id !== $funcionarioNovo?->id) {
+                $mensagem .= " Técnico alterado de {$funcionarioAntigo->nome} para {$funcionarioNovo->nome}.";
+            }
+
+            session()->flash('success', $mensagem);
+        });
+
+        return back();
     }
 }
