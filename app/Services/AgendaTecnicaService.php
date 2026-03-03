@@ -84,6 +84,29 @@ class AgendaTecnicaService
         return [$inicio, $fim];
     }
 
+    /**
+     * Reprogramar atendimento para nova data/horário
+     * Valida conflito com o próprio atendimento sendo reprogramado
+     */
+    public function reprogramarAtendimento(
+        Atendimento $atendimento,
+        int $funcionarioId,
+        string $data,
+        string $periodo,
+        string $horaInicio,
+        int $duracaoHoras
+    ): Atendimento {
+        return $this->agendarAtendimento(
+            $atendimento,
+            $funcionarioId,
+            $data,
+            $periodo,
+            $horaInicio,
+            $duracaoHoras,
+            $atendimento->id
+        );
+    }
+
     public function existeConflito(
         int $funcionarioId,
         Carbon $inicio,

@@ -45,7 +45,12 @@ class OrcamentoController extends Controller
         }
 
         // ================= QUERY BASE =================
-        $query = Orcamento::with(['empresa:id,nome_fantasia', 'cliente:id,nome,nome_fantasia,razao_social', 'preCliente:id,nome_fantasia,razao_social']);
+        $query = Orcamento::with([
+            'empresa:id,nome_fantasia',
+            'cliente:id,nome,nome_fantasia,razao_social',
+            'preCliente:id,nome_fantasia,razao_social',
+            'atendimento:id,funcionario_id,data_inicio_agendamento,data_fim_agendamento,periodo_agendamento,duracao_agendamento_minutos'
+        ]);
 
         // ================= COMERCIAL: LIMITA EMPRESAS =================
         if ($user->tipo === 'comercial') {

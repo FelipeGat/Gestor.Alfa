@@ -249,6 +249,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::post('/orcamentos/{orcamento}/agendar-tecnico', [AgendaTecnicaController::class, 'agendarOrcamento'])
         ->name('orcamentos.agendar-tecnico');
 
+    Route::post('/orcamentos/{orcamento}/reprogramar-agendamento', [AgendaTecnicaController::class, 'reprogramarAgendamento'])
+        ->name('orcamentos.reprogramar-agendamento');
+
     Route::get('/orcamentos/{id}/imprimir', [OrcamentoController::class, 'imprimir'])
         ->name('orcamentos.imprimir');
 

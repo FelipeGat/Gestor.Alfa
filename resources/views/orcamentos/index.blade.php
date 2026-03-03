@@ -352,6 +352,27 @@
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $orcamento->created_at->format('d/m/Y') }}</td>
                                 <td class="px-4 py-3 text-left">
                                     <div class="flex gap-1 items-center justify-start">
+                                        @php
+                                            $temAgendamento = $orcamento->atendimento && $orcamento->atendimento->data_inicio_agendamento;
+                                            $dataAgendamento = $temAgendamento ? $orcamento->atendimento->data_inicio_agendamento : null;
+                                        @endphp
+                                        @if($temAgendamento)
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition btn-reprogramar-agendamento"
+                                            title="Reprogramar Agendamento ({{ $dataAgendamento->format('d/m/Y') }})"
+                                            data-orcamento-id="{{ $orcamento->id }}"
+                                            data-orcamento-status="{{ $orcamento->status }}"
+                                            data-funcionario-id="{{ $orcamento->atendimento->funcionario_id }}"
+                                            data-data-agendamento="{{ $dataAgendamento->format('Y-m-d') }}"
+                                            data-periodo="{{ $orcamento->atendimento->periodo_agendamento }}"
+                                            data-hora-inicio="{{ $dataAgendamento->format('H:i') }}"
+                                            data-duracao="{{ $orcamento->atendimento->duracao_agendamento_minutos ? intdiv($orcamento->atendimento->duracao_agendamento_minutos, 60) : 1 }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                        @else
                                         <button
                                             type="button"
                                             class="inline-flex items-center justify-center w-8 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full transition btn-agendar-tecnico"
@@ -362,6 +383,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
                                             </svg>
                                         </button>
+                                        @endif
                                         <a href="{{ route('orcamentos.imprimir', $orcamento->id) }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 bg-gray-800 hover:bg-gray-900 text-white rounded-full transition" title="Imprimir">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z" />
@@ -423,7 +445,7 @@
 <div id="modal-agendamento-orcamento" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60;">
     <div style="max-width:920px; margin:3vh auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.25);">
         <div style="padding:14px 18px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="font-weight:700; color:#1f2937;">Agendar Técnico</h3>
+            <h3 style="font-weight:700; color:#1f2937;" id="modal-titulo-agendamento">Agendar Técnico</h3>
             <button type="button" id="fechar-modal-agendamento" style="font-size:20px; color:#6b7280;">&times;</button>
         </div>
         <div style="padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
@@ -495,6 +517,7 @@
         const duracaoInput = document.getElementById('agendamento_duracao_horas');
         const statusLabelInput = document.getElementById('agendamento_orcamento_status_label');
         const calendarioWrapper = document.getElementById('agenda-calendario-orcamento');
+        const tituloModal = document.getElementById('modal-titulo-agendamento');
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
         let contextoAgendamento = null;
@@ -512,17 +535,39 @@
             }
         });
 
-        function abrirModal({ select = null, orcamentoId = null, statusSelecionado = 'agendado' }) {
+        function abrirModal({ select = null, orcamentoId = null, statusSelecionado = 'agendado', isReprogramacao = false, dadosAgendamento = null }) {
             contextoAgendamento = {
                 select,
                 status: statusSelecionado,
                 orcamentoId,
-                valorAnterior: select?.dataset?.prevValue || ''
+                valorAnterior: select?.dataset?.prevValue || '',
+                isReprogramacao,
+                dadosAgendamento
             };
 
             statusLabelInput.value = statusSelecionado === 'aprovado' ? 'Aprovado' : 'Agendado';
-            dataInput.value = dataInput.value || new Date().toISOString().slice(0, 10);
             
+            if (isReprogramacao && dadosAgendamento) {
+                tituloModal.textContent = 'Reprogramar Agendamento';
+                funcionarioInput.value = dadosAgendamento.funcionarioId || '';
+                dataInput.value = dadosAgendamento.data || new Date().toISOString().slice(0, 10);
+                periodoInput.value = dadosAgendamento.periodo || '';
+                horaInicioInput.value = dadosAgendamento.horaInicio || '';
+                duracaoInput.value = dadosAgendamento.duracao || '1';
+                
+                if (periodoInput.value === 'dia_todo') {
+                    horaInicioInput.disabled = true;
+                    duracaoInput.disabled = true;
+                }
+            } else {
+                tituloModal.textContent = 'Agendar Técnico';
+                dataInput.value = dataInput.value || new Date().toISOString().slice(0, 10);
+                funcionarioInput.value = '';
+                periodoInput.value = '';
+                horaInicioInput.value = '';
+                duracaoInput.value = '1';
+            }
+
             modal.style.display = 'block';
             carregarAgendaCalendario();
         }
@@ -583,6 +628,27 @@
                     select: null,
                     orcamentoId,
                     statusSelecionado,
+                });
+            });
+        });
+
+        document.querySelectorAll('.btn-reprogramar-agendamento').forEach(button => {
+            button.addEventListener('click', function() {
+                const orcamentoId = this.dataset.orcamentoId;
+                const statusAtual = this.dataset.orcamentoStatus || 'agendado';
+
+                abrirModal({
+                    select: null,
+                    orcamentoId,
+                    statusSelecionado: statusAtual,
+                    isReprogramacao: true,
+                    dadosAgendamento: {
+                        funcionarioId: this.dataset.funcionarioId,
+                        data: this.dataset.dataAgendamento,
+                        periodo: this.dataset.periodo,
+                        horaInicio: this.dataset.horaInicio,
+                        duracao: this.dataset.duracao
+                    }
                 });
             });
         });
@@ -695,17 +761,27 @@
 
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `{{ url('orcamentos') }}/${orcamentoId}/agendar-tecnico`;
+            
+            // Usa endpoint diferente para reprogramação
+            if (contextoAgendamento.isReprogramacao) {
+                form.action = `{{ url('orcamentos') }}/${orcamentoId}/reprogramar-agendamento`;
+            } else {
+                form.action = `{{ url('orcamentos') }}/${orcamentoId}/agendar-tecnico`;
+            }
 
             const payload = {
                 _token: token,
-                orcamento_status: contextoAgendamento.status,
                 funcionario_id: funcionarioId,
                 data_agendamento: data,
                 periodo_agendamento: periodo,
                 hora_inicio: horaInicio,
                 duracao_horas: duracaoHoras,
             };
+
+            // Adiciona status apenas para novo agendamento
+            if (!contextoAgendamento.isReprogramacao) {
+                payload.orcamento_status = contextoAgendamento.status;
+            }
 
             Object.entries(payload).forEach(([name, value]) => {
                 const input = document.createElement('input');
