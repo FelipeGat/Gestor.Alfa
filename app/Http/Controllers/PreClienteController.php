@@ -20,7 +20,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -51,7 +51,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -68,7 +68,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -128,7 +128,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -142,7 +142,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -176,7 +176,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
@@ -197,7 +197,7 @@ class PreClienteController extends Controller
         $user = Auth::user();
 
         abort_if(
-            ! in_array($user->tipo, ['admin', 'comercial']),
+            ! in_array($user->tipo, ['admin', 'comercial', 'administrativo']),
             403,
             'Acesso não autorizado'
         );
