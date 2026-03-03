@@ -1,5 +1,9 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
+
+// Registrar plugin Collapse
+Alpine.plugin(collapse);
 
 // 1. Definição da Store Global ANTES de Alpine.start()
 Alpine.store('modalCobranca', {

@@ -12,6 +12,7 @@ class AgendaTecnicaService
         'manha' => ['inicio' => '08:00', 'fim' => '12:00'],
         'tarde' => ['inicio' => '13:00', 'fim' => '18:00'],
         'noite' => ['inicio' => '18:01', 'fim' => '21:59'],
+        'dia_todo' => ['inicio' => '08:00', 'fim' => '17:00'],
     ];
 
     public function agendarAtendimento(
@@ -51,9 +52,11 @@ class AgendaTecnicaService
             ]);
         }
 
-        if ($duracaoHoras < 1 || $duracaoHoras > 4) {
+        // Limite de duração baseado no período
+        $duracaoMaxima = $periodo === 'dia_todo' ? 9 : 4;
+        if ($duracaoHoras < 1 || $duracaoHoras > $duracaoMaxima) {
             throw ValidationException::withMessages([
-                'duracao_horas' => 'A duração deve ser entre 1 e 4 horas.',
+                'duracao_horas' => "A duração deve ser entre 1 e {$duracaoMaxima} horas.",
             ]);
         }
 

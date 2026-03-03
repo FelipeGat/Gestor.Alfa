@@ -448,6 +448,7 @@
                 <label class="text-sm font-medium text-gray-700">Período</label>
                 <select id="agendamento_periodo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     <option value="">Selecione</option>
+                    <option value="dia_todo">Dia todo (08:00-17:00, 9 horas)</option>
                     <option value="manha">Manhã (08:00-12:00)</option>
                     <option value="tarde">Tarde (13:00-18:00)</option>
                     <option value="noite">Noite (18:01-21:59)</option>
@@ -465,6 +466,11 @@
                     <option value="2">2 horas</option>
                     <option value="3">3 horas</option>
                     <option value="4">4 horas</option>
+                    <option value="5">5 horas</option>
+                    <option value="6">6 horas</option>
+                    <option value="7">7 horas</option>
+                    <option value="8">8 horas</option>
+                    <option value="9">9 horas</option>
                 </select>
             </div>
         </div>
@@ -493,6 +499,19 @@
 
         let contextoAgendamento = null;
 
+        // Evento para selecionar "Dia todo" automaticamente
+        periodoInput.addEventListener('change', function() {
+            if (this.value === 'dia_todo') {
+                horaInicioInput.value = '08:00';
+                duracaoInput.value = '9'; // 08:00-17:00 (9 horas líquidas)
+                horaInicioInput.disabled = true;
+                duracaoInput.disabled = true;
+            } else {
+                horaInicioInput.disabled = false;
+                duracaoInput.disabled = false;
+            }
+        });
+
         function abrirModal({ select = null, orcamentoId = null, statusSelecionado = 'agendado' }) {
             contextoAgendamento = {
                 select,
@@ -503,6 +522,7 @@
 
             statusLabelInput.value = statusSelecionado === 'aprovado' ? 'Aprovado' : 'Agendado';
             dataInput.value = dataInput.value || new Date().toISOString().slice(0, 10);
+            
             modal.style.display = 'block';
             carregarAgendaCalendario();
         }

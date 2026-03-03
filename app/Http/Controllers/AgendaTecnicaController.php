@@ -94,7 +94,7 @@ class AgendaTecnicaController extends Controller
             'data_agendamento' => ['required', 'date_format:Y-m-d'],
             'periodo_agendamento' => ['required', Rule::in(array_keys(AgendaTecnicaService::PERIODOS))],
             'hora_inicio' => ['required', 'date_format:H:i'],
-            'duracao_horas' => ['required', 'integer', 'min:1', 'max:4'],
+            'duracao_horas' => ['required', 'integer', 'min:1', 'max:9'],
         ]);
 
         DB::transaction(function () use ($request, $orcamento, $agendaService) {
