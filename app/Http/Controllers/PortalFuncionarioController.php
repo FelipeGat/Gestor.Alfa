@@ -247,17 +247,18 @@ class PortalFuncionarioController extends Controller
             return back()->with('error', 'Este atendimento já foi iniciado.');
         }
 
-        // Verificar se já existe atendimento em execução de outro cliente
-        $atendimentoEmExecucao = Atendimento::where('funcionario_id', $funcionarioId)
+        // Verificar se já existe atendimento em execução (não pausado) de outro cliente
+        $atendimentoEmExecucaoNaoPausado = Atendimento::where('funcionario_id', $funcionarioId)
             ->where('status_atual', 'em_atendimento')
             ->where('em_execucao', true)
+            ->where('em_pausa', false)
             ->whereNotNull('iniciado_em')
             ->where('id', '!=', $atendimento->id)
             ->where('cliente_id', '!=', $atendimento->cliente_id)
             ->exists();
 
-        if ($atendimentoEmExecucao) {
-            return back()->with('error', 'Você já possui um atendimento em execução de outro cliente. Finalize-o antes de iniciar um novo.');
+        if ($atendimentoEmExecucaoNaoPausado) {
+            return back()->with('error', 'Você já possui um atendimento em execução. Pause-o antes de iniciar um novo atendimento.');
         }
 
         // Validar 1 foto obrigatória
