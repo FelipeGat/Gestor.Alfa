@@ -124,7 +124,117 @@
                     <p class="portal-stat-value">{{ $manutencoesVencidas }}</p>
                 </div>
             </div>
+
+            <div class="portal-stats-grid">
+                <div class="portal-stat-card portal-stat-card--blue">
+                    <p class="portal-stat-label">Operando</p>
+                    <p class="portal-stat-value">{{ $ativosOperando }}</p>
+                </div>
+                <div class="portal-stat-card portal-stat-card--orange">
+                    <p class="portal-stat-label">Em manutenção</p>
+                    <p class="portal-stat-value">{{ $ativosEmManutencao }}</p>
+                </div>
+                <div class="portal-stat-card portal-stat-card--gray">
+                    <p class="portal-stat-label">Inativos / Descartados</p>
+                    <p class="portal-stat-value">{{ $ativosInativos }}</p>
+                </div>
+                <div class="portal-stat-card portal-stat-card--yellow">
+                    <p class="portal-stat-label">Sem status</p>
+                    <p class="portal-stat-value">{{ $ativosSemStatus }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="portal-section">
+            <h2 class="portal-section-title">
+                <svg class="w-6 h-6 text-[#3f9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3a1 1 0 00-1 1v11.586l-2.293-2.293a1 1 0 10-1.414 1.414l4 4a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L12 15.586V4a1 1 0 00-1-1z" />
+                </svg>
+                Análise Visual dos Ativos
+            </h2>
+
+            <div class="portal-charts-grid">
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">Manutenção dos Ativos</h3>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartManutencaoAtivos"></canvas>
+                    </div>
+                </div>
+
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">Status Atual dos Ativos</h3>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartStatusAtivos"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
+
+    <script src="{{ asset('js/vendor/chart.js') }}"></script>
+    <script>
+        const graficoManutencao = @json($graficoManutencao);
+        const graficoStatusAtivos = @json($graficoStatusAtivos);
+
+        const ctxManutencao = document.getElementById('chartManutencaoAtivos');
+        if (ctxManutencao) {
+            new Chart(ctxManutencao, {
+                type: 'bar',
+                data: {
+                    labels: graficoManutencao.labels,
+                    datasets: [{
+                        label: 'Ativos',
+                        data: graficoManutencao.values,
+                        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                        borderColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                stepSize: 1,
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        }
+                    }
+                }
+            });
+        }
+
+        const ctxStatus = document.getElementById('chartStatusAtivos');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: graficoStatusAtivos.labels,
+                    datasets: [{
+                        data: graficoStatusAtivos.values,
+                        backgroundColor: ['#3b82f6', '#f97316', '#6b7280', '#f59e0b'],
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </x-app-layout>

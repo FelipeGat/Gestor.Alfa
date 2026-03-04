@@ -106,6 +106,51 @@
 
         </div>
 
+        {{-- Visão Rápida de Ativos Técnicos --}}
+        <div class="portal-section">
+            <h2 class="portal-section-title">
+                <svg class="w-6 h-6 text-[#3f9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                </svg>
+                Visão Rápida de Ativos Técnicos
+            </h2>
+
+            <div class="portal-stats-grid">
+                <a href="{{ route('portal.ativos.index') }}" class="portal-stat-card portal-stat-card--blue block hover:shadow-md transition-all">
+                    <p class="portal-stat-label">Total de Ativos</p>
+                    <p class="portal-stat-value">{{ $totalAtivosTecnicos }}</p>
+                </a>
+                <a href="{{ route('portal.ativos.index', ['status_ativo' => 'operando']) }}" class="portal-stat-card portal-stat-card--green block hover:shadow-md transition-all">
+                    <p class="portal-stat-label">Operando</p>
+                    <p class="portal-stat-value">{{ $ativosOperando }}</p>
+                </a>
+                <a href="{{ route('portal.ativos.index', ['status_ativo' => 'em_manutencao']) }}" class="portal-stat-card portal-stat-card--orange block hover:shadow-md transition-all">
+                    <p class="portal-stat-label">Em Manutenção</p>
+                    <p class="portal-stat-value">{{ $ativosEmManutencao }}</p>
+                </a>
+                <a href="{{ route('portal.ativos.index', ['manutencao_status' => 'vencida']) }}" class="portal-stat-card portal-stat-card--red block hover:shadow-md transition-all">
+                    <p class="portal-stat-label">Manutenções Vencidas</p>
+                    <p class="portal-stat-value">{{ $manutencoesVencidas }}</p>
+                </a>
+            </div>
+
+            <div class="portal-charts-grid">
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">Status Atual dos Ativos</h3>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartStatusAtivosHome"></canvas>
+                    </div>
+                </div>
+
+                <div class="portal-chart-card">
+                    <h3 class="portal-chart-title">Saúde de Manutenção</h3>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartManutencaoAtivosHome"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Dashboard Overview --}}
         <div class="portal-section">
             <h2 class="portal-section-title">
@@ -157,7 +202,9 @@
                     <h3 class="portal-chart-title">
                         Distribuição de Atendimentos
                     </h3>
-                    <canvas id="chartAtendimentos" height="280"></canvas>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartAtendimentos"></canvas>
+                    </div>
                 </div>
 
                 <!-- Chart 2: Documentos por Tipo -->
@@ -165,7 +212,9 @@
                     <h3 class="portal-chart-title">
                         Documentos Anexados
                     </h3>
-                    <canvas id="chartDocumentos" height="280"></canvas>
+                    <div class="portal-chart-canvas-wrap">
+                        <canvas id="chartDocumentos"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -348,6 +397,101 @@
         const nfTotal = {{ (int) $totalNotas }};
         const boletosTotal = {{ (int) $totalBoletos }};
 
+        const graficoStatusAtivos = @json($graficoStatusAtivos);
+        const graficoManutencaoAtivos = @json($graficoManutencaoAtivos);
+
+        const ctxStatusAtivosHome = document.getElementById('chartStatusAtivosHome').getContext('2d');
+        new Chart(ctxStatusAtivosHome, {
+            type: 'doughnut',
+            data: {
+                labels: graficoStatusAtivos.labels,
+                datasets: [{
+                    data: graficoStatusAtivos.values,
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(249, 115, 22, 0.85)',
+                        'rgba(107, 114, 128, 0.85)',
+                        'rgba(245, 158, 11, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(107, 114, 128, 1)',
+                        'rgba(245, 158, 11, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 11,
+                                weight: 'bold'
+                            },
+                            padding: 12,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctxManutencaoAtivosHome = document.getElementById('chartManutencaoAtivosHome').getContext('2d');
+        new Chart(ctxManutencaoAtivosHome, {
+            type: 'bar',
+            data: {
+                labels: graficoManutencaoAtivos.labels,
+                datasets: [{
+                    label: 'Ativos',
+                    data: graficoManutencaoAtivos.values,
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(239, 68, 68, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
         // Gráfico 1: Distribuição de Atendimentos
         const ctxAtendimentos = document.getElementById('chartAtendimentos').getContext('2d');
         new Chart(ctxAtendimentos, {
@@ -372,7 +516,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -414,7 +558,7 @@
             options: {
                 indexAxis: 'y',
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false

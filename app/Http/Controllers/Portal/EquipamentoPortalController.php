@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Equipamento;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 
 class EquipamentoPortalController extends Controller
@@ -81,16 +82,37 @@ class EquipamentoPortalController extends Controller
             return $eq->status_manutencao['cor'] === 'vermelho';
         })->count();
 
+        $ativosOperando = $ativosTecnicos->where('status_ativo', 'operando')->count();
+        $ativosEmManutencao = $ativosTecnicos->where('status_ativo', 'em_manutencao')->count();
+        $ativosInativos = $ativosTecnicos->whereIn('status_ativo', ['inativo', 'descartado', 'substituido'])->count();
+        $ativosSemStatus = $ativosTecnicos->filter(fn ($eq) => empty($eq->status_ativo))->count();
+
+        $graficoManutencao = [
+            'labels' => ['Em dia', 'Atenção', 'Vencidas'],
+            'values' => [$manutencoesEmDia, $manutencoesProximo, $manutencoesVencidas],
+        ];
+
+        $graficoStatusAtivos = [
+            'labels' => ['Operando', 'Em manutenção', 'Inativos', 'Sem status'],
+            'values' => [$ativosOperando, $ativosEmManutencao, $ativosInativos, $ativosSemStatus],
+        ];
+
         return view('portal.equipamentos.index', compact(
             'cliente',
             'totalAtivosTecnicos',
             'manutencoesEmDia',
             'manutencoesProximo',
-            'manutencoesVencidas'
+            'manutencoesVencidas',
+            'ativosOperando',
+            'ativosEmManutencao',
+            'ativosInativos',
+            'ativosSemStatus',
+            'graficoManutencao',
+            'graficoStatusAtivos'
         ));
     }
 
-    public function lista()
+    public function lista(Request $request)
     {
         $cliente = $this->getCliente();
 
@@ -99,12 +121,82 @@ class EquipamentoPortalController extends Controller
             return $cliente;
         }
 
-        $ativosTecnicos = $cliente->equipamentos()
+        $query = $cliente->equipamentos()
             ->with(['setor', 'responsavel'])
-            ->orderBy('nome')
-            ->get();
+            ->orderBy('nome');
 
-        return view('portal.equipamentos.lista', compact('cliente', 'ativosTecnicos'));
+        $perPage = 10;
+
+        $statusAtivoFiltro = $request->input('status_ativo');
+        $manutencaoStatusFiltro = $request->input('manutencao_status');
+
+        if ($statusAtivoFiltro) {
+            $query->where('status_ativo', $statusAtivoFiltro);
+        }
+
+        $ativosTecnicos = null;
+
+        if ($manutencaoStatusFiltro) {
+            $ativosColecao = $query->get();
+
+            $statusMap = [
+                'em_dia' => ['verde', 'gray'],
+                'atencao' => ['amarelo'],
+                'vencida' => ['vermelho'],
+            ];
+
+            $statusSelecionado = $statusMap[$manutencaoStatusFiltro] ?? [];
+
+            if (! empty($statusSelecionado)) {
+                $ativosColecao = $ativosColecao->filter(function ($eq) use ($statusSelecionado) {
+                    return in_array($eq->status_manutencao['cor'] ?? null, $statusSelecionado, true);
+                })->values();
+            }
+
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $currentItems = $ativosColecao
+                ->slice(($currentPage - 1) * $perPage, $perPage)
+                ->values();
+
+            $ativosTecnicos = new LengthAwarePaginator(
+                $currentItems,
+                $ativosColecao->count(),
+                $perPage,
+                $currentPage,
+                [
+                    'path' => $request->url(),
+                    'query' => $request->query(),
+                ]
+            );
+        } else {
+            $ativosTecnicos = $query->paginate($perPage)->withQueryString();
+        }
+
+        $statusAtivoLabels = [
+            'operando' => 'Operando',
+            'em_manutencao' => 'Em manutenção',
+            'inativo' => 'Inativo',
+            'aguardando_peca' => 'Aguardando peça',
+            'descartado' => 'Descartado',
+            'substituido' => 'Substituído',
+        ];
+
+        $manutencaoStatusLabels = [
+            'em_dia' => 'Manutenção em dia',
+            'atencao' => 'Manutenção em atenção',
+            'vencida' => 'Manutenção vencida',
+        ];
+
+        $filtrosAtivos = array_filter([
+            'status_ativo' => $statusAtivoLabels[$statusAtivoFiltro] ?? null,
+            'manutencao_status' => $manutencaoStatusLabels[$manutencaoStatusFiltro] ?? null,
+        ]);
+
+        return view('portal.equipamentos.lista', compact(
+            'cliente',
+            'ativosTecnicos',
+            'filtrosAtivos'
+        ));
     }
 
     public function setores()
@@ -119,7 +211,7 @@ class EquipamentoPortalController extends Controller
         $setores = $cliente->equipamentoSetores()
             ->withCount('equipamentos')
             ->orderBy('nome')
-            ->get();
+            ->paginate(10);
 
         return view('portal.equipamentos.setores', compact('cliente', 'setores'));
     }
@@ -136,7 +228,7 @@ class EquipamentoPortalController extends Controller
         $responsaveis = $cliente->equipamentoResponsaveis()
             ->withCount('equipamentos')
             ->orderBy('nome')
-            ->get();
+            ->paginate(10);
 
         return view('portal.equipamentos.responsaveis', compact('cliente', 'responsaveis'));
     }

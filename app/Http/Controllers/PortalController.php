@@ -195,6 +195,39 @@ class PortalController extends Controller
         $totalBoletos = $boletos->count();
         $totalNotas = count($arquivosNotas);
 
+        // Ativos Técnicos
+        $ativosTecnicos = $cliente->equipamentos()->with(['setor', 'responsavel'])->get();
+        $totalAtivosTecnicos = $ativosTecnicos->count();
+
+        $ativosOperando = $ativosTecnicos->where('status_ativo', 'operando')->count();
+        $ativosEmManutencao = $ativosTecnicos->where('status_ativo', 'em_manutencao')->count();
+        $ativosInativos = $ativosTecnicos->whereIn('status_ativo', ['inativo', 'descartado', 'substituido'])->count();
+        $ativosSemStatus = $ativosTecnicos->filter(fn ($eq) => empty($eq->status_ativo))->count();
+
+        $manutencoesEmDia = $ativosTecnicos->filter(function ($eq) {
+            $status = $eq->status_manutencao;
+
+            return $status['cor'] === 'verde' || $status['cor'] === 'gray';
+        })->count();
+
+        $manutencoesProximo = $ativosTecnicos->filter(function ($eq) {
+            return $eq->status_manutencao['cor'] === 'amarelo';
+        })->count();
+
+        $manutencoesVencidas = $ativosTecnicos->filter(function ($eq) {
+            return $eq->status_manutencao['cor'] === 'vermelho';
+        })->count();
+
+        $graficoStatusAtivos = [
+            'labels' => ['Operando', 'Em manutenção', 'Inativos', 'Sem status'],
+            'values' => [$ativosOperando, $ativosEmManutencao, $ativosInativos, $ativosSemStatus],
+        ];
+
+        $graficoManutencaoAtivos = [
+            'labels' => ['Em dia', 'Atenção', 'Vencidas'],
+            'values' => [$manutencoesEmDia, $manutencoesProximo, $manutencoesVencidas],
+        ];
+
         return view('portal.index', compact(
             'cliente',
             'boletos',
@@ -202,7 +235,17 @@ class PortalController extends Controller
             'totalNotas',
             'totalAtendimentosAbertos',
             'totalAtendimentosExecucao',
-            'totalAtendimentosFinalizados'
+            'totalAtendimentosFinalizados',
+            'totalAtivosTecnicos',
+            'ativosOperando',
+            'ativosEmManutencao',
+            'ativosInativos',
+            'ativosSemStatus',
+            'manutencoesEmDia',
+            'manutencoesProximo',
+            'manutencoesVencidas',
+            'graficoStatusAtivos',
+            'graficoManutencaoAtivos'
         ));
     }
 
