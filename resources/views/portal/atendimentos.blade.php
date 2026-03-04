@@ -64,7 +64,7 @@
                                 @php
                                     $status = $atendimento->status_atual;
                                     $badgeClass = 'portal-badge--gray';
-                                    
+
                                     if(in_array($status, ['aberto', 'em_atendimento'])) {
                                         $badgeClass = 'portal-badge--info';
                                     } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
@@ -158,7 +158,7 @@
                         @php
                             $status = $atendimento->status_atual;
                             $badgeClass = 'portal-badge--gray';
-                            
+
                             if(in_array($status, ['aberto', 'em_atendimento'])) {
                                 $badgeClass = 'portal-badge--info';
                             } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
@@ -186,9 +186,9 @@
                     <div class="portal-mobile-card-actions">
                         <button type="button"
                             onclick="window.showHistorico{{ $atendimento->id }}.showModal()"
-                            class="inline-flex items-center justify-center gap-2 px-4 py-2 
-                                   bg-[#3f9cae] hover:bg-[#2d7a8a] 
-                                   text-white text-sm font-semibold 
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2
+                                   bg-[#3f9cae] hover:bg-[#2d7a8a]
+                                   text-white text-sm font-semibold
                                    rounded-lg border-0 shadow transition-all flex-1">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>

@@ -682,8 +682,26 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal/equipamentos/setores', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'setores'])
         ->name('portal.equipamentos.setores');
 
+    Route::post('/portal/equipamentos/setores', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'storeSetor'])
+        ->name('portal.equipamentos.setores.store');
+
+    Route::get('/portal/equipamentos/setores/{setor}/editar', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'editSetor'])
+        ->name('portal.equipamentos.setores.edit');
+
+    Route::put('/portal/equipamentos/setores/{setor}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'updateSetor'])
+        ->name('portal.equipamentos.setores.update');
+
     Route::get('/portal/equipamentos/responsaveis', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'responsaveis'])
         ->name('portal.equipamentos.responsaveis');
+
+    Route::post('/portal/equipamentos/responsaveis', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'storeResponsavel'])
+        ->name('portal.equipamentos.responsaveis.store');
+
+    Route::get('/portal/equipamentos/responsaveis/{responsavel}/editar', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'editResponsavel'])
+        ->name('portal.equipamentos.responsaveis.edit');
+
+    Route::put('/portal/equipamentos/responsaveis/{responsavel}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'updateResponsavel'])
+        ->name('portal.equipamentos.responsaveis.update');
 
     Route::get('/portal/equipamentos/pmoc', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'pmoc'])
         ->name('portal.equipamentos.pmoc');
@@ -693,6 +711,18 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
 
     Route::get('/portal/ativos', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'lista'])
         ->name('portal.ativos.index');
+
+    Route::get('/portal/ativos/novo', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'createAtivo'])
+        ->name('portal.ativos.create');
+
+    Route::post('/portal/ativos', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'storeAtivo'])
+        ->name('portal.ativos.store');
+
+    Route::get('/portal/ativos/{equipamento}/editar', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'editAtivo'])
+        ->name('portal.ativos.edit');
+
+    Route::put('/portal/ativos/{equipamento}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'updateAtivo'])
+        ->name('portal.ativos.update');
 
     Route::get('/portal/ativos/{equipamento}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'show'])
         ->name('portal.ativos.show');
