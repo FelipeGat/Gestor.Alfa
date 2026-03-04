@@ -7,17 +7,16 @@
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
             ['label' => 'Gestão', 'url' => route('gestao.index')],
-            ['label' => 'Equipamentos', 'url' => route('admin.equipamentos.index')],
-            ['label' => 'Editar Equipamento']
+            ['label' => 'Ativos Técnicos', 'url' => route('admin.equipamentos.index')],
+            ['label' => 'Editar Ativo Técnico']
         ]" />
     </x-slot>
 
-    <x-page-title title="Editar Equipamento" :route="route('admin.equipamentos.index')" />
+    <x-page-title title="Editar Ativo Técnico" :route="route('admin.equipamentos.index')" />
 
-    <div class="pb-8">
+    <div class="pb-8" x-data="{ tab: 'dados' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {{-- ERROS --}}
             @if ($errors->any())
             <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow">
                 <h3 class="font-medium mb-2">Erros encontrados:</h3>
@@ -29,370 +28,297 @@
             </div>
             @endif
 
-            <form action="{{ route('admin.equipamentos.update', $equipamento->id) }}" method="POST" class="space-y-6">
-                @csrf
-                @method('PUT')
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="-mb-px flex gap-6">
+                    <button type="button" @click="tab='dados'" :class="tab === 'dados' ? 'border-[#3f9cae] text-[#3f9cae]' : 'border-transparent text-gray-500'" class="py-3 px-1 border-b-2 font-medium text-sm">Dados do Ativo</button>
+                    <button type="button" @click="tab='historico'" :class="tab === 'historico' ? 'border-[#3f9cae] text-[#3f9cae]' : 'border-transparent text-gray-500'" class="py-3 px-1 border-b-2 font-medium text-sm">Histórico de Manutenções</button>
+                    <button type="button" @click="tab='documentos'" :class="tab === 'documentos' ? 'border-[#3f9cae] text-[#3f9cae]' : 'border-transparent text-gray-500'" class="py-3 px-1 border-b-2 font-medium text-sm">Documentos</button>
+                </nav>
+            </div>
 
-                {{-- SEÇÃO 1: DADOS BÁSICOS --}}
-                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Dados Básicos
-                    </h3>
+            <div x-show="tab === 'dados'">
+                <form action="{{ route('admin.equipamentos.update', $equipamento->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    @csrf
+                    @method('PUT')
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <x-form-input name="nome" label="Nome do Equipamento *" required placeholder="Ex: Ar Condicionado Split" :value="old('nome', $equipamento->nome)" />
-                        <x-form-input name="modelo" label="Modelo" placeholder="Ex: Hi Wall 12000 BTUs" :value="old('modelo', $equipamento->modelo)" />
-                        <x-form-input name="fabricante" label="Fabricante" placeholder="Ex: Samsung" :value="old('fabricante', $equipamento->fabricante)" />
-                        <x-form-input name="numero_serie" label="Número de Série" placeholder="Ex: 123456789" :value="old('numero_serie', $equipamento->numero_serie)" />
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Dados Básicos</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <x-form-input name="nome" label="Nome do Ativo Técnico *" required :value="old('nome', $equipamento->nome)" />
+                            <x-form-input name="modelo" label="Modelo" :value="old('modelo', $equipamento->modelo)" />
+                            <x-form-input name="fabricante" label="Fabricante" :value="old('fabricante', $equipamento->fabricante)" />
+                            <x-form-input name="numero_serie" label="Número de Série" :value="old('numero_serie', $equipamento->numero_serie)" />
+                            <x-form-input name="codigo_ativo" label="Código do Ativo" :value="old('codigo_ativo', $equipamento->codigo_ativo)" />
+                            <x-form-input name="tag_patrimonial" label="TAG Patrimonial" :value="old('tag_patrimonial', $equipamento->tag_patrimonial)" />
+                        </div>
                     </div>
-                </div>
 
-                {{-- SEÇÃO 2: VINCULAÇÃO --}}
-                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Vinculação
-                    </h3>
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Localização</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div class="sm:col-span-2">
+                                <x-form-select name="cliente_id" label="Cliente *" required>
+                                    @foreach($clientes as $cliente)
+                                    <option value="{{ $cliente->id }}" @selected(old('cliente_id', $equipamento->cliente_id) == $cliente->id)>{{ $cliente->nome_exibicao }}</option>
+                                    @endforeach
+                                </x-form-select>
+                            </div>
+                            <x-form-input name="unidade" label="Unidade" :value="old('unidade', $equipamento->unidade)" />
+                            <x-form-input name="andar" label="Andar" :value="old('andar', $equipamento->andar)" />
+                            <x-form-input name="sala" label="Sala" :value="old('sala', $equipamento->sala)" />
+                            <x-form-input name="setor_nome" label="Setor" :value="old('setor_nome', $equipamento->setor->nome ?? '')" />
+                            <x-form-input name="responsavel_nome" label="Responsável" :value="old('responsavel_nome', $equipamento->responsavel->nome ?? '')" />
+                            <div class="sm:col-span-2">
+                                <label for="localizacao_detalhada" class="block text-sm font-medium text-gray-700 mb-1">Localização Detalhada</label>
+                                <textarea id="localizacao_detalhada" name="localizacao_detalhada" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">{{ old('localizacao_detalhada', $equipamento->localizacao_detalhada) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <div class="sm:col-span-2">
-                            <x-form-select name="cliente_id" label="Cliente *" required placeholder="Selecione um cliente">
-                                <option value="">Selecione um cliente</option>
-                                @foreach($clientes as $cliente)
-                                    <option value="{{ $cliente->id }}" @selected(old('cliente_id', $equipamento->cliente_id) == $cliente->id)>
-                                        {{ $cliente->nome_exibicao }}
-                                    </option>
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Especificações Técnicas</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <x-form-input name="capacidade" label="Capacidade" :value="old('capacidade', $equipamento->capacidade)" />
+                            <x-form-input name="potencia" label="Potência" :value="old('potencia', $equipamento->potencia)" />
+                            <x-form-input name="voltagem" label="Voltagem" :value="old('voltagem', $equipamento->voltagem)" />
+                            <x-form-input name="vida_util_anos" label="Vida útil estimada (anos)" type="number" min="1" max="100" :value="old('vida_util_anos', $equipamento->vida_util_anos)" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Aquisição</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <x-form-input name="data_aquisicao" label="Data de aquisição" type="date" :value="old('data_aquisicao', optional($equipamento->data_aquisicao)->format('Y-m-d'))" />
+                            <x-form-input name="data_instalacao" label="Data de instalação" type="date" :value="old('data_instalacao', optional($equipamento->data_instalacao)->format('Y-m-d'))" />
+                            <x-form-input name="valor_aquisicao" label="Valor aquisição" type="number" step="0.01" min="0" :value="old('valor_aquisicao', $equipamento->valor_aquisicao)" />
+                            <x-form-select name="fornecedor_id" label="Fornecedor">
+                                <option value="">Selecione</option>
+                                @foreach($fornecedores as $fornecedor)
+                                <option value="{{ $fornecedor->id }}" @selected(old('fornecedor_id', $equipamento->fornecedor_id) == $fornecedor->id)>
+                                    {{ $fornecedor->nome_fantasia ?: ($fornecedor->razao_social ?: $fornecedor->nome) }}
+                                </option>
                                 @endforeach
                             </x-form-select>
-                        </div>
-
-                        {{-- Setor com Autocomplete --}}
-                        <div x-data="autocompleteSetor" x-init="initAutocomplete()">
-                            <label for="setor_nome" class="block text-sm font-medium text-gray-700 mb-1">
-                                Setor
-                            </label>
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="setor_nome" 
-                                    name="setor_nome" 
-                                    value="{{ old('setor_nome', $equipamento->setor->nome ?? '') }}"
-                                    placeholder="Ex: RH, TI, Produção..."
-                                    x-model="search"
-                                    @input="buscar()"
-                                    @blur="handleBlur()"
-                                    @focus="focar()"
-                                    autocomplete="off"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
-                                />
-                                
-                                {{-- Dropdown de sugestões --}}
-                                <div 
-                                    x-show="mostrarDropdown && sugestoes.length > 0" 
-                                    x-cloak
-                                    class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
-                                    @click.outside="mostrarDropdown = false"
-                                >
-                                    <template x-for="setor in sugestoes" :key="setor.id">
-                                        <div 
-                                            class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                                            x-text="setor.nome"
-                                            @click="selecionar(setor.nome)"
-                                        ></div>
-                                    </template>
-                                    <div class="px-4 py-2 text-xs text-gray-500 border-t border-gray-200">
-                                        Digite para criar um novo setor
-                                    </div>
-                                </div>
-                                
-                                {{-- Loading --}}
-                                <div x-show="carregando" class="absolute right-3 top-9" x-cloak>
-                                    <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
+                            <div class="sm:col-span-2 flex items-center gap-3">
+                                <input type="checkbox" id="possui_garantia" name="possui_garantia" value="1" @checked(old('possui_garantia', $equipamento->possui_garantia)) class="rounded border-gray-300 text-[#3f9cae] shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
+                                <label for="possui_garantia" class="text-sm font-medium text-gray-700">Possui garantia</label>
                             </div>
+                            <x-form-input name="garantia_inicio" label="Garantia início" type="date" :value="old('garantia_inicio', optional($equipamento->garantia_inicio)->format('Y-m-d'))" />
+                            <x-form-input name="garantia_fim" label="Garantia fim" type="date" :value="old('garantia_fim', optional($equipamento->garantia_fim)->format('Y-m-d'))" />
                         </div>
+                    </div>
 
-                        {{-- Responsável com Autocomplete --}}
-                        <div x-data="autocompleteResponsavel" x-init="initAutocomplete()">
-                            <label for="responsavel_nome" class="block text-sm font-medium text-gray-700 mb-1">
-                                Responsável
-                            </label>
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="responsavel_nome" 
-                                    name="responsavel_nome" 
-                                    value="{{ old('responsavel_nome', $equipamento->responsavel->nome ?? '') }}"
-                                    placeholder="Ex: João Silva"
-                                    x-model="search"
-                                    @input="buscar()"
-                                    @blur="handleBlur()"
-                                    @focus="focar()"
-                                    autocomplete="off"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
-                                />
-                                
-                                {{-- Dropdown de sugestões --}}
-                                <div 
-                                    x-show="mostrarDropdown && sugestoes.length > 0" 
-                                    x-cloak
-                                    class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
-                                    @click.outside="mostrarDropdown = false"
-                                >
-                                    <template x-for="resp in sugestoes" :key="resp.id">
-                                        <div 
-                                            class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                                            @click="selecionar(resp.nome)"
-                                        >
-                                            <span x-text="resp.nome"></span>
-                                            <span x-show="resp.cargo" class="text-xs text-gray-500 ml-2" x-text="'(' + resp.cargo + ')'"></span>
-                                        </div>
-                                    </template>
-                                    <div class="px-4 py-2 text-xs text-gray-500 border-t border-gray-200">
-                                        Digite para criar um novo responsável
-                                    </div>
-                                </div>
-                                
-                                {{-- Loading --}}
-                                <div x-show="carregando" class="absolute right-3 top-9" x-cloak>
-                                    <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Manutenção</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <x-form-input name="ultima_manutencao" label="Última manutenção" type="date" :value="old('ultima_manutencao', optional($equipamento->ultima_manutencao)->format('Y-m-d'))" />
+                            <x-form-input name="ultima_limpeza" label="Última limpeza" type="date" :value="old('ultima_limpeza', optional($equipamento->ultima_limpeza)->format('Y-m-d'))" />
+                            <x-form-input name="periodicidade_manutencao_meses" label="Periodicidade manutenção (meses)" type="number" min="1" max="120" :value="old('periodicidade_manutencao_meses', $equipamento->periodicidade_manutencao_meses)" />
+                            <x-form-input name="periodicidade_limpeza_meses" label="Periodicidade limpeza (meses)" type="number" min="1" max="120" :value="old('periodicidade_limpeza_meses', $equipamento->periodicidade_limpeza_meses)" />
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Próxima manutenção (calculada)</label>
+                                <input type="text" readonly value="{{ $equipamento->proxima_manutencao?->format('d/m/Y') ?? '-' }}" class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm">
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {{-- SEÇÃO 3: MANUTENÇÃO E LIMPEZA --}}
-                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Manutenção e Limpeza
-                    </h3>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <x-form-input name="ultima_manutencao" label="Última Manutenção" type="date" :value="old('ultima_manutencao', $equipamento->ultima_manutencao?->format('Y-m-d'))" />
-                        <x-form-input name="ultima_limpeza" label="Última Limpeza" type="date" :value="old('ultima_limpeza', $equipamento->ultima_limpeza?->format('Y-m-d'))" />
-                        <x-form-input name="periodicidade_manutencao_meses" label="Periodicidade Manutenção (meses)" type="number" min="1" max="120" :value="old('periodicidade_manutencao_meses', $equipamento->periodicidade_manutencao_meses)" />
-                        <x-form-input name="periodicidade_limpeza_meses" label="Periodicidade Limpeza (meses)" type="number" min="1" max="120" :value="old('periodicidade_limpeza_meses', $equipamento->periodicidade_limpeza_meses)" />
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Status</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <x-form-select name="status_ativo" label="Status do ativo">
+                                <option value="">Selecione</option>
+                                @foreach(['operando' => 'Operando', 'em_manutencao' => 'Em manutenção', 'inativo' => 'Inativo', 'aguardando_peca' => 'Aguardando peça', 'descartado' => 'Descartado', 'substituido' => 'Substituído'] as $value => $label)
+                                <option value="{{ $value }}" @selected(old('status_ativo', $equipamento->status_ativo) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </x-form-select>
+                            <x-form-select name="criticidade" label="Criticidade">
+                                <option value="">Selecione</option>
+                                @foreach(['baixa' => 'Baixa', 'media' => 'Média', 'alta' => 'Alta', 'critica' => 'Crítica'] as $value => $label)
+                                <option value="{{ $value }}" @selected(old('criticidade', $equipamento->criticidade) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </x-form-select>
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="ativo" name="ativo" value="1" @checked(old('ativo', $equipamento->ativo)) class="rounded border-gray-300 text-[#3f9cae] shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
+                                <label for="ativo" class="text-sm font-medium text-gray-700">Ativo técnico ativo</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                {{-- SEÇÃO 4: OBSERVAÇÕES E STATUS --}}
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Financeiro</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Valor aquisição</label>
+                                <input type="text" readonly value="R$ {{ $equipamento->valor_aquisicao ? number_format((float) $equipamento->valor_aquisicao, 2, ',', '.') : '0,00' }}" class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Custo total de manutenção (calculado)</label>
+                                <input type="text" readonly value="R$ {{ number_format((float) $equipamento->custo_total_manutencao, 2, ',', '.') }}" class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Fotos</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="foto_principal" class="block text-sm font-medium text-gray-700 mb-1">Foto principal do ativo</label>
+                                <input type="file" id="foto_principal" name="foto_principal" accept="image/*" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
+                            </div>
+                            @if($equipamento->foto_principal)
+                            <div>
+                                <p class="block text-sm font-medium text-gray-700 mb-1">Foto atual</p>
+                                <img src="{{ Storage::disk('public')->url($equipamento->foto_principal) }}" alt="Foto do ativo" class="h-24 rounded-md border border-gray-200">
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Observações</h3>
+                        <textarea id="observacoes" name="observacoes" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">{{ old('observacoes', $equipamento->observacoes) }}</textarea>
+                    </div>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
+                        <x-button href="{{ route('admin.equipamentos.index') }}" variant="danger" size="md" class="min-w-[130px]">Cancelar</x-button>
+                        <x-button type="submit" variant="primary" size="md" class="min-w-[130px]">Salvar Alterações</x-button>
+                    </div>
+                </form>
+            </div>
+
+            <div x-show="tab === 'historico'" x-cloak>
                 <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Observações e Status
-                    </h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Histórico de Manutenções</h3>
+                        <x-button type="button" variant="primary" size="sm" @click="document.getElementById('modal-historico').classList.remove('hidden')">Adicionar Manutenção</x-button>
+                    </div>
 
-                    <div class="space-y-4">
+                    @if($equipamento->historicoManutencoes->count())
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Data</th>
+                                    <th class="px-4 py-2 text-left">Tipo</th>
+                                    <th class="px-4 py-2 text-left">Descrição</th>
+                                    <th class="px-4 py-2 text-left">Técnico</th>
+                                    <th class="px-4 py-2 text-left">Custo</th>
+                                    <th class="px-4 py-2 text-left">Peças</th>
+                                    <th class="px-4 py-2 text-left">Tempo parado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($equipamento->historicoManutencoes as $item)
+                                <tr>
+                                    <td class="px-4 py-2">{{ $item->data_manutencao?->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-2">{{ ucfirst($item->tipo) }}</td>
+                                    <td class="px-4 py-2">{{ $item->descricao ?: '-' }}</td>
+                                    <td class="px-4 py-2">{{ $item->tecnico_responsavel ?: '-' }}</td>
+                                    <td class="px-4 py-2">{{ $item->custo ? 'R$ '.number_format((float) $item->custo, 2, ',', '.') : '-' }}</td>
+                                    <td class="px-4 py-2">{{ $item->pecas_trocadas ?: '-' }}</td>
+                                    <td class="px-4 py-2">{{ $item->tempo_parado_horas ? $item->tempo_parado_horas.'h' : '-' }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <p class="text-sm text-gray-500">Nenhum histórico de manutenção cadastrado.</p>
+                    @endif
+                </div>
+            </div>
+
+            <div x-show="tab === 'documentos'" x-cloak>
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Documentos</h3>
+
+                    <form action="{{ route('admin.equipamentos.documentos.store', $equipamento) }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        @csrf
+                        <x-form-input name="nome_documento" label="Nome do documento" required />
+                        <x-form-select name="tipo_documento" label="Tipo" required>
+                            <option value="manual">Manual</option>
+                            <option value="nota_fiscal">Nota Fiscal</option>
+                            <option value="garantia">Garantia</option>
+                            <option value="pmoc">PMOC</option>
+                            <option value="foto">Foto</option>
+                        </x-form-select>
                         <div>
-                            <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">
-                                Observações
-                            </label>
-                            <textarea 
-                                id="observacoes" 
-                                name="observacoes" 
-                                rows="4" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
-                            >{{ old('observacoes', $equipamento->observacoes) }}</textarea>
+                            <label for="arquivo" class="block text-sm font-medium text-gray-700 mb-1">Arquivo</label>
+                            <input type="file" id="arquivo" name="arquivo" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
                         </div>
+                        <div class="sm:col-span-3">
+                            <x-button type="submit" variant="primary" size="sm">Enviar documento</x-button>
+                        </div>
+                    </form>
 
-                        <div class="flex items-center gap-3">
-                            <input 
-                                type="checkbox" 
-                                id="ativo" 
-                                name="ativo" 
-                                value="1" 
-                                @checked(old('ativo', $equipamento->ativo)) 
-                                class="rounded border-gray-300 text-[#3f9cae] shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
-                            >
-                            <label for="ativo" class="text-sm font-medium text-gray-700">
-                                Equipamento ativo
-                            </label>
-                        </div>
+                    @if($equipamento->documentos->count())
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Nome</th>
+                                    <th class="px-4 py-2 text-left">Tipo</th>
+                                    <th class="px-4 py-2 text-left">Data</th>
+                                    <th class="px-4 py-2 text-left">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($equipamento->documentos as $documento)
+                                <tr>
+                                    <td class="px-4 py-2">{{ $documento->nome_documento }}</td>
+                                    <td class="px-4 py-2">{{ strtoupper(str_replace('_', ' ', $documento->tipo_documento)) }}</td>
+                                    <td class="px-4 py-2">{{ $documento->created_at?->format('d/m/Y H:i') }}</td>
+                                    <td class="px-4 py-2 flex gap-2">
+                                        <a href="{{ route('admin.equipamentos.documentos.download', [$equipamento, $documento]) }}" class="text-[#3f9cae] font-medium">Download</a>
+                                        <form action="{{ route('admin.equipamentos.documentos.destroy', [$equipamento, $documento]) }}" method="POST" onsubmit="return confirm('Excluir documento?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 font-medium">Excluir</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
+                    @else
+                    <p class="text-sm text-gray-500">Nenhum documento anexado.</p>
+                    @endif
                 </div>
-
-                {{-- AÇÕES --}}
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
-                    <x-button href="{{ route('admin.equipamentos.index') }}" variant="danger" size="md" class="min-w-[130px]">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                        Cancelar
-                    </x-button>
-
-                    <x-button type="submit" variant="primary" size="md" class="min-w-[130px]">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                        Salvar Alterações
-                    </x-button>
-                </div>
-
-            </form>
-
+            </div>
         </div>
     </div>
 
-    <script>
-        // Função auxiliar para obter o cliente selecionado
-        function getClienteId() {
-            const select = document.getElementById('cliente_id');
-            return select ? select.value : '';
-        }
-
-        // Componente Alpine para autocomplete de Setor
-        function autocompleteSetor() {
-            return {
-                search: '',
-                sugestoes: [],
-                mostrarDropdown: false,
-                carregando: false,
-                debounceTimer: null,
-
-                initAutocomplete() {
-                    this.$watch('search', () => {
-                        if (!getClienteId() && this.search.length > 0) {
-                            alert('Selecione um cliente primeiro');
-                            this.search = '';
-                        }
-                    });
-                },
-
-                buscar() {
-                    const clienteId = getClienteId();
-                    
-                    if (!clienteId) {
-                        this.sugestoes = [];
-                        this.mostrarDropdown = false;
-                        return;
-                    }
-
-                    clearTimeout(this.debounceTimer);
-                    
-                    if (this.search.length < 1) {
-                        this.sugestoes = [];
-                        this.mostrarDropdown = false;
-                        return;
-                    }
-
-                    this.carregando = true;
-
-                    this.debounceTimer = setTimeout(() => {
-                        fetch(`/equipamentos/api/setores/${clienteId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                const termo = this.search.toLowerCase();
-                                this.sugestoes = data.filter(s => 
-                                    s.nome.toLowerCase().includes(termo)
-                                );
-                                this.mostrarDropdown = this.sugestoes.length > 0;
-                                this.carregando = false;
-                            })
-                            .catch(() => {
-                                this.carregando = false;
-                                this.sugestoes = [];
-                            });
-                    }, 300);
-                },
-
-                selecionar(nome) {
-                    this.search = nome;
-                    this.mostrarDropdown = false;
-                    this.sugestoes = [];
-                },
-
-                focar() {
-                    if (this.search.length > 0 && this.sugestoes.length > 0) {
-                        this.mostrarDropdown = true;
-                    }
-                },
-
-                handleBlur() {
-                    setTimeout(() => {
-                        this.mostrarDropdown = false;
-                    }, 200);
-                }
-            }
-        }
-
-        // Componente Alpine para autocomplete de Responsável
-        function autocompleteResponsavel() {
-            return {
-                search: '',
-                sugestoes: [],
-                mostrarDropdown: false,
-                carregando: false,
-                debounceTimer: null,
-
-                initAutocomplete() {
-                    this.$watch('search', () => {
-                        if (!getClienteId() && this.search.length > 0) {
-                            alert('Selecione um cliente primeiro');
-                            this.search = '';
-                        }
-                    });
-                },
-
-                buscar() {
-                    const clienteId = getClienteId();
-                    
-                    if (!clienteId) {
-                        this.sugestoes = [];
-                        this.mostrarDropdown = false;
-                        return;
-                    }
-
-                    clearTimeout(this.debounceTimer);
-                    
-                    if (this.search.length < 1) {
-                        this.sugestoes = [];
-                        this.mostrarDropdown = false;
-                        return;
-                    }
-
-                    this.carregando = true;
-
-                    this.debounceTimer = setTimeout(() => {
-                        fetch(`/equipamentos/api/responsaveis/${clienteId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                const termo = this.search.toLowerCase();
-                                this.sugestoes = data.filter(r => 
-                                    r.nome.toLowerCase().includes(termo)
-                                );
-                                this.mostrarDropdown = this.sugestoes.length > 0;
-                                this.carregando = false;
-                            })
-                            .catch(() => {
-                                this.carregando = false;
-                                this.sugestoes = [];
-                            });
-                    }, 300);
-                },
-
-                selecionar(nome) {
-                    this.search = nome;
-                    this.mostrarDropdown = false;
-                    this.sugestoes = [];
-                },
-
-                focar() {
-                    if (this.search.length > 0 && this.sugestoes.length > 0) {
-                        this.mostrarDropdown = true;
-                    }
-                },
-
-                handleBlur() {
-                    setTimeout(() => {
-                        this.mostrarDropdown = false;
-                    }, 200);
-                }
-            }
-        }
-    </script>
+    <div id="modal-historico" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75" onclick="document.getElementById('modal-historico').classList.add('hidden')"></div>
+            <div class="relative bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Adicionar Manutenção</h3>
+                <form action="{{ route('admin.equipamentos.historico.store', $equipamento) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @csrf
+                    <x-form-input name="data_manutencao" label="Data" type="date" required />
+                    <x-form-select name="tipo" label="Tipo" required>
+                        <option value="preventiva">Preventiva</option>
+                        <option value="corretiva">Corretiva</option>
+                        <option value="limpeza">Limpeza</option>
+                    </x-form-select>
+                    <x-form-input name="tecnico_responsavel" label="Técnico responsável" />
+                    <x-form-input name="custo" label="Custo" type="number" step="0.01" min="0" />
+                    <x-form-input name="tempo_parado_horas" label="Tempo parado (horas)" type="number" min="0" />
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                        <textarea name="descricao" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Peças trocadas</label>
+                        <textarea name="pecas_trocadas" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"></textarea>
+                    </div>
+                    <div class="sm:col-span-2 flex justify-end gap-3 mt-2">
+                        <x-button type="button" variant="danger" size="sm" onclick="document.getElementById('modal-historico').classList.add('hidden')">Cancelar</x-button>
+                        <x-button type="submit" variant="primary" size="sm">Salvar</x-button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </x-app-layout>

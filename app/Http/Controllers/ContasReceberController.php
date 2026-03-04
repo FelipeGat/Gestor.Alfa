@@ -988,7 +988,25 @@ class ContasReceberController extends Controller
     {
         $contaFixa->load(['empresa', 'cliente', 'contaFinanceira']);
 
-        return response()->json($contaFixa);
+        return response()->json([
+            'id' => $contaFixa->id,
+            'empresa_id' => $contaFixa->empresa_id,
+            'cliente_id' => $contaFixa->cliente_id,
+            'cliente_nome' => $contaFixa->cliente?->nome
+                ?? $contaFixa->cliente?->nome_fantasia
+                ?? $contaFixa->cliente?->razao_social,
+            'categoria' => $contaFixa->categoria,
+            'valor' => $contaFixa->valor,
+            'conta_financeira_id' => $contaFixa->conta_financeira_id,
+            'forma_pagamento' => $contaFixa->forma_pagamento,
+            'periodicidade' => $contaFixa->periodicidade,
+            'data_inicial' => optional($contaFixa->data_inicial)->format('Y-m-d'),
+            'data_fim' => optional($contaFixa->data_fim)->format('Y-m-d'),
+            'percentual_renovacao' => $contaFixa->percentual_renovacao,
+            'data_atualizacao_percentual' => optional($contaFixa->data_atualizacao_percentual)->format('Y-m-d'),
+            'observacao' => $contaFixa->observacao,
+            'ativo' => (bool) $contaFixa->ativo,
+        ]);
     }
 
     /**
@@ -1013,6 +1031,8 @@ class ContasReceberController extends Controller
         ]);
 
         DB::transaction(function () use ($contaFixa, $validated) {
+            $diaVencimentoNovo = Carbon::parse($validated['data_inicial'])->day;
+
             // Atualizar a conta fixa
             $contaFixa->update($validated);
 
@@ -1022,15 +1042,37 @@ class ContasReceberController extends Controller
                 $descricao .= " - {$validated['observacao']}";
             }
 
-            Cobranca::where('conta_fixa_id', $contaFixa->id)
-                ->where('status', '!=', 'pago')
-                ->update([
+            $cobrancasPendentes = Cobranca::where('conta_fixa_id', $contaFixa->id)
+                ->whereRaw("LOWER(COALESCE(status, '')) != ?", ['pago'])
+                ->get();
+
+            foreach ($cobrancasPendentes as $cobrancaPendente) {
+                $dataBaseCobranca = $cobrancaPendente->data_vencimento
+                    ? Carbon::parse($cobrancaPendente->data_vencimento)
+                    : Carbon::parse($validated['data_inicial']);
+
+                $ultimoDiaMes = $dataBaseCobranca->copy()->endOfMonth()->day;
+                $diaAplicado = min($diaVencimentoNovo, $ultimoDiaMes);
+
+                $dataVencimentoAtualizada = Carbon::create(
+                    $dataBaseCobranca->year,
+                    $dataBaseCobranca->month,
+                    $diaAplicado,
+                    0,
+                    0,
+                    0,
+                    $dataBaseCobranca->getTimezone()
+                );
+
+                $cobrancaPendente->update([
                     'cliente_id' => $validated['cliente_id'],
                     'descricao' => $descricao,
                     'valor' => $validated['valor'],
                     'conta_financeira_id' => $validated['conta_financeira_id'],
                     'forma_pagamento' => $validated['forma_pagamento'],
+                    'data_vencimento' => $dataVencimentoAtualizada->format('Y-m-d'),
                 ]);
+            }
         });
 
         return response()->json([

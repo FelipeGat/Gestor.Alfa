@@ -60,11 +60,18 @@ npm install
 npm run build
 ```
 
+### 6.1. Após Trocar de Branch (Check Rápido)
+
+```bash
+# Reinstala dependências, valida build front e limpa caches Laravel
+npm run check:post-branch
+```
+
 ### 7. Acessar a Aplicação
 
-| Serviço | URL |
-|---------|-----|
-| Aplicação | http://localhost:8080 |
+| Serviço    | URL                   |
+| ---------- | --------------------- |
+| Aplicação  | http://localhost:8080 |
 | phpMyAdmin | http://localhost:8081 |
 
 ## Comandos Úteis
@@ -97,14 +104,14 @@ docker compose up -d --build --force-recreate
 
 ## Estrutura dos Containers
 
-| Container | Imagem | Porta |
-|-----------|--------|-------|
-| nginx | nginx:alpine | 80, 443 |
-| php | PHP 8.3 + Laravel | - |
-| mysql | MySQL 8.0 | 3306 |
-| redis | Redis 7 | 6379 |
-| queue | Laravel Queue | - |
-| phpmyadmin | latest | 8081 |
+| Container  | Imagem            | Porta   |
+| ---------- | ----------------- | ------- |
+| nginx      | nginx:alpine      | 80, 443 |
+| php        | PHP 8.3 + Laravel | -       |
+| mysql      | MySQL 8.0         | 3306    |
+| redis      | Redis 7           | 6379    |
+| queue      | Laravel Queue     | -       |
+| phpmyadmin | latest            | 8081    |
 
 ## Solução de Problemas
 

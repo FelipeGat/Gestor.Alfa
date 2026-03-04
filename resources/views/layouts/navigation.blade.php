@@ -17,8 +17,8 @@
     // Abreviação do nome
     $userName = $user->name ?? 'Visitante';
     $nameParts = explode(' ', trim($userName));
-    $displayName = count($nameParts) > 1 
-        ? $nameParts[0] . ' ' . end($nameParts) 
+    $displayName = count($nameParts) > 1
+        ? $nameParts[0] . ' ' . end($nameParts)
         : $userName;
     @endphp
 
@@ -50,7 +50,7 @@
                 {{-- ============ ATENDIMENTOS ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Atendimentos
@@ -62,20 +62,20 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.atendimentos') }}" 
+                        <a href="{{ route('portal.atendimentos') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Meus Atendimentos" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Meus Atendimentos"
                             @click.stop>
                             Meus Atendimentos
                         </a>
 
-                        <a href="{{ route('portal.chamado.novo') }}" 
+                        <a href="{{ route('portal.chamado.novo') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Abrir Novo Chamado" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Abrir Novo Chamado"
                             @click.stop>
                             Abrir Novo Chamado
                         </a>
@@ -86,7 +86,7 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Financeiro
@@ -98,29 +98,29 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.financeiro') }}" 
+                        <a href="{{ route('portal.financeiro') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Dashboard Financeiro" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Dashboard Financeiro"
                             @click.stop>
                             Dashboard Financeiro
                         </a>
 
-                        <a href="{{ route('portal.boletos') }}" 
+                        <a href="{{ route('portal.boletos') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Boletos" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Boletos"
                             @click.stop>
                             Boletos
                         </a>
 
-                        <a href="{{ route('portal.notas') }}" 
+                        <a href="{{ route('portal.notas') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Notas Fiscais" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Notas Fiscais"
                             @click.stop>
                             Notas Fiscais
                         </a>
@@ -128,13 +128,13 @@
                 </div>
                 @endif
 
-                {{-- ============ EQUIPAMENTOS ============ --}}
+                {{-- ============ ATIVOS TÉCNICOS ============ --}}
                 @if($isCliente)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
-                        Equipamentos
+                        Ativos Técnicos
                         <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -143,29 +143,29 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('portal.equipamentos.index') }}" 
+                        <a href="{{ route('portal.equipamentos.index') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Dashboard Equipamentos" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Dashboard Ativos Técnicos"
                             @click.stop>
-                            Dashboard Equipamentos
+                            Dashboard Ativos Técnicos
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.lista') }}" 
+                        <a href="{{ route('portal.equipamentos.lista') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Lista de Equipamentos" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Lista de Ativos Técnicos"
                             @click.stop>
-                            Lista de Equipamentos
+                            Lista de Ativos Técnicos
                         </a>
 
-                        <a href="{{ route('portal.equipamentos.setores') }}" 
+                        <a href="{{ route('portal.equipamentos.setores') }}"
                             class="portal-nav-item"
-                            data-tab-icon="portal" 
-                            data-tab-link 
-                            data-tab-label="Setores" 
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Setores"
                             @click.stop>
                             Setores
                         </a>
@@ -185,7 +185,7 @@
                 {{-- ============ GESTÃO ============ --}}
                 @if($isAdmin || $isComercial || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Gestão
@@ -194,8 +194,8 @@
                         </svg>
                     </button>
 
-                    <div x-show="openMenu" 
-                        @click.outside="openMenu = false" 
+                    <div x-show="openMenu"
+                        @click.outside="openMenu = false"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
@@ -205,11 +205,11 @@
                         class="portal-nav-dropdown p-2 w-64 overflow-y-auto max-h-[85vh] shadow-xl border border-gray-200"
                         x-data="{ activeSection: null }"
                         style="min-width: 16rem; max-width: 20rem; left: 0;">
-                        
+
                         <div class="flex flex-col space-y-1">
                             {{-- SECTION: DASHBOARDS --}}
                             <div>
-                                <button @click="activeSection = (activeSection === 'dashboards' ? null : 'dashboards')" 
+                                <button @click="activeSection = (activeSection === 'dashboards' ? null : 'dashboards')"
                                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                                     <span>Dashboards</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'dashboards' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@
 
                             {{-- SECTION: CADASTROS --}}
                             <div>
-                                <button @click="activeSection = (activeSection === 'cadastros' ? null : 'cadastros')" 
+                                <button @click="activeSection = (activeSection === 'cadastros' ? null : 'cadastros')"
                                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                                     <span>Cadastros</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'cadastros' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +253,7 @@
                                     @endif
                                     <a href="{{ route('assuntos.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Assuntos">Assuntos</a>
                                     @if($isAdmin)
-                                    <a href="{{ route('admin.equipamentos.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Equipamentos">Equipamentos</a>
+                                    <a href="{{ route('admin.equipamentos.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Ativos Técnicos">Ativos Técnicos</a>
                                     @endif
                                     @if($isAdmin || $isFinanceiro)
                                     <a href="{{ route('categorias.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Categorias">Categorias</a>
@@ -263,7 +263,7 @@
 
                             {{-- SECTION: RELATÓRIOS --}}
                             <div>
-                                <button @click="activeSection = (activeSection === 'relatorios' ? null : 'relatorios')" 
+                                <button @click="activeSection = (activeSection === 'relatorios' ? null : 'relatorios')"
                                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                                     <span>Relatórios</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'relatorios' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,7 +284,7 @@
                             {{-- SECTION: RH --}}
                             @if($isRhAdmin)
                             <div>
-                                <button @click="activeSection = (activeSection === 'rh' ? null : 'rh')" 
+                                <button @click="activeSection = (activeSection === 'rh' ? null : 'rh')"
                                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
                                     <span>RH</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'rh' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,7 +307,7 @@
                 {{-- ============ COMERCIAL ============ --}}
                 @if($isAdmin || $isComercial)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Comercial
@@ -319,7 +319,7 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('dashboard.comercial') }}" 
+                        <a href="{{ route('dashboard.comercial') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Dashboard Comercial"
@@ -327,7 +327,7 @@
                             Dashboard Comercial
                         </a>
 
-                        <a href="{{ route('orcamentos.index') }}" 
+                        <a href="{{ route('orcamentos.index') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Orçamentos"
@@ -335,7 +335,7 @@
                             Orçamentos
                         </a>
 
-                        <a href="{{ route('itemcomercial.index') }}" 
+                        <a href="{{ route('itemcomercial.index') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Produtos / Serviços"
@@ -343,7 +343,7 @@
                             Produtos / Serviços
                         </a>
 
-                        <a href="{{ route('pre-clientes.index') }}" 
+                        <a href="{{ route('pre-clientes.index') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Pré-Clientes"
@@ -357,7 +357,7 @@
                 {{-- ============ FINANCEIRO ============ --}}
                 @if($isAdmin || $isFinanceiro)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Financeiro
@@ -369,7 +369,7 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
-                        <a href="{{ route('financeiro.dashboard') }}" 
+                        <a href="{{ route('financeiro.dashboard') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Dashboard Financeiro"
@@ -377,7 +377,7 @@
                             Dashboard Financeiro
                         </a>
 
-                        <a href="{{ route('financeiro.contas-financeiras.index') }}" 
+                        <a href="{{ route('financeiro.contas-financeiras.index') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Bancos"
@@ -385,7 +385,7 @@
                             Bancos
                         </a>
 
-                        <a href="{{ route('financeiro.cobrar') }}" 
+                        <a href="{{ route('financeiro.cobrar') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Cobrar"
@@ -393,7 +393,7 @@
                             Cobrar
                         </a>
 
-                        <a href="{{ route('financeiro.contasareceber') }}" 
+                        <a href="{{ route('financeiro.contasareceber') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Receber"
@@ -401,7 +401,7 @@
                             Receber
                         </a>
 
-                        <a href="{{ route('financeiro.contasapagar') }}" 
+                        <a href="{{ route('financeiro.contasapagar') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Pagar"
@@ -409,7 +409,7 @@
                             Pagar
                         </a>
 
-                        <a href="{{ route('financeiro.movimentacao') }}" 
+                        <a href="{{ route('financeiro.movimentacao') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Extrato"
@@ -423,7 +423,7 @@
                 {{-- ============ SUPORTE ============ --}}
                 @if($isAdmin)
                 <div x-data="{ openMenu: false }" class="relative">
-                    <button @click="openMenu = !openMenu" 
+                    <button @click="openMenu = !openMenu"
                         class="portal-nav-btn"
                         :aria-expanded="openMenu">
                         Suporte
@@ -434,7 +434,7 @@
 
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
-                        <a href="{{ route('atendimentos.index') }}" 
+                        <a href="{{ route('atendimentos.index') }}"
                             class="portal-nav-item"
                             data-tab-link
                             data-tab-label="Atendimentos"
@@ -530,12 +530,12 @@
             </div>
         </details>
 
-        {{-- Equipamentos --}}
+        {{-- Ativos Técnicos --}}
         <details>
-            <summary class="font-semibold text-purple-700">Equipamentos</summary>
+            <summary class="font-semibold text-purple-700">Ativos Técnicos</summary>
             <div class="pl-4 space-y-1">
-                <x-responsive-nav-link :href="route('portal.equipamentos.index')" data-tab-icon="portal">Dashboard Equipamentos</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('portal.equipamentos.lista')" data-tab-icon="portal">Lista de Equipamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.index')" data-tab-icon="portal">Dashboard Ativos Técnicos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('portal.equipamentos.lista')" data-tab-icon="portal">Lista de Ativos Técnicos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('portal.equipamentos.setores')" data-tab-icon="portal">Setores</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('portal.equipamentos.responsaveis')" data-tab-icon="portal">Responsáveis</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('portal.equipamentos.pmoc')" data-tab-icon="portal">Plano de Manutenção (PMOC)</x-responsive-nav-link>
@@ -582,7 +582,7 @@
                         @endif
                         <x-responsive-nav-link :href="route('assuntos.index')" data-tab-icon="assuntos">Assuntos</x-responsive-nav-link>
                         @if($isAdmin)
-                        <x-responsive-nav-link :href="route('admin.equipamentos.index')" data-tab-icon="equipamentos">Equipamentos</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.equipamentos.index')" data-tab-icon="equipamentos">Ativos Técnicos</x-responsive-nav-link>
                         @endif
                         @if($isAdmin || $isFinanceiro)
                         <x-responsive-nav-link :href="route('categorias.index')" data-tab-icon="categorias">Categorias</x-responsive-nav-link>

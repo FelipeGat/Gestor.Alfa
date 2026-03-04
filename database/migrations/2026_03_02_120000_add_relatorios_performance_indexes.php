@@ -77,6 +77,21 @@ return new class extends Migration
 
     private function indiceExiste(string $tabela, string $nomeIndice): bool
     {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $tabelaEscapada = str_replace("'", "''", $tabela);
+            $indices = DB::select("PRAGMA index_list('{$tabelaEscapada}')");
+
+            foreach ($indices as $indice) {
+                if (($indice->name ?? null) === $nomeIndice) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         $resultado = DB::selectOne(
             'SELECT COUNT(*) as total FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?',
             [$tabela, $nomeIndice]

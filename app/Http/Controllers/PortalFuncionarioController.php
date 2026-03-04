@@ -694,10 +694,7 @@ class PortalFuncionarioController extends Controller
 
         $proximoEvento = $this->proximoEventoPonto($registroHoje);
         $ultimoRegistroHoje = $registroHoje ? $this->ultimoRegistroPontoEm($registroHoje) : null;
-        $bloqueioMinutosRestantes = 0;
-        if ($ultimoRegistroHoje && $ultimoRegistroHoje->diffInMinutes(now()) < 15) {
-            $bloqueioMinutosRestantes = max(1, 15 - $ultimoRegistroHoje->diffInMinutes(now()));
-        }
+        $bloqueioMinutosRestantes = $this->calcularBloqueioMinutosRestantes($ultimoRegistroHoje, now());
         $atendimentoHoje = $this->atendimentoDoDiaPortal($funcionarioId, now());
 
         $enderecoAtendimento = null;
@@ -786,10 +783,10 @@ class PortalFuncionarioController extends Controller
             }
 
             $ultimoRegistroEm = $this->ultimoRegistroPontoEm($registro);
-            if ($ultimoRegistroEm && $ultimoRegistroEm->diffInMinutes($momento) < 15) {
+            $bloqueioMinutosRestantes = $this->calcularBloqueioMinutosRestantes($ultimoRegistroEm, $momento);
+            if ($bloqueioMinutosRestantes > 0) {
                 DB::rollBack();
-                $restante = 15 - $ultimoRegistroEm->diffInMinutes($momento);
-                return back()->with('error', 'Aguarde ' . max(1, $restante) . ' minuto(s) para registrar o próximo evento.');
+                return back()->with('error', 'Aguarde ' . $bloqueioMinutosRestantes . ' minuto(s) para registrar o próximo evento.');
             }
 
             $this->preencherGeoDoEvento($registro, $validated['tipo'], (float) $validated['latitude'], (float) $validated['longitude']);
@@ -1165,6 +1162,24 @@ class PortalFuncionarioController extends Controller
         $ultimo = $eventos->map(fn ($evento) => Carbon::parse($evento))->sort()->last();
 
         return $ultimo instanceof Carbon ? $ultimo : Carbon::parse($ultimo);
+    }
+
+    private function calcularBloqueioMinutosRestantes(?Carbon $ultimoRegistro, Carbon $momentoAtual): int
+    {
+        if (!$ultimoRegistro) {
+            return 0;
+        }
+
+        $segundosDecorridos = max(0, (int) $ultimoRegistro->diffInSeconds($momentoAtual));
+        $janelaBloqueioSegundos = 15 * 60;
+
+        if ($segundosDecorridos >= $janelaBloqueioSegundos) {
+            return 0;
+        }
+
+        $segundosRestantes = $janelaBloqueioSegundos - $segundosDecorridos;
+
+        return max(1, (int) ceil($segundosRestantes / 60));
     }
 
     private function preencherGeoDoEvento(RegistroPontoPortal $registro, string $tipo, float $latitude, float $longitude): void

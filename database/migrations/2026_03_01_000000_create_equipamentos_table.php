@@ -27,10 +27,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::table('equipamentos', function (Blueprint $table) {
-            $table->foreign('setor_id')->references('id')->on('equipamento_setores')->onDelete('set null');
-            $table->foreign('responsavel_id')->references('id')->on('equipamento_responsaveis')->onDelete('set null');
-        });
     }
 
     public function down(): void

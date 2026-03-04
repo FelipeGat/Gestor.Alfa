@@ -1,5 +1,5 @@
 {{-- Modal de Cadastro/Edição de Conta Fixa --}}
-<div x-data="{ 
+<div x-data="{
     mostrar: false,
     editando: false,
     contaFixaId: null,
@@ -36,11 +36,11 @@
         });
     },
     selecionarCliente(cliente) {
-        this.form.cliente_id = cliente.id;
+        this.form.cliente_id = String(cliente.id);
         this.form.cliente_nome = cliente.nome || cliente.nome_fantasia || cliente.razao_social;
         this.mostrarSugestoesCliente = false;
     },
-    
+
     async buscarEmpresas() {
         try {
             const response = await fetch('/api/empresas');
@@ -49,7 +49,7 @@
             console.error('Erro ao buscar empresas:', error);
         }
     },
-    
+
     async buscarClientes() {
         try {
             const response = await fetch('/api/clientes');
@@ -58,7 +58,7 @@
             console.error('Erro ao buscar clientes:', error);
         }
     },
-    
+
     async buscarContasFinanceiras() {
         if (!this.form.empresa_id) {
             this.contasFinanceiras = [];
@@ -71,20 +71,21 @@
             console.error('Erro ao buscar contas financeiras:', error);
         }
     },
-    
+
     async carregarContaFixa(id) {
         try {
             const response = await fetch(`/financeiro/contas-fixas/${id}`);
             const data = await response.json();
-            
+
             this.contaFixaId = data.id;
             this.editando = true;
             this.form = {
-                empresa_id: data.empresa_id,
-                cliente_id: data.cliente_id,
+                empresa_id: data.empresa_id ? String(data.empresa_id) : '',
+                cliente_id: data.cliente_id ? String(data.cliente_id) : '',
+                cliente_nome: data.cliente_nome || '',
                 categoria: data.categoria,
                 valor: data.valor,
-                conta_financeira_id: data.conta_financeira_id,
+                conta_financeira_id: data.conta_financeira_id ? String(data.conta_financeira_id) : '',
                 forma_pagamento: data.forma_pagamento,
                 periodicidade: data.periodicidade,
                 data_inicial: data.data_inicial,
@@ -94,7 +95,7 @@
                 observacao: data.observacao,
                 ativo: data.ativo
             };
-            
+
             await this.buscarContasFinanceiras();
             this.mostrar = true;
         } catch (error) {
@@ -102,13 +103,14 @@
             alert('Erro ao carregar dados da conta fixa');
         }
     },
-    
+
     resetForm() {
         this.editando = false;
         this.contaFixaId = null;
         this.form = {
             empresa_id: '',
             cliente_id: '',
+            cliente_nome: '',
             categoria: 'Contratos',
             valor: '',
             conta_financeira_id: '',
@@ -123,20 +125,20 @@
         };
         this.contasFinanceiras = [];
     },
-    
+
     async salvar() {
         try {
-            const url = this.editando 
+            const url = this.editando
                 ? `/financeiro/contas-fixas/${this.contaFixaId}`
                 : '{{ route('financeiro.contas-fixas.store') }}';
-            
+
             const formData = { ...this.form };
-            
+
             // Se estiver editando, adicionar _method para Laravel processar como PUT
             if (this.editando) {
                 formData._method = 'PUT';
             }
-            
+
             const response = await fetch(url, {
                 method: 'POST', // Sempre POST, mas com _method=PUT quando editando
                 headers: {
@@ -145,7 +147,7 @@
                 },
                 body: JSON.stringify(formData)
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
@@ -207,7 +209,7 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                                 <option value="">Selecione...</option>
                                 <template x-for="empresa in empresas" :key="empresa.id">
-                                    <option :value="empresa.id" x-text="empresa.nome_fantasia || empresa.razao_social"></option>
+                                    <option :value="String(empresa.id)" x-text="empresa.nome_fantasia || empresa.razao_social"></option>
                                 </template>
                             </select>
                         </div>
@@ -276,7 +278,7 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed">
                                 <option value="">Selecione uma empresa primeiro...</option>
                                 <template x-for="conta in contasFinanceiras" :key="conta.id">
-                                    <option :value="conta.id" x-text="`${conta.nome} - ${conta.tipo}`"></option>
+                                    <option :value="String(conta.id)" x-text="`${conta.nome} - ${conta.tipo}`"></option>
                                 </template>
                             </select>
                         </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abrir Chamado - {{ $equipamento->nome }}</title>
+    <title>Abrir Chamado - {{ $equipamento->nome }} (Ativo Técnico)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -22,10 +22,10 @@
                     </svg>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900">Abrir Chamado</h1>
-                <p class="text-gray-600 mt-2">Equipamento: <span class="font-semibold">{{ $equipamento->nome }}</span></p>
+                <p class="text-gray-600 mt-2">Ativo Técnico: <span class="font-semibold">{{ $equipamento->nome }}</span></p>
             </div>
 
-            <!-- Info Equipamento -->
+            <!-- Info Ativo Técnico -->
             <div class="bg-gray-50 rounded-xl p-4 mb-6">
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -44,13 +44,13 @@
                 <form action="{{ route('portal.equipamento.chamado.store', $equipamento->qrcode_token) }}" method="POST">
                     @csrf
                     <input type="hidden" name="equipamento_id" value="{{ $equipamento->id }}">
-                    
+
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Descrição do Problema</label>
                             <textarea name="descricao" rows="4" required
                                 class="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                placeholder="Descreva o problema que está ocorrendo com o equipamento..."></textarea>
+                                placeholder="Descreva o problema que está ocorrendo com o ativo técnico..."></textarea>
                         </div>
 
                         <div>
@@ -73,7 +73,7 @@
             @else
                 <div class="text-center py-8">
                     <p class="text-gray-600 mb-4">Você precisa estar logado para abrir um chamado.</p>
-                    <a href="{{ route('login') }}" 
+                    <a href="{{ route('login') }}"
                         class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />

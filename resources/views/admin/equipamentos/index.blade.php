@@ -6,7 +6,7 @@
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
             ['label' => 'Gestão', 'url' => route('gestao.index')],
-            ['label' => 'Equipamentos']
+            ['label' => 'Ativos Técnicos']
         ]" />
     </x-slot>
 
@@ -15,7 +15,7 @@
 
             {{-- ================= FILTROS ================= --}}
             <x-filter :action="route('admin.equipamentos.index')" :show-clear-button="true" class="mb-4">
-                <x-filter-field name="search" label="Pesquisar Equipamento" placeholder="Nome, modelo, fabricante ou nº série" colSpan="lg:col-span-6" />
+                <x-filter-field name="search" label="Pesquisar Ativo Técnico" placeholder="Nome, modelo, fabricante ou nº série" colSpan="lg:col-span-6" />
                 <x-filter-field name="cliente_id" label="Cliente" type="select" placeholder="Todos" colSpan="lg:col-span-3">
                     <option value="">Todos</option>
                     @foreach(\App\Models\Cliente::where('ativo', true)->orderBy('nome')->get() as $cliente)
@@ -34,16 +34,16 @@
             {{-- ================= RESUMO (KPIs) ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #3b82f6; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Equipamentos</p>
-                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalEquipamentos }}</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Ativos Técnicos</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalAtivosTecnicos }}</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #22c55e; border-top: 1px solid #22c55e; border-right: 1px solid #22c55e; border-bottom: 1px solid #22c55e; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide">Equipamentos Ativos</p>
-                    <p class="text-3xl font-bold text-green-600 mt-2">{{ $equipamentosAtivos }}</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos Técnicos Ativos</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ $ativosTecnicosAtivos }}</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg border-l-4" style="border-color: #ef4444; border-top: 1px solid #ef4444; border-right: 1px solid #ef4444; border-bottom: 1px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                    <p class="text-xs text-gray-600 uppercase tracking-wide">Equipamentos Inativos</p>
-                    <p class="text-3xl font-bold text-red-600 mt-2">{{ $equipamentosInativos }}</p>
+                    <p class="text-xs text-gray-600 uppercase tracking-wide">Ativos Técnicos Inativos</p>
+                    <p class="text-3xl font-bold text-red-600 mt-2">{{ $ativosTecnicosInativos }}</p>
                 </div>
             </div>
 
@@ -62,12 +62,12 @@
             @endif
 
             {{-- Tabela --}}
-            @if($equipamentos->count())
+            @if($ativosTecnicos->count())
             @php
                 $columns = [
                     ['label' => 'ID'],
                     ['label' => 'Cliente'],
-                    ['label' => 'Equipamento'],
+                    ['label' => 'Ativo Técnico'],
                     ['label' => 'Modelo'],
                     ['label' => 'Setor'],
                     ['label' => 'Responsável'],
@@ -75,8 +75,8 @@
                     ['label' => 'Ações'],
                 ];
             @endphp
-            <x-table :columns="$columns" :data="$equipamentos" :actions="false">
-                @foreach($equipamentos as $equipamento)
+            <x-table :columns="$columns" :data="$ativosTecnicos" :actions="false">
+                @foreach($ativosTecnicos as $equipamento)
                 <tr class="hover:bg-gray-50 transition">
                     <x-table-cell :nowrap="true">{{ $equipamento->id }}</x-table-cell>
                     <x-table-cell>{{ $equipamento->cliente->nome_exibicao }}</x-table-cell>
@@ -92,7 +92,7 @@
                             :edit-url="route('admin.equipamentos.edit', $equipamento->id)"
                             :delete-url="route('admin.equipamentos.destroy', $equipamento->id)"
                             :show-view="false"
-                            confirm-delete-message="Tem certeza que deseja excluir este equipamento?"
+                            confirm-delete-message="Tem certeza que deseja excluir este ativo técnico?"
                         />
                     </x-table-cell>
                 </tr>
@@ -103,8 +103,8 @@
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mt-4">Nenhum equipamento encontrado</h3>
-                <p class="text-sm text-gray-500 mt-2">Cadastre um novo equipamento para começar</p>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">Nenhum ativo técnico encontrado</h3>
+                <p class="text-sm text-gray-500 mt-2">Cadastre um novo ativo técnico para começar</p>
             </div>
             @endif
 

@@ -63,27 +63,27 @@ class EquipamentoPortalController extends Controller
             return $cliente;
         }
 
-        $equipamentos = $cliente->equipamentos()->with(['setor', 'responsavel'])->get();
+        $ativosTecnicos = $cliente->equipamentos()->with(['setor', 'responsavel'])->get();
 
-        $totalEquipamentos = $equipamentos->count();
+        $totalAtivosTecnicos = $ativosTecnicos->count();
 
-        $manutencoesEmDia = $equipamentos->filter(function ($eq) {
+        $manutencoesEmDia = $ativosTecnicos->filter(function ($eq) {
             $status = $eq->status_manutencao;
 
             return $status['cor'] === 'verde' || $status['cor'] === 'gray';
         })->count();
 
-        $manutencoesProximo = $equipamentos->filter(function ($eq) {
+        $manutencoesProximo = $ativosTecnicos->filter(function ($eq) {
             return $eq->status_manutencao['cor'] === 'amarelo';
         })->count();
 
-        $manutencoesVencidas = $equipamentos->filter(function ($eq) {
+        $manutencoesVencidas = $ativosTecnicos->filter(function ($eq) {
             return $eq->status_manutencao['cor'] === 'vermelho';
         })->count();
 
         return view('portal.equipamentos.index', compact(
             'cliente',
-            'totalEquipamentos',
+            'totalAtivosTecnicos',
             'manutencoesEmDia',
             'manutencoesProximo',
             'manutencoesVencidas'
@@ -99,12 +99,12 @@ class EquipamentoPortalController extends Controller
             return $cliente;
         }
 
-        $equipamentos = $cliente->equipamentos()
+        $ativosTecnicos = $cliente->equipamentos()
             ->with(['setor', 'responsavel'])
             ->orderBy('nome')
             ->get();
 
-        return view('portal.equipamentos.lista', compact('cliente', 'equipamentos'));
+        return view('portal.equipamentos.lista', compact('cliente', 'ativosTecnicos'));
     }
 
     public function setores()
@@ -150,23 +150,27 @@ class EquipamentoPortalController extends Controller
             return $cliente;
         }
 
-        $equipamentos = $cliente->equipamentos()
+        $ativosTecnicos = $cliente->equipamentos()
             ->with(['setor', 'responsavel', 'manutencoes', 'limpezas'])
             ->orderBy('nome')
             ->get();
 
-        return view('portal.equipamentos.pmoc', compact('cliente', 'equipamentos'));
+        return view('portal.equipamentos.pmoc', compact('cliente', 'ativosTecnicos'));
     }
 
     public function show(Equipamento $equipamento)
     {
         $cliente = $this->getCliente();
 
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
         if ($equipamento->cliente_id !== $cliente->id) {
             abort(403);
         }
 
-        $equipamento->load(['setor', 'responsavel', 'manutencoes', 'limpezas']);
+        $equipamento->load(['setor', 'responsavel', 'fornecedor', 'manutencoes', 'limpezas', 'historicoManutencoes', 'documentos']);
 
         return view('portal.equipamentos.show', compact('cliente', 'equipamento'));
     }
@@ -175,20 +179,29 @@ class EquipamentoPortalController extends Controller
     {
         $cliente = $this->getCliente();
 
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
         if ($equipamento->cliente_id !== $cliente->id) {
             abort(403);
         }
 
         $request->validate([
             'data' => 'required|date',
-            'tipo' => 'required|in:preventiva,correctiva,emergencial',
+            'tipo' => 'required|in:preventiva,corretiva,correctiva,preditiva,emergencial',
             'descricao' => 'nullable|string',
             'realizado_por' => 'nullable|string|max:255',
         ]);
 
+        $tipo = $request->tipo;
+        if ($tipo === 'correctiva' || $tipo === 'emergencial') {
+            $tipo = 'corretiva';
+        }
+
         $equipamento->registrarManutencao([
             'data' => $request->data,
-            'tipo' => $request->tipo,
+            'tipo' => $tipo,
             'descricao' => $request->descricao,
             'realizado_por' => $request->realizado_por,
         ]);
@@ -200,6 +213,10 @@ class EquipamentoPortalController extends Controller
     public function registrarLimpeza(Request $request, Equipamento $equipamento)
     {
         $cliente = $this->getCliente();
+
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         if ($equipamento->cliente_id !== $cliente->id) {
             abort(403);
@@ -224,6 +241,10 @@ class EquipamentoPortalController extends Controller
     public function qrcode(Equipamento $equipamento)
     {
         $cliente = $this->getCliente();
+
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
 
         if ($equipamento->cliente_id !== $cliente->id) {
             abort(403);

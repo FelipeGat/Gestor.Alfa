@@ -484,7 +484,7 @@ class PortalController extends Controller
     }
 
     /**
-     * Exibe formulário de chamado via QR Code do equipamento
+     * Exibe formulário de chamado via QR Code do ativo técnico
      */
     public function chamado($token)
     {
@@ -496,7 +496,7 @@ class PortalController extends Controller
     }
 
     /**
-     * Processa formulário de chamado via QR Code do equipamento
+     * Processa formulário de chamado via QR Code do ativo técnico
      */
     public function storeChamadoQrCode(Request $request, $token)
     {

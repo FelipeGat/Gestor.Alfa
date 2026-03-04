@@ -39,7 +39,7 @@
                         </div>
                         <div class="flex-1">
                             <h3 class="font-bold text-gray-900 text-base">{{ $setor->nome }}</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">{{ $setor->equipamentos_count }} {{ $setor->equipamentos_count === 1 ? 'equipamento' : 'equipamentos' }}</p>
+                            <p class="text-sm text-gray-500 mt-0.5">{{ $setor->equipamentos_count }} {{ $setor->equipamentos_count === 1 ? 'ativo técnico' : 'ativos técnicos' }}</p>
                         </div>
                     </div>
                     @if($setor->descricao)

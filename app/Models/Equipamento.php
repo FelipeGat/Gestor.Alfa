@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,10 +17,29 @@ class Equipamento extends Model
         'cliente_id',
         'setor_id',
         'responsavel_id',
+        'fornecedor_id',
         'nome',
         'modelo',
         'fabricante',
         'numero_serie',
+        'codigo_ativo',
+        'tag_patrimonial',
+        'data_aquisicao',
+        'data_instalacao',
+        'vida_util_anos',
+        'capacidade',
+        'potencia',
+        'voltagem',
+        'status_ativo',
+        'criticidade',
+        'possui_garantia',
+        'garantia_inicio',
+        'garantia_fim',
+        'valor_aquisicao',
+        'unidade',
+        'andar',
+        'sala',
+        'localizacao_detalhada',
         'ultima_manutencao',
         'ultima_limpeza',
         'periodicidade_manutencao_meses',
@@ -27,9 +47,20 @@ class Equipamento extends Model
         'observacoes',
         'ativo',
         'qrcode_token',
+        'qr_code',
+        'foto_principal',
     ];
 
     protected $casts = [
+        'data_aquisicao' => 'date',
+        'data_instalacao' => 'date',
+        'vida_util_anos' => 'integer',
+        'status_ativo' => 'string',
+        'criticidade' => 'string',
+        'possui_garantia' => 'boolean',
+        'garantia_inicio' => 'date',
+        'garantia_fim' => 'date',
+        'valor_aquisicao' => 'decimal:2',
         'ultima_manutencao' => 'date',
         'ultima_limpeza' => 'date',
         'periodicidade_manutencao_meses' => 'integer',
@@ -63,6 +94,11 @@ class Equipamento extends Model
         return $this->belongsTo(EquipamentoResponsavel::class, 'responsavel_id');
     }
 
+    public function fornecedor(): BelongsTo
+    {
+        return $this->belongsTo(Fornecedor::class, 'fornecedor_id');
+    }
+
     public function manutencoes(): HasMany
     {
         return $this->hasMany(EquipamentoManutencao::class)->orderByDesc('data');
@@ -71,6 +107,16 @@ class Equipamento extends Model
     public function limpezas(): HasMany
     {
         return $this->hasMany(EquipamentoLimpeza::class)->orderByDesc('data');
+    }
+
+    public function historicoManutencoes(): HasMany
+    {
+        return $this->hasMany(AtivoManutencao::class, 'ativo_id')->orderByDesc('data_manutencao');
+    }
+
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(AtivoDocumento::class, 'ativo_id')->orderByDesc('created_at');
     }
 
     public function getProximaManutencaoAttribute(): ?Carbon
@@ -194,6 +240,25 @@ class Equipamento extends Model
         return route('portal.equipamento.chamado', $this->qrcode_token);
     }
 
+    public function getLocalizacaoResumoAttribute(): string
+    {
+        $partes = array_filter([
+            $this->unidade,
+            $this->setor?->nome,
+            $this->andar ? 'Andar '.$this->andar : null,
+            $this->sala ? 'Sala '.$this->sala : null,
+        ]);
+
+        return ! empty($partes) ? implode(' • ', $partes) : '-';
+    }
+
+    public function getCustoTotalManutencaoAttribute(): string
+    {
+        $total = $this->historicoManutencoes()->sum('custo');
+
+        return number_format((float) $total, 2, '.', '');
+    }
+
     public function registrarManutencao(array $dados): EquipamentoManutencao
     {
         $manutencao = $this->manutencoes()->create([
@@ -225,12 +290,12 @@ class Equipamento extends Model
         return $limpeza;
     }
 
-    public function scopeAtivo($query)
+    public function scopeAtivo(Builder $query): Builder
     {
         return $query->where('ativo', true);
     }
 
-    public function scopeCliente($query, int $clienteId)
+    public function scopeCliente(Builder $query, int $clienteId): Builder
     {
         return $query->where('cliente_id', $clienteId);
     }

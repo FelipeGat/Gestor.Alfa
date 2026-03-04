@@ -41,7 +41,7 @@
                             @if($responsavel->cargo)
                             <p class="text-sm text-gray-500 mt-0.5">{{ $responsavel->cargo }}</p>
                             @endif
-                            <p class="text-sm text-gray-400 mt-1">{{ $responsavel->equipamentos_count }} {{ $responsavel->equipamentos_count === 1 ? 'equipamento' : 'equipamentos' }}</p>
+                            <p class="text-sm text-gray-400 mt-1">{{ $responsavel->equipamentos_count }} {{ $responsavel->equipamentos_count === 1 ? 'ativo técnico' : 'ativos técnicos' }}</p>
                         </div>
                     </div>
 

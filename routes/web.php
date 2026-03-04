@@ -307,7 +307,7 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     // Assuntos
     Route::resource('assuntos', AssuntoController::class);
 
-    // Equipamentos
+    // Ativos Técnicos
     Route::prefix('equipamentos')->name('admin.equipamentos.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\EquipamentoController::class, 'index'])->name('index');
         Route::get('/criar', [\App\Http\Controllers\Admin\EquipamentoController::class, 'create'])->name('create');
@@ -320,6 +320,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         Route::get('/api/cliente/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListByCliente'])->name('api.cliente');
         Route::get('/api/setores/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListSetores'])->name('api.setores');
         Route::get('/api/responsaveis/{clienteId}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'apiListResponsaveis'])->name('api.responsaveis');
+        Route::post('/{equipamento}/historico-manutencao', [\App\Http\Controllers\Admin\EquipamentoController::class, 'adicionarManutencao'])->name('historico.store');
+        Route::post('/{equipamento}/documentos', [\App\Http\Controllers\Admin\EquipamentoController::class, 'uploadDocumento'])->name('documentos.store');
+        Route::get('/{equipamento}/documentos/{documento}/download', [\App\Http\Controllers\Admin\EquipamentoController::class, 'downloadDocumento'])->name('documentos.download');
+        Route::delete('/{equipamento}/documentos/{documento}', [\App\Http\Controllers\Admin\EquipamentoController::class, 'excluirDocumento'])->name('documentos.destroy');
     });
 
     // Categorias Financeiras
@@ -668,7 +672,7 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::post('/portal/trocar-unidade', [PortalController::class, 'trocarUnidade'])
         ->name('portal.trocar-unidade');
 
-    // Equipamentos
+    // Ativos Técnicos
     Route::get('/portal/equipamentos', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'index'])
         ->name('portal.equipamentos.index');
 
@@ -687,6 +691,12 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal/equipamentos/{equipamento}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'show'])
         ->name('portal.equipamentos.show');
 
+    Route::get('/portal/ativos', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'lista'])
+        ->name('portal.ativos.index');
+
+    Route::get('/portal/ativos/{equipamento}', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'show'])
+        ->name('portal.ativos.show');
+
     Route::post('/portal/equipamentos/{equipamento}/manutencao', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'registrarManutencao'])
         ->name('portal.equipamentos.manutencao.store');
 
@@ -696,7 +706,7 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::get('/portal/equipamentos/{equipamento}/qrcode', [\App\Http\Controllers\Portal\EquipamentoPortalController::class, 'qrcode'])
         ->name('portal.equipamentos.qrcode');
 
-    // Chamado via QR Code do equipamento (acessível sem autenticação via token)
+    // Chamado via QR Code do ativo técnico (acessível sem autenticação via token)
     Route::get('/portal/equipamento/chamado/{token}', [\App\Http\Controllers\PortalController::class, 'chamado'])
         ->name('portal.equipamento.chamado');
 

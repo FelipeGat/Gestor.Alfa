@@ -86,8 +86,8 @@
                 </p>
             </a>
 
-            <!-- Card Equipamentos -->
-            <a href="{{ route('portal.equipamentos.index') }}" class="portal-nav-card">
+            <!-- Card Ativos Técnicos -->
+            <a href="{{ route('portal.ativos.index') }}" class="portal-nav-card">
                 <div class="portal-nav-card-icon-wrapper">
                     <div class="portal-nav-card-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,10 +97,10 @@
                     </div>
                 </div>
                 <h3 class="portal-nav-card-title">
-                    Meus Equipamentos
+                    Meus Ativos Técnicos
                 </h3>
                 <p class="portal-nav-card-description">
-                    Gerencie equipamentos, manutenções, limpezas e abra chamados via QRCode.
+                    Gerencie ativos técnicos, manutenções, limpezas e abra chamados via QRCode.
                 </p>
             </a>
 
@@ -341,12 +341,12 @@
 
     <script>
         // Dados para os gráficos
-        const atendimentosAbertos = {{ rand(2, 8) }};
-        const atendimentosEmExecucao = {{ rand(3, 12) }};
-        const atendimentosFinalizados = {{ rand(25, 60) }};
+        const atendimentosAbertos = {{ (int) $totalAtendimentosAbertos }};
+        const atendimentosEmExecucao = {{ (int) $totalAtendimentosExecucao }};
+        const atendimentosFinalizados = {{ (int) $totalAtendimentosFinalizados }};
 
-        const nfTotal = {{ rand(10, 25) }};
-        const boletosTotal = {{ rand(15, 35) }};
+        const nfTotal = {{ (int) $totalNotas }};
+        const boletosTotal = {{ (int) $totalBoletos }};
 
         // Gráfico 1: Distribuição de Atendimentos
         const ctxAtendimentos = document.getElementById('chartAtendimentos').getContext('2d');

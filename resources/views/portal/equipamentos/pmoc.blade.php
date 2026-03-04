@@ -10,7 +10,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('portal.equipamentos.index') }}" 
+                <a href="{{ route('portal.equipamentos.index') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -37,14 +37,14 @@
                 </div>
             </div>
 
-            @if($equipamentos->count() > 0)
+            @if($ativosTecnicos->count() > 0)
                 <!-- Tabela PMOC -->
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Equipamento</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Ativo Técnico</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Setor</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Responsável</th>
                                     <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Período Manut.</th>
@@ -57,7 +57,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                @foreach($equipamentos as $equipamento)
+                                @foreach($ativosTecnicos as $equipamento)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4">
                                         <div>
@@ -110,25 +110,25 @@
                 <!-- Resumo -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                        <p class="text-sm font-semibold text-blue-800">Total Equipamentos</p>
-                        <p class="text-3xl font-bold text-blue-600 mt-2">{{ $equipamentos->count() }}</p>
+                        <p class="text-sm font-semibold text-blue-800">Total de Ativos Técnicos</p>
+                        <p class="text-3xl font-bold text-blue-600 mt-2">{{ $ativosTecnicos->count() }}</p>
                     </div>
                     <div class="bg-green-50 rounded-xl p-6 border border-green-200">
                         <p class="text-sm font-semibold text-green-800">Manutenções em Dia</p>
                         <p class="text-3xl font-bold text-green-600 mt-2">
-                            {{ $equipamentos->filter(fn($e) => $e->status_manutencao['cor'] === 'verde' || $e->status_manutencao['cor'] === 'gray')->count() }}
+                            {{ $ativosTecnicos->filter(fn($e) => $e->status_manutencao['cor'] === 'verde' || $e->status_manutencao['cor'] === 'gray')->count() }}
                         </p>
                     </div>
                     <div class="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
                         <p class="text-sm font-semibold text-yellow-800">Próximas (30 dias)</p>
                         <p class="text-3xl font-bold text-yellow-600 mt-2">
-                            {{ $equipamentos->filter(fn($e) => $e->status_manutencao['cor'] === 'amarelo')->count() }}
+                            {{ $ativosTecnicos->filter(fn($e) => $e->status_manutencao['cor'] === 'amarelo')->count() }}
                         </p>
                     </div>
                     <div class="bg-red-50 rounded-xl p-6 border border-red-200">
                         <p class="text-sm font-semibold text-red-800">Vencidas</p>
                         <p class="text-3xl font-bold text-red-600 mt-2">
-                            {{ $equipamentos->filter(fn($e) => $e->status_manutencao['cor'] === 'vermelho')->count() }}
+                            {{ $ativosTecnicos->filter(fn($e) => $e->status_manutencao['cor'] === 'vermelho')->count() }}
                         </p>
                     </div>
                 </div>
@@ -137,8 +137,8 @@
                     <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <p class="text-gray-500 text-lg font-medium">Nenhum equipamento cadastrado.</p>
-                    <p class="text-gray-400 text-sm mt-2">O relatório PMOC será gerado quando houver equipamentos cadastrados.</p>
+                    <p class="text-gray-500 text-lg font-medium">Nenhum ativo técnico cadastrado.</p>
+                    <p class="text-gray-400 text-sm mt-2">O relatório PMOC será gerado quando houver ativos técnicos cadastrados.</p>
                 </div>
             @endif
 

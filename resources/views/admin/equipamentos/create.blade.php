@@ -7,12 +7,12 @@
     <x-slot name="breadcrumb">
         <x-breadcrumb-tabs :items="[
             ['label' => 'Gestão', 'url' => route('gestao.index')],
-            ['label' => 'Equipamentos', 'url' => route('admin.equipamentos.index')],
-            ['label' => 'Novo Equipamento']
+            ['label' => 'Ativos Técnicos', 'url' => route('admin.equipamentos.index')],
+            ['label' => 'Novo Ativo Técnico']
         ]" />
     </x-slot>
 
-    <x-page-title title="Novo Equipamento" :route="route('admin.equipamentos.index')" />
+    <x-page-title title="Novo Ativo Técnico" :route="route('admin.equipamentos.index')" />
 
     <div class="pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +29,7 @@
             </div>
             @endif
 
-            <form action="{{ route('admin.equipamentos.store') }}" method="POST" class="space-y-6">
+            <form action="{{ route('admin.equipamentos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" x-data="ativoFormCreate()">
                 @csrf
 
                 {{-- SEÇÃO 1: DADOS BÁSICOS --}}
@@ -39,17 +39,19 @@
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <x-form-input name="nome" label="Nome do Equipamento *" required placeholder="Ex: Ar Condicionado Split" />
+                        <x-form-input name="nome" label="Nome do Ativo Técnico *" required placeholder="Ex: Ar Condicionado Split" />
                         <x-form-input name="modelo" label="Modelo" placeholder="Ex: Hi Wall 12000 BTUs" />
                         <x-form-input name="fabricante" label="Fabricante" placeholder="Ex: Samsung" />
                         <x-form-input name="numero_serie" label="Número de Série" placeholder="Ex: 123456789" />
+                        <x-form-input name="codigo_ativo" label="Código do Ativo" placeholder="Ex: AC-001" />
+                        <x-form-input name="tag_patrimonial" label="TAG Patrimonial" placeholder="Ex: TAG-2026-001" />
                     </div>
                 </div>
 
-                {{-- SEÇÃO 2: VINCULAÇÃO --}}
+                {{-- SEÇÃO 2: LOCALIZAÇÃO --}}
                 <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Vinculação
+                        Localização
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -64,16 +66,20 @@
                             </x-form-select>
                         </div>
 
+                        <x-form-input name="unidade" label="Unidade" placeholder="Ex: Matriz" />
+                        <x-form-input name="andar" label="Andar" placeholder="Ex: 2" />
+                        <x-form-input name="sala" label="Sala" placeholder="Ex: Reunião" />
+
                         {{-- Setor com Autocomplete --}}
                         <div x-data="autocompleteSetor" x-init="initAutocomplete()">
                             <label for="setor_nome" class="block text-sm font-medium text-gray-700 mb-1">
                                 Setor
                             </label>
                             <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="setor_nome" 
-                                    name="setor_nome" 
+                                <input
+                                    type="text"
+                                    id="setor_nome"
+                                    name="setor_nome"
                                     value="{{ old('setor_nome') }}"
                                     placeholder="Ex: RH, TI, Produção..."
                                     x-model="search"
@@ -83,16 +89,16 @@
                                     autocomplete="off"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
                                 />
-                                
+
                                 {{-- Dropdown de sugestões --}}
-                                <div 
-                                    x-show="mostrarDropdown && sugestoes.length > 0" 
+                                <div
+                                    x-show="mostrarDropdown && sugestoes.length > 0"
                                     x-cloak
                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
                                     @click.outside="mostrarDropdown = false"
                                 >
                                     <template x-for="setor in sugestoes" :key="setor.id">
-                                        <div 
+                                        <div
                                             class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
                                             x-text="setor.nome"
                                             @click="selecionar(setor.nome)"
@@ -102,7 +108,7 @@
                                         Digite para criar um novo setor
                                     </div>
                                 </div>
-                                
+
                                 {{-- Loading --}}
                                 <div x-show="carregando" class="absolute right-3 top-9" x-cloak>
                                     <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -119,10 +125,10 @@
                                 Responsável
                             </label>
                             <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="responsavel_nome" 
-                                    name="responsavel_nome" 
+                                <input
+                                    type="text"
+                                    id="responsavel_nome"
+                                    name="responsavel_nome"
                                     value="{{ old('responsavel_nome') }}"
                                     placeholder="Ex: João Silva"
                                     x-model="search"
@@ -132,16 +138,16 @@
                                     autocomplete="off"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
                                 />
-                                
+
                                 {{-- Dropdown de sugestões --}}
-                                <div 
-                                    x-show="mostrarDropdown && sugestoes.length > 0" 
+                                <div
+                                    x-show="mostrarDropdown && sugestoes.length > 0"
                                     x-cloak
                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
                                     @click.outside="mostrarDropdown = false"
                                 >
                                     <template x-for="resp in sugestoes" :key="resp.id">
-                                        <div 
+                                        <div
                                             class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
                                             @click="selecionar(resp.nome)"
                                         >
@@ -153,7 +159,7 @@
                                         Digite para criar um novo responsável
                                     </div>
                                 </div>
-                                
+
                                 {{-- Loading --}}
                                 <div x-show="carregando" class="absolute right-3 top-9" x-cloak>
                                     <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -163,56 +169,145 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="localizacao_detalhada" class="block text-sm font-medium text-gray-700 mb-1">Localização Detalhada</label>
+                            <textarea id="localizacao_detalhada" name="localizacao_detalhada" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">{{ old('localizacao_detalhada') }}</textarea>
+                        </div>
                     </div>
                 </div>
 
-                {{-- SEÇÃO 3: MANUTENÇÃO E LIMPEZA --}}
+                {{-- SEÇÃO 3: ESPECIFICAÇÕES TÉCNICAS --}}
                 <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Manutenção e Limpeza
+                        Especificações Técnicas
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <x-form-input name="capacidade" label="Capacidade" placeholder="Ex: 12000 BTU" />
+                        <x-form-input name="potencia" label="Potência" placeholder="Ex: 1.2 kW" />
+                        <x-form-input name="voltagem" label="Voltagem" placeholder="Ex: 220V" />
+                        <x-form-input name="vida_util_anos" label="Vida útil estimada (anos)" type="number" min="1" max="100" />
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 4: AQUISIÇÃO --}}
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Aquisição
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <x-form-input name="data_aquisicao" label="Data de aquisição" type="date" />
+                        <x-form-input name="data_instalacao" label="Data de instalação" type="date" />
+                        <x-form-input name="valor_aquisicao" label="Valor de aquisição" type="number" step="0.01" min="0" />
+                        <x-form-select name="fornecedor_id" label="Fornecedor" placeholder="Selecione um fornecedor">
+                            <option value="">Selecione um fornecedor</option>
+                            @foreach($fornecedores as $fornecedor)
+                                <option value="{{ $fornecedor->id }}" @selected(old('fornecedor_id') == $fornecedor->id)>
+                                    {{ $fornecedor->nome_fantasia ?: ($fornecedor->razao_social ?: $fornecedor->nome) }}
+                                </option>
+                            @endforeach
+                        </x-form-select>
+
+                        <div class="sm:col-span-2 flex items-center gap-3">
+                            <input type="checkbox" id="possui_garantia" name="possui_garantia" value="1" @checked(old('possui_garantia')) @change="toggleGarantia()" class="rounded border-gray-300 text-[#3f9cae] shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
+                            <label for="possui_garantia" class="text-sm font-medium text-gray-700">Possui garantia</label>
+                        </div>
+
+                        <x-form-input name="garantia_inicio" label="Garantia início" type="date" />
+                        <x-form-input name="garantia_fim" label="Garantia fim" type="date" />
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 5: MANUTENÇÃO --}}
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                        Manutenção
                     </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <x-form-input name="ultima_manutencao" label="Última Manutenção" type="date" />
                         <x-form-input name="ultima_limpeza" label="Última Limpeza" type="date" />
-                        <x-form-input name="periodicidade_manutencao_meses" label="Periodicidade Manutenção (meses)" type="number" min="1" max="120" value="6" />
+                        <x-form-input name="periodicidade_manutencao_meses" label="Periodicidade Manutenção (meses)" type="number" min="1" max="120" value="6" x-on:input="calcularProximaManutencao()" />
                         <x-form-input name="periodicidade_limpeza_meses" label="Periodicidade Limpeza (meses)" type="number" min="1" max="120" value="1" />
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Próxima manutenção (calculada)</label>
+                            <input type="text" id="proxima_manutencao_preview" readonly class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm" value="-">
+                        </div>
                     </div>
                 </div>
 
-                {{-- SEÇÃO 4: OBSERVAÇÕES E STATUS --}}
+                {{-- SEÇÃO 6: STATUS --}}
                 <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                        Observações e Status
+                        Status
                     </h3>
 
-                    <div class="space-y-4">
-                        <div>
-                            <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">
-                                Observações
-                            </label>
-                            <textarea 
-                                id="observacoes" 
-                                name="observacoes" 
-                                rows="4" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
-                            >{{ old('observacoes') }}</textarea>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <x-form-select name="status_ativo" label="Status do ativo" placeholder="Selecione um status">
+                            <option value="">Selecione</option>
+                            <option value="operando" @selected(old('status_ativo') === 'operando')>Operando</option>
+                            <option value="em_manutencao" @selected(old('status_ativo') === 'em_manutencao')>Em manutenção</option>
+                            <option value="inativo" @selected(old('status_ativo') === 'inativo')>Inativo</option>
+                            <option value="aguardando_peca" @selected(old('status_ativo') === 'aguardando_peca')>Aguardando peça</option>
+                            <option value="descartado" @selected(old('status_ativo') === 'descartado')>Descartado</option>
+                            <option value="substituido" @selected(old('status_ativo') === 'substituido')>Substituído</option>
+                        </x-form-select>
+
+                        <x-form-select name="criticidade" label="Criticidade" placeholder="Selecione a criticidade">
+                            <option value="">Selecione</option>
+                            <option value="baixa" @selected(old('criticidade') === 'baixa')>Baixa</option>
+                            <option value="media" @selected(old('criticidade') === 'media')>Média</option>
+                            <option value="alta" @selected(old('criticidade') === 'alta')>Alta</option>
+                            <option value="critica" @selected(old('criticidade') === 'critica')>Crítica</option>
+                        </x-form-select>
 
                         <div class="flex items-center gap-3">
-                            <input 
-                                type="checkbox" 
-                                id="ativo" 
-                                name="ativo" 
-                                value="1" 
-                                @checked(old('ativo', true)) 
+                            <input
+                                type="checkbox"
+                                id="ativo"
+                                name="ativo"
+                                value="1"
+                                @checked(old('ativo', true))
                                 class="rounded border-gray-300 text-[#3f9cae] shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]"
                             >
                             <label for="ativo" class="text-sm font-medium text-gray-700">
-                                Equipamento ativo
+                                Ativo técnico ativo
                             </label>
                         </div>
                     </div>
+                </div>
+
+                {{-- SEÇÃO 7: FINANCEIRO --}}
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Financeiro</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor aquisição</label>
+                            <input type="text" readonly value="Informado na seção Aquisição" class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Custo total de manutenção (calculado)</label>
+                            <input type="text" readonly value="R$ 0,00" class="w-full rounded-md bg-gray-100 border-gray-300 shadow-sm">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 8: FOTO PRINCIPAL --}}
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Fotos</h3>
+                    <div>
+                        <label for="foto_principal" class="block text-sm font-medium text-gray-700 mb-1">Foto principal do ativo</label>
+                        <input type="file" id="foto_principal" name="foto_principal" accept="image/*" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">
+                    </div>
+                </div>
+
+                {{-- SEÇÃO 9: OBSERVAÇÕES --}}
+                <div class="bg-white rounded-lg p-6 sm:p-8" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Observações</h3>
+                    <textarea id="observacoes" name="observacoes" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]">{{ old('observacoes') }}</textarea>
                 </div>
 
                 {{-- AÇÕES --}}
@@ -238,6 +333,38 @@
     </div>
 
     <script>
+        function ativoFormCreate() {
+            return {
+                calcularProximaManutencao() {
+                    const ultima = document.getElementById('ultima_manutencao')?.value;
+                    const periodicidade = parseInt(document.getElementById('periodicidade_manutencao_meses')?.value || '0', 10);
+                    const target = document.getElementById('proxima_manutencao_preview');
+
+                    if (!ultima || !periodicidade || periodicidade < 1) {
+                        target.value = '-';
+                        return;
+                    }
+
+                    const data = new Date(ultima + 'T00:00:00');
+                    data.setMonth(data.getMonth() + periodicidade);
+                    target.value = data.toLocaleDateString('pt-BR');
+                },
+
+                toggleGarantia() {
+                    const possui = document.getElementById('possui_garantia')?.checked;
+                    const inicio = document.getElementById('garantia_inicio');
+                    const fim = document.getElementById('garantia_fim');
+
+                    if (!inicio || !fim) {
+                        return;
+                    }
+
+                    inicio.disabled = !possui;
+                    fim.disabled = !possui;
+                }
+            }
+        }
+
         // Função auxiliar para obter o cliente selecionado
         function getClienteId() {
             const select = document.getElementById('cliente_id');
@@ -264,7 +391,7 @@
 
                 buscar() {
                     const clienteId = getClienteId();
-                    
+
                     if (!clienteId) {
                         this.sugestoes = [];
                         this.mostrarDropdown = false;
@@ -272,7 +399,7 @@
                     }
 
                     clearTimeout(this.debounceTimer);
-                    
+
                     if (this.search.length < 1) {
                         this.sugestoes = [];
                         this.mostrarDropdown = false;
@@ -286,7 +413,7 @@
                             .then(response => response.json())
                             .then(data => {
                                 const termo = this.search.toLowerCase();
-                                this.sugestoes = data.filter(s => 
+                                this.sugestoes = data.filter(s =>
                                     s.nome.toLowerCase().includes(termo)
                                 );
                                 this.mostrarDropdown = this.sugestoes.length > 0;
@@ -339,7 +466,7 @@
 
                 buscar() {
                     const clienteId = getClienteId();
-                    
+
                     if (!clienteId) {
                         this.sugestoes = [];
                         this.mostrarDropdown = false;
@@ -347,7 +474,7 @@
                     }
 
                     clearTimeout(this.debounceTimer);
-                    
+
                     if (this.search.length < 1) {
                         this.sugestoes = [];
                         this.mostrarDropdown = false;
@@ -361,7 +488,7 @@
                             .then(response => response.json())
                             .then(data => {
                                 const termo = this.search.toLowerCase();
-                                this.sugestoes = data.filter(r => 
+                                this.sugestoes = data.filter(r =>
                                     r.nome.toLowerCase().includes(termo)
                                 );
                                 this.mostrarDropdown = this.sugestoes.length > 0;
@@ -393,5 +520,48 @@
                 }
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ultima = document.getElementById('ultima_manutencao');
+            const periodicidade = document.getElementById('periodicidade_manutencao_meses');
+            const possuiGarantia = document.getElementById('possui_garantia');
+            const inicioGarantia = document.getElementById('garantia_inicio');
+            const fimGarantia = document.getElementById('garantia_fim');
+
+            const atualizarProxima = () => {
+                const target = document.getElementById('proxima_manutencao_preview');
+                if (!target || !ultima || !periodicidade || !ultima.value || !periodicidade.value) {
+                    if (target) {
+                        target.value = '-';
+                    }
+                    return;
+                }
+
+                const base = new Date(ultima.value + 'T00:00:00');
+                base.setMonth(base.getMonth() + parseInt(periodicidade.value, 10));
+                target.value = base.toLocaleDateString('pt-BR');
+            };
+
+            const atualizarGarantia = () => {
+                const habilitar = !!possuiGarantia?.checked;
+                if (inicioGarantia) {
+                    inicioGarantia.disabled = !habilitar;
+                }
+                if (fimGarantia) {
+                    fimGarantia.disabled = !habilitar;
+                }
+            };
+
+            if (ultima && periodicidade) {
+                ultima.addEventListener('change', atualizarProxima);
+                periodicidade.addEventListener('change', atualizarProxima);
+                atualizarProxima();
+            }
+
+            if (possuiGarantia) {
+                possuiGarantia.addEventListener('change', atualizarGarantia);
+                atualizarGarantia();
+            }
+        });
     </script>
 </x-app-layout>
