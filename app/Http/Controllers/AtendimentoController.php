@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Atendimento;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\Funcionario;
 use App\Models\Assunto;
 use App\Models\AtendimentoStatusHistorico;
+use App\Models\User;
 use App\Services\AgendaTecnicaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AtendimentoController extends Controller
 {
@@ -74,6 +77,14 @@ class AtendimentoController extends Controller
             $query->where('funcionario_id', $request->tecnico_id);
         }
 
+        // TRIAGEM PENDENTE (sem empresa ou sem técnico)
+        if ($request->boolean('triagem_pendente')) {
+            $query->where(function ($q) {
+                $q->whereNull('empresa_id')
+                    ->orWhereNull('funcionario_id');
+            });
+        }
+
         // FILTRO DE PERÍODO PERSONALIZADO
         if ($request->filled('data_inicio') && $request->filled('data_fim')) {
             $query->whereBetween('data_atendimento', [
@@ -129,7 +140,8 @@ class AtendimentoController extends Controller
     public function edit(Atendimento $atendimento)
     {
         $atendimento->load([
-            'andamentos.user'
+            'andamentos.user',
+            'andamentos.fotos'
         ]);
 
         return view('atendimentos.edit', [
@@ -248,9 +260,43 @@ class AtendimentoController extends Controller
     public function atualizarCampo(Request $request, Atendimento $atendimento)
     {
         $request->validate([
-            'campo' => 'required|in:status,prioridade,funcionario_id',
+            'campo' => 'required|in:status,prioridade,funcionario_id,empresa_id,data_inicio_agendamento',
             'valor' => 'nullable'
         ]);
+
+        if ($request->campo === 'empresa_id' && filled($request->valor)) {
+            $request->validate([
+                'valor' => 'exists:empresas,id',
+            ]);
+        }
+
+        if ($request->campo === 'funcionario_id' && filled($request->valor)) {
+            $request->validate([
+                'valor' => 'exists:funcionarios,id',
+            ]);
+        }
+
+        if ($request->campo === 'data_inicio_agendamento') {
+            if (! filled($request->valor)) {
+                $atendimento->update([
+                    'data_inicio_agendamento' => null,
+                    'data_fim_agendamento' => null,
+                ]);
+
+                return response()->json(['success' => true]);
+            }
+
+            $request->validate([
+                'valor' => 'date_format:Y-m-d',
+            ]);
+
+            $dataAgendada = Carbon::createFromFormat('Y-m-d', (string) $request->valor)->startOfDay();
+            $atendimento->update([
+                'data_inicio_agendamento' => $dataAgendada,
+            ]);
+
+            return response()->json(['success' => true]);
+        }
 
         // STATUS → HISTÓRICO
         if ($request->campo === 'status') {
@@ -276,7 +322,7 @@ class AtendimentoController extends Controller
             return response()->json(['success' => true]);
         }
 
-        // PRIORIDADE ou TÉCNICO
+        // PRIORIDADE, TÉCNICO OU EMPRESA
         $atendimento->update([
             $request->campo => $request->valor
         ]);

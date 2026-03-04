@@ -30,10 +30,10 @@
         /* Estilo para quando NENHUMA prioridade específica está selecionada (Padrão: Todas) */
         .btn-prioridade-alta { border-color: #fee2e2; color: #dc2626; }
         .btn-prioridade-alta.active { background: #dc2626; color: #fff; border-color: #dc2626; }
-        
+
         .btn-prioridade-media { border-color: #ffedd5; color: #f59e42; }
         .btn-prioridade-media.active { background: #f59e42; color: #fff; border-color: #f59e42; }
-        
+
         .btn-prioridade-baixa { border-color: #dcfce7; color: #16a34a; }
         .btn-prioridade-baixa.active { background: #16a34a; color: #fff; border-color: #16a34a; }
 
@@ -48,6 +48,21 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .table-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            white-space: nowrap;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            padding-right: 0.75rem;
+            padding-bottom: 0.25rem;
+        }
+        .table-tight th:last-child,
+        .table-tight td:last-child {
+            padding-right: 1.25rem !important;
         }
     </style>
     @endpush
@@ -67,6 +82,10 @@
             {{-- ================= FILTROS ================= --}}
             <div class="filters-card">
                 <form method="GET" id="filterForm">
+                    @if(request('triagem_pendente'))
+                        <input type="hidden" name="triagem_pendente" value="1">
+                    @endif
+
                     {{-- PRIMEIRA LINHA: BUSCA, EMPRESA, STATUS, TÉCNICO --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div class="filter-group relative">
@@ -152,12 +171,17 @@
                         <div class="filter-group">
                             <label class="block text-sm font-medium text-gray-700 mb-2 lg:text-right">Prioridade</label>
                             <div class="flex flex-wrap gap-2 lg:justify-end">
+                                <a href="{{ route('atendimentos.index', array_merge(request()->except('triagem_pendente'), ['triagem_pendente' => 1])) }}"
+                                    class="quick-filter-btn {{ request('triagem_pendente') ? 'bg-amber-600 text-white border-amber-600' : 'border-amber-200 text-amber-700' }}">Pendentes Triagem</a>
                                 <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'alta'])) }}"
                                     class="quick-filter-btn btn-prioridade-alta {{ request('prioridade') === 'alta' ? 'active' : '' }}">Alta</a>
                                 <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'media'])) }}"
                                     class="quick-filter-btn btn-prioridade-media {{ request('prioridade') === 'media' ? 'active' : '' }}">Média</a>
                                 <a href="{{ route('atendimentos.index', array_merge(request()->except('prioridade'), ['prioridade' => 'baixa'])) }}"
                                     class="quick-filter-btn btn-prioridade-baixa {{ request('prioridade') === 'baixa' ? 'active' : '' }}">Baixa</a>
+                                @if(request('triagem_pendente'))
+                                    <a href="{{ route('atendimentos.index', request()->except('triagem_pendente')) }}" class="inline-flex items-center px-2 py-1 border border-gray-300 text-gray-400 rounded-lg text-xs ml-2 bg-white hover:bg-gray-50 transition">Limpar Triagem</a>
+                                @endif
                                 @if(request('prioridade'))
                                     <a href="{{ route('atendimentos.index', request()->except('prioridade')) }}" class="inline-flex items-center px-2 py-1 border border-gray-300 text-gray-400 rounded-lg text-xs ml-2 bg-white hover:bg-gray-50 transition">Limpar</a>
                                 @endif
@@ -174,7 +198,7 @@
                                 Limpar
                             </a>
                         </div>
-                        
+
                         <a href="{{ route('atendimentos.create') }}" class="inline-flex items-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md text-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             Novo Atendimento
@@ -185,25 +209,46 @@
 
             {{-- ================= TABELA (DESKTOP) ================= --}}
         @if($atendimentos->count() > 0)
+        @php
+            $pendentesEmpresa = $atendimentos->getCollection()->whereNull('empresa_id')->count();
+            $pendentesTecnico = $atendimentos->getCollection()->whereNull('funcionario_id')->count();
+        @endphp
+
+        @if($pendentesEmpresa > 0 || $pendentesTecnico > 0)
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <span class="font-semibold">Triagem pendente nesta página:</span>
+            <span class="ml-2">Sem empresa: <strong>{{ $pendentesEmpresa }}</strong></span>
+            <span class="ml-4">Sem técnico: <strong>{{ $pendentesTecnico }}</strong></span>
+        </div>
+        @endif
+
         <div class="table-card">
             <div class="table-wrapper">
-                <table class="table">
+                <table class="table table-tight" style="min-width: 1320px;">
                     <thead>
                         <tr>
                             <th style="width: 60px;">Nº</th>
                             <th>Solicitante</th>
                             <th>Assunto</th>
-                            <th>Empresa</th>
-                            <th>Técnico</th>
+                            <th style="width: 190px;">Empresa</th>
+                            <th style="width: 190px;">Técnico</th>
                             <th style="width: 100px; text-align: center;">Prioridade</th>
                             <th style="width: 120px; text-align: center;">Status</th>
                             <th style="width: 100px;">Data Criação</th>
-                            <th style="width: 110px;">Data Agendamento</th>
-                            <th style="width: 100px; text-align: center;">Ações</th>
+                            <th style="width: 160px;">Data Agendamento</th>
+                            <th style="width: 190px; text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($atendimentos as $atendimento)
+                        @php
+                            $assuntoExibicao = $atendimento->assunto->nome
+                                ?? (str_starts_with((string) $atendimento->descricao, 'Assunto:')
+                                    ? trim((string) \Illuminate\Support\Str::of($atendimento->descricao)->before("\n"))->replace('Assunto:', '')
+                                    : '—');
+                            $semEmpresa = empty($atendimento->empresa_id);
+                            $semTecnico = empty($atendimento->funcionario_id);
+                        @endphp
                         <tr>
                             {{-- Número --}}
                             <td>
@@ -228,15 +273,26 @@
                             </td>
 
                             {{-- Assunto --}}
-                            <td>{{ optional($atendimento->assunto)->nome ?? '—' }}</td>
+                            <td>{{ $assuntoExibicao }}</td>
 
                             {{-- Empresa --}}
-                            <td>{{ optional($atendimento->empresa)->nome_fantasia ?? '—' }}</td>
+                            <td>
+                                <select data-id="{{ $atendimento->id }}" data-campo="empresa_id"
+                                    class="campo-editavel table-select {{ $semEmpresa ? 'border-amber-300 bg-amber-50' : '' }}">
+                                    <option value="">—</option>
+                                    @foreach($empresas as $empresa)
+                                    <option value="{{ $empresa->id }}" @selected($atendimento->empresa_id == $empresa->id)>
+                                        {{ $empresa->nome_fantasia }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </td>
 
                             {{-- Técnico (Editável) --}}
                             <td>
                                 <select data-id="{{ $atendimento->id }}" data-campo="funcionario_id"
-                                    class="campo-editavel table-select">
+                                    id="tecnico_{{ $atendimento->id }}"
+                                    class="campo-editavel table-select {{ $semTecnico ? 'border-amber-300 bg-amber-50' : '' }}">
                                     <option value="">—</option>
                                     @foreach($funcionarios as $funcionario)
                                     <option value="{{ $funcionario->id }}" @selected($atendimento->funcionario_id ==
@@ -286,16 +342,25 @@
 
                             {{-- Data Agendamento --}}
                             <td>
-                                @if($atendimento->data_inicio_agendamento)
-                                    <div class="flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
-                                        </svg>
-                                        <span class="font-medium">{{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}</span>
-                                    </div>
-                                @else
-                                    <span class="text-gray-400">—</span>
-                                @endif
+                                <div class="flex items-center gap-2">
+                                    @if($atendimento->data_inicio_agendamento)
+                                        <span class="text-xs font-semibold text-gray-700">{{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}</span>
+                                    @else
+                                        <span class="text-xs text-gray-400">Sem data</span>
+                                    @endif
+                                    <button
+                                        type="button"
+                                        class="btn-agendar-fila inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50"
+                                        data-atendimento-id="{{ $atendimento->id }}"
+                                        data-funcionario-id="{{ $atendimento->funcionario_id }}"
+                                        data-data="{{ $atendimento->data_inicio_agendamento?->format('Y-m-d') }}"
+                                        data-periodo="{{ $atendimento->periodo_agendamento }}"
+                                        data-hora="{{ $atendimento->data_inicio_agendamento?->format('H:i') }}"
+                                        data-duracao="{{ $atendimento->duracao_agendamento_minutos ? max(1, (int) ($atendimento->duracao_agendamento_minutos / 60)) : '' }}"
+                                    >
+                                        {{ $atendimento->data_inicio_agendamento ? 'Reagendar' : 'Agendar' }}
+                                    </button>
+                                </div>
                             </td>
 
                             {{-- Ações --}}
@@ -336,6 +401,14 @@
         {{-- ================= MOBILE CARDS ================= --}}
         <div class="mobile-cards">
             @foreach($atendimentos as $atendimento)
+                @php
+                    $assuntoExibicao = $atendimento->assunto->nome
+                        ?? (str_starts_with((string) $atendimento->descricao, 'Assunto:')
+                            ? trim((string) \Illuminate\Support\Str::of($atendimento->descricao)->before("\n"))->replace('Assunto:', '')
+                            : '—');
+                    $semEmpresa = empty($atendimento->empresa_id);
+                    $semTecnico = empty($atendimento->funcionario_id);
+                @endphp
             <div class="mobile-card">
                 <div class="mobile-card-header">
                     <div>
@@ -358,12 +431,25 @@
 
                 <div class="mobile-card-row">
                     <span class="mobile-card-label">Assunto</span>
-                    <span class="mobile-card-value">{{ optional($atendimento->assunto)->nome ?? '—' }}</span>
+                    <span class="mobile-card-value">{{ $assuntoExibicao }}</span>
                 </div>
 
                 <div class="mobile-card-row">
                     <span class="mobile-card-label">Empresa</span>
-                    <span class="mobile-card-value">{{ optional($atendimento->empresa)->nome_fantasia ?? '—' }}</span>
+                    <span class="mobile-card-value">
+                        @if($semEmpresa)
+                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Não definida</span>
+                        @else
+                            {{ optional($atendimento->empresa)->nome_fantasia ?? '—' }}
+                        @endif
+                    </span>
+                </div>
+
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Técnico</span>
+                    <span class="mobile-card-value {{ $semTecnico ? 'text-amber-700 font-semibold' : '' }}">
+                        {{ $semTecnico ? 'Não definido' : optional($atendimento->funcionario)->nome }}
+                    </span>
                 </div>
 
                 <div class="mobile-card-badges">
@@ -441,21 +527,232 @@
         </div>
     </div>
 
+    <div id="modal-reagendar-fila" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60;">
+        <div style="max-width:920px; margin:3vh auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.25);">
+            <div style="padding:14px 18px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-weight:700; color:#1f2937;">Agendar técnico</h3>
+                <button type="button" id="fechar-modal-reagendar-fila" style="font-size:20px; color:#6b7280;">&times;</button>
+            </div>
+            <div style="padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Técnico</label>
+                    <select id="fila_funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Selecione</option>
+                        @foreach($funcionarios as $funcionario)
+                        <option value="{{ $funcionario->id }}">{{ $funcionario->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Data</label>
+                    <input id="fila_data" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Período</label>
+                    <select id="fila_periodo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Selecione</option>
+                        <option value="dia_todo">Dia todo (08:00-17:00, 9 horas)</option>
+                        <option value="manha">Manhã (08:00-12:00)</option>
+                        <option value="tarde">Tarde (13:00-18:00)</option>
+                        <option value="noite">Noite (18:01-21:59)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Hora início</label>
+                    <input id="fila_hora_inicio" type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Duração (horas)</label>
+                    <select id="fila_duracao_horas" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Selecione</option>
+                        @for($h = 1; $h <= 9; $h++)
+                        <option value="{{ $h }}">{{ $h }} hora{{ $h > 1 ? 's' : '' }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <div style="padding:0 18px 12px;">
+                <div class="text-sm font-semibold text-gray-700 mb-2">Agenda do dia (calendário por técnico)</div>
+                <div id="agenda-calendario-fila" style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;"></div>
+            </div>
+            <div style="padding:14px 18px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" id="cancelar-reagendar-fila" class="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancelar</button>
+                <button type="button" id="confirmar-reagendar-fila" class="px-4 py-2 rounded-lg bg-[#3f9cae] text-white text-sm">Salvar agendamento</button>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
-        document.querySelectorAll('.campo-editavel').forEach(select => {
-            select.addEventListener('change', function() {
+        const modalReagendarFila = document.getElementById('modal-reagendar-fila');
+        const filaFuncionarioInput = document.getElementById('fila_funcionario_id');
+        const filaDataInput = document.getElementById('fila_data');
+        const filaPeriodoInput = document.getElementById('fila_periodo');
+        const filaHoraInicioInput = document.getElementById('fila_hora_inicio');
+        const filaDuracaoInput = document.getElementById('fila_duracao_horas');
+        const calendarioFilaWrapper = document.getElementById('agenda-calendario-fila');
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        let contextoReagendarFila = null;
+
+        document.querySelectorAll('.campo-editavel').forEach((campo) => {
+            campo.addEventListener('change', function() {
                 const id = this.dataset.id;
                 const campo = this.dataset.campo;
                 const valor = this.value;
-                fetch(`{{ url('atendimentos') }}/${id}/update-field`, {
-                    method: 'POST',
+                fetch(`{{ url('atendimentos') }}/${id}/atualizar-campo`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ campo, valor })
                 })
                 .then(response => response.json())
-                .then(data => { if(data.success) { this.classList.add('border-green-500'); setTimeout(() => this.classList.remove('border-green-500'), 1000); } });
+                .then(data => {
+                    if (data.success) {
+                        this.classList.add('border-green-500');
+                        setTimeout(() => this.classList.remove('border-green-500'), 1000);
+                        return;
+                    }
+
+                    alert(data.message || 'Não foi possível atualizar o campo.');
+                    window.location.reload();
+                })
+                .catch(() => {
+                    alert('Erro ao atualizar o campo.');
+                    window.location.reload();
+                });
             });
+        });
+
+        document.querySelectorAll('.btn-agendar-fila').forEach((button) => {
+            button.addEventListener('click', function() {
+                const atendimentoId = this.dataset.atendimentoId;
+                const tecnicoSelect = document.getElementById(`tecnico_${atendimentoId}`);
+
+                contextoReagendarFila = {
+                    atendimentoId,
+                    funcionarioId: (tecnicoSelect?.value || this.dataset.funcionarioId || ''),
+                    data: this.dataset.data || '',
+                    periodo: this.dataset.periodo || '',
+                    hora: this.dataset.hora || '',
+                    duracao: this.dataset.duracao || '1'
+                };
+
+                filaFuncionarioInput.value = contextoReagendarFila.funcionarioId;
+                filaDataInput.value = contextoReagendarFila.data || new Date().toISOString().slice(0, 10);
+                filaPeriodoInput.value = contextoReagendarFila.periodo;
+                filaHoraInicioInput.value = contextoReagendarFila.hora;
+                filaDuracaoInput.value = contextoReagendarFila.duracao;
+
+                if (filaPeriodoInput.value === 'dia_todo') {
+                    filaHoraInicioInput.value = '08:00';
+                    filaDuracaoInput.value = '9';
+                    filaHoraInicioInput.disabled = true;
+                    filaDuracaoInput.disabled = true;
+                } else {
+                    filaHoraInicioInput.disabled = false;
+                    filaDuracaoInput.disabled = false;
+                }
+
+                modalReagendarFila.style.display = 'block';
+                carregarAgendaFila();
+            });
+        });
+
+        function fecharModalFila() {
+            modalReagendarFila.style.display = 'none';
+            contextoReagendarFila = null;
+        }
+
+        document.getElementById('fechar-modal-reagendar-fila')?.addEventListener('click', fecharModalFila);
+        document.getElementById('cancelar-reagendar-fila')?.addEventListener('click', fecharModalFila);
+
+        filaPeriodoInput?.addEventListener('change', function() {
+            if (this.value === 'dia_todo') {
+                filaHoraInicioInput.value = '08:00';
+                filaDuracaoInput.value = '9';
+                filaHoraInicioInput.disabled = true;
+                filaDuracaoInput.disabled = true;
+            } else {
+                filaHoraInicioInput.disabled = false;
+                filaDuracaoInput.disabled = false;
+            }
+
+            carregarAgendaFila();
+        });
+
+        filaDataInput?.addEventListener('change', carregarAgendaFila);
+
+        async function carregarAgendaFila() {
+            const data = filaDataInput.value;
+            const periodo = filaPeriodoInput.value;
+
+            if (!data) {
+                calendarioFilaWrapper.innerHTML = '<div class="text-sm text-gray-500">Selecione a data para visualizar a agenda.</div>';
+                return;
+            }
+
+            calendarioFilaWrapper.innerHTML = '<div class="text-sm text-gray-500">Carregando agenda...</div>';
+
+            try {
+                const url = `{{ route('agenda-tecnica.disponibilidade') }}?data=${encodeURIComponent(data)}${periodo ? `&periodo=${encodeURIComponent(periodo)}` : ''}`;
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const json = await response.json();
+
+                const blocos = (json.tecnicos || []).map((tecnico) => {
+                    const agendaTecnico = (json.agendamentos || []).filter((item) => String(item.funcionario_id) === String(tecnico.id));
+                    const linhas = agendaTecnico.length
+                        ? agendaTecnico.map((item) => `<div style="font-size:12px;color:#374151;margin-top:3px;">${item.inicio} - ${item.fim} • #${item.numero_atendimento} • ${item.cliente}</div>`).join('')
+                        : '<div style="font-size:12px;color:#16a34a;margin-top:3px;">Livre</div>';
+
+                    return `<div style="border-bottom:1px solid #f3f4f6;padding:8px 0;"><div style="font-weight:600;font-size:13px;">${tecnico.nome}</div>${linhas}</div>`;
+                });
+
+                calendarioFilaWrapper.innerHTML = blocos.length ? blocos.join('') : '<div class="text-sm text-gray-500">Nenhum técnico encontrado.</div>';
+            } catch (_) {
+                calendarioFilaWrapper.innerHTML = '<div class="text-sm text-red-600">Não foi possível carregar a agenda.</div>';
+            }
+        }
+
+        document.getElementById('confirmar-reagendar-fila')?.addEventListener('click', function() {
+            if (!contextoReagendarFila?.atendimentoId) {
+                alert('Não foi possível identificar o atendimento para agendar.');
+                return;
+            }
+
+            const funcionarioId = filaFuncionarioInput.value;
+            const data = filaDataInput.value;
+            const periodo = filaPeriodoInput.value;
+            const horaInicio = filaHoraInicioInput.value;
+            const duracaoHoras = filaDuracaoInput.value;
+
+            if (!funcionarioId || !data || !periodo || !horaInicio || !duracaoHoras) {
+                alert('Preencha todos os campos do agendamento.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ url('atendimentos') }}/${contextoReagendarFila.atendimentoId}/reagendar-agendamento`;
+
+            const payload = {
+                _token: token,
+                funcionario_id: funcionarioId,
+                data_agendamento: data,
+                periodo_agendamento: periodo,
+                hora_inicio: horaInicio,
+                duracao_horas: duracaoHoras,
+            };
+
+            Object.entries(payload).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         });
     </script>
     @endpush

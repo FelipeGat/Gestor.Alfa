@@ -103,7 +103,7 @@ class OrcamentoController extends Controller
                 $query->whereIn('status', $statusArray);
             }
         } else {
-            $query->whereNotIn('status', ['recusado', 'cancelado', 'concluido']);
+            $query->whereNotIn('status', ['aguardando_pagamento', 'recusado', 'cancelado', 'concluido']);
         }
 
         // ================= FILTRO POR EMPRESA (MÚLTIPLA) =================

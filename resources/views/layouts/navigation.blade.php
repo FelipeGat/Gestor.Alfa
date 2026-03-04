@@ -62,6 +62,15 @@
                     <div x-show="openMenu" @click.outside="openMenu = false" x-transition.opacity.duration.200
                         class="portal-nav-dropdown flex flex-col">
 
+                        <a href="{{ route('portal.index') }}"
+                            class="portal-nav-item"
+                            data-tab-icon="portal"
+                            data-tab-link
+                            data-tab-label="Dashboard Atendimentos"
+                            @click.stop>
+                            Dashboard Atendimentos
+                        </a>
+
                         <a href="{{ route('portal.atendimentos') }}"
                             class="portal-nav-item"
                             data-tab-icon="portal"
@@ -515,6 +524,7 @@
         <details>
             <summary class="font-semibold text-green-700">Atendimentos</summary>
             <div class="pl-4 space-y-1">
+                <x-responsive-nav-link :href="route('portal.index')" data-tab-icon="portal">Dashboard Atendimentos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('portal.atendimentos')" data-tab-icon="portal">Meus Atendimentos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('portal.chamado.novo')" data-tab-icon="portal">Abrir Novo Chamado</x-responsive-nav-link>
             </div>

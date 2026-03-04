@@ -73,6 +73,9 @@
 
     <div class="pb-8 pt-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">Relatório Comercial</h2>
+            </div>
 
             @php
                 $perPage = 15;

@@ -651,6 +651,18 @@ Route::middleware(['auth', 'cliente', 'primeiro_acesso'])->group(function () {
     Route::post('/portal/chamado/novo', [PortalController::class, 'storeChamado'])
         ->name('portal.chamado.store');
 
+    Route::get('/portal/chamado/{atendimento}/editar', [PortalController::class, 'editChamado'])
+        ->name('portal.chamado.edit');
+
+    Route::put('/portal/chamado/{atendimento}', [PortalController::class, 'updateChamado'])
+        ->name('portal.chamado.update');
+
+    Route::get('/portal/equipamento/qrcode/{token}/detalhes', [PortalController::class, 'equipamentoPorToken'])
+        ->name('portal.equipamento.qrcode.detalhes');
+
+    Route::get('/portal/equipamento/buscar', [PortalController::class, 'buscarEquipamento'])
+        ->name('portal.equipamento.buscar');
+
     Route::get('/portal', [PortalController::class, 'index'])
         ->name('portal.index');
 
