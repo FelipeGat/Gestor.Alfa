@@ -35,10 +35,15 @@
                     Meus Atendimentos
                 </h3>
             </div>
+            @include('portal.partials.live-table-filter', [
+                'inputId' => 'filtroAtendimentos',
+                'tableId' => 'tabelaAtendimentos',
+                'placeholder' => 'Digite código, empresa, assunto ou status'
+            ])
 
             {{-- Versão Desktop (Tabela) --}}
             <div class="overflow-x-auto">
-                <table class="portal-table w-full">
+                <table id="tabelaAtendimentos" class="portal-table w-full">
                     <thead>
                         <tr>
                             <th>#</th>

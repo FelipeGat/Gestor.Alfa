@@ -18,18 +18,36 @@
             </a>
         </div>
 
+        <div class="portal-table-card p-4 mb-4">
+            <h3 class="portal-table-title mb-3">Cadastrar Setor</h3>
+            <form action="{{ route('portal.equipamentos.setores.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                @csrf
+                <input type="text" name="nome" required placeholder="Nome do setor" class="rounded border-gray-300">
+                <input type="text" name="descricao" placeholder="Descrição" class="rounded border-gray-300 md:col-span-2">
+                <div class="md:col-span-3">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all">Salvar Setor</button>
+                </div>
+            </form>
+        </div>
+
         @if($setores->count())
         <div class="portal-table-card overflow-hidden">
             <div class="portal-table-header">
                 <h3 class="portal-table-title">Portal > Setores <span class="text-sm font-normal text-gray-600">({{ $setores->total() }})</span></h3>
             </div>
+            @include('portal.partials.live-table-filter', [
+                'inputId' => 'filtroSetores',
+                'tableId' => 'tabelaSetores',
+                'placeholder' => 'Digite o nome ou descrição do setor'
+            ])
             <div class="portal-table-wrapper">
-                <table class="portal-table">
+                <table id="tabelaSetores" class="portal-table">
                     <thead>
                         <tr>
                             <th>Setor</th>
                             <th>Descrição</th>
                             <th>Total de ativos</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,6 +56,9 @@
                             <td>{{ $setor->nome }}</td>
                             <td>{{ $setor->descricao ?: '-' }}</td>
                             <td>{{ $setor->equipamentos_count }}</td>
+                            <td>
+                                <a href="{{ route('portal.equipamentos.setores.edit', $setor) }}" class="portal-btn portal-btn--primary">Editar</a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

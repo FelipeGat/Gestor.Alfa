@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipamento;
+use App\Models\EquipamentoResponsavel;
+use App\Models\EquipamentoSetor;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -216,7 +218,7 @@ class EquipamentoPortalController extends Controller
         return view('portal.equipamentos.setores', compact('cliente', 'setores'));
     }
 
-    public function responsaveis()
+    public function responsaveis(Request $request)
     {
         $cliente = $this->getCliente();
 
@@ -225,10 +227,24 @@ class EquipamentoPortalController extends Controller
             return $cliente;
         }
 
-        $responsaveis = $cliente->equipamentoResponsaveis()
+        $busca = trim((string) $request->input('q', ''));
+
+        $query = $cliente->equipamentoResponsaveis()
             ->withCount('equipamentos')
-            ->orderBy('nome')
-            ->paginate(10);
+            ->orderBy('nome');
+
+        if ($busca !== '') {
+            $query->where(function ($subQuery) use ($busca) {
+                $subQuery->where('nome', 'like', "%{$busca}%")
+                    ->orWhere('cargo', 'like', "%{$busca}%")
+                    ->orWhere('telefone', 'like', "%{$busca}%")
+                    ->orWhere('email', 'like', "%{$busca}%");
+            });
+        }
+
+        $responsaveis = $query
+            ->paginate(10)
+            ->withQueryString();
 
         return view('portal.equipamentos.responsaveis', compact('cliente', 'responsaveis'));
     }
@@ -347,5 +363,254 @@ class EquipamentoPortalController extends Controller
         $qrCodeUrl = 'https://quickchart.io/qr?size=300x300&text='.urlencode($url);
 
         return redirect($qrCodeUrl);
+    }
+
+    public function createAtivo()
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        $setores = $cliente->equipamentoSetores()->orderBy('nome')->get();
+        $responsaveis = $cliente->equipamentoResponsaveis()->orderBy('nome')->get();
+
+        return view('portal.equipamentos.ativo-form', [
+            'cliente' => $cliente,
+            'equipamento' => new Equipamento,
+            'setores' => $setores,
+            'responsaveis' => $responsaveis,
+            'isEdit' => false,
+        ]);
+    }
+
+    public function storeAtivo(Request $request)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        $data = $this->validateAtivo($request, $cliente->id);
+
+        $equipamento = Equipamento::create($data + [
+            'cliente_id' => $cliente->id,
+            'ativo' => true,
+            'status_ativo' => $data['status_ativo'] ?? 'operando',
+            'periodicidade_manutencao_meses' => $data['periodicidade_manutencao_meses'] ?? 6,
+            'periodicidade_limpeza_meses' => $data['periodicidade_limpeza_meses'] ?? 1,
+        ]);
+
+        $equipamento->update([
+            'qr_code' => 'https://quickchart.io/qr?size=300x300&text='.urlencode(url('/portal/ativos/'.$equipamento->id)),
+        ]);
+
+        return redirect()->route('portal.ativos.index')
+            ->with('success', 'Ativo técnico cadastrado com sucesso!');
+    }
+
+    public function editAtivo(Equipamento $equipamento)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ($equipamento->cliente_id !== $cliente->id) {
+            abort(403);
+        }
+
+        $setores = $cliente->equipamentoSetores()->orderBy('nome')->get();
+        $responsaveis = $cliente->equipamentoResponsaveis()->orderBy('nome')->get();
+
+        return view('portal.equipamentos.ativo-form', [
+            'cliente' => $cliente,
+            'equipamento' => $equipamento,
+            'setores' => $setores,
+            'responsaveis' => $responsaveis,
+            'isEdit' => true,
+        ]);
+    }
+
+    public function updateAtivo(Request $request, Equipamento $equipamento)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ($equipamento->cliente_id !== $cliente->id) {
+            abort(403);
+        }
+
+        $data = $this->validateAtivo($request, $cliente->id);
+        $equipamento->update($data);
+
+        return redirect()->route('portal.ativos.index')
+            ->with('success', 'Ativo técnico atualizado com sucesso!');
+    }
+
+    public function storeSetor(Request $request)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        $data = $request->validate([
+            'nome' => 'required|string|max:255',
+            'descricao' => 'nullable|string|max:1000',
+        ]);
+
+        EquipamentoSetor::create([
+            'cliente_id' => $cliente->id,
+            'nome' => $data['nome'],
+            'descricao' => $data['descricao'] ?? null,
+        ]);
+
+        return redirect()->route('portal.equipamentos.setores')
+            ->with('success', 'Setor cadastrado com sucesso!');
+    }
+
+    public function editSetor(EquipamentoSetor $setor)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ((int) $setor->cliente_id !== (int) $cliente->id) {
+            abort(403);
+        }
+
+        return view('portal.equipamentos.setor-edit', compact('cliente', 'setor'));
+    }
+
+    public function updateSetor(Request $request, EquipamentoSetor $setor)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ((int) $setor->cliente_id !== (int) $cliente->id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'nome' => 'required|string|max:255',
+            'descricao' => 'nullable|string|max:1000',
+        ]);
+
+        $setor->update($data);
+
+        return redirect()->route('portal.equipamentos.setores')
+            ->with('success', 'Setor atualizado com sucesso!');
+    }
+
+    public function storeResponsavel(Request $request)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        $data = $request->validate([
+            'nome' => 'required|string|max:255',
+            'cargo' => 'nullable|string|max:255',
+            'telefone' => 'nullable|string|max:30',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        EquipamentoResponsavel::create([
+            'cliente_id' => $cliente->id,
+            'nome' => $data['nome'],
+            'cargo' => $data['cargo'] ?? null,
+            'telefone' => $data['telefone'] ?? null,
+            'email' => $data['email'] ?? null,
+        ]);
+
+        return redirect()->route('portal.equipamentos.responsaveis')
+            ->with('success', 'Responsável cadastrado com sucesso!');
+    }
+
+    public function editResponsavel(EquipamentoResponsavel $responsavel)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ((int) $responsavel->cliente_id !== (int) $cliente->id) {
+            abort(403);
+        }
+
+        return view('portal.equipamentos.responsavel-edit', compact('cliente', 'responsavel'));
+    }
+
+    public function updateResponsavel(Request $request, EquipamentoResponsavel $responsavel)
+    {
+        $cliente = $this->getCliente();
+        if ($cliente instanceof \Illuminate\Http\RedirectResponse) {
+            return $cliente;
+        }
+
+        if ((int) $responsavel->cliente_id !== (int) $cliente->id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'nome' => 'required|string|max:255',
+            'cargo' => 'nullable|string|max:255',
+            'telefone' => 'nullable|string|max:30',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        $responsavel->update($data);
+
+        return redirect()->route('portal.equipamentos.responsaveis')
+            ->with('success', 'Responsável atualizado com sucesso!');
+    }
+
+    private function validateAtivo(Request $request, int $clienteId): array
+    {
+        $data = $request->validate([
+            'nome' => 'required|string|max:255',
+            'modelo' => 'nullable|string|max:255',
+            'fabricante' => 'nullable|string|max:255',
+            'numero_serie' => 'nullable|string|max:255',
+            'codigo_ativo' => 'nullable|string|max:50',
+            'tag_patrimonial' => 'nullable|string|max:50',
+            'setor_id' => 'nullable|integer',
+            'responsavel_id' => 'nullable|integer',
+            'status_ativo' => 'nullable|in:operando,em_manutencao,inativo,aguardando_peca,descartado,substituido',
+            'criticidade' => 'nullable|in:baixa,media,alta,critica',
+            'capacidade' => 'nullable|string|max:100',
+            'potencia' => 'nullable|string|max:100',
+            'voltagem' => 'nullable|string|max:50',
+            'periodicidade_manutencao_meses' => 'nullable|integer|min:1|max:120',
+            'periodicidade_limpeza_meses' => 'nullable|integer|min:1|max:120',
+            'observacoes' => 'nullable|string',
+        ]);
+
+        if (! empty($data['setor_id'])) {
+            $setorValido = EquipamentoSetor::where('id', $data['setor_id'])
+                ->where('cliente_id', $clienteId)
+                ->exists();
+            if (! $setorValido) {
+                abort(403);
+            }
+        }
+
+        if (! empty($data['responsavel_id'])) {
+            $respValido = EquipamentoResponsavel::where('id', $data['responsavel_id'])
+                ->where('cliente_id', $clienteId)
+                ->exists();
+            if (! $respValido) {
+                abort(403);
+            }
+        }
+
+        return $data;
     }
 }

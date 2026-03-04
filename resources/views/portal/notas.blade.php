@@ -34,10 +34,15 @@
                     Notas Fiscais Disponíveis
                 </h3>
             </div>
+            @include('portal.partials.live-table-filter', [
+                'inputId' => 'filtroNotas',
+                'tableId' => 'tabelaNotas',
+                'placeholder' => 'Digite número, status ou valor'
+            ])
 
             {{-- Versão Desktop (Tabela) --}}
             <div class="portal-table-wrapper">
-                <table class="portal-table">
+                <table id="tabelaNotas" class="portal-table">
                     <thead>
                         <tr>
                             <th>Número</th>

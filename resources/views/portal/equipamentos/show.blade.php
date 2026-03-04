@@ -76,8 +76,13 @@
             <div class="portal-table-header"><h3 class="portal-table-title">Documentos</h3></div>
             <div class="p-6">
                 @if($equipamento->documentos->count())
+                    @include('portal.partials.live-table-filter', [
+                        'inputId' => 'filtroDocumentosAtivo',
+                        'tableId' => 'tabelaDocumentosAtivo',
+                        'placeholder' => 'Digite nome ou tipo do documento'
+                    ])
                     <div class="overflow-x-auto">
-                        <table class="portal-table">
+                        <table id="tabelaDocumentosAtivo" class="portal-table">
                             <thead>
                                 <tr>
                                     <th>Nome</th>
@@ -106,8 +111,13 @@
             <div class="portal-table-header"><h3 class="portal-table-title">Histórico de Manutenção</h3></div>
             <div class="p-6">
                 @if($equipamento->historicoManutencoes->count())
+                    @include('portal.partials.live-table-filter', [
+                        'inputId' => 'filtroHistoricoAtivo',
+                        'tableId' => 'tabelaHistoricoAtivo',
+                        'placeholder' => 'Digite data, tipo, técnico ou descrição'
+                    ])
                     <div class="overflow-x-auto">
-                        <table class="portal-table">
+                        <table id="tabelaHistoricoAtivo" class="portal-table">
                             <thead>
                                 <tr>
                                     <th>Data</th>

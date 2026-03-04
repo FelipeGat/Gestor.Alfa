@@ -9,12 +9,17 @@
                 <h2 class="font-semibold text-xl text-gray-900 leading-tight">Meus Ativos</h2>
                 <p class="text-sm text-gray-600 mt-1">{{ $cliente->nome_exibicao }}</p>
             </div>
-            <a href="{{ route('portal.equipamentos.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#3f9cae] hover:bg-[#2d7a8a] text-white text-sm font-semibold rounded-lg transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span class="hidden sm:inline">Voltar</span>
-            </a>
+            <div class="flex gap-2">
+                <a href="{{ route('portal.ativos.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all">
+                    <span>Novo Ativo</span>
+                </a>
+                <a href="{{ route('portal.equipamentos.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#3f9cae] hover:bg-[#2d7a8a] text-white text-sm font-semibold rounded-lg transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span class="hidden sm:inline">Voltar</span>
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -46,6 +51,11 @@
                 <a href="{{ $buildUrl($statusAtivoAtual, 'atencao') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $manutencaoAtual === 'atencao' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Atenção</a>
                 <a href="{{ $buildUrl($statusAtivoAtual, 'vencida') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $manutencaoAtual === 'vencida' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Vencida</a>
             </div>
+
+            <div>
+                <label for="filtroAtivos" class="block text-sm font-semibold text-gray-700 mb-1">Buscar ativo por nome/modelo/setor</label>
+                <input id="filtroAtivos" type="text" class="w-full rounded border-gray-300" placeholder="Digite o nome do ativo e os resultados aparecem na hora" autocomplete="off">
+            </div>
         </div>
 
         @if(!empty($filtrosAtivos) && count($filtrosAtivos) > 0)
@@ -72,7 +82,7 @@
                 </h3>
             </div>
             <div class="portal-table-wrapper">
-                <table class="portal-table">
+                <table id="tabelaAtivos" class="portal-table">
                     <thead>
                         <tr>
                             <th>Nome</th>
@@ -93,8 +103,9 @@
                             <td>{{ $equipamento->status_ativo ? str_replace('_', ' ', ucfirst($equipamento->status_ativo)) : 'Não informado' }}</td>
                             <td>{{ $equipamento->ultima_manutencao?->format('d/m/Y') ?: '-' }}</td>
                             <td>{{ $equipamento->proxima_manutencao?->format('d/m/Y') ?: '-' }}</td>
-                            <td>
-                                <a href="{{ route('portal.ativos.show', $equipamento) }}" class="portal-btn portal-btn--primary">Ver Detalhes</a>
+                            <td class="flex gap-2">
+                                <a href="{{ route('portal.ativos.show', $equipamento) }}" class="portal-btn portal-btn--primary">Ver</a>
+                                <a href="{{ route('portal.ativos.edit', $equipamento) }}" class="portal-btn portal-btn--primary">Editar</a>
                             </td>
                         </tr>
                         @endforeach
@@ -121,4 +132,25 @@
         </div>
         @endif
     </div>
+
+    <script>
+        (function () {
+            const input = document.getElementById('filtroAtivos');
+            const table = document.getElementById('tabelaAtivos');
+            if (!input || !table) {
+                return;
+            }
+
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+            input.addEventListener('input', function () {
+                const query = input.value.trim().toLowerCase();
+
+                rows.forEach(function (row) {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = query === '' || text.includes(query) ? '' : 'none';
+                });
+            });
+        })();
+    </script>
 </x-app-layout>

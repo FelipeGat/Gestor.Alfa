@@ -40,8 +40,13 @@
             @if($ativosTecnicos->count() > 0)
                 <!-- Tabela PMOC -->
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                    @include('portal.partials.live-table-filter', [
+                        'inputId' => 'filtroPmoc',
+                        'tableId' => 'tabelaPmoc',
+                        'placeholder' => 'Digite ativo, setor ou responsável'
+                    ])
                     <div class="overflow-x-auto">
-                        <table class="w-full">
+                        <table id="tabelaPmoc" class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Ativo Técnico</th>

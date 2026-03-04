@@ -156,10 +156,15 @@
                     <span class="text-sm font-normal text-gray-500 ml-2">({{ $cobrancas->count() }} registro(s))</span>
                 </h3>
             </div>
+            @include('portal.partials.live-table-filter', [
+                'inputId' => 'filtroCobrancas',
+                'tableId' => 'tabelaCobrancas',
+                'placeholder' => 'Digite descrição, status ou valor'
+            ])
 
             {{-- Versão Desktop (Tabela) --}}
             <div class="overflow-x-auto">
-                <table class="portal-table w-full">
+                <table id="tabelaCobrancas" class="portal-table w-full">
                     <thead>
                         <tr>
                             <th>Descrição</th>

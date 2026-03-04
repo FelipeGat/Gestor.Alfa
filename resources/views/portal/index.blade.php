@@ -231,10 +231,15 @@
                         Últimos Boletos e Notas Fiscais
                     </h3>
                 </div>
+                @include('portal.partials.live-table-filter', [
+                    'inputId' => 'filtroResumoFinanceiro',
+                    'tableId' => 'tabelaResumoFinanceiro',
+                    'placeholder' => 'Digite referência, status ou valor'
+                ])
 
                 {{-- Versão Desktop (Tabela) --}}
                 <div class="portal-table-wrapper">
-                    <table class="portal-table">
+                    <table id="tabelaResumoFinanceiro" class="portal-table">
                         <thead>
                             <tr>
                                 <th>Referência</th>

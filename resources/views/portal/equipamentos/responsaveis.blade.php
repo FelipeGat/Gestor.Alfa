@@ -18,13 +18,35 @@
             </a>
         </div>
 
+        <div class="portal-table-card p-4 mb-4">
+            <h3 class="portal-table-title mb-3">Cadastrar Responsável</h3>
+            <form action="{{ route('portal.equipamentos.responsaveis.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                @csrf
+                <input type="text" name="nome" required placeholder="Nome" class="rounded border-gray-300">
+                <input type="text" name="cargo" placeholder="Cargo" class="rounded border-gray-300">
+                <input type="text" name="telefone" placeholder="Telefone" class="rounded border-gray-300">
+                <input type="email" name="email" placeholder="E-mail" class="rounded border-gray-300">
+                <div class="md:col-span-4">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all">Salvar Responsável</button>
+                </div>
+            </form>
+        </div>
+
         @if($responsaveis->count())
         <div class="portal-table-card overflow-hidden">
             <div class="portal-table-header">
                 <h3 class="portal-table-title">Portal > Responsáveis <span class="text-sm font-normal text-gray-600">({{ $responsaveis->total() }})</span></h3>
             </div>
+            @include('portal.partials.live-table-filter', [
+                'inputId' => 'filtroResponsaveis',
+                'tableId' => 'tabelaResponsaveis',
+                'placeholder' => 'Digite nome, cargo, telefone ou e-mail',
+                'mode' => 'server',
+                'action' => route('portal.equipamentos.responsaveis'),
+                'queryParam' => 'q'
+            ])
             <div class="portal-table-wrapper">
-                <table class="portal-table">
+                <table id="tabelaResponsaveis" class="portal-table">
                     <thead>
                         <tr>
                             <th>Nome</th>
@@ -32,6 +54,7 @@
                             <th>Telefone</th>
                             <th>E-mail</th>
                             <th>Total de ativos</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,6 +65,9 @@
                             <td>{{ $responsavel->telefone ?: '-' }}</td>
                             <td>{{ $responsavel->email ?: '-' }}</td>
                             <td>{{ $responsavel->equipamentos_count }}</td>
+                            <td>
+                                <a href="{{ route('portal.equipamentos.responsaveis.edit', $responsavel) }}" class="portal-btn portal-btn--primary">Editar</a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
