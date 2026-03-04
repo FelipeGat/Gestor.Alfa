@@ -35,21 +35,25 @@
             ], fn ($valor) => filled($valor)));
         @endphp
 
-        <div class="mb-4 bg-white rounded-lg px-4 py-3 border border-gray-200 shadow-sm flex flex-col gap-3">
-            <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-sm font-semibold text-gray-700">Status do ativo:</span>
+        <div class="mb-4 bg-white rounded-lg px-4 py-4 border border-gray-200 shadow-sm space-y-4">
+            <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Status do ativo</p>
+                <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ $buildUrl(null, $manutencaoAtual) }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ !$statusAtivoAtual ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Todos</a>
                 <a href="{{ $buildUrl('operando', $manutencaoAtual) }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $statusAtivoAtual === 'operando' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Operando</a>
                 <a href="{{ $buildUrl('em_manutencao', $manutencaoAtual) }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $statusAtivoAtual === 'em_manutencao' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Em manutenção</a>
                 <a href="{{ $buildUrl('inativo', $manutencaoAtual) }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $statusAtivoAtual === 'inativo' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Inativo</a>
+                </div>
             </div>
 
-            <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-sm font-semibold text-gray-700">Saúde da manutenção:</span>
+            <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Saúde da manutenção</p>
+                <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ $buildUrl($statusAtivoAtual, null) }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ !$manutencaoAtual ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Todos</a>
                 <a href="{{ $buildUrl($statusAtivoAtual, 'em_dia') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $manutencaoAtual === 'em_dia' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Em dia</a>
                 <a href="{{ $buildUrl($statusAtivoAtual, 'atencao') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $manutencaoAtual === 'atencao' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Atenção</a>
                 <a href="{{ $buildUrl($statusAtivoAtual, 'vencida') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border {{ $manutencaoAtual === 'vencida' ? 'bg-[#3f9cae]/10 text-[#2d7a8a] border-[#3f9cae]/30' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100' }}">Vencida</a>
+                </div>
             </div>
 
             <div>
@@ -72,6 +76,12 @@
             </a>
         </div>
         @endif
+
+        <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <a href="{{ route('portal.ativos.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all">
+                <span>Adicionar Novo Ativo</span>
+            </a>
+        </div>
 
         @if($ativosTecnicos->count())
         <div class="portal-table-card overflow-hidden">
