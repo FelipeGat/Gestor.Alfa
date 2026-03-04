@@ -8,6 +8,9 @@ return [
 
     'allowed_origins' => [
         env('APP_URL', 'http://localhost:8080'),
+        'http://localhost:8080',
+        'http://10.0.2.2:8080',
+        'http://localhost',
     ],
 
     'allowed_origins_patterns' => [],

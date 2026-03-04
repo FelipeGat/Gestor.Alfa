@@ -2,25 +2,22 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\ResetPasswordNotification;
-use App\Models\Cliente;
-use App\Models\Perfil;
-use App\Models\Empresa;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property bool $primeiro_acesso
  * @property string $tipo
  * @property int|null $cliente_id
  */
-
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -76,7 +73,6 @@ class User extends Authenticatable
 
         return false;
     }
-
 
     public function cliente()
     {
