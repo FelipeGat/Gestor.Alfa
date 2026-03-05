@@ -8,13 +8,9 @@ use Illuminate\Validation\ValidationException;
 
 class AgendaTecnicaService
 {
-    public const PERIODOS = [
-        'manha' => ['inicio' => '08:00', 'fim' => '12:00'],
-        'tarde' => ['inicio' => '13:00', 'fim' => '18:00'],
-        'noite' => ['inicio' => '18:01', 'fim' => '21:59'],
-        'dia_todo' => ['inicio' => '08:00', 'fim' => '17:00'],
-    ];
-
+    /**
+     * Agenda um atendimento (stub temporário)
+     */
     public function agendarAtendimento(
         Atendimento $atendimento,
         int $funcionarioId,
@@ -23,66 +19,68 @@ class AgendaTecnicaService
         string $horaInicio,
         int $duracaoHoras,
         ?int $ignorarAtendimentoId = null
-    ): Atendimento {
-        [$inicio, $fim] = $this->resolverJanela($data, $periodo, $horaInicio, $duracaoHoras);
-
-        if ($this->existeConflito($funcionarioId, $inicio, $fim, $ignorarAtendimentoId ?? $atendimento->id)) {
+    ) {
+        // Validação básica dos parâmetros
+        if (!array_key_exists($periodo, self::PERIODOS)) {
             throw ValidationException::withMessages([
-                'agendamento' => 'Já existe atendimento agendado para este técnico no mesmo horário.',
-            ]);
-        }
-
-        $atendimento->update([
-            'funcionario_id' => $funcionarioId,
-            'periodo_agendamento' => $periodo,
-            'data_inicio_agendamento' => $inicio,
-            'data_fim_agendamento' => $fim,
-            'duracao_agendamento_minutos' => $duracaoHoras * 60,
-            'data_atendimento' => $inicio,
-        ]);
-
-        return $atendimento->fresh();
-    }
-
-    public function resolverJanela(string $data, string $periodo, string $horaInicio, int $duracaoHoras): array
-    {
-        if (! array_key_exists($periodo, self::PERIODOS)) {
-            throw ValidationException::withMessages([
-                'periodo_agendamento' => 'Período inválido.',
-            ]);
-        }
-
-        // Limite de duração baseado no período
-        $duracaoMaxima = $periodo === 'dia_todo' ? 9 : 4;
-        if ($duracaoHoras < 1 || $duracaoHoras > $duracaoMaxima) {
-            throw ValidationException::withMessages([
-                'duracao_horas' => "A duração deve ser entre 1 e {$duracaoMaxima} horas.",
+                'periodo_agendamento' => 'Período inválido.'
             ]);
         }
 
         $dataBase = Carbon::createFromFormat('Y-m-d', $data)->startOfDay();
         $inicio = Carbon::createFromFormat('Y-m-d H:i', $dataBase->format('Y-m-d') . ' ' . $horaInicio);
-
         $limites = self::PERIODOS[$periodo];
         $inicioLimite = Carbon::createFromFormat('Y-m-d H:i', $dataBase->format('Y-m-d') . ' ' . $limites['inicio']);
         $fimLimite = Carbon::createFromFormat('Y-m-d H:i', $dataBase->format('Y-m-d') . ' ' . $limites['fim']);
 
+        // Validações de horário
         if ($inicio->lt($inicioLimite) || $inicio->gt($fimLimite)) {
             throw ValidationException::withMessages([
-                'hora_inicio' => 'Horário inicial fora do período selecionado.',
+                'hora_inicio' => 'Horário inicial fora do período selecionado.'
             ]);
         }
 
         $fim = $inicio->copy()->addHours($duracaoHoras);
-
         if ($fim->gt($fimLimite)) {
             throw ValidationException::withMessages([
-                'duracao_horas' => 'A duração ultrapassa o limite do período selecionado.',
+                'duracao_horas' => 'A duração ultrapassa o limite do período selecionado.'
             ]);
         }
 
-        return [$inicio, $fim];
+        // Salva os campos no atendimento
+        $atendimento->data_inicio_agendamento = $inicio;
+        $atendimento->data_fim_agendamento = $fim;
+        $atendimento->periodo_agendamento = $periodo;
+        $atendimento->funcionario_id = $funcionarioId;
+        $atendimento->save();
+
+        return $atendimento;
     }
+    public const PERIODOS = [
+        'manha' => ['inicio' => '08:00', 'fim' => '12:00'],
+        'tarde' => ['inicio' => '13:00', 'fim' => '18:00'],
+        'noite' => ['inicio' => '18:01', 'fim' => '21:59'],
+        'dia_todo' => ['inicio' => '08:00', 'fim' => '17:00'],
+    ];
+
+    /**
+     * Retorna os períodos disponíveis para agendamento de um técnico em uma data
+     */
+    public function periodosDisponiveis(int $funcionarioId, string $data): array
+    {
+        $ocupados = [];
+        foreach (self::PERIODOS as $periodo => $limites) {
+            $inicio = Carbon::createFromFormat('Y-m-d H:i', $data . ' ' . $limites['inicio']);
+            $fim = Carbon::createFromFormat('Y-m-d H:i', $data . ' ' . $limites['fim']);
+            if ($this->existeConflito($funcionarioId, $inicio, $fim)) {
+                $ocupados[] = $periodo;
+            }
+        }
+        // Retorna apenas os períodos livres
+        return array_diff(array_keys(self::PERIODOS), $ocupados);
+    }
+
+    // ...restante da classe permanece igual...
 
     /**
      * Reprogramar atendimento para nova data/horário
