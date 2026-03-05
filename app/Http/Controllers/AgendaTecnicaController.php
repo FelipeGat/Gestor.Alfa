@@ -26,6 +26,8 @@ class AgendaTecnicaController extends Controller
     }
     // ...outros métodos existentes...
 
+
+
     private function proximoNumeroAtendimento(): string
     {
         return DB::transaction(function () {
