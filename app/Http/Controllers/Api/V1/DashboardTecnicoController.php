@@ -13,8 +13,9 @@ class DashboardTecnicoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $funcionarioId = $user->funcionario?->id;
+        $funcionarioId = $user->funcionario_id;
 
+        // KPIs - Sempre filtra por funcionario_id
         $pendentes = Atendimento::where("status_atual", "pendente")
             ->where("funcionario_id", $funcionarioId)
             ->count();
@@ -41,16 +42,17 @@ class DashboardTecnicoController extends Controller
         $horasTrabalhadasHoje = $concluidosHoje * 1.5;
         $horasTrabalhadasSemana = $concluidos * 1.5;
 
+        // Atendimento em andamento
         $atendimentoEmAndamento = Atendimento::with(["cliente", "tipoAtendimento"])
             ->where("status_atual", "em_andamento")
             ->where("funcionario_id", $funcionarioId)
             ->first();
 
-        // Remove a clausula data_agendamento que nao existe
+        // Próximos atendimentos
         $proximosAtendimentos = collect();
 
-        $periodo = $request->query("periodo", "hoje");
-        $periodoLabel = $periodo === "hoje" ? "Hoje" : ($periodo === "semana" ? "Esta Semana" : "Este Mes");
+        $periodo = $request->query("periodo", "todos");
+        $periodoLabel = $periodo === "hoje" ? "Hoje" : ($periodo === "semana" ? "Esta Semana" : "Todos");
 
         return response()->json([
             "data" => [
