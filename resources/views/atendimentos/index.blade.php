@@ -224,18 +224,18 @@
 
         <div class="table-card">
             <div class="table-wrapper">
-                <table class="table table-tight" style="min-width: 1320px;">
+                <table class="table table-tight responsive-table">
                     <thead>
                         <tr>
                             <th style="width: 60px;">Nº</th>
                             <th>Solicitante</th>
-                            <th>Assunto</th>
+                            <!-- <th>Assunto</th> -->
                             <th style="width: 190px;">Empresa</th>
                             <th style="width: 190px;">Técnico</th>
                             <th style="width: 100px; text-align: center;">Prioridade</th>
                             <th style="width: 120px; text-align: center;">Status</th>
                             <th style="width: 100px;">Data Criação</th>
-                            <th style="width: 160px;">Data Agendamento</th>
+                            <!-- <th style="width: 160px;">Data Agendamento</th> -->
                             <th style="width: 190px; text-align: center;">Ações</th>
                         </tr>
                     </thead>
@@ -249,12 +249,11 @@
                             $semEmpresa = empty($atendimento->empresa_id);
                             $semTecnico = empty($atendimento->funcionario_id);
                         @endphp
-                        <tr>
+                        <tr class="expandable-row cursor-pointer" data-id="{{ $atendimento->id }}">
                             {{-- Número --}}
                             <td>
                                 <span class="table-number">{{ $atendimento->numero_atendimento }}</span>
                             </td>
-
                             {{-- Solicitante --}}
                             <td>
                                 <div>
@@ -271,10 +270,7 @@
                                     @endif
                                 </div>
                             </td>
-
-                            {{-- Assunto --}}
-                            <td>{{ $assuntoExibicao }}</td>
-
+                            <!-- <td>{{ $assuntoExibicao }}</td> -->
                             {{-- Empresa --}}
                             <td>
                                 <select data-id="{{ $atendimento->id }}" data-campo="empresa_id"
@@ -287,7 +283,6 @@
                                     @endforeach
                                 </select>
                             </td>
-
                             {{-- Técnico (Editável) --}}
                             <td>
                                 <select data-id="{{ $atendimento->id }}" data-campo="funcionario_id"
@@ -295,14 +290,12 @@
                                     class="campo-editavel table-select {{ $semTecnico ? 'border-amber-300 bg-amber-50' : '' }}">
                                     <option value="">—</option>
                                     @foreach($funcionarios as $funcionario)
-                                    <option value="{{ $funcionario->id }}" @selected($atendimento->funcionario_id ==
-                                        $funcionario->id)>
-                                        {{ $funcionario->nome }}
+                                    <option value="{{ $funcionario->id }}" @selected($atendimento->funcionario_id == $funcionario->id)>
+                                        {{ collect(explode(' ', $funcionario->nome))->first() }}{{ count(explode(' ', $funcionario->nome)) > 1 ? ' ' . collect(explode(' ', $funcionario->nome))->last() : '' }}
                                     </option>
                                     @endforeach
                                 </select>
                             </td>
-
                             {{-- Prioridade (Editável) --}}
                             <td style="text-align: center;">
                                 <select data-id="{{ $atendimento->id }}" data-campo="prioridade"
@@ -315,7 +308,6 @@
                                     </option>
                                 </select>
                             </td>
-
                             {{-- Status (Editável) --}}
                             <td style="text-align: center;">
                                 <select data-id="{{ $atendimento->id }}" data-campo="status"
@@ -336,18 +328,11 @@
                                     @endforeach
                                 </select>
                             </td>
-
                             {{-- Data Criação --}}
                             <td>{{ $atendimento->created_at->format('d/m/Y') }}</td>
-
-                            {{-- Data Agendamento --}}
+                            <!--
                             <td>
-                                <div class="flex items-center gap-2">
-                                    @if($atendimento->data_inicio_agendamento)
-                                        <span class="text-xs font-semibold text-gray-700">{{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}</span>
-                                    @else
-                                        <span class="text-xs text-gray-400">Sem data</span>
-                                    @endif
+                                <div class="flex flex-col items-center gap-1">
                                     <button
                                         type="button"
                                         class="btn-agendar-fila inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -360,35 +345,59 @@
                                     >
                                         {{ $atendimento->data_inicio_agendamento ? 'Reagendar' : 'Agendar' }}
                                     </button>
+                                    @if($atendimento->data_inicio_agendamento)
+                                        <span class="text-xs text-gray-400 mt-1">{{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}</span>
+                                    @else
+                                        <span class="text-xs text-gray-300 mt-1">Sem data</span>
+                                    @endif
                                 </div>
                             </td>
-
+                            -->
                             {{-- Ações --}}
                             <td style="text-align: center;">
                                 <div class="table-actions">
-                                    <a href="{{ route('atendimentos.edit', $atendimento) }}"
-                                        class="btn btn-sm btn-edit">
-                                        <svg fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center w-8 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full transition btn-agendar-fila"
+                                        title="{{ $atendimento->data_inicio_agendamento ? 'Reagendar' : 'Agendar' }}"
+                                        data-atendimento-id="{{ $atendimento->id }}"
+                                        data-funcionario-id="{{ $atendimento->funcionario_id }}"
+                                        data-data="{{ $atendimento->data_inicio_agendamento?->format('Y-m-d') }}"
+                                        data-periodo="{{ $atendimento->periodo_agendamento }}"
+                                        data-hora="{{ $atendimento->data_inicio_agendamento?->format('H:i') }}"
+                                        data-duracao="{{ $atendimento->duracao_agendamento_minutos ? max(1, (int) ($atendimento->duracao_agendamento_minutos / 60)) : '' }}"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
                                         </svg>
-                                        Editar
-                                    </a>
-
-                                    <form action="{{ route('atendimentos.destroy', $atendimento) }}" method="POST"
-                                        onsubmit="return confirm('Deseja excluir este atendimento?')"
-                                        style="display: inline;">
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center w-8 h-8 border border-blue-500 text-blue-500 bg-white hover:bg-blue-50 rounded-full transition"
+                                        title="Editar"
+                                        onclick="window.location='{{ route('atendimentos.edit', $atendimento) }}'"
+                                    >
+                                        <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
+                                    <form action="{{ route('atendimentos.destroy', $atendimento) }}" method="POST" onsubmit="return confirm('Deseja excluir este atendimento?')" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-delete">
-                                            <svg fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                    clip-rule="evenodd" />
+                                        <button type="submit" class="inline-flex items-center justify-center w-8 h-8 border border-red-500 text-red-500 bg-white hover:bg-red-50 rounded-full transition" title="Excluir">
+                                            <svg fill="currentColor" viewBox="0 0 20 20" style="width: 18px; height: 18px;">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                             </svg>
-                                            Excluir
                                         </button>
                                     </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expandable-content-row" id="expand-content-{{ $atendimento->id }}" style="display: none; background: #f9fafb;">
+                            <td colspan="10" class="p-3">
+                                <div class="flex flex-col md:flex-row gap-4">
+                                    <div><span class="font-semibold text-gray-600">Assunto:</span> {{ $assuntoExibicao }}</div>
+                                    <div><span class="font-semibold text-gray-600">Data Agendamento:</span> @if($atendimento->data_inicio_agendamento){{ $atendimento->data_inicio_agendamento->format('d/m/Y') }}@else Sem data @endif</div>
                                 </div>
                             </td>
                         </tr>
@@ -397,6 +406,26 @@
                 </table>
             </div>
         </div>
+        @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.expandable-row').forEach(function(row) {
+                    row.addEventListener('click', function(e) {
+                        // Evita conflito com selects e botões
+                        if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION' || e.target.closest('button')) return;
+                        const id = row.getAttribute('data-id');
+                        const contentRow = document.getElementById('expand-content-' + id);
+                        if (contentRow.style.display === 'none') {
+                            document.querySelectorAll('.expandable-content-row').forEach(r => r.style.display = 'none');
+                            contentRow.style.display = '';
+                        } else {
+                            contentRow.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        </script>
+        @endpush
 
         {{-- ================= MOBILE CARDS ================= --}}
         <div class="mobile-cards">
