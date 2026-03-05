@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::table('atendimentos', function (Blueprint $table) {
             if (!Schema::hasColumn('atendimentos', 'assinatura_cliente_path')) {
-                $table->string('assinatura_cliente_path')->nullable()->after('em_pausa');
+                // Em bases novas a coluna em_pausa pode não existir.
+                if (Schema::hasColumn('atendimentos', 'em_pausa')) {
+                    $table->string('assinatura_cliente_path')->nullable()->after('em_pausa');
+                } else {
+                    $table->string('assinatura_cliente_path')->nullable();
+                }
             }
         });
     }
