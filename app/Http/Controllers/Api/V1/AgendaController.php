@@ -20,9 +20,9 @@ class AgendaController extends Controller
 
         $atendimentos = Atendimento::with(['cliente', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
-            ->whereNotNull('data_agendamento')
-            ->whereBetween('data_agendamento', [$inicio, $fim])
-            ->orderBy('data_agendamento')
+            ->whereNotNull('data_inicio_agendamento')
+            ->whereBetween('data_inicio_agendamento', [$inicio, $fim])
+            ->orderBy('data_inicio_agendamento')
             ->get();
 
         return response()->json($atendimentos);
@@ -35,8 +35,8 @@ class AgendaController extends Controller
 
         $atendimentos = Atendimento::with(['cliente', 'assunto'])
             ->where('funcionario_id', $funcionarioId)
-            ->whereDate('data_agendamento', Carbon::today())
-            ->orderBy('data_agendamento')
+            ->whereDate('data_inicio_agendamento', Carbon::today())
+            ->orderBy('data_inicio_agendamento')
             ->get();
 
         return response()->json($atendimentos);
@@ -50,9 +50,9 @@ class AgendaController extends Controller
         $data = $request->get('data', Carbon::today()->format('Y-m-d'));
 
         $atendimentos = Atendimento::where('funcionario_id', $funcionarioId)
-            ->whereDate('data_agendamento', $data)
-            ->orderBy('data_agendamento')
-            ->get(['id', 'data_agendamento', 'periodo_agendamento', 'duracao_agendamento_minutos', 'status_atual']);
+            ->whereDate('data_inicio_agendamento', $data)
+            ->orderBy('data_inicio_agendamento')
+            ->get(['id', 'data_inicio_agendamento', 'periodo_agendamento', 'duracao_agendamento_minutos', 'status_atual']);
 
         return response()->json([
             'data' => $data,

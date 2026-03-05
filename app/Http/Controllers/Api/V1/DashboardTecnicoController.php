@@ -31,8 +31,8 @@ class DashboardTecnicoController extends Controller
         $proximosAtendimentos = Atendimento::with(['cliente', 'assunto'])
             ->where('status_atual', 'pendente')
             ->where('funcionario_id', $funcionarioId)
-            ->whereNotNull('data_agendamento')
-            ->orderBy('data_agendamento')
+            ->whereNotNull('data_inicio_agendamento')
+            ->orderBy('data_inicio_agendamento')
             ->limit(5)
             ->get();
 
