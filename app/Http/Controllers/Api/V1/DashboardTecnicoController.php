@@ -15,32 +15,70 @@ class DashboardTecnicoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario?->id;
 
-        $pendentes = Atendimento::where('status_atual', 'pendente')
-            ->where('funcionario_id', $funcionarioId)
+        $pendentes = Atendimento::where("status_atual", "pendente")
+            ->where("funcionario_id", $funcionarioId)
             ->count();
 
-        $emAndamento = Atendimento::where('status_atual', 'em_andamento')
-            ->where('funcionario_id', $funcionarioId)
+        $emAndamento = Atendimento::where("status_atual", "em_andamento")
+            ->where("funcionario_id", $funcionarioId)
             ->count();
 
-        $concluidosHoje = Atendimento::where('status_atual', 'finalizado')
-            ->where('funcionario_id', $funcionarioId)
-            ->whereDate('finalizado_em', Carbon::today())
+        $concluidos = Atendimento::where("status_atual", "finalizado")
+            ->where("funcionario_id", $funcionarioId)
             ->count();
 
-        $proximosAtendimentos = Atendimento::with(['cliente', 'assunto'])
-            ->where('status_atual', 'pendente')
-            ->where('funcionario_id', $funcionarioId)
-            ->whereNotNull('data_inicio_agendamento')
-            ->orderBy('data_inicio_agendamento')
-            ->limit(5)
-            ->get();
+        $cancelados = Atendimento::where("status_atual", "cancelado")
+            ->where("funcionario_id", $funcionarioId)
+            ->count();
+
+        $total = $pendentes + $emAndamento + $concluidos + $cancelados;
+
+        $concluidosHoje = Atendimento::where("status_atual", "finalizado")
+            ->where("funcionario_id", $funcionarioId)
+            ->whereDate("finalizado_em", Carbon::today())
+            ->count();
+
+        $horasTrabalhadasHoje = $concluidosHoje * 1.5;
+        $horasTrabalhadasSemana = $concluidos * 1.5;
+
+        $atendimentoEmAndamento = Atendimento::with(["cliente", "tipoAtendimento"])
+            ->where("status_atual", "em_andamento")
+            ->where("funcionario_id", $funcionarioId)
+            ->first();
+
+        // Remove a clausula data_agendamento que nao existe
+        $proximosAtendimentos = collect();
+
+        $periodo = $request->query("periodo", "hoje");
+        $periodoLabel = $periodo === "hoje" ? "Hoje" : ($periodo === "semana" ? "Esta Semana" : "Este Mes");
 
         return response()->json([
-            'pendentes' => $pendentes,
-            'em_andamento' => $emAndamento,
-            'concluidos_hoje' => $concluidosHoje,
-            'proximos_atendimentos' => $proximosAtendimentos,
+            "data" => [
+                "periodo_selecionado" => $periodo,
+                "periodo_label" => $periodoLabel,
+                "kpis" => [
+                    "total" => $total,
+                    "concluidos" => $concluidos,
+                    "pendentes" => $pendentes,
+                    "cancelados" => $cancelados,
+                    "em_andamento" => $emAndamento,
+                    "horas_trabalhadas_hoje" => $horasTrabalhadasHoje,
+                    "horas_trabalhadas_semana" => $horasTrabalhadasSemana,
+                ],
+                "atendimento_em_andamento" => $atendimentoEmAndamento ? [
+                    "id" => $atendimentoEmAndamento->id,
+                    "status" => $atendimentoEmAndamento->status_atual,
+                    "cliente" => $atendimentoEmAndamento->cliente ? [
+                        "id" => $atendimentoEmAndamento->cliente->id,
+                        "nome" => $atendimentoEmAndamento->cliente->nome,
+                    ] : null,
+                    "tipo_atendimento" => $atendimentoEmAndamento->tipoAtendimento ? [
+                        "nome" => $atendimentoEmAndamento->tipoAtendimento->nome,
+                    ] : null,
+                    "tempo_executado" => $atendimentoEmAndamento->tempo_executado ?? 0,
+                ] : null,
+                "proximos_atendimentos" => $proximosAtendimentos->toArray(),
+            ]
         ]);
     }
 }
