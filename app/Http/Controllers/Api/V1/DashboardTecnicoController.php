@@ -15,21 +15,21 @@ class DashboardTecnicoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario?->id;
 
-        $pendentes = Atendimento::where('status', 'pendente')
+        $pendentes = Atendimento::where('status_atual', 'pendente')
             ->where('funcionario_id', $funcionarioId)
             ->count();
 
-        $emAndamento = Atendimento::where('status', 'em_andamento')
+        $emAndamento = Atendimento::where('status_atual', 'em_andamento')
             ->where('funcionario_id', $funcionarioId)
             ->count();
 
-        $concluidosHoje = Atendimento::where('status', 'finalizado')
+        $concluidosHoje = Atendimento::where('status_atual', 'finalizado')
             ->where('funcionario_id', $funcionarioId)
             ->whereDate('data_finalizacao', Carbon::today())
             ->count();
 
         $proximosAtendimentos = Atendimento::with(['cliente', 'assunto'])
-            ->where('status', 'pendente')
+            ->where('status_atual', 'pendente')
             ->where('funcionario_id', $funcionarioId)
             ->whereNotNull('data_agendamento')
             ->orderBy('data_agendamento')
