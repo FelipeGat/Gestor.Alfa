@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Atendimento;
+use App\Models\AtendimentoAndamento;
+use App\Models\AtendimentoPausa;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class AtendimentoController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $funcionarioId = $user->funcionario_id;
+
+        // Sempre filtra por funcionario_id do usuário logado
+        $query = Atendimento::with(["cliente", "assunto"])
+            ->where("funcionario_id", $funcionarioId);
+        
+        $query->when($request->status, fn($q) => $q->where("status_atual", $request->status))
+              ->when($request->data, fn($q) => $q->whereDate("created_at", $request->data))
+              ->orderByDesc("created_at");
+
+        $atendimentos = $query->paginate(100);
+
+        return response()->json($atendimentos);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $atendimento = Atendimento::with(["cliente", "assunto", "andamentos", "pausas"])
+            ->findOrFail($id);
+
+        return response()->json($atendimento);
+    }
+
+    public function iniciar(int $id): JsonResponse
+    {
+        $atendimento = Atendimento::findOrFail($id);
+
+        if ($atendimento->status_atual !== "pendente") {
+            return response()->json(["message" => "Atendimento não pode ser iniciado"], 400);
+        }
+
+        $atendimento->update([
+            "status_atual" => "em_andamento",
+            "iniciado_em" => now(),
+            "iniciado_por_user_id" => auth()->id(),
+        ]);
+
+        AtendimentoAndamento::create([
+            "atendimento_id" => $atendimento->id,
+            "user_id" => auth()->id(),
+            "status" => "iniciado",
+            "descricao" => "Atendimento iniciado via app",
+        ]);
+
+        return response()->json($atendimento);
+    }
+
+    public function pausar(int $id, Request $request): JsonResponse
+    {
+        $atendimento = Atendimento::findOrFail($id);
+
+        if ($atendimento->status_atual !== "em_andamento") {
+            return response()->json(["message" => "Atendimento não está em andamento"], 400);
+        }
+
+        $atendimento->update([
+            "em_pausa" => true,
+            "status_atual" => "pausado",
+        ]);
+
+        $pausa = AtendimentoPausa::create([
+            "atendimento_id" => $atendimento->id,
+            "inicio" => now(),
+        ]);
+
+        return response()->json($atendimento);
+    }
+
+    public function retomar(int $id): JsonResponse
+    {
+        $atendimento = Atendimento::findOrFail($id);
+
+        if ($atendimento->status_atual !== "pausado") {
+            return response()->json(["message" => "Atendimento não está pausado"], 400);
+        }
+
+        $atendimento->update([
+            "em_pausa" => false,
+            "status_atual" => "em_andamento",
+        ]);
+
+        return response()->json($atendimento);
+    }
+
+    public function finalizar(int $id, Request $request): JsonResponse
+    {
+        $atendimento = Atendimento::findOrFail($id);
+
+        if (!in_array($atendimento->status_atual, ["em_andamento", "pausado"])) {
+            return response()->json(["message" => "Atendimento não pode ser finalizado"], 400);
+        }
+
+        $atendimento->update([
+            "status_atual" => "finalizado",
+            "finalizado_em" => now(),
+            "finalizado_por_user_id" => auth()->id(),
+            "observacoes_finais" => $request->observacoes,
+        ]);
+
+        return response()->json($atendimento);
+    }
+}
