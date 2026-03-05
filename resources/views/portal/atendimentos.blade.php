@@ -234,31 +234,23 @@
                         </tr>
                         <tr id="expandRow{{ $atendimento->id }}" style="display: none;">
                             <td colspan="6" class="bg-gray-50 border-t-0">
-                                {{-- Conteúdo de detalhes do atendimento expandido --}}
                                 <div class="p-4">
                                     <strong>Detalhes do atendimento #{{ $atendimento->numero_atendimento ?? $atendimento->id }}</strong>
                                     <div class="mt-2 text-sm text-gray-700">
-                                        <!-- Adicione aqui os detalhes desejados, como descrição, histórico, etc. -->
                                         Assunto: {{ $assuntoExibicao }}<br>
                                         Prioridade: {{ strtoupper($atendimento->prioridade ?? '—') }}<br>
                                         Status: {{ strtoupper(str_replace('_', ' ', $atendimento->status_atual ?? 'Indefinido')) }}<br>
                                         Criado em: {{ $atendimento->created_at->format('d/m/Y H:i') }}<br>
-                                        <!-- Exemplo de histórico ou outros dados -->
+                                        <div class="flex flex-col md:flex-row gap-4 mt-2">
+                                            <div><span class="font-semibold text-gray-600">Equipamento:</span> {{ $atendimento->equipamento?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Setor:</span> {{ $atendimento->equipamento?->setor?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Responsável:</span> {{ $atendimento->equipamento?->responsavel?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Usuário que abriu:</span> {{ $atendimento->iniciadoPor?->name ?? '—' }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-                                                    </tr>
-                                                    <tr id="expand-row-{{ $atendimento->id }}" class="expand-row" style="display:none; background:#f9fafb;">
-                                                        <td colspan="6" class="p-4 align-top border-b border-gray-200">
-                                                            <div class="flex flex-col md:flex-row gap-4">
-                                                                <div><span class="font-semibold text-gray-600">Equipamento:</span> {{ $atendimento->equipamento?->nome ?? '—' }}</div>
-                                                                <div><span class="font-semibold text-gray-600">Setor:</span> {{ $atendimento->equipamento?->setor?->nome ?? '—' }}</div>
-                                                                <div><span class="font-semibold text-gray-600">Responsável:</span> {{ $atendimento->equipamento?->responsavel?->nome ?? '—' }}</div>
-                                                                <div><span class="font-semibold text-gray-600">Usuário que abriu:</span> {{ $atendimento->iniciadoPor?->name ?? '—' }}</div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
                             <td>{{ strtoupper($atendimento->prioridade ?? '—') }}</td>
                             <td>
                                 <div class="font-medium text-gray-800">{{ $assuntoExibicao }}</div>
