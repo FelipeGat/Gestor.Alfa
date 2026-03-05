@@ -11,14 +11,12 @@ class RelatorioTecnicoService extends BaseRelatorioService
     {
         [$inicio, $fim] = $this->periodo($filtros);
 
-        $empresaId = isset($filtros['empresa_id']) && $filtros['empresa_id'] !== null
-            ? (int) $filtros['empresa_id']
-            : null;
+        $empresaId = (int) $filtros['empresa_id'];
         $centroCustoId = $filtros['centro_custo_id'] ?? null;
         $statusFinalizados = ['concluido', 'finalizado'];
 
         $baseAtendimentos = DB::table('atendimentos as a')
-            ->when($empresaId, fn ($q) => $q->where('a.empresa_id', $empresaId))
+            ->where('a.empresa_id', $empresaId)
             ->whereBetween(DB::raw('DATE(COALESCE(a.data_atendimento, a.data_inicio_agendamento, a.created_at))'), [$inicio->toDateString(), $fim->toDateString()]);
 
         if ($centroCustoId) {
@@ -63,7 +61,7 @@ class RelatorioTecnicoService extends BaseRelatorioService
         $receitaPorTecnico = DB::table('orcamentos as o')
             ->join('atendimentos as a', 'a.id', '=', 'o.atendimento_id')
             ->leftJoin('funcionarios as f', 'f.id', '=', 'a.funcionario_id')
-            ->when($empresaId, fn ($q) => $q->where('a.empresa_id', $empresaId))
+            ->where('a.empresa_id', $empresaId)
             ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
             ->whereIn(DB::raw('LOWER(o.status)'), ['aprovado', 'financeiro', 'aguardando_pagamento', 'em_andamento', 'concluido', 'garantia'])
             ->whereBetween(DB::raw('DATE(COALESCE(o.data_aprovacao, o.created_at))'), [$inicio->toDateString(), $fim->toDateString()])
@@ -82,7 +80,7 @@ class RelatorioTecnicoService extends BaseRelatorioService
             ->all();
 
         $chamadosVencidos = (int) DB::table('atendimentos as a')
-            ->when($empresaId, fn ($q) => $q->where('a.empresa_id', $empresaId))
+            ->where('a.empresa_id', $empresaId)
             ->when($centroCustoId, function ($q) use ($centroCustoId): void {
                 $q->whereExists(function ($sub) use ($centroCustoId): void {
                     $sub->selectRaw('1')

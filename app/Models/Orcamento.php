@@ -11,7 +11,7 @@ use App\Models\OrcamentoPagamento;
 
 class Orcamento extends Model
 {
-    use HasFactory;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     public function centroCusto()
     {
@@ -79,6 +79,10 @@ class Orcamento extends Model
     {
         return $this->belongsTo(Cliente::class);
     }
+
+    protected $dates = [
+        'deleted_at',
+    ];
 
     public function criadoPor()
     {

@@ -11,9 +11,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
         [$inicio, $fim] = $this->periodo($filtros);
         [$inicioAnterior, $fimAnterior] = $this->periodoAnterior($inicio, $fim);
 
-        $empresaId = isset($filtros['empresa_id']) && $filtros['empresa_id'] !== null
-            ? (int) $filtros['empresa_id']
-            : null;
+        $empresaId = (int) $filtros['empresa_id'];
         $centroCustoId = $filtros['centro_custo_id'] ?? null;
 
         $receitaTotal = $this->receitaNoPeriodo($empresaId, $inicio->toDateString(), $fim->toDateString(), $centroCustoId);
@@ -30,7 +28,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
 
         $saldoBancario = $this->f(
             DB::table('contas_financeiras')
-                ->when($empresaId, fn ($q) => $q->where('empresa_id', $empresaId))
+                ->where('empresa_id', $empresaId)
                 ->sum('saldo')
         );
 
@@ -38,11 +36,9 @@ class RelatorioFinanceiroService extends BaseRelatorioService
             DB::table('cobrancas as c')
                 ->leftJoin('orcamentos as o', 'o.id', '=', 'c.orcamento_id')
                 ->leftJoin('contas_fixas as cf', 'cf.id', '=', 'c.conta_fixa_id')
-                ->when($empresaId, function ($query) use ($empresaId): void {
-                    $query->where(function ($sub) use ($empresaId): void {
-                        $sub->where('o.empresa_id', $empresaId)
-                            ->orWhere('cf.empresa_id', $empresaId);
-                    });
+                ->where(function ($query) use ($empresaId): void {
+                    $query->where('o.empresa_id', $empresaId)
+                        ->orWhere('cf.empresa_id', $empresaId);
                 })
                 ->whereRaw("LOWER(COALESCE(c.status, '')) <> ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
@@ -55,12 +51,10 @@ class RelatorioFinanceiroService extends BaseRelatorioService
                 ->leftJoin('orcamentos as o', 'o.id', '=', 'cp.orcamento_id')
                 ->leftJoin('contas_financeiras as cf', 'cf.id', '=', 'cp.conta_financeira_id')
                 ->leftJoin('centros_custo as cc', 'cc.id', '=', 'cp.centro_custo_id')
-                ->when($empresaId, function ($query) use ($empresaId): void {
-                    $query->where(function ($sub) use ($empresaId): void {
-                        $sub->where('o.empresa_id', $empresaId)
-                            ->orWhere('cf.empresa_id', $empresaId)
-                            ->orWhere('cc.empresa_id', $empresaId);
-                    });
+                ->where(function ($query) use ($empresaId): void {
+                    $query->where('o.empresa_id', $empresaId)
+                        ->orWhere('cf.empresa_id', $empresaId)
+                        ->orWhere('cc.empresa_id', $empresaId);
                 })
                 ->whereRaw("LOWER(COALESCE(cp.status, '')) <> ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('cp.centro_custo_id', $centroCustoId))
@@ -123,17 +117,15 @@ class RelatorioFinanceiroService extends BaseRelatorioService
         ];
     }
 
-    private function receitaNoPeriodo(?int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): float
+    private function receitaNoPeriodo(int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): float
     {
         return $this->f(
             DB::table('cobrancas as c')
                 ->leftJoin('orcamentos as o', 'o.id', '=', 'c.orcamento_id')
                 ->leftJoin('contas_fixas as cf', 'cf.id', '=', 'c.conta_fixa_id')
-                ->when($empresaId, function ($query) use ($empresaId): void {
-                    $query->where(function ($sub) use ($empresaId): void {
-                        $sub->where('o.empresa_id', $empresaId)
-                            ->orWhere('cf.empresa_id', $empresaId);
-                    });
+                ->where(function ($query) use ($empresaId): void {
+                    $query->where('o.empresa_id', $empresaId)
+                        ->orWhere('cf.empresa_id', $empresaId);
                 })
                 ->whereRaw("LOWER(COALESCE(c.status, '')) = ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
@@ -142,19 +134,17 @@ class RelatorioFinanceiroService extends BaseRelatorioService
         );
     }
 
-    private function despesaNoPeriodo(?int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): float
+    private function despesaNoPeriodo(int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): float
     {
         return $this->f(
             DB::table('contas_pagar as cp')
                 ->leftJoin('orcamentos as o', 'o.id', '=', 'cp.orcamento_id')
                 ->leftJoin('contas_financeiras as cf', 'cf.id', '=', 'cp.conta_financeira_id')
                 ->leftJoin('centros_custo as cc', 'cc.id', '=', 'cp.centro_custo_id')
-                ->when($empresaId, function ($query) use ($empresaId): void {
-                    $query->where(function ($sub) use ($empresaId): void {
-                        $sub->where('o.empresa_id', $empresaId)
-                            ->orWhere('cf.empresa_id', $empresaId)
-                            ->orWhere('cc.empresa_id', $empresaId);
-                    });
+                ->where(function ($query) use ($empresaId): void {
+                    $query->where('o.empresa_id', $empresaId)
+                        ->orWhere('cf.empresa_id', $empresaId)
+                        ->orWhere('cc.empresa_id', $empresaId);
                 })
                 ->whereRaw("LOWER(COALESCE(cp.status, '')) = ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('cp.centro_custo_id', $centroCustoId))
@@ -163,12 +153,12 @@ class RelatorioFinanceiroService extends BaseRelatorioService
         );
     }
 
-    private function receitaPorCentroCusto(?int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): array
+    private function receitaPorCentroCusto(int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): array
     {
         return DB::table('cobrancas as c')
             ->join('orcamentos as o', 'o.id', '=', 'c.orcamento_id')
             ->leftJoin('centros_custo as cc', 'cc.id', '=', 'o.centro_custo_id')
-            ->when($empresaId, fn ($q) => $q->where('o.empresa_id', $empresaId))
+            ->where('o.empresa_id', $empresaId)
             ->whereRaw("LOWER(COALESCE(c.status, '')) = ?", ['pago'])
             ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
             ->whereBetween(DB::raw('DATE(COALESCE(c.data_pagamento, c.pago_em, c.data_vencimento))'), [$dataInicio, $dataFim])
@@ -187,18 +177,16 @@ class RelatorioFinanceiroService extends BaseRelatorioService
             ->all();
     }
 
-    private function despesaPorCentroCusto(?int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): array
+    private function despesaPorCentroCusto(int $empresaId, string $dataInicio, string $dataFim, ?int $centroCustoId = null): array
     {
         return DB::table('contas_pagar as cp')
             ->leftJoin('centros_custo as cc', 'cc.id', '=', 'cp.centro_custo_id')
             ->leftJoin('orcamentos as o', 'o.id', '=', 'cp.orcamento_id')
             ->leftJoin('contas_financeiras as cf', 'cf.id', '=', 'cp.conta_financeira_id')
-            ->when($empresaId, function ($query) use ($empresaId): void {
-                $query->where(function ($sub) use ($empresaId): void {
-                    $sub->where('o.empresa_id', $empresaId)
-                        ->orWhere('cf.empresa_id', $empresaId)
-                        ->orWhere('cc.empresa_id', $empresaId);
-                });
+            ->where(function ($query) use ($empresaId): void {
+                $query->where('o.empresa_id', $empresaId)
+                    ->orWhere('cf.empresa_id', $empresaId)
+                    ->orWhere('cc.empresa_id', $empresaId);
             })
             ->whereRaw("LOWER(COALESCE(cp.status, '')) = ?", ['pago'])
             ->when($centroCustoId, fn ($q) => $q->where('cp.centro_custo_id', $centroCustoId))

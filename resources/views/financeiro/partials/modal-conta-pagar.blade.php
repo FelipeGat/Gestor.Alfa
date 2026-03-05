@@ -405,8 +405,11 @@
 
             async carregarConta(id) {
                 try {
-                    const response = await fetch(`/financeiro/contas-a-pagar/${id}`);
-                    if (!response.ok) throw new Error('Erro');
+                    const contaUrl = (contaId) => '{{ route("financeiro.contasapagar.show", ["conta" => "__ID__"]) }}'.replace('__ID__', contaId);
+                    const response = await fetch(contaUrl(id), {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
                     const data = await response.json();
 
                     console.log('Dados recebidos:', data);
@@ -463,7 +466,7 @@
                     // 5. Atualizar action e method do form
                     const form = this.$el;
                     if (form) {
-                        form.setAttribute('action', `/financeiro/contas-a-pagar/${id}`);
+                        form.setAttribute('action', contaUrl(data.id));
                         let methodInput = form.querySelector('input[name="_method"]');
                         if (!methodInput) {
                             methodInput = document.createElement('input');

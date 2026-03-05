@@ -58,6 +58,7 @@ return new class extends Migration
             $table->date('validade')->nullable();
             $table->text('observacoes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->softDeletes();
             $table->timestamps();
         });
 
