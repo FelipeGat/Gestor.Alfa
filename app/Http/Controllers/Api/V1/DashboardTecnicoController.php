@@ -25,7 +25,7 @@ class DashboardTecnicoController extends Controller
 
         $concluidosHoje = Atendimento::where('status_atual', 'finalizado')
             ->where('funcionario_id', $funcionarioId)
-            ->whereDate('data_finalizacao', Carbon::today())
+            ->whereDate('finalizado_em', Carbon::today())
             ->count();
 
         $proximosAtendimentos = Atendimento::with(['cliente', 'assunto'])
