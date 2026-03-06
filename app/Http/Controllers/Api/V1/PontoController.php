@@ -25,11 +25,25 @@ class PontoController extends Controller
     public function hoje(Request $request): JsonResponse
     {
         $user = $request->user();
-        $funcionarioId = $user->funcionario?->id;
+        
+        // Prioriza funcionario_id da query string (mobile), senão usa do usuário logado
+        $funcionarioId = $request->query('funcionario_id') ?? $user->funcionario?->id;
 
-        $registro = RegistroPontoPortal::where('funcionario_id', $funcionarioId)
-            ->whereDate('data_referencia', Carbon::today())
-            ->first();
+        if (!$funcionarioId) {
+            return response()->json(['message' => 'Funcionário não encontrado'], 404);
+        }
+
+        $query = RegistroPontoPortal::where('funcionario_id', $funcionarioId);
+
+        // Se passar ?data=YYYY-MM-DD, usa essa data específica
+        if ($request->has('data')) {
+            $query->whereDate('data_referencia', $request->data);
+        } else {
+            // Sem parâmetro de data: retorna o registro mais recente
+            $query->orderByDesc('data_referencia');
+        }
+
+        $registro = $query->first();
 
         return response()->json($registro);
     }
