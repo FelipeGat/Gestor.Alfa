@@ -15,16 +15,17 @@ class DashboardTecnicoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario_id;
 
+        // Status válidos: aberto, em_atendimento, finalizacao, concluido, cancelado
         // KPIs - Sempre filtra por funcionario_id
-        $pendentes = Atendimento::where("status_atual", "pendente")
+        $pendentes = Atendimento::where("status_atual", "aberto")
             ->where("funcionario_id", $funcionarioId)
             ->count();
 
-        $emAndamento = Atendimento::where("status_atual", "em_andamento")
+        $emAndamento = Atendimento::where("status_atual", "em_atendimento")
             ->where("funcionario_id", $funcionarioId)
             ->count();
 
-        $concluidos = Atendimento::where("status_atual", "finalizado")
+        $concluidos = Atendimento::where("status_atual", "concluido")
             ->where("funcionario_id", $funcionarioId)
             ->count();
 
@@ -34,17 +35,17 @@ class DashboardTecnicoController extends Controller
 
         $total = $pendentes + $emAndamento + $concluidos + $cancelados;
 
-        $concluidosHoje = Atendimento::where("status_atual", "finalizado")
+        $concluidosHoje = Atendimento::where("status_atual", "concluido")
             ->where("funcionario_id", $funcionarioId)
-            ->whereDate("finalizado_em", Carbon::today())
+            ->whereDate("updated_at", Carbon::today())
             ->count();
 
         $horasTrabalhadasHoje = $concluidosHoje * 1.5;
         $horasTrabalhadasSemana = $concluidos * 1.5;
 
         // Atendimento em andamento
-        $atendimentoEmAndamento = Atendimento::with(["cliente", "tipoAtendimento"])
-            ->where("status_atual", "em_andamento")
+        $atendimentoEmAndamento = Atendimento::with(["cliente"])
+            ->where("status_atual", "em_atendimento")
             ->where("funcionario_id", $funcionarioId)
             ->first();
 
@@ -73,9 +74,6 @@ class DashboardTecnicoController extends Controller
                     "cliente" => $atendimentoEmAndamento->cliente ? [
                         "id" => $atendimentoEmAndamento->cliente->id,
                         "nome" => $atendimentoEmAndamento->cliente->nome,
-                    ] : null,
-                    "tipo_atendimento" => $atendimentoEmAndamento->tipoAtendimento ? [
-                        "nome" => $atendimentoEmAndamento->tipoAtendimento->nome,
                     ] : null,
                     "tempo_executado" => $atendimentoEmAndamento->tempo_executado ?? 0,
                 ] : null,
