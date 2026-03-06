@@ -433,12 +433,17 @@
                     }
 
                     // 3. Fornecedor
+                    await this.$nextTick();
                     if (data.fornecedor_id) {
-                        this.$refs.fornecedorId.value = data.fornecedor_id;
+                        if (this.$refs.fornecedorId) {
+                            this.$refs.fornecedorId.value = data.fornecedor_id;
+                        }
                         const f = this.fornecedores.find(f => f.id == data.fornecedor_id);
                         if (f) this.fornecedorBusca = f.razao_social || f.nome_fantasia;
                     } else {
-                        this.$refs.fornecedorId.value = '';
+                        if (this.$refs.fornecedorId) {
+                            this.$refs.fornecedorId.value = '';
+                        }
                         this.fornecedorBusca = '';
                     }
 
