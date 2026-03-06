@@ -42,12 +42,12 @@ class AtendimentoController extends Controller
     {
         $atendimento = Atendimento::findOrFail($id);
 
-        if ($atendimento->status_atual !== "pendente") {
+        if ($atendimento->status_atual !== "aberto") {
             return response()->json(["message" => "Atendimento não pode ser iniciado"], 400);
         }
 
         $atendimento->update([
-            "status_atual" => "em_andamento",
+            "status_atual" => "em_atendimento",
             "iniciado_em" => now(),
             "iniciado_por_user_id" => auth()->id(),
         ]);
@@ -66,7 +66,7 @@ class AtendimentoController extends Controller
     {
         $atendimento = Atendimento::findOrFail($id);
 
-        if ($atendimento->status_atual !== "em_andamento") {
+        if ($atendimento->status_atual !== "em_atendimento") {
             return response()->json(["message" => "Atendimento não está em andamento"], 400);
         }
 
@@ -93,7 +93,7 @@ class AtendimentoController extends Controller
 
         $atendimento->update([
             "em_pausa" => false,
-            "status_atual" => "em_andamento",
+            "status_atual" => "em_atendimento",
         ]);
 
         return response()->json($atendimento);
@@ -103,12 +103,12 @@ class AtendimentoController extends Controller
     {
         $atendimento = Atendimento::findOrFail($id);
 
-        if (!in_array($atendimento->status_atual, ["em_andamento", "pausado"])) {
+        if (!in_array($atendimento->status_atual, ["em_atendimento", "pausado"])) {
             return response()->json(["message" => "Atendimento não pode ser finalizado"], 400);
         }
 
         $atendimento->update([
-            "status_atual" => "finalizado",
+            "status_atual" => "concluido",
             "finalizado_em" => now(),
             "finalizado_por_user_id" => auth()->id(),
             "observacoes_finais" => $request->observacoes,
