@@ -2,10 +2,54 @@
 
 use App\Http\Controllers\Api\CobrancaApiController;
 use App\Http\Controllers\Api\OrcamentoApiController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PontoController;
+use App\Http\Controllers\Api\V1\AgendaController;
+use App\Http\Controllers\Api\V1\AtendimentoController;
+use App\Http\Controllers\Api\V1\DashboardTecnicoController;
+use App\Http\Controllers\Api\V1\PerfilController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     // Rotas removidas por ausência dos controllers V1
+
+    // Auth
+    Route::post('auth/login', [AuthController::class, 'login']);
+
+    // Ponto (protegido)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('auth/logout', [AuthController::class, 'logout']);
+        Route::get('ponto', [PontoController::class, 'index']);
+        Route::get('ponto/hoje', [PontoController::class, 'hoje']);
+        Route::post('ponto/registrar', [PontoController::class, 'registrar']);
+    });
+
+    // Agenda
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('agenda', [AgendaController::class, 'index']);
+        Route::get('agenda/{id}', [AgendaController::class, 'show']);
+    });
+
+    // Atendimentos
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('atendimentos', [AtendimentoController::class, 'index']);
+        Route::get('atendimentos/{id}', [AtendimentoController::class, 'show']);
+        Route::post('atendimentos/{id}/iniciar', [AtendimentoController::class, 'iniciar']);
+        Route::post('atendimentos/{id}/pausar', [AtendimentoController::class, 'pausar']);
+        Route::post('atendimentos/{id}/retomar', [AtendimentoController::class, 'retomar']);
+        Route::post('atendimentos/{id}/finalizar', [AtendimentoController::class, 'finalizar']);
+    });
+
+    // Dashboard
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('dashboard/tecnico', [DashboardTecnicoController::class, 'tecnico']);
+    });
+
+    // Perfil
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('perfil', [PerfilController::class, 'show']);
+        Route::put('perfil', [PerfilController::class, 'update']);
+    });
 
     Route::apiResource('orcamentos', OrcamentoApiController::class)->names('api.orcamentos');
     Route::get('orcamentos/{orcamento}/cobrancas', [OrcamentoApiController::class, 'cobrancas'])->name('api.orcamentos.cobrancas');

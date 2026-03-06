@@ -45,7 +45,29 @@ class PontoController extends Controller
 
         $registro = $query->first();
 
-        return response()->json($registro);
+        // Calcular próximo evento baseado nos campos já preenchidos
+        $proximoEvento = null;
+        if (!$registro) {
+            $proximoEvento = 'entrada';
+        } elseif (!$registro->entrada_em) {
+            $proximoEvento = 'entrada';
+        } elseif (!$registro->intervalo_inicio_em) {
+            $proximoEvento = 'intervalo_inicio';
+        } elseif (!$registro->intervalo_fim_em) {
+            $proximoEvento = 'intervalo_fim';
+        } elseif (!$registro->saida_em) {
+            $proximoEvento = 'saida';
+        }
+
+        return response()->json([
+            'id' => $registro?->id,
+            'entrada_em' => $registro?->entrada_em,
+            'intervalo_inicio_em' => $registro?->intervalo_inicio_em,
+            'intervalo_fim_em' => $registro?->intervalo_fim_em,
+            'saida_em' => $registro?->saida_em,
+            'proximo_evento' => $proximoEvento,
+            'proximo_evento_label' => $proximoEvento ? ucfirst(str_replace('_', ' ', $proximoEvento)) : null,
+        ]);
     }
 
     public function registrar(Request $request): JsonResponse
