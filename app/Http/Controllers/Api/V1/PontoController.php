@@ -57,30 +57,33 @@ class PontoController extends Controller
             return response()->json(['message' => 'Funcionário não encontrado'], 400);
         }
 
-        $tipo = $request->validate([
+        $validated = $request->validate([
             'tipo' => 'required|in:entrada,intervalo_inicio,intervalo_fim,saida',
-        ])['tipo'];
+            'foto' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+        ]);
 
         $registro = RegistroPontoPortal::firstOrNew([
             'funcionario_id' => $funcionarioId,
             'data_referencia' => Carbon::today(),
         ]);
 
-        $campoTempo = match($tipo) {
+        $campoTempo = match($validated['tipo']) {
             'entrada' => 'entrada_em',
             'intervalo_inicio' => 'intervalo_inicio_em',
             'intervalo_fim' => 'intervalo_fim_em',
             'saida' => 'saida_em',
         };
 
-        $campoLatitude = match($tipo) {
+        $campoLatitude = match($validated['tipo']) {
             'entrada' => 'entrada_latitude',
             'intervalo_inicio' => 'intervalo_inicio_latitude',
             'intervalo_fim' => 'intervalo_fim_latitude',
             'saida' => 'saida_latitude',
         };
 
-        $campoLongitude = match($tipo) {
+        $campoLongitude = match($validated['tipo']) {
             'entrada' => 'entrada_longitude',
             'intervalo_inicio' => 'intervalo_inicio_longitude',
             'intervalo_fim' => 'intervalo_fim_longitude',
@@ -94,6 +97,17 @@ class PontoController extends Controller
         }
         if ($request->has('longitude')) {
             $registro->{$campoLongitude} = $request->longitude;
+        }
+
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('ponto/'.$funcionarioId.'/'.now()->format('Y/m'), 'public');
+
+            if ($validated['tipo'] === 'entrada') {
+                $registro->entrada_foto_path = $fotoPath;
+            }
+            if ($validated['tipo'] === 'saida') {
+                $registro->saida_foto_path = $fotoPath;
+            }
         }
 
         $registro->save();
