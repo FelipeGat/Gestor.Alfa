@@ -87,11 +87,12 @@ class AtendimentoController extends Controller
     {
         $atendimento = Atendimento::findOrFail($id);
 
-        if ($atendimento->status_atual !== "pausado") {
+        if (!$atendimento->em_pausa) {
             return response()->json(["message" => "Atendimento não está pausado"], 400);
         }
 
         $atendimento->update([
+            "em_execucao" => true,
             "em_pausa" => false,
             "status_atual" => "em_atendimento",
         ]);
