@@ -15,6 +15,7 @@ Route::prefix('v1')->group(function () {
 
     // Auth
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::get('auth/me', [AuthController::class, 'me']);
 
     // Ponto (protegido)
     Route::middleware('auth:sanctum')->group(function () {
@@ -27,6 +28,7 @@ Route::prefix('v1')->group(function () {
     // Agenda
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('agenda', [AgendaController::class, 'index']);
+        Route::get('agenda/hoje', [AgendaController::class, 'hoje']);
         Route::get('agenda/{id}', [AgendaController::class, 'show']);
     });
 
@@ -42,7 +44,7 @@ Route::prefix('v1')->group(function () {
 
     // Dashboard
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('dashboard/tecnico', [DashboardTecnicoController::class, 'tecnico']);
+        Route::get('dashboard/tecnico', [DashboardTecnicoController::class, 'index']);
     });
 
     // Perfil
