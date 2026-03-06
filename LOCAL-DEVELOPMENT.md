@@ -20,11 +20,11 @@ cd Gestor.Alfa
 ### 2. Configurar Variáveis de Ambiente
 
 ```bash
-# Copiar o arquivo de exemplo
+# Linux/macOS
 cp .env.example .env
 
-# Gerar chave da aplicação
-docker compose exec php php artisan key:generate
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
 ### 3. Iniciar os Containers Docker
@@ -40,14 +40,17 @@ docker compose ps
 ### 4. Instalar Dependências PHP
 
 ```bash
-docker compose exec php composer install
+docker compose exec php-fpm composer install
+
+# Gerar chave da aplicação
+docker compose exec php-fpm php artisan key:generate
 ```
 
 ### 5. Configurar o Banco de Dados
 
 ```bash
 # Executar migrações
-docker compose exec php php artisan migrate --seed
+docker compose exec php-fpm php artisan migrate --seed
 ```
 
 ### 6. Instalar e Buildar Assets Frontend
@@ -73,6 +76,8 @@ npm run check:post-branch
 | ---------- | --------------------- |
 | Aplicação  | http://localhost:8080 |
 | phpMyAdmin | http://localhost:8081 |
+| MySQL      | localhost:3307        |
+| Redis      | localhost:6380        |
 
 ## Comandos Úteis
 
@@ -87,16 +92,16 @@ docker compose down
 docker compose logs -f
 
 # Acessar terminal do PHP
-docker compose exec php bash
+docker compose exec php-fpm sh
 
 # Acessar MySQL
 docker compose exec mysql mysql -u gestor_user -p gestor_alfa
 
 # Limpar caches
-docker compose exec php php artisan config:clear
-docker compose exec php php artisan cache:clear
-docker compose exec php php artisan route:clear
-docker compose exec php php artisan view:clear
+docker compose exec php-fpm php artisan config:clear
+docker compose exec php-fpm php artisan cache:clear
+docker compose exec php-fpm php artisan route:clear
+docker compose exec php-fpm php artisan view:clear
 
 # Rebuild completo (após mudanças no Dockerfile)
 docker compose up -d --build --force-recreate
@@ -118,8 +123,8 @@ docker compose up -d --build --force-recreate
 ### Erro 419 (CSRF) no Login
 
 ```bash
-docker compose exec php php artisan config:clear
-docker compose exec php php artisan cache:clear
+docker compose exec php-fpm php artisan config:clear
+docker compose exec php-fpm php artisan cache:clear
 ```
 
 ### Porta já em Uso
@@ -135,8 +140,8 @@ docker compose down
 ### Permissões de Arquivos
 
 ```bash
-docker compose exec php chown -R www-data:www-data /var/www/storage
-docker compose exec php chmod -R 775 /var/www/storage
+docker compose exec php-fpm chown -R www-data:www-data /var/www/storage
+docker compose exec php-fpm chmod -R 775 /var/www/storage
 ```
 
 ### Container não Inicia
@@ -163,7 +168,16 @@ DB_HOST=mysql
 DB_PORT=3306
 DB_DATABASE=gestor_alfa
 DB_USERNAME=gestor_user
-DB_PASSWORD=sua_senha_aqui
+DB_PASSWORD=password
+
+MYSQL_ROOT_PASSWORD=root_password
+
+# Portas expostas no host (evita conflito com XAMPP)
+APP_PORT=8080
+APP_SSL_PORT=8443
+PHPMYADMIN_PORT=8081
+DB_FORWARD_PORT=3307
+REDIS_FORWARD_PORT=6380
 
 FORCE_HTTPS=false
 SESSION_SECURE_COOKIE=false

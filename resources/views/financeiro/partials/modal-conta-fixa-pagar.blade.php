@@ -374,7 +374,32 @@
 
             async carregarContaFixa(id) {
                 try {
-                    const response = await fetch(`/financeiro/contas-fixas-pagar/${id}`);
+                    const contaFixaUrl = (contaFixaId) => '{{ route("financeiro.contasapagar.showContaFixa", ["contaFixa" => "__ID__"]) }}'.replace('__ID__', contaFixaId);
+                    const contaPagarUrl = (contaId) => '{{ route("financeiro.contasapagar.show", ["conta" => "__ID__"]) }}'.replace('__ID__', contaId);
+
+                    let contaFixaId = id;
+                    let response = await fetch(contaFixaUrl(contaFixaId), {
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    // Fallback: caso o id recebido seja o da parcela (conta a pagar),
+                    // resolve automaticamente o id da conta fixa vinculada.
+                    if (!response.ok && response.status === 404) {
+                        const contaResponse = await fetch(contaPagarUrl(id), {
+                            headers: { 'Accept': 'application/json' }
+                        });
+
+                        if (contaResponse.ok) {
+                            const contaData = await contaResponse.json();
+                            if (contaData?.conta_fixa_pagar_id) {
+                                contaFixaId = contaData.conta_fixa_pagar_id;
+                                response = await fetch(contaFixaUrl(contaFixaId), {
+                                    headers: { 'Accept': 'application/json' }
+                                });
+                            }
+                        }
+                    }
+
                     if (!response.ok) throw new Error('Erro');
                     const data = await response.json();
 
@@ -420,7 +445,7 @@
                     // 4. Atualizar action do form
                     const form = this.$el;
                     if (form) {
-                        form.setAttribute('action', `/financeiro/contas-fixas-pagar/${id}`);
+                        form.setAttribute('action', contaFixaUrl(data.id));
                         let methodInput = form.querySelector('input[name="_method"]');
                         if (!methodInput) {
                             methodInput = document.createElement('input');

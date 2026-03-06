@@ -11,16 +11,14 @@ class RelatorioComercialService extends BaseRelatorioService
         [$inicio, $fim] = $this->periodo($filtros);
         [$inicioAnterior, $fimAnterior] = $this->periodoAnterior($inicio, $fim);
 
-        $empresaId = isset($filtros['empresa_id']) && $filtros['empresa_id'] !== null
-            ? (int) $filtros['empresa_id']
-            : null;
+        $empresaId = (int) $filtros['empresa_id'];
         $centroCustoId = $filtros['centro_custo_id'] ?? null;
 
         $statusFechados = ['aprovado', 'financeiro', 'aguardando_pagamento', 'em_andamento', 'concluido', 'garantia'];
         $statusPerdidos = ['reprovado', 'perdido', 'cancelado'];
 
         $base = DB::table('orcamentos as o')
-            ->when($empresaId, fn ($q) => $q->where('o.empresa_id', $empresaId))
+            ->where('o.empresa_id', $empresaId)
             ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
             ->whereBetween(DB::raw('DATE(o.created_at)'), [$inicio->toDateString(), $fim->toDateString()]);
 
@@ -55,7 +53,7 @@ class RelatorioComercialService extends BaseRelatorioService
 
         $ticketMedioAnterior = $this->f(
             DB::table('orcamentos as o')
-                ->when($empresaId, fn ($q) => $q->where('o.empresa_id', $empresaId))
+                ->where('o.empresa_id', $empresaId)
                 ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
                 ->whereIn(DB::raw('LOWER(o.status)'), $statusFechados)
                 ->whereBetween(DB::raw('DATE(o.created_at)'), [$inicioAnterior->toDateString(), $fimAnterior->toDateString()])

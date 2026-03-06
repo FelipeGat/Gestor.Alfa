@@ -162,8 +162,95 @@
                             $dataAgendada = $atendimento->data_inicio_agendamento;
                             $temTecnicoEAgenda = !empty($tecnicoNome) && !empty($dataAgendada);
                         @endphp
-                        <tr>
-                            <td class="portal-font-bold text-[#3f9cae]">#{{ $atendimento->id }}</td>
+                        <tr class="cursor-pointer hover:bg-gray-50 transition" onclick="toggleExpand({{ $atendimento->id }})">
+                            <td class="portal-font-bold text-[#3f9cae]">
+                                #{{ $atendimento->numero_atendimento ?? $atendimento->id }}
+                            </td>
+                            <td>{{ strtoupper($atendimento->prioridade ?? '—') }}</td>
+                            <td>
+                                <div class="font-medium text-gray-800">{{ $assuntoExibicao }}</div>
+                                <div class="mt-1 flex flex-col gap-1 text-xs text-gray-600">
+                                    @if($temTecnicoEAgenda)
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700 font-semibold w-fit">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Técnico e horário definidos
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td>
+                                @php
+                                    $status = $atendimento->status_atual;
+                                    $badgeClass = 'portal-badge--gray';
+                                    if(in_array($status, ['aberto', 'em_atendimento'])) {
+                                        $badgeClass = 'portal-badge--info';
+                                    } elseif(in_array($status, ['pendente_cliente', 'pendente_fornecedor', 'garantia', 'finalizacao'])) {
+                                        $badgeClass = 'portal-badge--warning';
+                                    } elseif($status === 'concluido') {
+                                        $badgeClass = 'portal-badge--success';
+                                    }
+                                @endphp
+                                <span class="portal-badge {{ $badgeClass }}">
+                                    {{ strtoupper(str_replace('_', ' ', $status ?? 'Indefinido')) }}
+                                </span>
+                            </td>
+                            <td>{{ $atendimento->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="whitespace-nowrap text-center align-middle">
+                                <div class="grid grid-cols-4 gap-2 place-items-center w-[176px] mx-auto">
+                                    <a href="{{ route('portal.chamado.edit', $atendimento) }}"
+                                        class="w-8 h-8 rounded-full inline-flex items-center justify-center text-amber-600 hover:bg-amber-50 transition"
+                                        title="Editar Atendimento">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M17.414 2.586a2 2 0 010 2.828l-9.5 9.5a1 1 0 01-.39.242l-4 1.5a1 1 0 01-1.286-1.286l1.5-4a1 1 0 01.242-.39l9.5-9.5a2 2 0 012.828 0z"/>
+                                        </svg>
+                                    </a>
+                                    <button type="button"
+                                        onclick="openModal('showHistorico{{ $atendimento->id }}')"
+                                        class="w-8 h-8 rounded-full inline-flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
+                                        title="Ver Detalhes">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                    <span class="w-8 h-8 rounded-full inline-flex items-center justify-center {{ $tecnicoNome ? 'text-[#3f9cae] bg-[#3f9cae]/10' : 'opacity-0' }}" title="Técnico vinculado">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.878 17.8M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </span>
+                                    <span class="w-8 h-8 rounded-full inline-flex items-center justify-center {{ $dataAgendada ? 'text-emerald-600 bg-emerald-100' : 'opacity-0' }}" title="Horário agendado">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                <dialog id="showHistorico{{ $atendimento->id }}"
+                                    class="rounded-xl shadow-xl p-0 w-full max-w-2xl backdrop:bg-gray-900/50">
+                                    ...existing code...
+                                </dialog>
+                            </td>
+                        </tr>
+                        <tr id="expandRow{{ $atendimento->id }}" style="display: none;">
+                            <td colspan="6" class="bg-gray-50 border-t-0">
+                                <div class="p-4">
+                                    <strong>Detalhes do atendimento #{{ $atendimento->numero_atendimento ?? $atendimento->id }}</strong>
+                                    <div class="mt-2 text-sm text-gray-700">
+                                        Assunto: {{ $assuntoExibicao }}<br>
+                                        Prioridade: {{ strtoupper($atendimento->prioridade ?? '—') }}<br>
+                                        Status: {{ strtoupper(str_replace('_', ' ', $atendimento->status_atual ?? 'Indefinido')) }}<br>
+                                        Criado em: {{ $atendimento->created_at->format('d/m/Y H:i') }}<br>
+                                        <div class="flex flex-col md:flex-row gap-4 mt-2">
+                                            <div><span class="font-semibold text-gray-600">Equipamento:</span> {{ $atendimento->equipamento?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Setor:</span> {{ $atendimento->equipamento?->setor?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Responsável:</span> {{ $atendimento->equipamento?->responsavel?->nome ?? '—' }}</div>
+                                            <div><span class="font-semibold text-gray-600">Usuário que abriu:</span> {{ $atendimento->iniciadoPor?->name ?? '—' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
                             <td>{{ strtoupper($atendimento->prioridade ?? '—') }}</td>
                             <td>
                                 <div class="font-medium text-gray-800">{{ $assuntoExibicao }}</div>

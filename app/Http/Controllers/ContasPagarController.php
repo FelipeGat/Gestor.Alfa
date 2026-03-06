@@ -23,6 +23,19 @@ class ContasPagarController extends Controller
         $this->service = $service;
     }
 
+    private function temAcessoFinanceiro($user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin() || strtolower((string) $user->tipo) === 'financeiro') {
+            return true;
+        }
+
+        return $user->perfis()->where('slug', 'financeiro')->exists();
+    }
+
     /**
      * Exibe a listagem principal das contas a pagar
      */
@@ -185,10 +198,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         // VALIDAÇÃO: Se for conta fixa (recorrente), verificar se há parcela anterior não paga
         if ($conta->conta_fixa_pagar_id) {
@@ -298,10 +308,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         if ($conta->status !== 'pago') {
             return back()->with('error', 'Apenas contas pagas podem ser estornadas.');
@@ -341,10 +348,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $request->validate([
             'centro_custo_id' => 'required|exists:centros_custo,id',
@@ -385,10 +389,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento']);
 
@@ -403,10 +404,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $request->validate([
             'centro_custo_id' => 'required|exists:centros_custo,id',
@@ -441,10 +439,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         if ($conta->status === 'pago') {
             return back()->withErrors(['error' => 'Não é possível excluir uma conta já paga.']);
@@ -474,10 +469,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $request->validate([
             'centro_custo_id' => 'required|exists:centros_custo,id',
@@ -620,10 +612,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $contasFixas = ContaFixaPagar::with([
             'centroCusto:id,nome',
@@ -641,10 +630,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $contaFixa->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor']);
 
@@ -659,10 +645,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $request->validate([
             'centro_custo_id' => 'required|exists:centros_custo,id',
@@ -778,10 +761,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $contaFixa->update(['ativo' => false]);
 
@@ -796,10 +776,7 @@ class ContasPagarController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        abort_if(
-            ! $user->isAdminPanel() && ! $user->perfis()->where('slug', 'financeiro')->exists(),
-            403
-        );
+        abort_unless($this->temAcessoFinanceiro($user), 403);
 
         $contaFixa->update(['ativo' => true]);
 

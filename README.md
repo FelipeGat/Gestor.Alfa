@@ -144,14 +144,14 @@ O sistema oferece dashboards especializados por departamento (Administrativo, Co
 
 ### Containers Docker
 
-| Container | Imagem | Porta | Descrição |
-|-----------|--------|-------|-----------|
-| nginx | nginx:alpine | 80, 443 | Proxy reverso e servidor web |
+| Container | Imagem | Porta no Host | Descrição |
+|-----------|--------|---------------|-----------|
+| nginx | nginx:alpine | 8080, 8443 | Proxy reverso e servidor web |
 | php-fpm | PHP 8.3 + Laravel | - | Processamento PHP |
-| mysql | MySQL 8.0 | 3306 | Banco de dados |
-| redis | Redis 7 | 6379 | Cache e filas |
+| mysql | MySQL 8.0 | 3307 | Banco de dados |
+| redis | Redis 7 | 6380 | Cache e filas |
 | queue-worker | PHP 8.3 | - | Processamento de jobs |
-| phpmyadmin | latest | 8080 | Administração do BD |
+| phpmyadmin | latest | 8081 | Administração do BD |
 
 ---
 

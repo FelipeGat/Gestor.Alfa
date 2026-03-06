@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \App\Models\Orcamento::observe(\App\Observers\OrcamentoObserver::class);
         // SSL disabled - uncomment when SSL is configured
         // if (app()->environment('production')) {
         //     URL::forceScheme('https');

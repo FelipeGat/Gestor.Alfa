@@ -9,13 +9,11 @@ class RelatorioRHService extends BaseRelatorioService
     public function gerar(array $filtros): array
     {
         [$inicio, $fim] = $this->periodo($filtros);
-        $empresaId = isset($filtros['empresa_id']) && $filtros['empresa_id'] !== null
-            ? (int) $filtros['empresa_id']
-            : null;
+        $empresaId = (int) $filtros['empresa_id'];
 
         $funcionarios = DB::table('funcionarios as f')
             ->join('empresa_funcionario as ef', 'ef.funcionario_id', '=', 'f.id')
-            ->when($empresaId, fn ($q) => $q->where('ef.empresa_id', $empresaId))
+            ->where('ef.empresa_id', $empresaId)
             ->select('f.id', 'f.nome')
             ->distinct()
             ->get();

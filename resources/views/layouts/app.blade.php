@@ -155,7 +155,7 @@
                         <span>Usuário: <span class="font-medium text-gray-600">{{ auth()->user()->name }}</span></span>
                         <span class="hidden sm:inline">•</span>
                         <span>Acesso feito: <span id="sessao-horario-acesso" data-login-iniciado="{{ $loginIniciadoEm ?? now()->toIso8601String() }}" class="font-medium text-gray-600">--:--</span></span>
-                        <span id="sessao-separador-inercia" class="hidden sm:inline hidden">•</span>
+                        <span id="sessao-separador-inercia" class="sm:inline hidden">•</span>
                         <span id="sessao-bloco-inercia" class="hidden">
                             Você está a <span id="sessao-tempo-inercia" data-ultima-atividade="{{ $ultimaAtividadeEm ?? now()->toIso8601String() }}" class="font-medium text-gray-600">0</span> minutos sem usar o sistema, ele será fechado em <span id="sessao-tempo-restante-fechar" class="font-medium text-gray-600">10</span> minutos.
                         </span>
