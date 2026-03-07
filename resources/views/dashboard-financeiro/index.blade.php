@@ -277,7 +277,7 @@
                             {{-- CONTAS DESTE TIPO --}}
                             <div class="space-y-2">
                                 @foreach($contas as $conta)
-                                <div class="flex items-center justify-between rounded-lg px-4 py-3 
+                                <div class="flex items-center justify-between rounded-lg px-4 py-3
                                     {{ $tipo === 'corrente' ? 'bg-blue-50' : ($tipo === 'poupanca' ? 'bg-green-50' : 'bg-purple-50') }}">
                                     <div class="flex items-center gap-3">
                                         {{-- LOGO (opcional) --}}
@@ -314,7 +314,7 @@
                             📊 Resumo Financeiro
                         </h3>
                     </div>
-    
+
                     {{-- ================= REALIZADO ================= --}}
                     <div class="mb-6">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
@@ -345,7 +345,7 @@
                         <div id="modal-lancamentos" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
                             <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-0 relative" style="border: 1px solid #3f9cae; border-top-width: 4px;">
                                 <button onclick="fecharModalLancamentos()" class="absolute top-3 right-3 text-gray-400 hover:text-red-600 text-2xl font-bold z-10">&times;</button>
-                                
+
                                 {{-- HEADER DO MODAL --}}
                                 <div class="px-6 py-4 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
                                     <div class="flex items-center justify-between">
@@ -587,7 +587,7 @@
             // Calcular total
             let total = lista.reduce((acc, l) => acc + (parseFloat(l.valor) || 0), 0);
             let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            
+
             document.getElementById('modal-titulo').innerText = titulo;
             document.getElementById('modal-total').innerHTML = `<span class='${totalColor}'>${totalFormatado}</span>`;
             const container = document.getElementById('modal-lista-lancamentos');
@@ -600,12 +600,12 @@
                 } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                     thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Centro de Custo</th>`;
                 }
-                
+
                 let thCnpj = '';
                 if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
                     thCnpj = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>CNPJ/CPF</th>`;
                 }
-                
+
                 container.innerHTML = `
                 <div class='overflow-x-auto'>
                 <table class='w-full table-auto' style='border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;'>
@@ -1069,45 +1069,64 @@
             const despesaPaga = JSON.parse(el.dataset.despesaPaga || '[]');
             const despesaPrevista = JSON.parse(el.dataset.despesaPrevista || '[]');
 
+            // Datasets definidos como variável para acesso no onHover
+            const fluxoDatasets = [{
+                    label: 'Receita Prevista',
+                    data: previsto,
+                    backgroundColor: '#93c5fd',
+                    stack: 'receita'
+                },
+                {
+                    label: 'Receita Recebida',
+                    data: recebido,
+                    backgroundColor: '#1e3a8a',
+                    stack: 'receita'
+                },
+                {
+                    label: 'Despesa Prevista',
+                    data: despesaPrevista,
+                    backgroundColor: '#fca5a5',
+                    stack: 'despesa'
+                },
+                {
+                    label: 'Despesa Paga',
+                    data: despesaPaga,
+                    backgroundColor: '#dc2626',
+                    stack: 'despesa'
+                }
+            ];
+
+            // Rastreia qual stack está sendo hovereada para filtrar o tooltip
+            let fluxoHoverStack = null;
+
+            // Formatação monetária brasileira
+            const fmtBRL = v => 'R$ ' + (parseFloat(v) || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
             new Chart(document.getElementById('chartFinanceiroMensal'), {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                            label: 'Receita Prevista',
-                            data: previsto,
-                            backgroundColor: '#93c5fd',
-                            stack: 'receita'
-                        },
-                        {
-                            label: 'Receita Recebida',
-                            data: recebido,
-                            backgroundColor: '#1e3a8a',
-                            stack: 'receita'
-                        },
-                        {
-                            label: 'Despesa Prevista',
-                            data: despesaPrevista,
-                            backgroundColor: '#fca5a5',
-                            stack: 'despesa'
-                        },
-                        {
-                            label: 'Despesa Paga',
-                            data: despesaPaga,
-                            backgroundColor: '#dc2626',
-                            stack: 'despesa'
-                        }
-                    ]
+                    datasets: fluxoDatasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    onHover: function(event, activeElements) {
+                        if (activeElements && activeElements.length > 0) {
+                            fluxoHoverStack = fluxoDatasets[activeElements[0].datasetIndex].stack;
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                    return 'R$ ' + (parseFloat(value) || 0).toLocaleString('pt-BR', {
+                                        minimumFractionDigits: 2
+                                    });
                                 }
                             }
                         }
@@ -1116,29 +1135,27 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            // Exibe apenas os datasets da stack hovereada (receita OU despesa)
+                            filter: function(item) {
+                                if (!fluxoHoverStack) return true;
+                                return item.dataset.stack === fluxoHoverStack;
+                            },
                             callbacks: {
                                 title: function(context) {
                                     return context[0].label.toUpperCase();
                                 },
                                 label: function(context) {
-                                    const valor = context.raw || 0;
-                                    return `${context.dataset.label}: R$ ${valor.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2
-                                    })}`;
+                                    return `${context.dataset.label}: ${fmtBRL(context.raw)}`;
                                 },
                                 footer: function(context) {
-                                    let totalReceita = 0;
-                                    context.forEach(item => {
-                                        if (
-                                            item.dataset.label === 'Receita Prevista' ||
-                                            item.dataset.label === 'Receita Recebida'
-                                        ) {
-                                            totalReceita += item.raw || 0;
-                                        }
-                                    });
-                                    return `Total Receita: R$ ${totalReceita.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2
-                                    })}`;
+                                    let total = 0;
+                                    context.forEach(item => { total += parseFloat(item.raw) || 0; });
+                                    const stack = context[0]?.dataset?.stack;
+                                    const label = stack === 'receita' ? 'Total Receita' : 'Total Despesa';
+                                    return [
+                                        '─────────────────────────',
+                                        `${label} : ${fmtBRL(total)}`
+                                    ];
                                 }
                             }
                         }
