@@ -99,26 +99,9 @@ class PontoController extends Controller
             $proximoEvento = 'saida';
         }
 
-        // Calcular tempo trabalhado
-        $tempoTrabalhadoSegundos = 0;
-        $tempoTrabalhadoFormatado = '00:00';
-
-        if ($registro && $registro->entrada_em) {
-            $saida = $registro->saida_em ?? Carbon::now();
-            $tempoTrabalhadoSegundos = (int) $registro->entrada_em->diffInSeconds($saida);
-
-            // Subtrair intervalo
-            if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-                $tempoTrabalhadoSegundos -= (int) $registro->intervalo_inicio_em->diffInSeconds($registro->intervalo_fim_em);
-            }
-
-            $tempoTrabalhadoSegundos = max(0, $tempoTrabalhadoSegundos);
-
-            // Formatar
-            $horas = floor($tempoTrabalhadoSegundos / 3600);
-            $minutos = floor(($tempoTrabalhadoSegundos % 3600) / 60);
-            $tempoTrabalhadoFormatado = sprintf('%02d:%02d', $horas, $minutos);
-        }
+        // Calcular tempo trabalhado (usa mesma lógica do sistema web)
+        $tempoTrabalhadoSegundos = $this->calcularSegundosTrabalhados($registro);
+        $tempoTrabalhadoFormatado = $this->formatarSegundos($tempoTrabalhadoSegundos);
 
         return response()->json([
             'id' => $registro?->id,

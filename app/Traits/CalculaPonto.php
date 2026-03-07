@@ -15,39 +15,43 @@ trait CalculaPonto
     /**
      * Calcula os segundos trabalhados em um registro de ponto
      * Usa normalização para minuto (padrão de mercado - remove segundos)
+     * Calcula horas parciais para registros incompletos (só manhã ou só tarde)
      */
     protected function calcularSegundosTrabalhados(RegistroPontoPortal $registro): int
     {
-        if (!$registro->entrada_em || !$registro->saida_em) {
+        if (!$registro) {
             return 0;
         }
+
+        $segundos = 0;
 
         // Normaliza para minuto (padrão de mercado - remove segundos)
         $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
-        $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
         $intervaloInicio = $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em);
         $intervaloFim = $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em);
+        $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
 
-        $entradaTimestamp = strtotime((string) $entrada);
-        $saidaTimestamp = strtotime((string) $saida);
-
-        if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
-            return 0;
+        // 1. Calcula período da manhã (entrada → início intervalo)
+        if ($entrada && $intervaloInicio && $intervaloInicio->gt($entrada)) {
+            $segundos += $intervaloInicio->diffInSeconds($entrada, true);
         }
 
-        $segundos = $saidaTimestamp - $entradaTimestamp;
-
-        // Subtrai intervalo de almoço (se completo)
-        if ($intervaloInicio && $intervaloFim) {
-            $inicioIntervaloTimestamp = strtotime((string) $intervaloInicio);
-            $fimIntervaloTimestamp = strtotime((string) $intervaloFim);
-
-            if ($inicioIntervaloTimestamp && $fimIntervaloTimestamp && $fimIntervaloTimestamp > $inicioIntervaloTimestamp) {
-                $segundos -= ($fimIntervaloTimestamp - $inicioIntervaloTimestamp);
-            }
+        // 2. Calcula período da tarde (fim intervalo → saída)
+        if ($intervaloFim && $saida && $saida->gt($intervaloFim)) {
+            $segundos += $saida->diffInSeconds($intervaloFim, true);
         }
 
-        return max(0, $segundos);
+        // 3. Se conseguiu calcular períodos separados, retorna
+        if ($segundos > 0) {
+            return $segundos;
+        }
+
+        // 4. Fallback: calcula direto se tiver entrada e saída (sem intervalo)
+        if ($entrada && $saida && $saida->gt($entrada)) {
+            return $saida->diffInSeconds($entrada, true);
+        }
+
+        return 0;
     }
 
     /**
