@@ -64,45 +64,72 @@ class AtendimentoController extends Controller
 
     public function pausar(int $id, Request $request): JsonResponse
     {
-        $atendimento = Atendimento::findOrFail($id);
+        try {
+            $user = $request->user();
+            $atendimento = Atendimento::with(['cliente', 'assunto'])->findOrFail($id);
 
-        if ($atendimento->status_atual !== "em_atendimento") {
-            return response()->json(["message" => "Atendimento não está em andamento"], 400);
+            // Validar permissão
+            if ($user->tipo !== 'admin' && $user->funcionario?->id) {
+                if ($atendimento->funcionario_id !== $user->funcionario->id) {
+                    return response()->json(['message' => 'Não autorizado'], 403);
+                }
+            }
+
+            // Validar se está em execução
+            if (!$atendimento->em_execucao) {
+                return response()->json(['message' => 'Atendimento não está em execução'], 400);
+            }
+
+            // Atualizar estado corretamente (NÃO muda status_atual, só em_execucao e em_pausa)
+            $atendimento->update([
+                "em_execucao" => false,
+                "em_pausa" => true,
+            ]);
+
+            // Criar pausa com campos corretos
+            $pausa = AtendimentoPausa::create([
+                "atendimento_id" => $atendimento->id,
+                "user_id" => auth()->id(),
+                "tipo_pausa" => in_array($request->tipo_pausa, ['almoco', 'deslocamento', 'material', 'fim_dia']) ? $request->tipo_pausa : 'deslocamento',
+                "iniciada_em" => now(),
+            ]);
+
+            return response()->json(['data' => $atendimento->fresh()]);
+
+        } catch (\Exception $e) {
+            // Log do erro para debug
+            \Log::error('Erro ao pausar atendimento: ' . $e->getMessage(), [
+                'atendimento_id' => $id,
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Server Error'], 500);
         }
-
-        // Atualizar estado corretamente
-        $atendimento->update([
-            "em_execucao" => false,
-            "em_pausa" => true,
-            "status_atual" => "pausado",
-        ]);
-
-        // Criar pausa com campos corretos
-        $pausa = AtendimentoPausa::create([
-            "atendimento_id" => $atendimento->id,
-            "user_id" => auth()->id(),
-            "tipo_pausa" => $request->tipo_pausa ?? 'outro',
-            "iniciada_em" => now(),
-        ]);
-
-        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function retomar(int $id): JsonResponse
     {
-        $atendimento = Atendimento::findOrFail($id);
+        try {
+            $atendimento = Atendimento::findOrFail($id);
 
-        if (!$atendimento->em_pausa) {
-            return response()->json(["message" => "Atendimento não está pausado"], 400);
+            if (!$atendimento->em_pausa) {
+                return response()->json(['message' => 'Atendimento não está pausado'], 400);
+            }
+
+            $atendimento->update([
+                "em_execucao" => true,
+                "em_pausa" => false,
+                "status_atual" => "em_atendimento",
+            ]);
+
+            return response()->json(['data' => $atendimento->fresh()]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erro ao retomar atendimento: ' . $e->getMessage(), [
+                'atendimento_id' => $id,
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Server Error'], 500);
         }
-
-        $atendimento->update([
-            "em_execucao" => true,
-            "em_pausa" => false,
-            "status_atual" => "em_atendimento",
-        ]);
-
-        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function finalizar(int $id, Request $request): JsonResponse
