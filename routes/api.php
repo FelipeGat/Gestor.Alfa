@@ -22,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::get('ponto', [PontoController::class, 'index']);
         Route::get('ponto/hoje', [PontoController::class, 'hoje']);
+        Route::get('ponto/banco-horas', [PontoController::class, 'bancoHoras']);
         Route::post('ponto/registrar', [PontoController::class, 'registrar']);
     });
 
