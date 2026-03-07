@@ -14,6 +14,7 @@ trait CalculaPonto
 
     /**
      * Calcula os segundos trabalhados em um registro de ponto
+     * Usa normalização para minuto (padrão de mercado - remove segundos)
      */
     protected function calcularSegundosTrabalhados(RegistroPontoPortal $registro): int
     {
@@ -21,8 +22,14 @@ trait CalculaPonto
             return 0;
         }
 
-        $entradaTimestamp = strtotime((string) $registro->entrada_em);
-        $saidaTimestamp = strtotime((string) $registro->saida_em);
+        // Normaliza para minuto (padrão de mercado - remove segundos)
+        $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
+        $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
+        $intervaloInicio = $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em);
+        $intervaloFim = $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em);
+
+        $entradaTimestamp = strtotime((string) $entrada);
+        $saidaTimestamp = strtotime((string) $saida);
 
         if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
             return 0;
@@ -31,9 +38,9 @@ trait CalculaPonto
         $segundos = $saidaTimestamp - $entradaTimestamp;
 
         // Subtrai intervalo de almoço (se completo)
-        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-            $inicioIntervaloTimestamp = strtotime((string) $registro->intervalo_inicio_em);
-            $fimIntervaloTimestamp = strtotime((string) $registro->intervalo_fim_em);
+        if ($intervaloInicio && $intervaloFim) {
+            $inicioIntervaloTimestamp = strtotime((string) $intervaloInicio);
+            $fimIntervaloTimestamp = strtotime((string) $intervaloFim);
 
             if ($inicioIntervaloTimestamp && $fimIntervaloTimestamp && $fimIntervaloTimestamp > $inicioIntervaloTimestamp) {
                 $segundos -= ($fimIntervaloTimestamp - $inicioIntervaloTimestamp);
@@ -41,6 +48,19 @@ trait CalculaPonto
         }
 
         return max(0, $segundos);
+    }
+
+    /**
+     * Normaliza horário para minuto (remove segundos)
+     * Padrão usado pela maioria dos sistemas de ponto SaaS
+     */
+    protected function normalizarBatidaParaMinuto($valor): ?Carbon
+    {
+        if (!$valor) {
+            return null;
+        }
+
+        return Carbon::parse($valor)->copy()->setSecond(0);
     }
 
     /**
