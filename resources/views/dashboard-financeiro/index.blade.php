@@ -370,9 +370,10 @@
                     </div>
                     {{-- ================= PREVISTO ================= --}}
                     <div class="mb-6 border-t pt-4">
-                        <span class="text-xs text-gray-500 uppercase block mb-2">
+                        <span class="text-xs text-gray-500 uppercase block mb-1">
                             Previsto
                         </span>
+                        <p class="text-xs text-gray-400 mb-2">Contratos + Orçamentos ativos</p>
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">A Receber</span>
@@ -396,25 +397,26 @@
                     </div>
                     {{-- ================= SITUAÇÃO ================= --}}
                     <div class="border-t pt-4">
-                        <span class="text-xs text-gray-500 uppercase block mb-2">
+                        <span class="text-xs text-gray-500 uppercase block mb-1">
                             Situação
                         </span>
+                        <p class="text-xs text-amber-600 mb-2">⚠ Total global — independente do filtro de período</p>
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Receitas Atrasadas</span>
-                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_pago')">
-                                    R$ {{ number_format($pago, 2, ',', '.') }}
+                                <p class="font-bold text-amber-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_receitas_atrasadas')">
+                                    R$ {{ number_format($receitasAtrasadas, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Despesas Atrasadas</span>
                                 <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_atrasado')">
-                                    R$ {{ number_format($atrasado, 2, ',', '.') }}
+                                    R$ {{ number_format($despesasAtrasadas, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Diferença</span>
-                                <p class="font-bold text-blue-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_diferenca')">
+                                <p class="font-bold {{ $saldoSituacao >= 0 ? 'text-green-600' : 'text-red-700' }}">
                                     R$ {{ number_format($saldoSituacao, 2, ',', '.') }}
                                 </p>
                             </div>
@@ -545,8 +547,7 @@
         const lancamentosPrevistoReceber = @json($lancamentosPrevistoReceber ?? []);
         const lancamentosPrevistoPagar = @json($lancamentosPrevistoPagar ?? []);
         const lancamentosAtrasado = @json($lancamentosAtrasado ?? []);
-        const lancamentosPago = @json($lancamentosPago ?? []);
-        const lancamentosDiferenca = @json($lancamentosDiferenca ?? []);
+        const lancamentosReceitasAtrasadas = @json($lancamentosReceitasAtrasadas ?? []);
         let currentTipoLancamento = '';
 
         function mostrarLancamentos(tipo) {
@@ -575,14 +576,10 @@
                 lista = lancamentosAtrasado;
                 titulo = 'Despesas Atrasadas';
                 totalColor = 'text-red-600';
-            } else if (tipo === 'situacao_pago') {
-                lista = lancamentosPago;
+            } else if (tipo === 'situacao_receitas_atrasadas') {
+                lista = lancamentosReceitasAtrasadas;
                 titulo = 'Receitas Atrasadas';
-                totalColor = 'text-green-600';
-            } else if (tipo === 'situacao_diferenca') {
-                lista = lancamentosDiferenca;
-                titulo = 'Lançamentos Diferença';
-                totalColor = 'text-blue-600';
+                totalColor = 'text-amber-600';
             }
             // Calcular total
             let total = lista.reduce((acc, l) => acc + (parseFloat(l.valor) || 0), 0);
@@ -595,14 +592,14 @@
                 container.innerHTML = '<div class="text-gray-500 text-center py-8" style="font-size: 0.875rem;">Nenhum lançamento encontrado.</div>';
             } else {
                 let thExtra = '';
-                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                     thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Empresa</th>`;
                 } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                     thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Centro de Custo</th>`;
                 }
 
                 let thCnpj = '';
-                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                     thCnpj = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>CNPJ/CPF</th>`;
                 }
 
@@ -624,10 +621,10 @@
                         ${lista.map(l => `
                             <tr class='hover:bg-gray-50 transition'>
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.data ?? ''}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.empresa ?? '-'}</td>` : ''}
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.empresa ?? '-'}</td>` : ''}
                                 ${(tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.centro_custo ?? '-'}</td>` : ''}
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cliente ?? '-'}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cnpjcpf ?? '-'}</td>` : ''}
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cnpjcpf ?? '-'}</td>` : ''}
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.descricao ?? '-'}</td>
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.tipo ?? '-'}</td>
                                 <td class='px-4 py-3 text-sm text-right font-semibold' style='color: rgb(17, 24, 39);'>R$ ${parseFloat(l.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
@@ -651,8 +648,7 @@
                 'previsto_receber': { lista: lancamentosPrevistoReceber, titulo: 'Lançamentos a Receber', cor: '#16a34a' },
                 'previsto_pagar': { lista: lancamentosPrevistoPagar, titulo: 'Lançamentos a Pagar', cor: '#dc2626' },
                 'situacao_atrasado': { lista: lancamentosAtrasado, titulo: 'Despesas Atrasadas', cor: '#dc2626' },
-                'situacao_pago': { lista: lancamentosPago, titulo: 'Receitas Atrasadas', cor: '#16a34a' },
-                'situacao_diferenca': { lista: lancamentosDiferenca, titulo: 'Lançamentos Diferença', cor: '#2563eb' }
+                'situacao_receitas_atrasadas': { lista: lancamentosReceitasAtrasadas, titulo: 'Receitas Atrasadas', cor: '#d97706' }
             };
             return info[tipo] || { lista: [], titulo: 'Lançamentos', cor: '#333' };
         }
@@ -670,14 +666,14 @@
             let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
             let thExtra = '';
-            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                 thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
             } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                 thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro de Custo</th>';
             }
 
             let thCnpj = '';
-            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                 thCnpj = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">CNPJ/CPF</th>';
             }
 
@@ -699,13 +695,13 @@
                     let valorFormatado = 'R$ ' + (parseFloat(l.valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                     tableRows += '<tr>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.data || '-') + '</td>';
-                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.empresa || '-') + '</td>';
                     } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.centro_custo || '-') + '</td>';
                     }
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cliente || '-') + '</td>';
-                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cnpjcpf || '-') + '</td>';
                     }
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.descricao || '-') + '</td>';
