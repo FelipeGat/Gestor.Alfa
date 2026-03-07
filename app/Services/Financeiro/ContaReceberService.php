@@ -77,14 +77,15 @@ class ContaReceberService
     public function calcularKPIs(array $filtros = []): array
     {
         $cacheKey = 'contas_receber_kpis_' . date('Y-m-d');
-        
+
         return Cache::remember($cacheKey, 300, function () {
             return [
                 'a_receber' => Cobranca::where('status', 'em_aberto')
                     ->whereDate('data_vencimento', '>=', now()->startOfMonth())
                     ->sum('valor'),
                 'recebido' => Cobranca::where('status', 'pago')
-                    ->whereDate('data_vencimento', '>=', now()->startOfMonth())
+                    ->whereDate('data_pagamento', '>=', now()->startOfMonth()->toDateString())
+                    ->whereDate('data_pagamento', '<=', now()->endOfMonth()->toDateString())
                     ->sum('valor'),
                 'vencido' => Cobranca::where('status', '!=', 'pago')
                     ->whereDate('data_vencimento', '<', now()->toDateString())
@@ -99,7 +100,7 @@ class ContaReceberService
     public function contarPorStatus(): array
     {
         $cacheKey = 'contas_receber_contadores_' . date('Y-m-d');
-        
+
         return Cache::remember($cacheKey, 300, function () {
             return [
                 'em_aberto' => Cobranca::where('status', 'em_aberto')->count(),
@@ -113,7 +114,7 @@ class ContaReceberService
     public function receber(array $cobrancaIds, array $dadosRecebimento): void
     {
         $recebimentosRealizados = false;
-        
+
         DB::transaction(function () use ($cobrancaIds, $dadosRecebimento, &$recebimentosRealizados) {
             foreach ($cobrancaIds as $id) {
                 $cobranca = Cobranca::find($id);
@@ -128,7 +129,7 @@ class ContaReceberService
                     'forma_pagamento' => $dadosRecebimento['forma_pagamento'],
                     'user_id' => Auth::id(),
                 ]);
-                
+
                 $recebimentosRealizados = true;
 
                 if ($dadosRecebimento['conta_financeira_id']) {
@@ -150,7 +151,7 @@ class ContaReceberService
                 }
             }
         });
-        
+
         if ($recebimentosRealizados) {
             $this->limparCache();
         }
@@ -185,7 +186,7 @@ class ContaReceberService
                 }
             }
         });
-        
+
         $this->limparCache();
     }
 
@@ -220,7 +221,7 @@ class ContaReceberService
                 }
             }
         });
-        
+
         $this->limparCache();
     }
 
