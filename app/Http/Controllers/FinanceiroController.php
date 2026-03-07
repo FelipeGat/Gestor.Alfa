@@ -161,7 +161,7 @@ class FinanceiroController extends Controller
                         'valor' => $parcela['valor'],
                         'data_vencimento' => $parcela['data_vencimento'],
                         'status' => 'pendente',
-                        'origem' => 'orcamento',
+                        'tipo' => 'orcamento',
                         'forma_pagamento' => $dados['forma_pagamento'],
                         'parcela_num' => $i + 1,
                         'parcelas_total' => count($parcelas),
