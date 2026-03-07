@@ -10,11 +10,6 @@ class Cobranca extends Model
 {
     use SoftDeletes;
 
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
     /**
      * Accessor para empresa relacionada via Conta Fixa ou Orçamento
      */
@@ -30,7 +25,11 @@ class Cobranca extends Model
         }
         return null;
     }
-    use SoftDeletes;
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     protected $fillable = [
         'orcamento_id',
