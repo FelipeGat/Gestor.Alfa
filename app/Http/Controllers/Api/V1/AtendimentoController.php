@@ -117,4 +117,38 @@ class AtendimentoController extends Controller
 
         return response()->json($atendimento);
     }
+
+    /**
+     * Retorna tempo de execução sincronizado com o servidor
+     */
+    public function tempo(int $id): JsonResponse
+    {
+        $user = request()->user();
+        $query = Atendimento::with(['cliente', 'assunto']);
+
+        // Admin vê qualquer atendimento, técnico vê apenas os seus
+        if ($user->tipo !== 'admin' && $user->funcionario?->id) {
+            $query->where('funcionario_id', $user->funcionario->id);
+        }
+
+        $atendimento = $query->findOrFail($id);
+
+        // Calcula tempo total de execução
+        $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
+
+        // Se estiver em execução, calcula tempo desde o último início
+        if ($atendimento->em_execucao && $atendimento->iniciado_em) {
+            $tempoExecucao += now()->diffInSeconds($atendimento->iniciado_em);
+        }
+
+        return response()->json([
+            'data' => [
+                'tempo_execucao_segundos' => $tempoExecucao,
+                'hora_inicio' => $atendimento->iniciado_em?->toIso8601String(),
+                'hora_atual_servidor' => now()->toIso8601String(),
+                'em_execucao' => $atendimento->em_execucao,
+                'em_pausa' => $atendimento->em_pausa,
+            ]
+        ]);
+    }
 }

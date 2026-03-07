@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('atendimentos', [AtendimentoController::class, 'index']);
         Route::get('atendimentos/{id}', [AtendimentoController::class, 'show']);
+        Route::get('atendimentos/{id}/tempo', [AtendimentoController::class, 'tempo']);
         Route::post('atendimentos/{id}/iniciar', [AtendimentoController::class, 'iniciar']);
         Route::post('atendimentos/{id}/pausar', [AtendimentoController::class, 'pausar']);
         Route::post('atendimentos/{id}/retomar', [AtendimentoController::class, 'retomar']);
