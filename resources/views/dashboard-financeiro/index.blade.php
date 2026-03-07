@@ -38,6 +38,61 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
+        /* ── Flip Card ── */
+        .resumo-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .resumo-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .resumo-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        /* FRENTE: fluxo normal — define a altura do container */
+        .resumo-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        /* VERSO: absolute overlay — não colapsa o container */
+        .resumo-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .resumo-flip-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .resumo-flip-trigger:hover .flip-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .flip-hint {
+            opacity: 0.55;
+            transform: translateX(-4px);
+            transition: all 0.2s;
+        }
+        .empresa-day-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            transition: box-shadow 0.2s;
+        }
+        .empresa-day-card:hover {
+            box-shadow: 0 2px 8px rgba(63,156,174,0.18);
+            border-color: #3f9cae;
+        }
         .btn-filtro-rapido {
             padding: 0.375rem 0.75rem;
             font-size: 0.75rem;
@@ -306,12 +361,23 @@
                         @endforeach
                     </div>
                 </div>
-                {{-- RESUMO FINANCEIRO --}}
-                <div class="card-grafico p-6 relative">
-                    {{-- HEADER --}}
-                    <div class="mb-4">
-                        <h3 class="text-sm font-semibold text-gray-700">
-                            📊 Resumo Financeiro
+                {{-- RESUMO FINANCEIRO — flip card --}}
+                <div class="resumo-flip-scene" id="resumo-flip-scene">
+                <div class="resumo-flip-inner" id="resumo-flip-inner">
+
+                {{-- ═══════════════ FRENTE ═══════════════ --}}
+                <div class="resumo-flip-front card-grafico p-6">
+
+                    {{-- HEADER clicável --}}
+                    <div class="mb-4 resumo-flip-trigger" onclick="flipResumoCard()" title="Ver por empresa hoje">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span>📊 Resumo Financeiro</span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Por empresa
+                            </span>
                         </h3>
                     </div>
 
@@ -368,6 +434,7 @@
                             </div>
                         </div>
                     </div>
+
                     {{-- ================= PREVISTO ================= --}}
                     <div class="mb-6 border-t pt-4">
                         <span class="text-xs text-gray-500 uppercase block mb-1">
@@ -395,6 +462,7 @@
                             </div>
                         </div>
                     </div>
+
                     {{-- ================= SITUAÇÃO ================= --}}
                     <div class="border-t pt-4">
                         <span class="text-xs text-gray-500 uppercase block mb-1">
@@ -422,7 +490,85 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>{{-- /resumo-flip-front --}}
+
+                {{-- ═══════════════ VERSO ═══════════════ --}}
+                <div class="resumo-flip-back card-grafico p-6">
+
+                    {{-- HEADER clicável (volta) --}}
+                    <div class="mb-4 resumo-flip-trigger" onclick="flipResumoCard()" title="Voltar ao resumo financeiro">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span>🏢 Hoje por Empresa</span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Resumo geral
+                            </span>
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-1">{{ now()->translatedFormat('d \d\e F \d\e Y') }}</p>
+                    </div>
+
+                    {{-- CARDS DAS EMPRESAS — 2 colunas no mobile, 2 no desktop (4 empresas = 2×2) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @forelse($hojeResumoPorEmpresa as $emp)
+                        <div class="empresa-day-card">
+                            <p class="text-xs font-semibold text-gray-700 mb-2 truncate" title="{{ $emp['nome'] }}">
+                                {{ $emp['nome'] }}
+                            </p>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-gray-500">A Receber</span>
+                                <span class="font-bold {{ $emp['a_receber'] > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                                    R$ {{ number_format($emp['a_receber'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="text-gray-500">A Pagar</span>
+                                <span class="font-bold {{ $emp['a_pagar'] > 0 ? 'text-red-600' : 'text-gray-400' }}">
+                                    R$ {{ number_format($emp['a_pagar'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-1 flex justify-between items-center text-xs">
+                                <span class="text-gray-500 font-medium">Saldo do dia</span>
+                                <span class="font-bold {{ $emp['saldo'] >= 0 ? 'text-teal-700' : 'text-red-700' }}">
+                                    R$ {{ number_format($emp['saldo'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-span-2 text-center text-xs text-gray-400 py-6">
+                            Nenhuma empresa ativa encontrada.
+                        </div>
+                        @endforelse
+                    </div>
+
+                    {{-- Totalizador do dia --}}
+                    @php
+                        $totalReceberHoje = collect($hojeResumoPorEmpresa)->sum('a_receber');
+                        $totalPagarHoje   = collect($hojeResumoPorEmpresa)->sum('a_pagar');
+                        $saldoTotalHoje   = $totalReceberHoje - $totalPagarHoje;
+                    @endphp
+                    <div class="border-t border-gray-200 mt-4 pt-3">
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div>
+                                <span class="block text-gray-400">Total Receber</span>
+                                <span class="font-bold text-green-600">R$ {{ number_format($totalReceberHoje, 2, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-400">Total Pagar</span>
+                                <span class="font-bold text-red-600">R$ {{ number_format($totalPagarHoje, 2, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-400">Saldo</span>
+                                <span class="font-bold {{ $saldoTotalHoje >= 0 ? 'text-teal-700' : 'text-red-700' }}">R$ {{ number_format($saldoTotalHoje, 2, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>{{-- /resumo-flip-back --}}
+
+                </div>{{-- /resumo-flip-inner --}}
+                </div>{{-- /resumo-flip-scene --}}
             </div>
 
             {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
@@ -640,6 +786,36 @@
         function fecharModalLancamentos() {
             document.getElementById('modal-lancamentos').classList.add('hidden');
         }
+
+        // ── Flip Card: Resumo Financeiro ──────────────────────────────────
+        function flipResumoCard() {
+            const inner = document.getElementById('resumo-flip-inner');
+            const back  = inner.querySelector('.resumo-flip-back');
+
+            inner.classList.toggle('flipped');
+            const mostrandoVerso = inner.classList.contains('flipped');
+
+            if (mostrandoVerso) {
+                // Verso é position:absolute — precisamos forçar uma altura mínima
+                // para que o container não colapse enquanto a frente fica invisível
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                // Voltou para a frente: remove a altura forçada, frente volta ao fluxo normal
+                inner.style.minHeight = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const inner = document.getElementById('resumo-flip-inner');
+            if (!inner) return;
+            // Pré-mede altura do verso (está em position:absolute, tem scrollHeight no DOM)
+            // e garante que ao virar não haverá salto visual
+            const back = inner.querySelector('.resumo-flip-back');
+            if (back) {
+                // Nada a fazer no load: a frente está em fluxo normal e define a altura
+                // O verso só precisa de altura explícita quando estiver ativo
+            }
+        });
 
         function getTipoInfo(tipo) {
             const info = {
