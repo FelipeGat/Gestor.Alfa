@@ -70,17 +70,22 @@ class AtendimentoController extends Controller
             return response()->json(["message" => "Atendimento não está em andamento"], 400);
         }
 
+        // Atualizar estado corretamente
         $atendimento->update([
+            "em_execucao" => false,
             "em_pausa" => true,
             "status_atual" => "pausado",
         ]);
 
+        // Criar pausa com campos corretos
         $pausa = AtendimentoPausa::create([
             "atendimento_id" => $atendimento->id,
-            "inicio" => now(),
+            "user_id" => auth()->id(),
+            "tipo_pausa" => $request->tipo_pausa ?? 'outro',
+            "iniciada_em" => now(),
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function retomar(int $id): JsonResponse
