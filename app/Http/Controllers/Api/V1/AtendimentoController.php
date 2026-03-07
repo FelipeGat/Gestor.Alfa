@@ -165,13 +165,9 @@ class AtendimentoController extends Controller
 
         $atendimento = $query->findOrFail($id);
 
-        // Calcula tempo total de execução
+        // Retorna apenas tempo acumulado salvo no banco
+        // NÃO calcular desde iniciado_em para evitar valores negativos/inflados
         $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
-
-        // Se estiver em execução, calcula tempo desde o último início
-        if ($atendimento->em_execucao && $atendimento->iniciado_em) {
-            $tempoExecucao += now()->diffInSeconds($atendimento->iniciado_em);
-        }
 
         return response()->json([
             'data' => [
