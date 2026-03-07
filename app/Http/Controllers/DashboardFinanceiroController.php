@@ -611,6 +611,33 @@ class DashboardFinanceiroController extends Controller
             }
         }
 
+        // Flip card: resumo de hoje por empresa (a receber e a pagar no dia)
+        $hojeResumoPorEmpresa = Empresa::where('ativo', true)
+            ->orderBy('nome_fantasia')
+            ->get()
+            ->map(function ($empresa) {
+                $aReceberHoje = Cobranca::where('status', '!=', 'pago')
+                    ->whereDate('data_vencimento', now()->toDateString())
+                    ->where(function ($q) use ($empresa) {
+                        $q->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresa->id))
+                          ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresa->id));
+                    })
+                    ->sum('valor');
+
+                $aPagarHoje = ContaPagar::whereIn('status', ['em_aberto', 'atrasado', 'pendente'])
+                    ->whereDate('data_vencimento', now()->toDateString())
+                    ->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresa->id))
+                    ->sum('valor');
+
+                return [
+                    'id'        => $empresa->id,
+                    'nome'      => $empresa->nome_fantasia ?? $empresa->razao_social,
+                    'a_receber' => (float) $aReceberHoje,
+                    'a_pagar'   => (float) $aPagarHoje,
+                    'saldo'     => (float) ($aReceberHoje - $aPagarHoje),
+                ];
+            });
+
         return view('dashboard-financeiro.index', [
             // ...existente...
             'dadosCentros' => $dadosCentros,
@@ -658,6 +685,7 @@ class DashboardFinanceiroController extends Controller
             'lancamentosPrevistoPagar' => $lancamentosPrevistoPagar,
             'lancamentosAtrasado' => $lancamentosAtrasado,
             'lancamentosReceitasAtrasadas' => $lancamentosReceitasAtrasadas,
+            'hojeResumoPorEmpresa' => $hojeResumoPorEmpresa,
         ]);
     }
 }
