@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Funcionario;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -77,6 +78,11 @@ class User extends Authenticatable
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function funcionario()
+    {
+        return $this->belongsTo(Funcionario::class);
     }
 
     /**

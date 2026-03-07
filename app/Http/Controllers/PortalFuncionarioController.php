@@ -1016,17 +1016,25 @@ class PortalFuncionarioController extends Controller
             return 0;
         }
 
-        $entradaTimestamp = strtotime((string) $registro->entrada_em);
-        $saidaTimestamp = strtotime((string) $registro->saida_em);
+        // Normaliza para minuto (padrão de mercado - remove segundos)
+        $entrada = $this->normalizarBatidaParaMinuto($registro->entrada_em);
+        $saida = $this->normalizarBatidaParaMinuto($registro->saida_em);
+        $intervaloInicio = $this->normalizarBatidaParaMinuto($registro->intervalo_inicio_em);
+        $intervaloFim = $this->normalizarBatidaParaMinuto($registro->intervalo_fim_em);
+
+        $entradaTimestamp = strtotime((string) $entrada);
+        $saidaTimestamp = strtotime((string) $saida);
+        
         if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
             return 0;
         }
 
         $segundos = $saidaTimestamp - $entradaTimestamp;
 
-        if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
-            $inicioIntervaloTimestamp = strtotime((string) $registro->intervalo_inicio_em);
-            $fimIntervaloTimestamp = strtotime((string) $registro->intervalo_fim_em);
+        // Subtrai intervalo de almoço (se completo)
+        if ($intervaloInicio && $intervaloFim) {
+            $inicioIntervaloTimestamp = strtotime((string) $intervaloInicio);
+            $fimIntervaloTimestamp = strtotime((string) $intervaloFim);
 
             if ($inicioIntervaloTimestamp && $fimIntervaloTimestamp && $fimIntervaloTimestamp > $inicioIntervaloTimestamp) {
                 $segundos -= ($fimIntervaloTimestamp - $inicioIntervaloTimestamp);
@@ -1034,6 +1042,19 @@ class PortalFuncionarioController extends Controller
         }
 
         return max(0, $segundos);
+    }
+
+    /**
+     * Normaliza horário para minuto (remove segundos)
+     * Padrão usado pela maioria dos sistemas de ponto SaaS
+     */
+    private function normalizarBatidaParaMinuto($valor): ?Carbon
+    {
+        if (!$valor) {
+            return null;
+        }
+
+        return Carbon::parse($valor)->copy()->setSecond(0);
     }
 
     private function formatarSegundosPortal(int $segundos): string

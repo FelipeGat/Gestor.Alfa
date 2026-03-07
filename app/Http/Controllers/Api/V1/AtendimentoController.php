@@ -59,44 +59,77 @@ class AtendimentoController extends Controller
             "descricao" => "Atendimento iniciado via app",
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function pausar(int $id, Request $request): JsonResponse
     {
-        $atendimento = Atendimento::findOrFail($id);
+        try {
+            $user = $request->user();
+            $atendimento = Atendimento::with(['cliente', 'assunto'])->findOrFail($id);
 
-        if ($atendimento->status_atual !== "em_atendimento") {
-            return response()->json(["message" => "Atendimento não está em andamento"], 400);
+            // Validar permissão
+            if ($user->tipo !== 'admin' && $user->funcionario?->id) {
+                if ($atendimento->funcionario_id !== $user->funcionario->id) {
+                    return response()->json(['message' => 'Não autorizado'], 403);
+                }
+            }
+
+            // Validar se está em execução
+            if (!$atendimento->em_execucao) {
+                return response()->json(['message' => 'Atendimento não está em execução'], 400);
+            }
+
+            // Atualizar estado corretamente (NÃO muda status_atual, só em_execucao e em_pausa)
+            $atendimento->update([
+                "em_execucao" => false,
+                "em_pausa" => true,
+            ]);
+
+            // Criar pausa com campos corretos
+            $pausa = AtendimentoPausa::create([
+                "atendimento_id" => $atendimento->id,
+                "user_id" => auth()->id(),
+                "tipo_pausa" => in_array($request->tipo_pausa, ['almoco', 'deslocamento', 'material', 'fim_dia']) ? $request->tipo_pausa : 'deslocamento',
+                "iniciada_em" => now(),
+            ]);
+
+            return response()->json(['data' => $atendimento->fresh()]);
+
+        } catch (\Exception $e) {
+            // Log do erro para debug
+            \Log::error('Erro ao pausar atendimento: ' . $e->getMessage(), [
+                'atendimento_id' => $id,
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Server Error'], 500);
         }
-
-        $atendimento->update([
-            "em_pausa" => true,
-            "status_atual" => "pausado",
-        ]);
-
-        $pausa = AtendimentoPausa::create([
-            "atendimento_id" => $atendimento->id,
-            "inicio" => now(),
-        ]);
-
-        return response()->json($atendimento);
     }
 
     public function retomar(int $id): JsonResponse
     {
-        $atendimento = Atendimento::findOrFail($id);
+        try {
+            $atendimento = Atendimento::findOrFail($id);
 
-        if ($atendimento->status_atual !== "pausado") {
-            return response()->json(["message" => "Atendimento não está pausado"], 400);
+            if (!$atendimento->em_pausa) {
+                return response()->json(['message' => 'Atendimento não está pausado'], 400);
+            }
+
+            $atendimento->update([
+                "em_execucao" => true,
+                "em_pausa" => false,
+                "status_atual" => "em_atendimento",
+            ]);
+
+            return response()->json(['data' => $atendimento->fresh()]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erro ao retomar atendimento: ' . $e->getMessage(), [
+                'atendimento_id' => $id,
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Server Error'], 500);
         }
-
-        $atendimento->update([
-            "em_pausa" => false,
-            "status_atual" => "em_atendimento",
-        ]);
-
-        return response()->json($atendimento);
     }
 
     public function finalizar(int $id, Request $request): JsonResponse
@@ -114,6 +147,36 @@ class AtendimentoController extends Controller
             "observacoes_finais" => $request->observacoes,
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
+    }
+
+    /**
+     * Retorna tempo de execução sincronizado com o servidor
+     */
+    public function tempo(int $id): JsonResponse
+    {
+        $user = request()->user();
+        $query = Atendimento::with(['cliente', 'assunto']);
+
+        // Admin vê qualquer atendimento, técnico vê apenas os seus
+        if ($user->tipo !== 'admin' && $user->funcionario?->id) {
+            $query->where('funcionario_id', $user->funcionario->id);
+        }
+
+        $atendimento = $query->findOrFail($id);
+
+        // Retorna apenas tempo acumulado salvo no banco
+        // NÃO calcular desde iniciado_em para evitar valores negativos/inflados
+        $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
+
+        return response()->json([
+            'data' => [
+                'tempo_execucao_segundos' => $tempoExecucao,
+                'hora_inicio' => $atendimento->iniciado_em?->toIso8601String(),
+                'hora_atual_servidor' => now()->toIso8601String(),
+                'em_execucao' => $atendimento->em_execucao,
+                'em_pausa' => $atendimento->em_pausa,
+            ]
+        ]);
     }
 }
