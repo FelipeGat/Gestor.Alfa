@@ -281,7 +281,7 @@
                                 </button>
                                 <div x-show="activeSection === 'relatorios'" x-collapse class="pl-4 pb-1 space-y-1">
                                     @if($isAdmin)
-                                    <a href="{{ route('relatorios.modulo') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Todos Relatórios">Todos</a>
+                                    <a href="{{ route('relatorios.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Todos Relatórios">Todos</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Financeiros">Financeiro</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Comerciais">Comercial</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Técnicos">Técnico</a>
@@ -605,7 +605,7 @@
                     <summary class="text-sm font-medium text-gray-600">Relatórios</summary>
                     <div class="pl-4 space-y-1">
                         @if($isAdmin)
-                        <x-responsive-nav-link :href="route('relatorios.modulo')" data-tab-icon="relatorios">Todos os Relatórios</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.index')" data-tab-icon="relatorios">Todos os Relatórios</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'financeiro'])" data-tab-icon="relatorios">Financeiro</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Comercial</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Técnico</x-responsive-nav-link>
