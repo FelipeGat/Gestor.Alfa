@@ -21,7 +21,7 @@ class DashboardFinanceiroController extends Controller
         $empresaId = $request->get('empresa_id');
         $ano = $request->get('ano', now()->year);
 
-        // Processar filtro rápido (período)
+        // Processar filtro rápido (período) — calculado uma única vez e reutilizado em todo o controller
         $filtroRapido = $request->get('filtro_rapido', 'mes');
         switch ($filtroRapido) {
             case 'dia':
@@ -30,9 +30,9 @@ class DashboardFinanceiroController extends Controller
                 break;
             case 'semana':
                 $inicio = now()->startOfWeek();
-            case 'dia':
-                $inicio = now()->startOfDay();
-                $fim = now()->endOfDay();
+                $fim = now()->endOfWeek();
+                break;
+            case 'mes':
                 $inicio = now()->startOfMonth();
                 $fim = now()->endOfMonth();
                 break;
@@ -62,10 +62,12 @@ class DashboardFinanceiroController extends Controller
         $lancamentosReceita = Cobranca::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) => $q->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->with(['orcamento.empresa', 'cliente', 'contaFixa.empresa'])
             ->get()
             ->map(function ($item) {
@@ -92,7 +94,8 @@ class DashboardFinanceiroController extends Controller
         // Buscar todos os lançamentos pagos no período, agrupando por centro_custo_id
         $contasPagarAll = \App\Models\ContaPagar::query()
             ->where('status', 'pago')
-            ->whereBetween('pago_em', [$inicio, $fim])
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->with(['conta.subcategoria.categoria'])
             ->get();
 
@@ -157,15 +160,12 @@ class DashboardFinanceiroController extends Controller
         $lancamentosPrevistoReceber = Cobranca::where('status', '!=', 'pago')
             ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->with(['orcamento.empresa', 'cliente', 'contaFixa.empresa'])
             ->get()
             ->map(function ($item) {
@@ -212,15 +212,12 @@ class DashboardFinanceiroController extends Controller
         $lancamentosPago = Cobranca::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->with(['orcamento.empresa', 'cliente', 'contaFixa.empresa'])
             ->get()
             ->map(function ($item) {
@@ -246,22 +243,23 @@ class DashboardFinanceiroController extends Controller
         // Lançamentos Situação - Diferença (pode ser customizado conforme regra de negócio)
         $lancamentosDiferenca = []; // Por padrão, vazio. Pode ser preenchido conforme necessidade.
 
-        // Base para consultas de cobranças
+        // Base para consultas de cobranças (gráfico anual)
         $baseQuery = Cobranca::query()
             ->whereYear('data_vencimento', $ano);
 
         if ($empresaId) {
-            $baseQuery->whereHas(
-                'orcamento',
-                fn($q) =>
-                $q->where('empresa_id', $empresaId)
-            );
+            $baseQuery->where(function ($q) use ($empresaId) {
+                $q->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                  ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+            });
         }
 
         // DADOS AGRUPADOS DO BANCO
+        // Receita recebida: agrupa por mês da data de pagamento (competência de recebimento)
         $recebidoPorMes = (clone $baseQuery)
             ->where('status', 'pago')
-            ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
+            ->whereNotNull('data_pagamento')
+            ->selectRaw('MONTH(data_pagamento) as mes, SUM(valor) as total')
             ->groupBy('mes')
             ->pluck('total', 'mes')
             ->toArray();
@@ -273,10 +271,11 @@ class DashboardFinanceiroController extends Controller
             ->pluck('total', 'mes')
             ->toArray();
 
-        // DESPESAS POR MÊS
-        $despesaPagaPorMes = ContaPagar::whereYear('data_vencimento', $ano)
+        // DESPESAS POR MÊS — agrupa por mês da data de pagamento (competência)
+        $despesaPagaPorMes = ContaPagar::whereYear('data_pagamento', $ano)
             ->where('status', 'pago')
-            ->selectRaw('MONTH(data_vencimento) as mes, SUM(valor) as total')
+            ->whereNotNull('data_pagamento')
+            ->selectRaw('MONTH(data_pagamento) as mes, SUM(valor) as total')
             ->groupBy('mes')
             ->pluck('total', 'mes')
             ->toArray();
@@ -340,57 +339,18 @@ class DashboardFinanceiroController extends Controller
             ->where('tipo', 'corrente')
             ->sum('saldo');
 
-        // Processar filtro rápido (período)
-        $filtroRapido = $request->get('filtro_rapido', 'mes');
-
-        switch ($filtroRapido) {
-            case 'dia':
-                $inicio = now()->startOfDay();
-                $fim = now()->endOfDay();
-                break;
-            case 'semana':
-                $inicio = now()->startOfWeek();
-                $fim = now()->endOfWeek();
-                break;
-            case 'mes':
-                $inicio = now()->startOfMonth();
-                $fim = now()->endOfMonth();
-                break;
-            case 'proximo_mes':
-                $proximoMes = now()->addMonth();
-                $inicio = $proximoMes->copy()->startOfMonth();
-                $fim = $proximoMes->copy()->endOfMonth();
-                break;
-            case 'ano':
-                $inicio = now()->startOfYear();
-                $fim = now()->endOfYear();
-                break;
-            case 'custom':
-                $inicio = $request->get('inicio')
-                    ? Carbon::parse($request->inicio)->startOfDay()
-                    : now()->startOfMonth()->startOfDay();
-                $fim = $request->get('fim')
-                    ? Carbon::parse($request->fim)->endOfDay()
-                    : now()->endOfMonth()->endOfDay();
-                break;
-            default:
-                $inicio = now()->startOfMonth();
-                $fim = now()->endOfMonth();
-        }
+        // O período ($inicio/$fim) já foi calculado no início do método.
 
         // RECEITA / DESPESA REALIZADA (usa data_pagamento)
         $receitaRealizada = Cobranca::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->sum('valor');
 
         $despesaRealizada = ContaPagar::where('status', 'pago')
@@ -411,15 +371,12 @@ class DashboardFinanceiroController extends Controller
         $aReceber = Cobranca::where('status', '!=', 'pago')
             ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->sum('valor');
 
         $aPagar = ContaPagar::where('status', 'em_aberto')
@@ -452,15 +409,12 @@ class DashboardFinanceiroController extends Controller
         $pago = Cobranca::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
             ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
-            ->when(
-                $empresaId,
-                fn($q) =>
-                $q->whereHas(
-                    'orcamento',
-                    fn($oq) =>
-                    $oq->where('empresa_id', $empresaId)
-                )
-            )
+            ->when($empresaId, function ($q) use ($empresaId) {
+                $q->where(function ($sq) use ($empresaId) {
+                    $sq->whereHas('orcamento', fn($oq) => $oq->where('empresa_id', $empresaId))
+                       ->orWhereHas('contaFixa', fn($cq) => $cq->where('empresa_id', $empresaId));
+                });
+            })
             ->sum('valor');
 
         $saldoSituacao = $pago - $atrasado;
@@ -472,7 +426,8 @@ class DashboardFinanceiroController extends Controller
         // Buscar todos os lançamentos pagos no período, agrupando por centro_custo_id
         $contasPagarAll = \App\Models\ContaPagar::query()
             ->where('status', 'pago')
-            ->whereBetween('pago_em', [$inicio, $fim])
+            ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
             ->with(['conta.subcategoria.categoria'])
             ->get();
 
