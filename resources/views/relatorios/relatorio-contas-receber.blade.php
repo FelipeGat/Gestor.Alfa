@@ -236,7 +236,7 @@
                                 <th class="text-left">Empresa</th>
                                 <th class="text-left">Cliente</th>
                                 <th class="text-left">Descrição</th>
-                                <th class="text-left">Vencimento</th>
+                                <th class="text-left">{{ request('status') === 'pago' ? 'Data de Pagamento' : 'Vencimento' }}</th>
                                 <th class="text-left">Valor</th>
                                 <th class="text-left">Status</th>
                             </tr>
@@ -254,7 +254,11 @@
                                         {{ $conta->descricao ?? '-' }}
                                     </td>
                                     <td class="text-left">
-                                        {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
+                                        @if(request('status') === 'pago')
+                                            {{ $conta->data_pagamento?->format('d/m/Y') ?? '-' }}
+                                        @else
+                                            {{ $conta->data_vencimento?->format('d/m/Y') ?? '-' }}
+                                        @endif
                                     </td>
                                     <td class="text-left font-black text-emerald-700">
                                         R$ {{ number_format($conta->valor, 2, ',', '.') }}
@@ -365,7 +369,7 @@
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.empresa || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.cliente || '-') + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.descricao || '-') + '</td>';
-                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (conta.data_vencimento || '-') + '</td>';
+                    tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (data.status_filtro === 'pago' ? (conta.data_pagamento || '-') : (conta.data_vencimento || '-')) + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; text-align: right; font-weight: bold; color: #059669; white-space: nowrap;">' + conta.valor_formatado + '</td>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 130px; padding: 6px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; background-color: ' + config.bg + '; color: ' + config.color + ';">' + iconSvg[config.icon] + config.label + '</span></td>';
                     tableRows += '</tr>';
@@ -376,7 +380,7 @@
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Cliente</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Descrição</th>';
-            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Vencimento</th>';
+            tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">' + (data.status_filtro === 'pago' ? 'Data de Pagamento' : 'Vencimento') + '</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Valor</th>';
             tableHeader += '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Status</th>';
             tableHeader += '</tr></thead>';
