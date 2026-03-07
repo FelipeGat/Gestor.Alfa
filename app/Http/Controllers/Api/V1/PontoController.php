@@ -79,8 +79,8 @@ class PontoController extends Controller
         if ($request->has('data')) {
             $query->whereDate('data_referencia', $request->data);
         } else {
-            // Sem parâmetro de data: retorna o registro mais recente
-            $query->orderByDesc('data_referencia');
+            // PADRÃO: filtra por HOJE (não retorna registro de ontem)
+            $query->whereDate('data_referencia', Carbon::today());
         }
 
         $registro = $query->first();
@@ -103,6 +103,9 @@ class PontoController extends Controller
         $tempoTrabalhadoSegundos = $this->calcularSegundosTrabalhados($registro);
         $tempoTrabalhadoFormatado = $this->formatarSegundos($tempoTrabalhadoSegundos);
 
+        // Determinar data de referência para resposta
+        $dataReferencia = $registro?->data_referencia ?? Carbon::today()->toDateString();
+
         return response()->json([
             'id' => $registro?->id,
             'entrada_em' => $registro?->entrada_em?->toISOString(),
@@ -113,6 +116,7 @@ class PontoController extends Controller
             'tempo_trabalhado_formatado' => $tempoTrabalhadoFormatado,
             'proximo_evento' => $proximoEvento,
             'proximo_evento_label' => $proximoEvento ? ucfirst(str_replace('_', ' ', $proximoEvento)) : null,
+            'data_referencia' => $dataReferencia,
         ]);
     }
 
