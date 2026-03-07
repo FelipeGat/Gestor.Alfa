@@ -59,7 +59,7 @@ class AtendimentoController extends Controller
             "descricao" => "Atendimento iniciado via app",
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function pausar(int $id, Request $request): JsonResponse
@@ -102,7 +102,7 @@ class AtendimentoController extends Controller
             "status_atual" => "em_atendimento",
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     public function finalizar(int $id, Request $request): JsonResponse
@@ -120,7 +120,7 @@ class AtendimentoController extends Controller
             "observacoes_finais" => $request->observacoes,
         ]);
 
-        return response()->json($atendimento);
+        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     /**
