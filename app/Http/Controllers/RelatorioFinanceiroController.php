@@ -103,19 +103,19 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
         if ($request->get('per_page') === 'all') {
             $contasReceber = $queryReceber
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             $contasReceber = $queryReceber
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->paginate(15, ['*'], 'receber_page')
                 ->withQueryString();
@@ -143,19 +143,19 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
         if ($request->get('per_page') === 'all') {
             $contasPagar = $queryPagar
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             $contasPagar = $queryPagar
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->paginate(15, ['*'], 'pagar_page')
                 ->withQueryString();
@@ -278,13 +278,13 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
         $contasReceber = $queryReceber
-            ->orderBy('data_vencimento', 'asc')
+            ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -310,13 +310,13 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalPagar = (clone $queryPagar)->sum('valor');
 
         $contasPagar = $queryPagar
-            ->orderBy('data_vencimento', 'asc')
+            ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -432,8 +432,8 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
@@ -454,12 +454,12 @@ class RelatorioFinanceiroController extends Controller
 
         if ($request->get('per_page') === 'all') {
             $contasReceber = $queryReceber
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             $contasReceber = $queryReceber
-                ->orderBy('data_vencimento', 'asc')
+                ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->paginate(15)
                 ->withQueryString();
@@ -552,8 +552,8 @@ class RelatorioFinanceiroController extends Controller
             }, function ($q) {
                 $q->where('status', '!=', 'pago');
             })
-            ->when($dataInicio, fn($q) => $q->whereDate('data_vencimento', '>=', $dataInicio))
-            ->when($dataFim, fn($q) => $q->whereDate('data_vencimento', '<=', $dataFim));
+            ->when($dataInicio, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '>=', $dataInicio))
+            ->when($dataFim, fn($q) => $q->whereDate($status === 'pago' ? 'data_pagamento' : 'data_vencimento', '<=', $dataFim));
 
         $totalReceber = (clone $queryReceber)->sum('valor');
 
@@ -574,7 +574,7 @@ class RelatorioFinanceiroController extends Controller
             ->values();
 
         $contasReceber = $queryReceber
-            ->orderBy('data_vencimento', 'asc')
+            ->orderBy($status === 'pago' ? 'data_pagamento' : 'data_vencimento', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -585,6 +585,7 @@ class RelatorioFinanceiroController extends Controller
                 'cliente' => $conta->cliente?->nome_fantasia ?? $conta->cliente?->razao_social ?? $conta->cliente?->nome ?? '-',
                 'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
+                'data_pagamento' => $conta->data_pagamento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),
                 'status' => $conta->status ?? '-',
@@ -600,6 +601,7 @@ class RelatorioFinanceiroController extends Controller
             'data_fim' => $dataFim,
             'data_inicio_formatada' => \Carbon\Carbon::parse($dataInicio)->format('d/m/Y'),
             'data_fim_formatada' => \Carbon\Carbon::parse($dataFim)->format('d/m/Y'),
+            'status_filtro' => $status,
         ]);
     }
 
@@ -823,6 +825,7 @@ class RelatorioFinanceiroController extends Controller
                 'fornecedor' => $conta->fornecedor?->nome_fantasia ?? $conta->fornecedor?->razao_social ?? '-',
                 'descricao' => $conta->descricao ?? '-',
                 'data_vencimento' => $conta->data_vencimento?->format('d/m/Y') ?? '-',
+                'data_pagamento' => $conta->data_pagamento?->format('d/m/Y') ?? '-',
                 'valor' => $conta->valor,
                 'valor_formatado' => 'R$ ' . number_format($conta->valor, 2, ',', '.'),
                 'status' => $conta->status ?? '-',
@@ -838,6 +841,7 @@ class RelatorioFinanceiroController extends Controller
             'data_fim' => $dataFim,
             'data_inicio_formatada' => \Carbon\Carbon::parse($dataInicio)->format('d/m/Y'),
             'data_fim_formatada' => \Carbon\Carbon::parse($dataFim)->format('d/m/Y'),
+            'status_filtro' => $status,
         ]);
     }
 }
