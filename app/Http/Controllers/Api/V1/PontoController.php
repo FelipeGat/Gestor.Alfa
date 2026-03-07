@@ -25,11 +25,11 @@ class PontoController extends Controller
     public function hoje(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         // Prioriza funcionario_id da query string (mobile), senão usa do usuário logado
         $funcionarioId = $request->query('funcionario_id') ?? $user->funcionario?->id;
 
-        if (!$funcionarioId) {
+        if (! $funcionarioId) {
             return response()->json(['message' => 'Funcionário não encontrado'], 404);
         }
 
@@ -47,24 +47,47 @@ class PontoController extends Controller
 
         // Calcular próximo evento baseado nos campos já preenchidos
         $proximoEvento = null;
-        if (!$registro) {
+        if (! $registro) {
             $proximoEvento = 'entrada';
-        } elseif (!$registro->entrada_em) {
+        } elseif (! $registro->entrada_em) {
             $proximoEvento = 'entrada';
-        } elseif (!$registro->intervalo_inicio_em) {
+        } elseif (! $registro->intervalo_inicio_em) {
             $proximoEvento = 'intervalo_inicio';
-        } elseif (!$registro->intervalo_fim_em) {
+        } elseif (! $registro->intervalo_fim_em) {
             $proximoEvento = 'intervalo_fim';
-        } elseif (!$registro->saida_em) {
+        } elseif (! $registro->saida_em) {
             $proximoEvento = 'saida';
+        }
+
+        // Calcular tempo trabalhado
+        $tempoTrabalhadoSegundos = 0;
+        $tempoTrabalhadoFormatado = '00:00';
+
+        if ($registro && $registro->entrada_em) {
+            $saida = $registro->saida_em ?? Carbon::now();
+            $tempoTrabalhadoSegundos = (int) $registro->entrada_em->diffInSeconds($saida);
+
+            // Subtrair intervalo
+            if ($registro->intervalo_inicio_em && $registro->intervalo_fim_em) {
+                $tempoTrabalhadoSegundos -= (int) $registro->intervalo_inicio_em->diffInSeconds($registro->intervalo_fim_em);
+            }
+
+            $tempoTrabalhadoSegundos = max(0, $tempoTrabalhadoSegundos);
+
+            // Formatar
+            $horas = floor($tempoTrabalhadoSegundos / 3600);
+            $minutos = floor(($tempoTrabalhadoSegundos % 3600) / 60);
+            $tempoTrabalhadoFormatado = sprintf('%02d:%02d', $horas, $minutos);
         }
 
         return response()->json([
             'id' => $registro?->id,
-            'entrada_em' => $registro?->entrada_em,
-            'intervalo_inicio_em' => $registro?->intervalo_inicio_em,
-            'intervalo_fim_em' => $registro?->intervalo_fim_em,
-            'saida_em' => $registro?->saida_em,
+            'entrada_em' => $registro?->entrada_em?->toISOString(),
+            'intervalo_inicio_em' => $registro?->intervalo_inicio_em?->toISOString(),
+            'intervalo_fim_em' => $registro?->intervalo_fim_em?->toISOString(),
+            'saida_em' => $registro?->saida_em?->toISOString(),
+            'tempo_trabalhado_segundos' => $tempoTrabalhadoSegundos,
+            'tempo_trabalhado_formatado' => $tempoTrabalhadoFormatado,
             'proximo_evento' => $proximoEvento,
             'proximo_evento_label' => $proximoEvento ? ucfirst(str_replace('_', ' ', $proximoEvento)) : null,
         ]);
@@ -75,7 +98,7 @@ class PontoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario?->id;
 
-        if (!$funcionarioId) {
+        if (! $funcionarioId) {
             return response()->json(['message' => 'Funcionário não encontrado'], 400);
         }
 
@@ -91,21 +114,21 @@ class PontoController extends Controller
             'data_referencia' => Carbon::today(),
         ]);
 
-        $campoTempo = match($validated['tipo']) {
+        $campoTempo = match ($validated['tipo']) {
             'entrada' => 'entrada_em',
             'intervalo_inicio' => 'intervalo_inicio_em',
             'intervalo_fim' => 'intervalo_fim_em',
             'saida' => 'saida_em',
         };
 
-        $campoLatitude = match($validated['tipo']) {
+        $campoLatitude = match ($validated['tipo']) {
             'entrada' => 'entrada_latitude',
             'intervalo_inicio' => 'intervalo_inicio_latitude',
             'intervalo_fim' => 'intervalo_fim_latitude',
             'saida' => 'saida_latitude',
         };
 
-        $campoLongitude = match($validated['tipo']) {
+        $campoLongitude = match ($validated['tipo']) {
             'entrada' => 'entrada_longitude',
             'intervalo_inicio' => 'intervalo_inicio_longitude',
             'intervalo_fim' => 'intervalo_fim_longitude',
