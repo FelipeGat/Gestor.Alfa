@@ -99,12 +99,17 @@ class ContasFinanceirasController extends Controller
         $request->validate([
             'empresa_id'               => 'required|exists:empresas,id',
             'nome'                     => 'required|string|max:150',
-            'tipo'                     => 'required|in:corrente,poupanca,investimento,credito',
+            'tipo' => 'required|in:corrente,poupanca,investimento,credito,pix,caixa',
             'saldo'                    => 'nullable|numeric',
             'limite_credito'           => 'nullable|numeric|min:0',
             'limite_credito_utilizado' => 'nullable|numeric|min:0',
             'limite_cheque_especial'   => 'nullable|numeric|min:0',
             'ativo'                    => 'required|boolean',
+            // Campos exclusivos de cartão de crédito
+            'bandeira'                 => 'nullable|in:VISA,MASTERCARD,ELO,AMEX,HIPERCARD,OTHER',
+            'melhor_dia_compra'        => 'nullable|integer|min:1|max:28',
+            'dia_fechamento_fatura'    => 'nullable|integer|min:1|max:31',
+            'dia_vencimento_fatura'    => 'nullable|integer|min:1|max:31',
         ]);
 
         // Evita duplicidade por empresa + nome
@@ -129,15 +134,22 @@ class ContasFinanceirasController extends Controller
                 ->with('error', 'O limite utilizado do cartão não pode ser maior que o limite total.');
         }
 
+        $isCredito = $request->tipo === 'credito';
+
         ContaFinanceira::create([
             'empresa_id'               => $request->empresa_id,
             'nome'                     => $request->nome,
             'tipo'                     => $request->tipo,
-            'saldo'                    => $request->saldo ?? 0,
+            'saldo'                    => $isCredito ? 0 : ($request->saldo ?? 0),
             'limite_credito'           => $request->limite_credito ?? 0,
             'limite_credito_utilizado' => $request->limite_credito_utilizado ?? 0,
-            'limite_cheque_especial'   => $request->limite_cheque_especial ?? 0,
+            'limite_cheque_especial'   => $isCredito ? 0 : ($request->limite_cheque_especial ?? 0),
             'ativo'                    => $request->ativo,
+            // Campos de cartão de crédito
+            'bandeira'                 => $isCredito ? $request->bandeira : null,
+            'melhor_dia_compra'        => $isCredito ? $request->melhor_dia_compra : null,
+            'dia_fechamento_fatura'    => $isCredito ? $request->dia_fechamento_fatura : null,
+            'dia_vencimento_fatura'    => $isCredito ? $request->dia_vencimento_fatura : null,
         ]);
 
         return redirect()
@@ -181,12 +193,17 @@ class ContasFinanceirasController extends Controller
         $request->validate([
             'empresa_id'               => 'required|exists:empresas,id',
             'nome'                     => 'required|string|max:150',
-            'tipo'                     => 'required|in:corrente,poupanca,investimento,credito',
+            'tipo'                     => 'required|in:corrente,poupanca,investimento,credito,pix,caixa',
             'saldo'                    => 'nullable|numeric',
             'limite_credito'           => 'nullable|numeric|min:0',
             'limite_credito_utilizado' => 'nullable|numeric|min:0',
             'limite_cheque_especial'   => 'nullable|numeric|min:0',
             'ativo'                    => 'required|boolean',
+            // Campos exclusivos de cartão de crédito
+            'bandeira'                 => 'nullable|in:VISA,MASTERCARD,ELO,AMEX,HIPERCARD,OTHER',
+            'melhor_dia_compra'        => 'nullable|integer|min:1|max:28',
+            'dia_fechamento_fatura'    => 'nullable|integer|min:1|max:31',
+            'dia_vencimento_fatura'    => 'nullable|integer|min:1|max:31',
         ]);
 
         if (
@@ -198,15 +215,22 @@ class ContasFinanceirasController extends Controller
                 ->with('error', 'O limite utilizado do cartão não pode ser maior que o limite total.');
         }
 
+        $isCredito = $request->tipo === 'credito';
+
         $contaFinanceira->update([
             'empresa_id'               => $request->empresa_id,
             'nome'                     => $request->nome,
             'tipo'                     => $request->tipo,
-            'saldo'                    => $request->saldo ?? 0,
+            'saldo'                    => $isCredito ? 0 : ($request->saldo ?? 0),
             'limite_credito'           => $request->limite_credito ?? 0,
             'limite_credito_utilizado' => $request->limite_credito_utilizado ?? 0,
-            'limite_cheque_especial'   => $request->limite_cheque_especial ?? 0,
+            'limite_cheque_especial'   => $isCredito ? 0 : ($request->limite_cheque_especial ?? 0),
             'ativo'                    => $request->ativo,
+            // Campos de cartão de crédito
+            'bandeira'                 => $isCredito ? $request->bandeira : null,
+            'melhor_dia_compra'        => $isCredito ? $request->melhor_dia_compra : null,
+            'dia_fechamento_fatura'    => $isCredito ? $request->dia_fechamento_fatura : null,
+            'dia_vencimento_fatura'    => $isCredito ? $request->dia_vencimento_fatura : null,
         ]);
 
         return redirect()
