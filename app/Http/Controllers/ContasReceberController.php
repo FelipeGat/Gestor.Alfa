@@ -520,13 +520,13 @@ class ContasReceberController extends Controller
             'usuario:id,name',
         ])
             ->where('status', 'pago')
-            ->whereNotNull('pago_em');
-        // Filtro de data para cobranças
+            ->whereNotNull('data_pagamento');
+        // Filtro de data para cobranças — usa data_pagamento (campo canônico)
         if ($request->filled('data_inicio')) {
-            $cobrancasQuery->whereDate('pago_em', '>=', $request->data_inicio);
+            $cobrancasQuery->whereDate('data_pagamento', '>=', $request->data_inicio);
         }
         if ($request->filled('data_fim')) {
-            $cobrancasQuery->whereDate('pago_em', '<=', $request->data_fim);
+            $cobrancasQuery->whereDate('data_pagamento', '<=', $request->data_fim);
         }
         // Filtro por empresa: igual à tela de contas a receber
         if ($request->filled('empresa_id')) {
@@ -552,7 +552,7 @@ class ContasReceberController extends Controller
             $mov->valor = $cobranca->valor;
             $mov->descricao = $cobranca->descricao;
             $mov->cliente = $cobranca->cliente;
-            $mov->pago_em = $cobranca->pago_em;
+            $mov->pago_em = $cobranca->data_pagamento ?? $cobranca->pago_em; // data_pagamento como campo canônico
             $mov->forma_pagamento = $cobranca->forma_pagamento;
             $mov->contaFinanceira = $cobranca->contaFinanceira;
             $mov->usuario = $cobranca->usuario;
@@ -572,13 +572,13 @@ class ContasReceberController extends Controller
             'usuario:id,name',
         ])
             ->where('status', 'pago')
-            ->whereNotNull('pago_em');
-        // Filtro de data para contas a pagar
+            ->whereNotNull('data_pagamento');
+        // Filtro de data para contas a pagar — usa data_pagamento (campo canônico)
         if ($request->filled('data_inicio')) {
-            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
+            $contasPagarQuery->whereDate('data_pagamento', '>=', $request->data_inicio);
         }
         if ($request->filled('data_fim')) {
-            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
+            $contasPagarQuery->whereDate('data_pagamento', '<=', $request->data_fim);
         }
         // Filtro por empresa nas despesas (contas a pagar): só mostrar despesas da empresa selecionada
         if ($request->filled('empresa_id')) {
@@ -631,13 +631,13 @@ class ContasReceberController extends Controller
         }
 
         if ($request->filled('data_inicio')) {
-            $cobrancasQuery->whereDate('pago_em', '>=', $request->data_inicio);
-            $contasPagarQuery->whereDate('pago_em', '>=', $request->data_inicio);
+            $cobrancasQuery->whereDate('data_pagamento', '>=', $request->data_inicio);
+            $contasPagarQuery->whereDate('data_pagamento', '>=', $request->data_inicio);
         }
 
         if ($request->filled('data_fim')) {
-            $cobrancasQuery->whereDate('pago_em', '<=', $request->data_fim);
-            $contasPagarQuery->whereDate('pago_em', '<=', $request->data_fim);
+            $cobrancasQuery->whereDate('data_pagamento', '<=', $request->data_fim);
+            $contasPagarQuery->whereDate('data_pagamento', '<=', $request->data_fim);
         }
 
         // ================= MOVIMENTAÇÕES FINANCEIRAS (AJUSTES, TRANSFERÊNCIAS, INJEÇÕES) =================
@@ -798,9 +798,32 @@ class ContasReceberController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             );
 
-            // ================= KPIs =================
-            $totalEntradas = $movFinanceirasEntradas->sum('valor') + $movFinanceirasSaidas->where('tipo_movimentacao', 'entrada')->sum('valor');
-            $totalSaidas = $contasPagar->sum('valor') + $movFinanceiras->where('tipo_movimentacao', 'saida')->sum('valor');
+            // ================= KPIs — usa data_pagamento para bater com Dashboard/Relatórios =================
+            $dataIni = $request->input('data_inicio');
+            $dataFim = $request->input('data_fim');
+            $empId   = $request->input('empresa_id');
+
+            $totalEntradas = Cobranca::where('status', 'pago')
+                ->when($dataIni, fn ($q) => $q->whereDate('data_pagamento', '>=', $dataIni))
+                ->when($dataFim, fn ($q) => $q->whereDate('data_pagamento', '<=', $dataFim))
+                ->when($empId, function ($q) use ($empId) {
+                    $q->where(function ($sq) use ($empId) {
+                        $sq->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empId))
+                           ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empId));
+                    });
+                })
+                ->sum('valor');
+
+            $totalSaidas = \App\Models\ContaPagar::where('status', 'pago')
+                ->when($dataIni, fn ($q) => $q->whereDate('data_pagamento', '>=', $dataIni))
+                ->when($dataFim, fn ($q) => $q->whereDate('data_pagamento', '<=', $dataFim))
+                ->when($empId, function ($q) use ($empId) {
+                    $q->where(function ($sq) use ($empId) {
+                        $sq->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empId))
+                           ->orWhereHas('contaFinanceira', fn ($cq) => $cq->where('empresa_id', $empId));
+                    });
+                })
+                ->sum('valor');
 
             // ================= CONTADORES PARA FILTROS RÁPIDOS =================
             $contadoresStatus = [

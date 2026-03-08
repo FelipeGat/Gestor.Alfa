@@ -248,15 +248,15 @@
    6. RESPONSIVIDADE
 ========================================================= */
 @media (max-width: 768px) {
-    .table thead { 
-        display: none !important; 
+    .table thead {
+        display: none !important;
     }
-    
+
     .table, .table tbody, .table tbody tr, .table tbody td {
         display: block !important;
         width: 100% !important;
     }
-    
+
     .table tbody tr {
         border: 1px solid #e5e7eb;
         border-radius: 0.5rem;
@@ -264,7 +264,7 @@
         padding: 0;
         background-color: white;
     }
-    
+
     .table tbody td {
         display: flex !important;
         justify-content: flex-start !important;
@@ -273,11 +273,11 @@
         border-bottom: 1px solid #f3f4f6;
         text-align: left !important;
     }
-    
-    .table tbody td:last-child { 
-        border-bottom: none; 
+
+    .table tbody td:last-child {
+        border-bottom: none;
     }
-    
+
     .table tbody td::before {
         content: attr(data-label) ": ";
         font-weight: 600;
@@ -286,16 +286,16 @@
         min-width: 120px;
         display: inline-block;
     }
-    
+
     .table tbody td[data-label="Ações"]::before {
         content: attr(data-label) ":";
     }
-    
+
     .table-actions {
         justify-content: flex-start !important;
         flex-wrap: wrap;
     }
-    
+
     .table-footer {
         flex-direction: column;
         align-items: flex-end;
@@ -308,7 +308,7 @@
         flex-direction: column-reverse;
         align-items: stretch;
     }
-    
+
     .filters-actions {
         justify-content: flex-end;
     }
@@ -382,7 +382,39 @@
     vertical-align: middle;
 }
 
-.checkbox-round input[type="checkbox"] {
-    cursor: pointer;
+/* =========================================================
+   10. DARK MODE
+========================================================= */
+.dark .section-menu { background-color: #1f2937; }
+.dark .filter-card { background-color: #1f2937; }
+.dark .kpi-card { background-color: #1f2937; }
+.dark .kpi-card .label { color: #9ca3af; }
+.dark .kpi-card .value { color: #f3f4f6; }
+.dark .table-container { background-color: #1f2937; }
+.dark .table thead th {
+    background-color: #111827;
+    color: #9ca3af;
+    border-color: #374151;
 }
-
+.dark .table tbody tr { border-color: #374151; }
+.dark .table tbody tr:hover { background-color: #1f2937; }
+.dark .table tbody td { color: #d1d5db; border-color: #374151; }
+.dark .table-footer { background-color: #111827; border-color: #374151; }
+.dark .footer-total .label { color: #9ca3af; }
+.dark .footer-total .value { color: #f3f4f6; }
+.dark .filter-input, .dark .filter-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+.dark .filter-label { color: #9ca3af; }
+.dark .quick-filter-btn {
+    background-color: #374151;
+    color: #d1d5db;
+}
+.dark .quick-filter-btn:hover { background-color: #4b5563; }
+.dark .btn-secondary { background-color: #374151; color: #e5e7eb; }
+.dark .btn-secondary:hover { background-color: #4b5563; }
+.dark .action-btn.btn-icon { color: #6b7280; }
+.dark .action-btn.btn-icon:hover { color: #d1d5db; }
+.dark .checkbox-round { background: #374151; border-color: #4b5563; }

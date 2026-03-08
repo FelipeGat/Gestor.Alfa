@@ -20,62 +20,62 @@
         'gray' => ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'border' => '#6b7280'],
         'teal' => ['bg' => 'bg-teal-50', 'text' => 'text-teal-600', 'border' => '#14b8a6'],
     ];
-    
+
     $colorData = $colors[$color] ?? $colors['blue'];
     $containerClasses = $clickable || $href ? 'hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer' : 'shadow-sm';
 @endphp
 
 @if($clickable || $href)
-    <a href="{{ $href ?? '#' }}" 
-       class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
+    <a href="{{ $href ?? '#' }}"
+       class="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
        style="border-left: 4px solid {{ $colorData['border'] }}; border-top: 1px solid {{ $colorData['border'] }}; border-right: 1px solid {{ $colorData['border'] }}; border-bottom: 1px solid {{ $colorData['border'] }};">
         <div class="flex items-start {{ $iconPosition === 'right' ? 'justify-between' : 'gap-3' }}">
             @if($icon && $iconPosition === 'left')
-                <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
+                <div class="{{ $colorData['bg'] }} dark:bg-opacity-20 p-2 rounded-lg">{{ $icon }}</div>
             @endif
             <div class="{{ $icon && $iconPosition === 'right' ? 'flex-1' : '' }}">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">{{ $title }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ $title }}</p>
                 <div class="flex items-baseline gap-2">
                     <p class="text-3xl font-bold {{ $colorData['text'] }} mt-1">{{ $value }}</p>
                     @if($trend)
-                        <span class="text-xs font-medium {{ $trend > 0 ? 'text-green-600' : 'text-red-600' }}">
+                        <span class="text-xs font-medium {{ $trend > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
                             {{ $trend > 0 ? '+' : '' }}{{ $trend }}%
                         </span>
                     @endif
                 </div>
                 @if($trendLabel)
-                    <p class="text-xs text-gray-400 mt-1">{{ $trendLabel }}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $trendLabel }}</p>
                 @endif
             </div>
             @if($icon && $iconPosition === 'right')
-                <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
+                <div class="{{ $colorData['bg'] }} dark:bg-opacity-20 p-2 rounded-lg">{{ $icon }}</div>
             @endif
         </div>
         {{ $slot }}
     </a>
 @else
-    <div class="bg-white rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col {{ $containerClasses }} shadow"
          style="border-left: 4px solid {{ $colorData['border'] }}; border-top: 1px solid {{ $colorData['border'] }}; border-right: 1px solid {{ $colorData['border'] }}; border-bottom: 1px solid {{ $colorData['border'] }};">
         <div class="flex items-start {{ $iconPosition === 'right' ? 'justify-between' : 'gap-3' }}">
             @if($icon && $iconPosition === 'left')
-                <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
+                <div class="{{ $colorData['bg'] }} dark:bg-opacity-20 p-2 rounded-lg">{{ $icon }}</div>
             @endif
             <div class="{{ $icon && $iconPosition === 'right' ? 'flex-1' : '' }}">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">{{ $title }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ $title }}</p>
                 <div class="flex items-baseline gap-2">
                     <p class="text-3xl font-bold {{ $colorData['text'] }} mt-1">{{ $value }}</p>
                     @if($trend)
-                        <span class="text-xs font-medium {{ $trend > 0 ? 'text-green-600' : 'text-red-600' }}">
+                        <span class="text-xs font-medium {{ $trend > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
                             {{ $trend > 0 ? '+' : '' }}{{ $trend }}%
                         </span>
                     @endif
                 </div>
                 @if($trendLabel)
-                    <p class="text-xs text-gray-400 mt-1">{{ $trendLabel }}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $trendLabel }}</p>
                 @endif
             </div>
             @if($icon && $iconPosition === 'right')
-                <div class="{{ $colorData['bg'] }} p-2 rounded-lg">{{ $icon }}</div>
+                <div class="{{ $colorData['bg'] }} dark:bg-opacity-20 p-2 rounded-lg">{{ $icon }}</div>
             @endif
         </div>
         {{ $slot }}

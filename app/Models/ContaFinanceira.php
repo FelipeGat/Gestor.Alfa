@@ -15,6 +15,10 @@ class ContaFinanceira extends Model
         'empresa_id',
         'nome',
         'tipo',
+        'bandeira',
+        'melhor_dia_compra',
+        'dia_fechamento_fatura',
+        'dia_vencimento_fatura',
         'limite_credito',
         'limite_credito_utilizado',
         'limite_cheque_especial',
@@ -28,7 +32,26 @@ class ContaFinanceira extends Model
         'limite_credito_utilizado' => 'decimal:2',
         'limite_cheque_especial' => 'decimal:2',
         'saldo' => 'decimal:2',
+        'melhor_dia_compra' => 'integer',
+        'dia_fechamento_fatura' => 'integer',
+        'dia_vencimento_fatura' => 'integer',
     ];
+
+    /**
+     * Verifica se a conta é um cartão de crédito.
+     */
+    public function isCartaoCredito(): bool
+    {
+        return $this->tipo === 'credito';
+    }
+
+    /**
+     * Retorna o limite disponível do cartão (limite - utilizado).
+     */
+    public function getLimiteDisponivelAttribute(): float
+    {
+        return max(0, (float) $this->limite_credito - (float) $this->limite_credito_utilizado);
+    }
 
     /**
      * Recalcula o saldo da conta a partir de uma data, considerando todas as movimentações futuras.
@@ -81,6 +104,16 @@ class ContaFinanceira extends Model
     {
         return $this->hasMany(\App\Models\MovimentacaoFinanceira::class, 'conta_origem_id');
     }
+
+    /**
+     * Parcelas em aberto lançadas neste cartão de crédito.
+     */
+    public function parcelasCartao()
+    {
+        return $this->hasMany(\App\Models\ContaPagar::class, 'cartao_credito_id')
+            ->where('status', '!=', 'pago');
+    }
+
     /**
      * Relacionamento com empresa
      */

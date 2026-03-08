@@ -234,6 +234,19 @@ class ContasPagarController extends Controller
         }
         // Permite valor pago diferente do valor total, para casos de fatura variável
 
+        // VALIDAÇÃO DE SALDO: Verificar se a conta bancária tem saldo suficiente
+        if ($request->conta_financeira_id) {
+            $contaBancariaValidar = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+            if ($contaBancariaValidar && $contaBancariaValidar->tipo !== 'credito') {
+                $saldoDisponivel = (float) $contaBancariaValidar->saldo + (float) $contaBancariaValidar->limite_cheque_especial;
+                if ($valorPago > $saldoDisponivel + 0.001) {
+                    $nomeContaDisplay = $contaBancariaValidar->nome;
+                    $saldoFormatado = 'R$ ' . number_format($contaBancariaValidar->saldo, 2, ',', '.');
+                    return back()->with('error', "Saldo insuficiente na conta \"{$nomeContaDisplay}\". Saldo disponível: {$saldoFormatado}. Não é possível realizar a baixa.");
+                }
+            }
+        }
+
         DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a conta atual com o valor pago e o valor total ajustado
             $conta->update([
@@ -269,6 +282,15 @@ class ContasPagarController extends Controller
                         'user_id' => $request->user() ? $request->user()->id : null,
                         'data_movimentacao' => $request->data_pagamento,
                     ]);
+                }
+            }
+
+            // Se a parcela foi comprada no cartão, libera o limite utilizado ao pagar a fatura
+            if ($conta->cartao_credito_id) {
+                $cartaoCredito = \App\Models\ContaFinanceira::find($conta->cartao_credito_id);
+                if ($cartaoCredito) {
+                    $novoUtilizado = max(0, (float) $cartaoCredito->limite_credito_utilizado - $valorPago);
+                    $cartaoCredito->update(['limite_credito_utilizado' => $novoUtilizado]);
                 }
             }
 
@@ -323,6 +345,14 @@ class ContasPagarController extends Controller
                 }
             }
 
+            // Se a parcela estava vinculada a um cartão, restaura o limite utilizado
+            if ($conta->cartao_credito_id) {
+                $cartaoCredito = \App\Models\ContaFinanceira::find($conta->cartao_credito_id);
+                if ($cartaoCredito) {
+                    $cartaoCredito->increment('limite_credito_utilizado', $conta->valor);
+                }
+            }
+
             // Remover TODAS as movimentações financeiras associadas a este pagamento
             \App\Models\MovimentacaoFinanceira::where('tipo', 'saida')
                 ->where(function ($q) use ($conta) {
@@ -360,9 +390,81 @@ class ContasPagarController extends Controller
             'fornecedor_id' => 'nullable|exists:fornecedores,id',
             'forma_pagamento' => 'nullable|in:PIX,BOLETO,TRANSFERENCIA,CARTAO_CREDITO,CARTAO_DEBITO,DINHEIRO,CHEQUE,OUTROS',
             'conta_financeira_id' => 'nullable|exists:contas_financeiras,id',
+            'cartao_credito_id' => 'nullable|exists:contas_financeiras,id',
+            'parcelas' => 'nullable|integer|min:1|max:48',
             'orcamento_id' => 'nullable|exists:orcamentos,id',
         ]);
 
+        $numParcelas = max(1, intval($request->get('parcelas', 1)));
+        $cartaoCreditoId = $request->get('cartao_credito_id') ?: null;
+
+        // Lançamento parcelado em cartão de crédito
+        if ($request->forma_pagamento === 'CARTAO_CREDITO' && $cartaoCreditoId) {
+            $cartao = \App\Models\ContaFinanceira::find($cartaoCreditoId);
+
+            if (! $cartao || $cartao->tipo !== 'credito') {
+                return back()->withErrors(['error' => 'Cartão de crédito inválido.'])->withInput();
+            }
+
+            $limiteDisponivel = (float) $cartao->limite_credito - (float) $cartao->limite_credito_utilizado;
+            $valorTotal = floatval($request->valor);
+
+            if ($valorTotal > $limiteDisponivel + 0.001) {
+                return back()->withErrors([
+                    'error' => "Limite insuficiente no cartão '{$cartao->nome}'. Disponível: R$ " . number_format($limiteDisponivel, 2, ',', '.'),
+                ])->withInput();
+            }
+
+            $valorParcela = round($valorTotal / $numParcelas, 2);
+            $diferencaAjuste = round($valorTotal - ($valorParcela * $numParcelas), 2);
+            $diaVencimento = $cartao->dia_vencimento_fatura ?? 10;
+            $dataBase = Carbon::parse($request->data_vencimento);
+
+            DB::transaction(function () use (
+                $request, $cartao, $cartaoCreditoId, $numParcelas, $valorParcela, $valorTotal, $diaVencimento, $dataBase, $diferencaAjuste
+            ) {
+                // Registra a compra imediatamente no limite utilizado do cartão
+                $cartao->increment('limite_credito_utilizado', $valorTotal);
+
+                for ($i = 1; $i <= $numParcelas; $i++) {
+                    $dataVencParc = $dataBase->copy()->addMonths($i - 1);
+                    $diaAdj = min($diaVencimento, $dataVencParc->daysInMonth);
+                    $dataVencParc->day($diaAdj);
+
+                    // Última parcela recebe ajuste de arredondamento
+                    $valorParcelaFinal = ($i === $numParcelas)
+                        ? round($valorParcela + $diferencaAjuste, 2)
+                        : $valorParcela;
+
+                    $this->service->criar([
+                        'centro_custo_id'   => $request->centro_custo_id,
+                        'conta_id'          => $request->conta_id,
+                        'descricao'         => $request->descricao . ($numParcelas > 1 ? " ({$i}/{$numParcelas})" : ''),
+                        'valor'             => $valorParcelaFinal,
+                        'data_vencimento'   => $dataVencParc->format('Y-m-d'),
+                        'observacoes'       => $request->observacoes,
+                        'fornecedor_id'     => $request->fornecedor_id,
+                        'forma_pagamento'   => 'CARTAO_CREDITO',
+                        'cartao_credito_id' => $cartaoCreditoId,
+                        'conta_financeira_id' => null,
+                        'orcamento_id'      => $request->orcamento_id,
+                        'parcela_num'       => $i,
+                        'parcelas_total'    => $numParcelas,
+                        'status'            => 'em_aberto',
+                        'tipo'              => 'avulsa',
+                        'user_id'           => auth()->id(),
+                    ]);
+                }
+            });
+
+            $msg = $numParcelas > 1
+                ? "Compra de R$ " . number_format($valorTotal, 2, ',', '.') . " lançada no cartão {$cartao->nome} em {$numParcelas}x de R$ " . number_format($valorParcela, 2, ',', '.')
+                : "Compra de R$ " . number_format($valorTotal, 2, ',', '.') . " lançada no cartão {$cartao->nome}";
+
+            return back()->with('success', $msg);
+        }
+
+        // Lançamento padrão (sem cartão de crédito parcelado)
         $this->service->criar([
             'centro_custo_id' => $request->centro_custo_id,
             'conta_id' => $request->conta_id,
@@ -391,9 +493,16 @@ class ContasPagarController extends Controller
 
         abort_unless($this->temAcessoFinanceiro($user), 403);
 
-        $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento']);
-
-        return response()->json($conta);
+        try {
+            $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento', 'cartaoCredito']);
+            return response()->json($conta);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ContasPagar show() error: ' . $e->getMessage(), [
+                'conta_id' => $conta->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => $e->getMessage(), 'conta_id' => $conta->id], 500);
+        }
     }
 
     /**

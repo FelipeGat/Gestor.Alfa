@@ -38,6 +38,245 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
+        /* ── Flip Card ── */
+        .resumo-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .resumo-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .resumo-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        /* FRENTE: fluxo normal — define a altura do container */
+        .resumo-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        /* VERSO: absolute overlay — não colapsa o container */
+        .resumo-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .resumo-flip-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .resumo-flip-trigger:hover .flip-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .flip-hint {
+            opacity: 0.55;
+            transform: translateX(-4px);
+            transition: all 0.2s;
+        }
+
+        /* ── Bancos Flip Card ── */
+        .bancos-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .bancos-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .bancos-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        /* FRENTE: fluxo normal — define a altura do container */
+        .bancos-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        /* VERSO: absolute overlay — não colapsa o container */
+        .bancos-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .bancos-flip-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .bancos-flip-trigger:hover .flip-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ── Categorias / Receitas Flip Card ── */
+        .categorias-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .categorias-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .categorias-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .categorias-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .categorias-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .categorias-flip-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .categorias-flip-trigger:hover .flip-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ── Indicadores Flip Card ── */
+        .indicadores-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .indicadores-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .indicadores-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .indicadores-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .indicadores-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .indicadores-flip-trigger { cursor: pointer; user-select: none; }
+        .indicadores-flip-trigger:hover .flip-hint { opacity: 1; transform: translateX(0); }
+
+        /* ── Alertas Flip Card ── */
+        .alertas-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .alertas-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .alertas-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .alertas-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .alertas-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .alertas-flip-trigger { cursor: pointer; user-select: none; }
+        .alertas-flip-trigger:hover .flip-hint { opacity: 1; transform: translateX(0); }
+        /* Cards de receita por empresa */
+        .receita-empresa-card {
+            background: #fff;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .receita-empresa-card:hover {
+            box-shadow: 0 4px 16px rgba(63,156,174,0.15);
+            border-color: #3f9cae;
+        }
+        .dark .receita-empresa-card {
+            background: #1f2937;
+            border-color: #374151;
+        }
+        .dark .receita-empresa-card:hover {
+            border-color: #3f9cae;
+        }
+        .receita-progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .dark .receita-progress-bar { background: #374151; }
+        .receita-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            transition: width 0.6s ease;
+        }
+
+        .cartao-credito-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            transition: box-shadow 0.2s;
+        }
+        .cartao-credito-card:hover {
+            box-shadow: 0 2px 8px rgba(63,156,174,0.18);
+            border-color: #3f9cae;
+        }
+
+        .empresa-day-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            transition: box-shadow 0.2s;
+        }
+        .empresa-day-card:hover {
+            box-shadow: 0 2px 8px rgba(63,156,174,0.18);
+            border-color: #3f9cae;
+        }
         .btn-filtro-rapido {
             padding: 0.375rem 0.75rem;
             font-size: 0.75rem;
@@ -228,18 +467,33 @@
                 </div>
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-                <div class="card-grafico p-6 relative">
+                {{-- ═══════════════ BANCOS FLIP CARD ═══════════════ --}}
+                <div class="bancos-flip-scene" id="bancos-flip-scene">
+                <div class="bancos-flip-inner" id="bancos-flip-inner">
+
+                {{-- ═══════════════ FRENTE ═══════════════ --}}
+                <div class="bancos-flip-front card-grafico p-6">
+
                     {{-- HEADER --}}
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        {{-- Título clicável que dispara o flip --}}
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2 bancos-flip-trigger"
+                            onclick="flipBancosCard()"
+                            title="Ver cartões de crédito">
                             {{-- ÍCONE DE BANCO (PRÉDIO) --}}
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                             Saldo em Bancos
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Cartões
+                            </span>
                         </h3>
-                        {{-- BOTAO MOSTRAR / OCULTAR --}}
+                        {{-- BOTAO MOSTRAR / OCULTAR (independente do flip) --}}
                         <button type="button"
                             onclick="toggleValoresBancos()"
                             class="text-gray-400 hover:text-indigo-600 transition p-1 rounded-full hover:bg-gray-100"
@@ -253,6 +507,7 @@
                             </svg>
                         </button>
                     </div>
+
                     {{-- TOTAL (Apenas Contas Correntes) --}}
                     <div class="mb-4 pb-4 border-b">
                         <span class="text-xs text-gray-500 uppercase">Saldo Total (Contas Correntes)</span>
@@ -263,9 +518,11 @@
                             R$ •••••
                         </p>
                     </div>
+
                     {{-- LISTA DE CONTAS AGRUPADAS POR TIPO --}}
                     <div class="space-y-4">
                         @foreach($contasAgrupadasPorTipo as $tipo => $contas)
+                        @continue($tipo === 'credito')
                         <div>
                             {{-- CABEÇALHO DO TIPO --}}
                             <div class="flex items-center gap-2 mb-2 px-2">
@@ -277,7 +534,7 @@
                             {{-- CONTAS DESTE TIPO --}}
                             <div class="space-y-2">
                                 @foreach($contas as $conta)
-                                <div class="flex items-center justify-between rounded-lg px-4 py-3 
+                                <div class="flex items-center justify-between rounded-lg px-4 py-3
                                     {{ $tipo === 'corrente' ? 'bg-blue-50' : ($tipo === 'poupanca' ? 'bg-green-50' : 'bg-purple-50') }}">
                                     <div class="flex items-center gap-3">
                                         {{-- LOGO (opcional) --}}
@@ -305,16 +562,158 @@
                         </div>
                         @endforeach
                     </div>
-                </div>
-                {{-- RESUMO FINANCEIRO --}}
-                <div class="card-grafico p-6 relative">
-                    {{-- HEADER --}}
-                    <div class="mb-4">
-                        <h3 class="text-sm font-semibold text-gray-700">
-                            📊 Resumo Financeiro
+
+                </div>{{-- /bancos-flip-front --}}
+
+                {{-- ═══════════════ VERSO ═══════════════ --}}
+                <div class="bancos-flip-back card-grafico p-6">
+
+                    {{-- HEADER clicável (volta ao saldo) --}}
+                    <div class="mb-4 bancos-flip-trigger" onclick="flipBancosCard()" title="Voltar ao Saldo em Bancos">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                {{-- Ícone de cartão de crédito --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Cartões de Crédito
+                            </span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Saldo em Bancos
+                            </span>
                         </h3>
                     </div>
-    
+
+                    {{-- CARTÕES DE CRÉDITO --}}
+                    @if(isset($cartoesCredito) && !$cartoesCredito->isEmpty())
+                    <div class="space-y-3 overflow-y-auto" style="max-height: 360px;">
+                        @foreach($cartoesCredito as $cartao)
+                        @php
+                            $utilizadoPct = $cartao->limite_total > 0
+                                ? ($cartao->limite_utilizado / $cartao->limite_total) * 100
+                                : 0;
+                            $disponivelPct = $cartao->limite_total > 0
+                                ? ($cartao->limite_disponivel / $cartao->limite_total) * 100
+                                : 100;
+
+                            // Cor da barra: baseada na utilização
+                            if ($utilizadoPct < 50) {
+                                $barColor = 'bg-green-500';
+                            } elseif ($utilizadoPct < 75) {
+                                $barColor = 'bg-yellow-400';
+                            } else {
+                                $barColor = 'bg-red-500';
+                            }
+
+                            // Cor do limite disponível: baseada na % disponível
+                            if ($disponivelPct > 50) {
+                                $limitColor = 'text-green-600';
+                            } elseif ($disponivelPct >= 25) {
+                                $limitColor = 'text-yellow-600';
+                            } else {
+                                $limitColor = 'text-red-600';
+                            }
+
+                            // Badge de bandeira
+                            $bandeira = strtoupper($cartao->bandeira ?? '');
+                            $bandeiraBg = match($bandeira) {
+                                'VISA'       => 'bg-blue-600',
+                                'MASTERCARD' => 'bg-orange-500',
+                                'ELO'        => 'bg-yellow-500',
+                                'AMEX'       => 'bg-green-600',
+                                'HIPERCARD'  => 'bg-red-600',
+                                default      => 'bg-gray-500',
+                            };
+                        @endphp
+                        <div class="cartao-credito-card">
+                            {{-- Linha superior: bandeira + nome + empresa --}}
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold text-white {{ $bandeiraBg }}">
+                                        {{ $bandeira ?: 'OUTRO' }}
+                                    </span>
+                                    <span class="text-sm font-semibold text-gray-700">{{ $cartao->nome }}</span>
+                                </div>
+                                <span class="text-xs text-gray-400 truncate max-w-[100px]" title="{{ $cartao->empresa }}">
+                                    {{ $cartao->empresa }}
+                                </span>
+                            </div>
+
+                            {{-- Barra de utilização --}}
+                            <div class="mb-3">
+                                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                    <span>Limite utilizado</span>
+                                    <span>{{ number_format($utilizadoPct, 0) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="{{ $barColor }} h-2 rounded-full transition-all"
+                                        style="width: {{ min($utilizadoPct, 100) }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- Grid de informações --}}
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                                <div>
+                                    <span class="text-gray-500 block">Limite Total</span>
+                                    <span class="font-semibold text-gray-700">
+                                        R$ {{ number_format($cartao->limite_total, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Disponível</span>
+                                    <span class="font-semibold {{ $limitColor }}">
+                                        R$ {{ number_format($cartao->limite_disponivel, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Parcelas em Aberto</span>
+                                    <span class="font-semibold text-gray-700">{{ $cartao->parcelas_em_aberto }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Vencimento Fatura</span>
+                                    <span class="font-semibold text-gray-700">Dia {{ $cartao->dia_vencimento_fatura }}</span>
+                                </div>
+                                <div class="col-span-2">
+                                    <span class="text-gray-500 block">Melhor Dia de Compra</span>
+                                    <span class="font-semibold text-gray-700">Dia {{ $cartao->melhor_dia_compra }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="text-center text-xs text-gray-400 py-8">
+                        Nenhum cartão de crédito cadastrado.
+                    </div>
+                    @endif
+
+                </div>{{-- /bancos-flip-back --}}
+
+                </div>{{-- /bancos-flip-inner --}}
+                </div>{{-- /bancos-flip-scene --}}
+                {{-- RESUMO FINANCEIRO — flip card --}}
+                <div class="resumo-flip-scene" id="resumo-flip-scene">
+                <div class="resumo-flip-inner" id="resumo-flip-inner">
+
+                {{-- ═══════════════ FRENTE ═══════════════ --}}
+                <div class="resumo-flip-front card-grafico p-6">
+
+                    {{-- HEADER clicável --}}
+                    <div class="mb-4 resumo-flip-trigger" onclick="flipResumoCard()" title="Ver por empresa hoje">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span>📊 Resumo Financeiro</span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Por empresa
+                            </span>
+                        </h3>
+                    </div>
+
                     {{-- ================= REALIZADO ================= --}}
                     <div class="mb-6">
                         <span class="text-xs text-gray-500 uppercase block mb-2">
@@ -345,7 +744,7 @@
                         <div id="modal-lancamentos" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
                             <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-0 relative" style="border: 1px solid #3f9cae; border-top-width: 4px;">
                                 <button onclick="fecharModalLancamentos()" class="absolute top-3 right-3 text-gray-400 hover:text-red-600 text-2xl font-bold z-10">&times;</button>
-                                
+
                                 {{-- HEADER DO MODAL --}}
                                 <div class="px-6 py-4 border-b border-gray-200" style="background-color: rgba(63, 156, 174, 0.05);">
                                     <div class="flex items-center justify-between">
@@ -368,11 +767,13 @@
                             </div>
                         </div>
                     </div>
+
                     {{-- ================= PREVISTO ================= --}}
                     <div class="mb-6 border-t pt-4">
-                        <span class="text-xs text-gray-500 uppercase block mb-2">
+                        <span class="text-xs text-gray-500 uppercase block mb-1">
                             Previsto
                         </span>
+                        <p class="text-xs text-gray-400 mb-2">Contratos + Orçamentos ativos</p>
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">A Receber</span>
@@ -394,65 +795,346 @@
                             </div>
                         </div>
                     </div>
+
                     {{-- ================= SITUAÇÃO ================= --}}
                     <div class="border-t pt-4">
-                        <span class="text-xs text-gray-500 uppercase block mb-2">
+                        <span class="text-xs text-gray-500 uppercase block mb-1">
                             Situação
                         </span>
+                        <p class="text-xs text-amber-600 mb-2">⚠ Total global — independente do filtro de período</p>
                         <div class="grid grid-cols-3 gap-4 text-center">
                             <div>
                                 <span class="text-xs text-gray-500">Receitas Atrasadas</span>
-                                <p class="font-bold text-green-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_pago')">
-                                    R$ {{ number_format($pago, 2, ',', '.') }}
+                                <p class="font-bold text-amber-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_receitas_atrasadas')">
+                                    R$ {{ number_format($receitasAtrasadas, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Despesas Atrasadas</span>
                                 <p class="font-bold text-red-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_atrasado')">
-                                    R$ {{ number_format($atrasado, 2, ',', '.') }}
+                                    R$ {{ number_format($despesasAtrasadas, 2, ',', '.') }}
                                 </p>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500">Diferença</span>
-                                <p class="font-bold text-blue-600 cursor-pointer hover:underline" onclick="mostrarLancamentos('situacao_diferenca')">
+                                <p class="font-bold {{ $saldoSituacao >= 0 ? 'text-green-600' : 'text-red-700' }}">
                                     R$ {{ number_format($saldoSituacao, 2, ',', '.') }}
                                 </p>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>{{-- /resumo-flip-front --}}
+
+                {{-- ═══════════════ VERSO ═══════════════ --}}
+                <div class="resumo-flip-back card-grafico p-6">
+
+                    {{-- HEADER clicável (volta) --}}
+                    <div class="mb-4 resumo-flip-trigger" onclick="flipResumoCard()" title="Voltar ao resumo financeiro">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span>🏢 Hoje por Empresa</span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Resumo geral
+                            </span>
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-1">{{ now()->translatedFormat('d \d\e F \d\e Y') }}</p>
+                    </div>
+
+                    {{-- CARDS DAS EMPRESAS — 2 colunas no mobile, 2 no desktop (4 empresas = 2×2) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @forelse($hojeResumoPorEmpresa as $emp)
+                        <div class="empresa-day-card">
+                            <p class="text-xs font-semibold text-gray-700 mb-2 truncate" title="{{ $emp['nome'] }}">
+                                {{ $emp['nome'] }}
+                            </p>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-gray-500">A Receber</span>
+                                <span class="font-bold {{ $emp['a_receber'] > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                                    R$ {{ number_format($emp['a_receber'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="text-gray-500">A Pagar</span>
+                                <span class="font-bold {{ $emp['a_pagar'] > 0 ? 'text-red-600' : 'text-gray-400' }}">
+                                    R$ {{ number_format($emp['a_pagar'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-1 flex justify-between items-center text-xs">
+                                <span class="text-gray-500 font-medium">Saldo do dia</span>
+                                <span class="font-bold {{ $emp['saldo'] >= 0 ? 'text-teal-700' : 'text-red-700' }}">
+                                    R$ {{ number_format($emp['saldo'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-span-2 text-center text-xs text-gray-400 py-6">
+                            Nenhuma empresa ativa encontrada.
+                        </div>
+                        @endforelse
+                    </div>
+
+                    {{-- Totalizador do dia --}}
+                    @php
+                        $totalReceberHoje = collect($hojeResumoPorEmpresa)->sum('a_receber');
+                        $totalPagarHoje   = collect($hojeResumoPorEmpresa)->sum('a_pagar');
+                        $saldoTotalHoje   = $totalReceberHoje - $totalPagarHoje;
+                    @endphp
+                    <div class="border-t border-gray-200 mt-4 pt-3">
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div>
+                                <span class="block text-gray-400">Total Receber</span>
+                                <span class="font-bold text-green-600">R$ {{ number_format($totalReceberHoje, 2, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-400">Total Pagar</span>
+                                <span class="font-bold text-red-600">R$ {{ number_format($totalPagarHoje, 2, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-400">Saldo</span>
+                                <span class="font-bold {{ $saldoTotalHoje >= 0 ? 'text-teal-700' : 'text-red-700' }}">R$ {{ number_format($saldoTotalHoje, 2, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>{{-- /resumo-flip-back --}}
+
+                </div>{{-- /resumo-flip-inner --}}
+                </div>{{-- /resumo-flip-scene --}}
             </div>
 
-            {{-- ================= GRÁFICOS DE GASTOS POR CATEGORIA ================= --}}
-            <div class="filters-card p-6 mb-6">
-                <div class="flex flex-wrap items-center justify-center gap-2 text-sm">
-                    <span class="text-gray-700 font-semibold text-sm">Custos por Categorias:</span>
-                    <button type="button" class="btn-filtro-rapido ativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
-                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
-                    <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-                @foreach($dadosCentros as $centro => $dados)
-                <div class="card-grafico p-6 flex flex-col items-center">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-4 text-center">
-                        Gastos por <span id="grafico-nivel-{{ Str::slug($centro) }}">Categoria</span><br><span class="text-xs text-gray-500">{{ $centro }}</span>
-                    </h3>
-                    <div class="w-full flex-1 flex items-center justify-center">
-                        <canvas class="grafico-categoria" data-centro="{{ $centro }}" id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220" style="cursor:pointer;"></canvas>
+            {{-- ================= FLIP: CUSTOS POR CATEGORIA (Frente) / RECEITAS POR EMPRESA (Verso) ================= --}}
+            <div class="categorias-flip-scene mb-10">
+            <div class="categorias-flip-inner" id="categorias-flip-inner">
+
+            {{-- ========== FRENTE: Custos por Categorias ========== --}}
+            <div class="categorias-flip-front">
+                <div class="filters-card p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-gray-700 dark:text-gray-300 font-semibold text-sm">Custos por Categorias:</span>
+                            <button type="button" class="btn-filtro-rapido ativo btn-nivel-categoria" data-nivel="categoria">Categorias</button>
+                            <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="subcategoria">Subcategorias</button>
+                            <button type="button" class="btn-filtro-rapido inativo btn-nivel-categoria" data-nivel="conta">Contas</button>
+                        </div>
+                        <button onclick="flipCategoriasCard()" class="categorias-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="flip-hint">Receitas por Empresa</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
                     </div>
                 </div>
-                @endforeach
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    @foreach($dadosCentros as $centro => $dados)
+                    <div class="card-grafico p-6 flex flex-col items-center">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                            Gastos por <span id="grafico-nivel-{{ Str::slug($centro) }}">Categoria</span><br><span class="text-xs text-gray-500 dark:text-gray-400">{{ $centro }}</span>
+                        </h3>
+                        <div class="w-full flex-1 flex items-center justify-center">
+                            <canvas class="grafico-categoria" data-centro="{{ $centro }}" id="grafico-categoria-{{ Str::slug($centro) }}" width="220" height="220" style="cursor:pointer;"></canvas>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>{{-- /categorias-flip-front --}}
+
+            {{-- ========== VERSO: Receitas por Empresas ========== --}}
+            <div class="categorias-flip-back">
+                {{-- Header --}}
+                <div class="filters-card p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Receitas por Empresa</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Período: {{ $inicio->format('d/m/Y') }} → {{ $fim->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            {{-- Totalizador rápido --}}
+                            @if($receitasPorEmpresa->isNotEmpty())
+                            <div class="hidden sm:flex items-center gap-4 text-xs font-semibold">
+                                <span class="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                                    Realizado: R$ {{ number_format($receitasPorEmpresa->sum('realizada'), 2, ',', '.') }}
+                                </span>
+                                <span class="flex items-center gap-1 text-blue-700 dark:text-blue-400">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                                    A Receber: R$ {{ number_format($receitasPorEmpresa->sum('a_receber'), 2, ',', '.') }}
+                                </span>
+                                @if($receitasPorEmpresa->sum('atrasado') > 0)
+                                <span class="flex items-center gap-1 text-red-700 dark:text-red-400">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+                                    Atrasado: R$ {{ number_format($receitasPorEmpresa->sum('atrasado'), 2, ',', '.') }}
+                                </span>
+                                @endif
+                            </div>
+                            @endif
+                            <button onclick="flipCategoriasCard()" class="categorias-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Voltar a Custos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Grid de cards por empresa --}}
+                @if($receitasPorEmpresa->isEmpty())
+                <div class="card-grafico p-10 text-center">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium">Nenhuma receita no período selecionado</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Ajuste o filtro de período para visualizar os dados</p>
+                </div>
+                @else
+                @php
+                    $coresEmpresas = [
+                        ['dot' => 'bg-emerald-500', 'badge' => 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300', 'borda' => 'border-emerald-200 dark:border-emerald-800', 'bar' => '#22c55e'],
+                        ['dot' => 'bg-blue-500',    'badge' => 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',           'borda' => 'border-blue-200 dark:border-blue-800',    'bar' => '#3b82f6'],
+                        ['dot' => 'bg-violet-500',  'badge' => 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300',   'borda' => 'border-violet-200 dark:border-violet-800', 'bar' => '#8b5cf6'],
+                        ['dot' => 'bg-amber-500',   'badge' => 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',       'borda' => 'border-amber-200 dark:border-amber-800',  'bar' => '#f59e0b'],
+                        ['dot' => 'bg-rose-500',    'badge' => 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',           'borda' => 'border-rose-200 dark:border-rose-800',    'bar' => '#f43f5e'],
+                        ['dot' => 'bg-cyan-500',    'badge' => 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300',           'borda' => 'border-cyan-200 dark:border-cyan-800',    'bar' => '#06b6d4'],
+                    ];
+                    $totalGobal = $receitasPorEmpresa->sum('realizada') + $receitasPorEmpresa->sum('a_receber') ?: 1;
+                @endphp
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    @foreach($receitasPorEmpresa as $idx => $empR)
+                    @php
+                        $cor = $coresEmpresas[$idx % count($coresEmpresas)];
+                        $totalEmp   = $empR->realizada + $empR->a_receber;
+                        $pctBarra   = $totalEmp > 0 ? min(100, round(($empR->realizada / $totalEmp) * 100)) : 0;
+                        $pctOrc     = ($empR->realizada > 0) ? round(($empR->realizada_orcamento / max($empR->realizada, 0.01)) * 100) : 0;
+                        $pctCont    = 100 - $pctOrc;
+                        $valorAnual = $empR->receita_anual;
+                    @endphp
+                    <div class="receita-empresa-card border {{ $cor['borda'] }}">
+                        {{-- Título empresa --}}
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="w-3 h-3 rounded-full {{ $cor['dot'] }} flex-shrink-0"></span>
+                            <span class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">{{ $empR->nome }}</span>
+                        </div>
+
+                        {{-- 3 KPIs principais --}}
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="text-center">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide font-medium">Realizado</div>
+                                <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                    R$ {{ number_format($empR->realizada, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div class="text-center border-x border-gray-100 dark:border-gray-700">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide font-medium">A Receber</div>
+                                <div class="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    R$ {{ number_format($empR->a_receber, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide font-medium">Atrasado</div>
+                                <div class="text-sm font-bold {{ $empR->atrasado > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-600' }}">
+                                    R$ {{ number_format($empR->atrasado, 0, ',', '.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Barra de progresso: Realizado / Total período --}}
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                <span>Realização no período</span>
+                                <span class="font-semibold">{{ $pctBarra }}%</span>
+                            </div>
+                            <div class="receita-progress-bar">
+                                <div class="receita-progress-fill" style="width: {{ $pctBarra }}%; background: {{ $cor['bar'] }};"></div>
+                            </div>
+                        </div>
+
+                        {{-- Divider --}}
+                        <div class="border-t border-gray-100 dark:border-gray-700 my-3"></div>
+
+                        {{-- Tipo de receita: Orçamento vs Contrato --}}
+                        @if($empR->realizada > 0)
+                        <div class="mb-3">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1.5 font-medium">Composição do Realizado</div>
+                            <div class="flex gap-1.5 flex-wrap">
+                                @if($empR->realizada_orcamento > 0)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Orçamentos {{ $pctOrc }}%
+                                </span>
+                                @endif
+                                @if($empR->realizada_contrato > 0)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    Contratos {{ $pctCont }}%
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Métricas adicionais --}}
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="flex flex-col">
+                                <span class="text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">% do Total</span>
+                                <span class="font-bold text-gray-700 dark:text-gray-200 mt-0.5">
+                                    <span class="{{ $cor['badge'] }} px-1.5 py-0.5 rounded-full inline-block">{{ $empR->percentual }}%</span>
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">Ticket Médio</span>
+                                <span class="font-bold text-gray-700 dark:text-gray-200 mt-0.5">
+                                    @if($empR->ticket_medio > 0)
+                                        R$ {{ number_format($empR->ticket_medio, 0, ',', '.') }}
+                                        <span class="text-gray-400 dark:text-gray-500 font-normal">({{ $empR->qtd_cobrancas }}x)</span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">—</span>
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Receita anual (se diferente do período) --}}
+                        @if($valorAnual > 0 && $valorAnual != $empR->realizada)
+                        <div class="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">Receita Anual {{ now()->year }}</span>
+                                <span class="font-bold text-gray-600 dark:text-gray-300">R$ {{ number_format($valorAnual, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>{{-- /categorias-flip-back --}}
+
+            </div>{{-- /categorias-flip-inner --}}
+            </div>{{-- /categorias-flip-scene --}}
 
             {{-- ================= NOVOS CARDS: INDICADORES E ALERTAS ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                {{-- CARD 1: INDICADORES INTELIGENTES --}}
-                <div class="card-grafico p-6 flex flex-col gap-6">
-                    <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
-                        Indicadores Inteligentes
-                    </h3>
+
+                {{-- CARD 1: INDICADORES INTELIGENTES (flip card) --}}
+                <div class="indicadores-flip-scene">
+                <div class="indicadores-flip-inner" id="indicadores-flip-inner">
+
+                {{-- ── FRENTE: Indicadores Inteligentes ── --}}
+                <div class="indicadores-flip-front card-grafico p-6 flex flex-col gap-6">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            Indicadores Inteligentes
+                        </h3>
+                        <button onclick="flipIndicadoresCard()" class="indicadores-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <span class="flip-hint">Despesas por Área</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {{-- % da renda comprometida --}}
                         <div class="flex flex-col gap-1">
@@ -492,13 +1174,69 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                {{-- CARD 2: ALERTAS E INSIGHTS AUTOMÁTICOS --}}
-                <div class="card-grafico p-6 flex flex-col gap-4">
-                    <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1"/></svg>
-                        Alertas e Insights Automáticos
-                    </h3>
+                </div>{{-- /indicadores-flip-front --}}
+
+                {{-- ── VERSO: Despesas por Área (Centro de Custo) ── --}}
+                <div class="indicadores-flip-back card-grafico p-6">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Despesas por Área</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Período: {{ $inicio->format('d/m/Y') }} → {{ $fim->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <button onclick="flipIndicadoresCard()" class="indicadores-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span class="flip-hint">Indicadores</span>
+                        </button>
+                    </div>
+                    <div class="space-y-3">
+                        @foreach($dadosCentros as $centro => $dados)
+                        @php $totalCentro = collect($dados['categorias'])->sum('total'); @endphp
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-indigo-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                                <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ $centro }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-indigo-700 dark:text-indigo-300 text-sm">R$ {{ number_format($totalCentro, 2, ',', '.') }}</span>
+                                @if(count($dados['categorias']) > 0)
+                                <div class="text-xs text-gray-400 mt-0.5">{{ count($dados['categorias']) }} {{ count($dados['categorias']) === 1 ? 'categoria' : 'categorias' }}</div>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                        @if(count($dadosCentros) === 0)
+                            <div class="text-center text-gray-400 text-sm py-4">Nenhuma despesa registrada no período.</div>
+                        @endif
+                    </div>
+                </div>{{-- /indicadores-flip-back --}}
+
+                </div>{{-- /indicadores-flip-inner --}}
+                </div>{{-- /indicadores-flip-scene --}}
+
+                {{-- CARD 2: ALERTAS E INSIGHTS AUTOMÁTICOS (flip card) --}}
+                <div class="alertas-flip-scene">
+                <div class="alertas-flip-inner" id="alertas-flip-inner">
+
+                {{-- ── FRENTE: Alertas e Insights ── --}}
+                <div class="alertas-flip-front card-grafico p-6 flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            Alertas e Insights Automáticos
+                        </h3>
+                        <button onclick="flipAlertasCard()" class="alertas-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-xs font-semibold hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="flip-hint">Saúde por Empresa</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
                     @if(count($alertasFinanceiros) === 0)
                         <div class="text-gray-400 text-sm">Nenhum alerta ou insight para o período selecionado.</div>
                     @else
@@ -512,15 +1250,74 @@
                                     @else
                                         <span class="inline-block px-2 py-1 bg-blue-500 text-white rounded text-xs font-bold mr-2">Info</span>
                                     @endif
-                                    <span class="text-gray-700">{!! $alerta['mensagem'] !!}</span>
+                                    <span class="text-gray-700 dark:text-gray-300">{!! $alerta['mensagem'] !!}</span>
                                 </li>
                             @endforeach
                         </ul>
                     @endif
-                </div>
+                </div>{{-- /alertas-flip-front --}}
 
-                </div>
-            </div>
+                {{-- ── VERSO: Saúde Financeira por Empresa ── --}}
+                <div class="alertas-flip-back card-grafico p-6">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Saúde Financeira por Empresa</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Período: {{ $inicio->format('d/m/Y') }} → {{ $fim->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <button onclick="flipAlertasCard()" class="alertas-flip-trigger inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span class="flip-hint">Alertas</span>
+                        </button>
+                    </div>
+                    <div class="space-y-3">
+                        @forelse($receitasPorEmpresa as $emp)
+                        @php
+                            $saudeEmpresa = $emp->atrasado == 0 ? 'saudavel' : ($emp->atrasado < $emp->realizada * 0.2 ? 'atencao' : 'critico');
+                            $corSaude = match($saudeEmpresa) {
+                                'saudavel' => 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
+                                'atencao'  => 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-100 dark:border-yellow-800',
+                                'critico'  => 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800',
+                            };
+                            $dotCor = match($saudeEmpresa) {
+                                'saudavel' => 'bg-emerald-500',
+                                'atencao'  => 'bg-yellow-500',
+                                'critico'  => 'bg-red-500',
+                            };
+                        @endphp
+                        <div class="p-3 rounded-xl border {{ $corSaude }}">
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full {{ $dotCor }} flex-shrink-0"></span>
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200 text-sm">{{ $emp->nome }}</span>
+                                </div>
+                                <span class="text-xs font-bold text-gray-600 dark:text-gray-400">{{ $emp->percentual }}%</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pl-4">
+                                <span>Receita: <b class="text-gray-700 dark:text-gray-300">R$ {{ number_format($emp->realizada, 0, ',', '.') }}</b></span>
+                                @if($emp->atrasado > 0)
+                                    <span class="text-red-600 dark:text-red-400 font-semibold">Atraso: R$ {{ number_format($emp->atrasado, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Em dia</span>
+                                @endif
+                            </div>
+                        </div>
+                        @empty
+                            <div class="text-center text-gray-400 text-sm py-4">Nenhuma empresa com movimentação no período.</div>
+                        @endforelse
+                    </div>
+                </div>{{-- /alertas-flip-back --}}
+
+                </div>{{-- /alertas-flip-inner --}}
+                </div>{{-- /alertas-flip-scene --}}
+
+            </div>{{-- /grid indicadores-alertas --}}
 
 
             {{-- ================= DADOS PARA JS ================= --}}
@@ -545,8 +1342,7 @@
         const lancamentosPrevistoReceber = @json($lancamentosPrevistoReceber ?? []);
         const lancamentosPrevistoPagar = @json($lancamentosPrevistoPagar ?? []);
         const lancamentosAtrasado = @json($lancamentosAtrasado ?? []);
-        const lancamentosPago = @json($lancamentosPago ?? []);
-        const lancamentosDiferenca = @json($lancamentosDiferenca ?? []);
+        const lancamentosReceitasAtrasadas = @json($lancamentosReceitasAtrasadas ?? []);
         let currentTipoLancamento = '';
 
         function mostrarLancamentos(tipo) {
@@ -575,19 +1371,15 @@
                 lista = lancamentosAtrasado;
                 titulo = 'Despesas Atrasadas';
                 totalColor = 'text-red-600';
-            } else if (tipo === 'situacao_pago') {
-                lista = lancamentosPago;
+            } else if (tipo === 'situacao_receitas_atrasadas') {
+                lista = lancamentosReceitasAtrasadas;
                 titulo = 'Receitas Atrasadas';
-                totalColor = 'text-green-600';
-            } else if (tipo === 'situacao_diferenca') {
-                lista = lancamentosDiferenca;
-                titulo = 'Lançamentos Diferença';
-                totalColor = 'text-blue-600';
+                totalColor = 'text-amber-600';
             }
             // Calcular total
             let total = lista.reduce((acc, l) => acc + (parseFloat(l.valor) || 0), 0);
             let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            
+
             document.getElementById('modal-titulo').innerText = titulo;
             document.getElementById('modal-total').innerHTML = `<span class='${totalColor}'>${totalFormatado}</span>`;
             const container = document.getElementById('modal-lista-lancamentos');
@@ -595,17 +1387,17 @@
                 container.innerHTML = '<div class="text-gray-500 text-center py-8" style="font-size: 0.875rem;">Nenhum lançamento encontrado.</div>';
             } else {
                 let thExtra = '';
-                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                     thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Empresa</th>`;
                 } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                     thExtra = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>Centro de Custo</th>`;
                 }
-                
+
                 let thCnpj = '';
-                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                     thCnpj = `<th class='px-4 py-3 text-left uppercase' style='font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);'>CNPJ/CPF</th>`;
                 }
-                
+
                 container.innerHTML = `
                 <div class='overflow-x-auto'>
                 <table class='w-full table-auto' style='border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem;'>
@@ -624,10 +1416,10 @@
                         ${lista.map(l => `
                             <tr class='hover:bg-gray-50 transition'>
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.data ?? ''}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.empresa ?? '-'}</td>` : ''}
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.empresa ?? '-'}</td>` : ''}
                                 ${(tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.centro_custo ?? '-'}</td>` : ''}
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cliente ?? '-'}</td>
-                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cnpjcpf ?? '-'}</td>` : ''}
+                                ${(tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') ? `<td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.cnpjcpf ?? '-'}</td>` : ''}
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.descricao ?? '-'}</td>
                                 <td class='px-4 py-3 text-sm' style='font-weight: 400; color: rgb(17, 24, 39); font-family: Inter, sans-serif;'>${l.tipo ?? '-'}</td>
                                 <td class='px-4 py-3 text-sm text-right font-semibold' style='color: rgb(17, 24, 39);'>R$ ${parseFloat(l.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
@@ -644,6 +1436,92 @@
             document.getElementById('modal-lancamentos').classList.add('hidden');
         }
 
+        // ── Flip Card: Resumo Financeiro ──────────────────────────────────
+        function flipResumoCard() {
+            const inner = document.getElementById('resumo-flip-inner');
+            const back  = inner.querySelector('.resumo-flip-back');
+
+            inner.classList.toggle('flipped');
+            const mostrandoVerso = inner.classList.contains('flipped');
+
+            if (mostrandoVerso) {
+                // Verso é position:absolute — precisamos forçar uma altura mínima
+                // para que o container não colapse enquanto a frente fica invisível
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                // Voltou para a frente: remove a altura forçada, frente volta ao fluxo normal
+                inner.style.minHeight = '';
+            }
+        }
+
+        // ── Flip Card: Saldo em Bancos ──────────────────────────────────
+        function flipBancosCard() {
+            const inner = document.getElementById('bancos-flip-inner');
+            const back  = inner.querySelector('.bancos-flip-back');
+
+            inner.classList.toggle('flipped');
+            const mostrandoVerso = inner.classList.contains('flipped');
+
+            if (mostrandoVerso) {
+                // Verso é position:absolute — força altura mínima para não colapsar
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                // Voltou para a frente: remove a altura forçada
+                inner.style.minHeight = '';
+            }
+        }
+
+        // ── Flip Card: Custos por Categorias / Receitas por Empresas ──────────────────────────────────
+        function flipCategoriasCard() {
+            const inner = document.getElementById('categorias-flip-inner');
+            const back  = inner.querySelector('.categorias-flip-back');
+
+            inner.classList.toggle('flipped');
+            const mostrandoVerso = inner.classList.contains('flipped');
+
+            if (mostrandoVerso) {
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                inner.style.minHeight = '';
+            }
+        }
+
+        // ── Flip Card: Indicadores Inteligentes / Despesas por Empresa ────────────────────────────────
+        function flipIndicadoresCard() {
+            const inner = document.getElementById('indicadores-flip-inner');
+            const back  = inner.querySelector('.indicadores-flip-back');
+            inner.classList.toggle('flipped');
+            if (inner.classList.contains('flipped')) {
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                inner.style.minHeight = '';
+            }
+        }
+
+        // ── Flip Card: Alertas e Insights / Saúde Financeira por Empresa ─────────────────────────────
+        function flipAlertasCard() {
+            const inner = document.getElementById('alertas-flip-inner');
+            const back  = inner.querySelector('.alertas-flip-back');
+            inner.classList.toggle('flipped');
+            if (inner.classList.contains('flipped')) {
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                inner.style.minHeight = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const inner = document.getElementById('resumo-flip-inner');
+            if (!inner) return;
+            // Pré-mede altura do verso (está em position:absolute, tem scrollHeight no DOM)
+            // e garante que ao virar não haverá salto visual
+            const back = inner.querySelector('.resumo-flip-back');
+            if (back) {
+                // Nada a fazer no load: a frente está em fluxo normal e define a altura
+                // O verso só precisa de altura explícita quando estiver ativo
+            }
+        });
+
         function getTipoInfo(tipo) {
             const info = {
                 'receita': { lista: lancamentosReceita, titulo: 'Lançamentos de Receita', cor: '#16a34a' },
@@ -651,8 +1529,7 @@
                 'previsto_receber': { lista: lancamentosPrevistoReceber, titulo: 'Lançamentos a Receber', cor: '#16a34a' },
                 'previsto_pagar': { lista: lancamentosPrevistoPagar, titulo: 'Lançamentos a Pagar', cor: '#dc2626' },
                 'situacao_atrasado': { lista: lancamentosAtrasado, titulo: 'Despesas Atrasadas', cor: '#dc2626' },
-                'situacao_pago': { lista: lancamentosPago, titulo: 'Receitas Atrasadas', cor: '#16a34a' },
-                'situacao_diferenca': { lista: lancamentosDiferenca, titulo: 'Lançamentos Diferença', cor: '#2563eb' }
+                'situacao_receitas_atrasadas': { lista: lancamentosReceitasAtrasadas, titulo: 'Receitas Atrasadas', cor: '#d97706' }
             };
             return info[tipo] || { lista: [], titulo: 'Lançamentos', cor: '#333' };
         }
@@ -670,14 +1547,14 @@
             let totalFormatado = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
             let thExtra = '';
-            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                 thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Empresa</th>';
             } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                 thExtra = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">Centro de Custo</th>';
             }
 
             let thCnpj = '';
-            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+            if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                 thCnpj = '<th style="background-color: #f5f5f5; padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; font-weight: bold; font-size: 11px;">CNPJ/CPF</th>';
             }
 
@@ -699,13 +1576,13 @@
                     let valorFormatado = 'R$ ' + (parseFloat(l.valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                     tableRows += '<tr>';
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.data || '-') + '</td>';
-                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.empresa || '-') + '</td>';
                     } else if (tipo === 'despesa' || tipo === 'previsto_pagar' || tipo === 'situacao_atrasado') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.centro_custo || '-') + '</td>';
                     }
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cliente || '-') + '</td>';
-                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_pago') {
+                    if (tipo === 'receita' || tipo === 'previsto_receber' || tipo === 'situacao_receitas_atrasadas') {
                         tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.cnpjcpf || '-') + '</td>';
                     }
                     tableRows += '<td style="padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">' + (l.descricao || '-') + '</td>';
@@ -1069,45 +1946,64 @@
             const despesaPaga = JSON.parse(el.dataset.despesaPaga || '[]');
             const despesaPrevista = JSON.parse(el.dataset.despesaPrevista || '[]');
 
+            // Datasets definidos como variável para acesso no onHover
+            const fluxoDatasets = [{
+                    label: 'Receita Prevista',
+                    data: previsto,
+                    backgroundColor: '#93c5fd',
+                    stack: 'receita'
+                },
+                {
+                    label: 'Receita Recebida',
+                    data: recebido,
+                    backgroundColor: '#1e3a8a',
+                    stack: 'receita'
+                },
+                {
+                    label: 'Despesa Prevista',
+                    data: despesaPrevista,
+                    backgroundColor: '#fca5a5',
+                    stack: 'despesa'
+                },
+                {
+                    label: 'Despesa Paga',
+                    data: despesaPaga,
+                    backgroundColor: '#dc2626',
+                    stack: 'despesa'
+                }
+            ];
+
+            // Rastreia qual stack está sendo hovereada para filtrar o tooltip
+            let fluxoHoverStack = null;
+
+            // Formatação monetária brasileira
+            const fmtBRL = v => 'R$ ' + (parseFloat(v) || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
             new Chart(document.getElementById('chartFinanceiroMensal'), {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                            label: 'Receita Prevista',
-                            data: previsto,
-                            backgroundColor: '#93c5fd',
-                            stack: 'receita'
-                        },
-                        {
-                            label: 'Receita Recebida',
-                            data: recebido,
-                            backgroundColor: '#1e3a8a',
-                            stack: 'receita'
-                        },
-                        {
-                            label: 'Despesa Prevista',
-                            data: despesaPrevista,
-                            backgroundColor: '#fca5a5',
-                            stack: 'despesa'
-                        },
-                        {
-                            label: 'Despesa Paga',
-                            data: despesaPaga,
-                            backgroundColor: '#dc2626',
-                            stack: 'despesa'
-                        }
-                    ]
+                    datasets: fluxoDatasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    onHover: function(event, activeElements) {
+                        if (activeElements && activeElements.length > 0) {
+                            fluxoHoverStack = fluxoDatasets[activeElements[0].datasetIndex].stack;
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                    return 'R$ ' + (parseFloat(value) || 0).toLocaleString('pt-BR', {
+                                        minimumFractionDigits: 2
+                                    });
                                 }
                             }
                         }
@@ -1116,29 +2012,27 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            // Exibe apenas os datasets da stack hovereada (receita OU despesa)
+                            filter: function(item) {
+                                if (!fluxoHoverStack) return true;
+                                return item.dataset.stack === fluxoHoverStack;
+                            },
                             callbacks: {
                                 title: function(context) {
                                     return context[0].label.toUpperCase();
                                 },
                                 label: function(context) {
-                                    const valor = context.raw || 0;
-                                    return `${context.dataset.label}: R$ ${valor.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2
-                                    })}`;
+                                    return `${context.dataset.label}: ${fmtBRL(context.raw)}`;
                                 },
                                 footer: function(context) {
-                                    let totalReceita = 0;
-                                    context.forEach(item => {
-                                        if (
-                                            item.dataset.label === 'Receita Prevista' ||
-                                            item.dataset.label === 'Receita Recebida'
-                                        ) {
-                                            totalReceita += item.raw || 0;
-                                        }
-                                    });
-                                    return `Total Receita: R$ ${totalReceita.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2
-                                    })}`;
+                                    let total = 0;
+                                    context.forEach(item => { total += parseFloat(item.raw) || 0; });
+                                    const stack = context[0]?.dataset?.stack;
+                                    const label = stack === 'receita' ? 'Total Receita' : 'Total Despesa';
+                                    return [
+                                        '─────────────────────────',
+                                        `${label} : ${fmtBRL(total)}`
+                                    ];
                                 }
                             }
                         }

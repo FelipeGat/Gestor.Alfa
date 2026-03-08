@@ -129,7 +129,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
                 })
                 ->whereRaw("LOWER(COALESCE(c.status, '')) = ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
-                ->whereBetween(DB::raw('DATE(COALESCE(c.data_pagamento, c.pago_em, c.data_vencimento))'), [$dataInicio, $dataFim])
+                ->whereBetween(DB::raw('DATE(COALESCE(c.data_pagamento, c.pago_em))'), [$dataInicio, $dataFim])
                 ->sum('c.valor')
         );
     }
@@ -148,7 +148,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
                 })
                 ->whereRaw("LOWER(COALESCE(cp.status, '')) = ?", ['pago'])
                 ->when($centroCustoId, fn ($q) => $q->where('cp.centro_custo_id', $centroCustoId))
-                ->whereBetween(DB::raw('DATE(COALESCE(cp.data_pagamento, cp.pago_em, cp.data_vencimento))'), [$dataInicio, $dataFim])
+                ->whereBetween(DB::raw('DATE(COALESCE(cp.data_pagamento, cp.pago_em))'), [$dataInicio, $dataFim])
                 ->sum('cp.valor')
         );
     }
@@ -161,7 +161,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
             ->where('o.empresa_id', $empresaId)
             ->whereRaw("LOWER(COALESCE(c.status, '')) = ?", ['pago'])
             ->when($centroCustoId, fn ($q) => $q->where('o.centro_custo_id', $centroCustoId))
-            ->whereBetween(DB::raw('DATE(COALESCE(c.data_pagamento, c.pago_em, c.data_vencimento))'), [$dataInicio, $dataFim])
+            ->whereBetween(DB::raw('DATE(COALESCE(c.data_pagamento, c.pago_em))'), [$dataInicio, $dataFim])
             ->groupBy('o.centro_custo_id', 'cc.nome')
             ->orderByDesc(DB::raw('SUM(c.valor)'))
             ->get([
@@ -190,7 +190,7 @@ class RelatorioFinanceiroService extends BaseRelatorioService
             })
             ->whereRaw("LOWER(COALESCE(cp.status, '')) = ?", ['pago'])
             ->when($centroCustoId, fn ($q) => $q->where('cp.centro_custo_id', $centroCustoId))
-            ->whereBetween(DB::raw('DATE(COALESCE(cp.data_pagamento, cp.pago_em, cp.data_vencimento))'), [$dataInicio, $dataFim])
+            ->whereBetween(DB::raw('DATE(COALESCE(cp.data_pagamento, cp.pago_em))'), [$dataInicio, $dataFim])
             ->groupBy('cp.centro_custo_id', 'cc.nome')
             ->orderByDesc(DB::raw('SUM(cp.valor)'))
             ->get([

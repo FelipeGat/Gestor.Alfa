@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
+<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm">
 
     @php
     $user = auth()->user();
@@ -219,7 +219,7 @@
                             {{-- SECTION: DASHBOARDS --}}
                             <div>
                                 <button @click="activeSection = (activeSection === 'dashboards' ? null : 'dashboards')"
-                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
                                     <span>Dashboards</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'dashboards' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -245,7 +245,7 @@
                             {{-- SECTION: CADASTROS --}}
                             <div>
                                 <button @click="activeSection = (activeSection === 'cadastros' ? null : 'cadastros')"
-                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
                                     <span>Cadastros</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'cadastros' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -273,7 +273,7 @@
                             {{-- SECTION: RELATÓRIOS --}}
                             <div>
                                 <button @click="activeSection = (activeSection === 'relatorios' ? null : 'relatorios')"
-                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
                                     <span>Relatórios</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'relatorios' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -281,7 +281,7 @@
                                 </button>
                                 <div x-show="activeSection === 'relatorios'" x-collapse class="pl-4 pb-1 space-y-1">
                                     @if($isAdmin)
-                                    <a href="{{ route('relatorios.modulo') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Todos Relatórios">Todos</a>
+                                    <a href="{{ route('relatorios.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Todos Relatórios">Todos</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'financeiro']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Financeiros">Financeiro</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Comerciais">Comercial</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Técnicos">Técnico</a>
@@ -294,7 +294,7 @@
                             @if($isRhAdmin)
                             <div>
                                 <button @click="activeSection = (activeSection === 'rh' ? null : 'rh')"
-                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-md transition-colors">
+                                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
                                     <span>RH</span>
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="activeSection === 'rh' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -458,10 +458,11 @@
             </div>
 
             {{-- USER --}}
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
+            <div class="hidden sm:flex sm:items-center sm:ml-6 gap-2">
+                <x-theme-toggle />
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-500">
+                        <button class="inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-300">
                             {{ $displayName }}
                         </button>
                     </x-slot>
@@ -479,7 +480,7 @@
 
                         <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                             @csrf
-                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 w-full text-left">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left">
                                 Sair
                             </button>
                         </form>
@@ -497,7 +498,7 @@
 </div>
 
     {{-- ================= MOBILE USER MENU ================= --}}
-    <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
+    <div x-show="open" class="sm:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-4 space-y-2">
         <div class="border-t border-gray-100 pt-4">
             <x-responsive-nav-link :href="route('profile.edit')">
                 Editar Usuário
@@ -509,7 +510,7 @@
             @endif
             <form method="POST" action="{{ route('logout') }}" onsubmit="limparAbasSessao()">
                 @csrf
-                <button type="submit" class="inline-flex items-center w-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 text-left">
+                <button type="submit" class="inline-flex items-center w-full px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left">
                     Sair
                 </button>
             </form>
@@ -517,7 +518,7 @@
     </div>
 
     {{-- ================= MOBILE MENU (ANINHADO IGUAL AO DESKTOP) ================= --}}
-    <div x-show="open" class="sm:hidden border-t border-gray-200 px-4 py-4 space-y-2">
+    <div x-show="open" class="sm:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-4 space-y-2">
 
         {{-- Atendimentos --}}
         @if($isCliente)
@@ -605,7 +606,7 @@
                     <summary class="text-sm font-medium text-gray-600">Relatórios</summary>
                     <div class="pl-4 space-y-1">
                         @if($isAdmin)
-                        <x-responsive-nav-link :href="route('relatorios.modulo')" data-tab-icon="relatorios">Todos os Relatórios</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.index')" data-tab-icon="relatorios">Todos os Relatórios</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'financeiro'])" data-tab-icon="relatorios">Financeiro</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Comercial</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Técnico</x-responsive-nav-link>

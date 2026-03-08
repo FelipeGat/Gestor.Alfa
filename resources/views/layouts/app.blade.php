@@ -13,6 +13,17 @@
     <meta name="expires" content="0">
     <meta name="pragma" content="no-cache">
 
+    <!-- Modo escuro: inicialização antecipada para evitar flash of wrong theme -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
     <!-- Prevenir restauração do bfcache após logout -->
     <script>
         // Detectar quando página for restaurada do bfcache (Back-Forward Cache)
@@ -92,7 +103,7 @@
         $ultimaAtividadeEm = session('sessao_ultima_atividade_em');
     @endphp
 
-    <div class="min-h-screen bg-gray-100">
+    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         @if(!$isFuncionarioPortal)
             @include('layouts.navigation')
         @else
@@ -120,7 +131,7 @@
                 $isPortalCliente = request()->routeIs('portal.*') && !$isFuncionarioPortal;
             @endphp
             @if(!$isPortalCliente)
-            <header id="page-header" class="bg-white shadow">
+            <header id="page-header" class="bg-white dark:bg-gray-800 shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
@@ -150,7 +161,7 @@
 
         @if($mostrarRodapeSessao)
             <footer class="mt-6 px-4 sm:px-6 lg:px-8 pb-4">
-                <div class="max-w-7xl mx-auto text-[11px] text-gray-500 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-gray-200 pt-2">
+                <div class="max-w-7xl mx-auto text-[11px] text-gray-500 dark:text-gray-400 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-gray-200 dark:border-gray-700 pt-2">
                     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span>Usuário: <span class="font-medium text-gray-600">{{ auth()->user()->name }}</span></span>
                         <span class="hidden sm:inline">•</span>
@@ -205,7 +216,7 @@
                         wrapper.style.left = '0';
                         wrapper.style.right = '0';
                         wrapper.style.zIndex = '50';
-                        wrapper.style.backgroundColor = '#f3f4f6';
+                        wrapper.style.backgroundColor = document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6';
                         wrapper.style.paddingTop = '1rem';
                         wrapper.style.paddingBottom = '';
                     }
@@ -461,7 +472,7 @@
 
                     if (isActive) {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <span class="relative bg-white px-4 pr-8 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center whitespace-nowrap gap-2">
+                            <span class="relative bg-white dark:bg-gray-800 px-4 pr-8 py-2 text-sm font-semibold text-[#3f9cae] rounded-t-lg border-2 border-[#3f9cae] flex items-center whitespace-nowrap gap-2">
                                 ${iconHtml}
                                 ${tab.label}
                                 <button type="button" onclick="event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-auto h-5 w-5 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">${CLOSE_ICON}</button>
@@ -469,10 +480,10 @@
                         </div>`;
                     } else {
                         return `<div class="tab-item group relative flex-shrink-0" data-tab-id="${tab.id}" data-tab-url="${tab.url}">
-                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 px-4 pr-8 py-2 text-sm font-semibold text-gray-600 rounded-t-lg border border-gray-300 flex items-center whitespace-nowrap gap-2 hover:bg-gray-300 hover:text-gray-800 transition-all">
+                            <a href="${tab.url}" onclick="event.preventDefault(); window.ativarTab('${tab.id}')" class="relative bg-gray-200 dark:bg-gray-700 px-4 pr-8 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 rounded-t-lg border border-gray-300 dark:border-gray-600 flex items-center whitespace-nowrap gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100 transition-all">
                                 ${iconHtml}
                                 ${tab.label}
-                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-auto h-5 w-5 flex items-center justify-center rounded-full text-gray-600 hover:text-red-500 hover:bg-red-100 transition-colors text-sm leading-none">${CLOSE_ICON}</button>
+                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.fecharTab('${tab.id}')" class="ml-auto h-5 w-5 flex items-center justify-center rounded-full text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm leading-none">${CLOSE_ICON}</button>
                             </a>
                         </div>`;
                     }

@@ -82,3 +82,48 @@
     letter-spacing: 0.05em;
     padding: 0.5rem 0.75rem 0.25rem;
 }
+
+/* =========================
+   DARK MODE - ESTILOS CUSTOMIZADOS
+   ========================= */
+.dark .portal-nav-btn {
+    color: #d1d5db;
+}
+
+.dark .portal-nav-btn:hover {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.12);
+}
+
+.dark .portal-nav-btn[aria-expanded="true"],
+.dark .portal-nav-btn--active {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.15);
+}
+
+.dark .portal-nav-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.dark .portal-nav-item {
+    color: #d1d5db;
+}
+
+.dark .portal-nav-item:hover {
+    color: #3f9cae;
+    background-color: rgba(63, 156, 174, 0.12);
+}
+
+.dark .portal-nav-divider {
+    background-color: #374151;
+}
+
+.dark .portal-nav-label {
+    color: #9ca3af;
+}
+
+/* Sticky header e page-header no dark mode */
+.dark #page-header {
+    background-color: #1f2937;
+}
