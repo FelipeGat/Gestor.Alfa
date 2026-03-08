@@ -225,13 +225,42 @@
             $userName      = $causerUser ? $causerUser->name : ($causerId === 'sistema' ? 'Sistema' : 'Usuário desconhecido');
             $userInitials  = collect(explode(' ', $userName))->take(2)->map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('');
             $countUser     = $userActivities->count();
+            $userTipo      = $causerUser?->tipo ?? null;
+            $tipoLabel     = match($userTipo) {
+                'admin'          => 'Administrador',
+                'administrativo' => 'Administrativo',
+                'financeiro'     => 'Financeiro',
+                'comercial'      => 'Comercial',
+                'funcionario'    => 'Técnico',
+                'cliente'        => 'Cliente',
+                default          => null,
+            };
+            // Detectar acesso via app mobile neste bloco
+            $viaMobile = $userActivities->contains(fn($a) =>
+                ($a->properties['via'] ?? null) === 'app_mobile'
+            );
         @endphp
         <div class="user-block">
             {{-- Header do bloco de usuário --}}
             <div class="user-block-header">
                 <div class="user-avatar">{{ $userInitials }}</div>
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-gray-900 dark:text-white text-sm truncate">{{ $userName }}</div>
+                    <div class="font-bold text-gray-900 dark:text-white text-sm truncate flex items-center gap-2">
+                        {{ $userName }}
+                        @if($tipoLabel)
+                        <span class="text-xs font-normal px-1.5 py-0.5 rounded-full
+                            {{ $userTipo === 'cliente' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' :
+                               ($userTipo === 'funcionario' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' :
+                               'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300') }}">
+                            {{ $tipoLabel }}
+                        </span>
+                        @endif
+                        @if($viaMobile)
+                        <span class="text-xs font-normal px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" title="Acesso via App Mobile">
+                            App Mobile
+                        </span>
+                        @endif
+                    </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">
                         @if($causerUser && $causerUser->email)
                             {{ $causerUser->email }} &bull;
@@ -272,60 +301,173 @@
 
                         // Traduzir nome do modelo
                         $modelLabel = $modelLabels[$subjectType] ?? (
-                            $subjectType
-                                ? class_basename($subjectType)
-                                : null
+                            $subjectType ? class_basename($subjectType) : null
                         );
+
+                        // Propriedades brutas
+                        $props    = $activity->properties ?? collect();
+                        $propsArr = is_array($props) ? $props : (is_object($props) ? $props->toArray() : []);
+                        $totalLote = $propsArr['total'] ?? null;
 
                         // Badge e dot baseados no evento e descrição
                         $badge = match(true) {
-                            $description === 'login'                                        => 'login',
-                            $description === 'logout'                                       => 'logout',
-                            $event === 'created'                                            => 'created',
-                            $event === 'updated' || str_contains($description,'renegoci')  => 'updated',
-                            $event === 'deleted' || str_contains($description,'exclus')    => 'deleted',
-                            default                                                         => 'default',
+                            $description === 'login'                                          => 'login',
+                            $description === 'logout'                                         => 'logout',
+                            $event === 'created'                                              => 'created',
+                            $event === 'updated' || str_contains($description, 'renegoci')   => 'updated',
+                            $event === 'deleted' || str_contains($description, 'exclus')     => 'deleted',
+                            default                                                           => 'default',
                         };
 
                         $label = match(true) {
-                            $badge === 'created'                       => 'Inserção',
-                            $badge === 'updated'
-                                && str_contains($description,'renegoci') => 'Renegociação',
-                            $badge === 'updated'                       => 'Alteração',
-                            $badge === 'deleted'
-                                && str_contains($description,'lote')   => 'Excl. Lote',
-                            $badge === 'deleted'                       => 'Exclusão',
-                            $badge === 'login'                         => 'Login',
-                            $badge === 'logout'                        => 'Logout',
-                            default                                    => ucfirst(
-                                mb_strtolower(preg_replace('/\s+/',' ', $description) ?: $event ?: 'Ação')
-                            ),
+                            $badge === 'created'                                              => 'Inserção',
+                            $badge === 'updated' && str_contains($description, 'renegoci')   => 'Renegociação',
+                            $badge === 'updated' && str_contains($description, 'inici')      => 'Início',
+                            $badge === 'updated' && str_contains($description, 'finaliz')    => 'Finalização',
+                            $badge === 'updated' && str_contains($description, 'paus')       => 'Pausa',
+                            $badge === 'updated' && str_contains($description, 'retom')      => 'Retomada',
+                            $badge === 'updated' && str_contains($description, 'andamento')  => 'Andamento',
+                            $badge === 'updated'                                              => 'Alteração',
+                            $badge === 'deleted' && str_contains($description, 'lote')       => 'Excl. Lote',
+                            $badge === 'deleted'                                              => 'Exclusão',
+                            $badge === 'login'                                                => 'Login',
+                            $badge === 'logout'                                               => 'Logout',
+                            default => ucfirst(mb_strtolower(preg_replace('/\s+/', ' ', $description) ?: $event ?: 'Ação')),
                         };
 
                         $actionText = match(true) {
-                            $badge === 'login'                                         => 'entrou no sistema',
-                            $badge === 'logout'                                        => 'saiu do sistema',
-                            $badge === 'created'                                       => 'criou',
-                            $badge === 'updated'
-                                && str_contains($description,'renegoci')               => 'renegociou',
-                            $badge === 'updated'                                       => 'alterou',
-                            $badge === 'deleted'
-                                && str_contains($description,'lote')                   => 'excluiu em lote',
-                            $badge === 'deleted'                                       => 'excluiu',
-                            default                                                    => $description ?: $event ?: 'executou ação em',
+                            $badge === 'login'                                               => 'entrou no sistema',
+                            $badge === 'logout'                                              => 'saiu do sistema',
+                            $badge === 'created'                                             => 'criou',
+                            $badge === 'updated' && str_contains($description, 'renegoci')  => 'renegociou',
+                            $badge === 'updated' && str_contains($description, 'inici')     => 'iniciou atendimento em',
+                            $badge === 'updated' && str_contains($description, 'finaliz')   => 'finalizou atendimento em',
+                            $badge === 'updated' && str_contains($description, 'paus')      => 'pausou atendimento em',
+                            $badge === 'updated' && str_contains($description, 'retom')     => 'retomou atendimento em',
+                            $badge === 'updated' && str_contains($description, 'andamento') => 'adicionou andamento em',
+                            $badge === 'updated'                                             => 'alterou',
+                            $badge === 'deleted' && str_contains($description, 'lote')      => 'excluiu em lote',
+                            $badge === 'deleted'                                             => 'excluiu',
+                            default => $description ?: $event ?: 'executou ação em',
                         };
 
-                        // Mostrar nota extra para operações que têm descrição customizada
+                        // Nota extra para descrições customizadas
                         $stdDescriptions = ['created','updated','deleted','login','logout'];
                         $extraNote = !in_array($description, $stdDescriptions) && !empty($description)
                                      && !in_array($badge, ['login','logout'])
-                            ? $description
-                            : null;
+                            ? $description : null;
 
-                        // Contexto de propriedades relevante
-                        $props = $activity->properties ?? collect();
-                        $propsArr = is_array($props) ? $props : (is_object($props) ? $props->toArray() : []);
-                        $totalLote = $propsArr['total'] ?? null;
+                        // ── Mapeamentos para diff de campos ─────────────────────
+                        $fieldLabels2 = [
+                            'status'           => 'Status',
+                            'status_atual'     => 'Status',
+                            'valor'            => 'Valor',
+                            'juros_multa'      => 'Juros/Multa',
+                            'desconto'         => 'Desconto',
+                            'data_vencimento'  => 'Vencimento',
+                            'data_pagamento'   => 'Pagamento',
+                            'pago_em'          => 'Pago em',
+                            'forma_pagamento'  => 'Forma Pgto',
+                            'prioridade'       => 'Prioridade',
+                            'descricao'        => 'Descrição',
+                            'nome'             => 'Nome',
+                            'nome_fantasia'    => 'Nome Fantasia',
+                            'email'            => 'E-mail',
+                            'ativo'            => 'Ativo',
+                            'iniciado_em'      => 'Iniciado em',
+                            'finalizado_em'    => 'Finalizado em',
+                            'em_execucao'      => 'Em execução',
+                            'em_pausa'         => 'Em pausa',
+                            'tipo'             => 'Tipo',
+                            'dia_vencimento'   => 'Dia venc.',
+                            'valor_mensal'     => 'Valor mensal',
+                            'observacoes'      => 'Observações',
+                            'tipo_pessoa'      => 'Tipo pessoa',
+                            'tipo_cliente'     => 'Tipo cliente',
+                            'periodicidade'    => 'Periodicidade',
+                        ];
+                        $valueMappings2 = [
+                            'a_vencer'       => 'A Vencer',   'vencido'        => 'Vencido',
+                            'pago'           => 'Pago',       'em_aberto'      => 'Em Aberto',
+                            'vence_hoje'     => 'Vence Hoje', 'pendente'       => 'Pendente',
+                            'cancelado'      => 'Cancelado',  'aberto'         => 'Aberto',
+                            'em_atendimento' => 'Em Atendimento',
+                            'finalizacao'    => 'Em Finalização',
+                            'concluido'      => 'Concluído',  'agendado'       => 'Agendado',
+                            '1'              => 'Sim',        '0'              => 'Não',
+                            'true'           => 'Sim',        'false'          => 'Não',
+                            'baixa'          => 'Baixa',      'media'          => 'Média',
+                            'alta'           => 'Alta',       'urgente'        => 'Urgente',
+                            'boleto'         => 'Boleto',     'pix'            => 'PIX',
+                            'cartao'         => 'Cartão',     'dinheiro'       => 'Dinheiro',
+                            'transferencia'  => 'Transferência','debito'       => 'Débito',
+                            'credito'        => 'Crédito',    'PF'             => 'Pessoa Física',
+                            'PJ'             => 'Pessoa Jurídica',
+                            'CONTRATO'       => 'Contrato',   'AVULSO'         => 'Avulso',
+                            'mensal'         => 'Mensal',     'trimestral'     => 'Trimestral',
+                            'semestral'      => 'Semestral',  'anual'          => 'Anual',
+                        ];
+                        $fmtVal = function($k, $v) use ($valueMappings2) {
+                            if ($v === null || $v === '') return '—';
+                            $s = (string)$v;
+                            if (isset($valueMappings2[$s])) return $valueMappings2[$s];
+                            if (preg_match('/^\d{4}-\d{2}-\d{2}/', $s)) {
+                                try { $dt = \Carbon\Carbon::parse($s);
+                                      return strlen($s) > 10 ? $dt->format('d/m/Y H:i') : $dt->format('d/m/Y');
+                                } catch (\Exception $e) {}
+                            }
+                            if (in_array($k, ['valor','juros_multa','desconto','valor_mensal']) && is_numeric($v)) {
+                                return 'R$ ' . number_format((float)$v, 2, ',', '.');
+                            }
+                            return \Illuminate\Support\Str::limit($s, 40);
+                        };
+                        $ignoreFields2 = [
+                            'updated_at','created_at','deleted_at','remember_token','password',
+                            'iniciado_por_user_id','finalizado_por_user_id','user_id','cliente_id',
+                            'conta_financeira_id','orcamento_id','conta_fixa_id','conta_fixa_pagar_id',
+                            'assinatura_cliente_path','assinatura_cliente_nome','assinatura_cliente_cargo',
+                            'tempo_execucao_segundos','tempo_pausa_segundos','atendimento_id',
+                        ];
+
+                        $fieldDiffs    = [];
+                        $createdFields = [];
+                        $deletedFields = [];
+
+                        $oldProps = $propsArr['old'] ?? [];
+                        $newProps = $propsArr['attributes'] ?? [];
+
+                        if (!empty($oldProps) && !empty($newProps)) {
+                            foreach ($fieldLabels2 as $k => $fLbl) {
+                                if (in_array($k, $ignoreFields2)) continue;
+                                if (!array_key_exists($k, $oldProps) || !array_key_exists($k, $newProps)) continue;
+                                if ((string)$oldProps[$k] === (string)$newProps[$k]) continue;
+                                $fieldDiffs[] = [$fLbl, $fmtVal($k, $oldProps[$k]), $fmtVal($k, $newProps[$k])];
+                            }
+                        } elseif ($event === 'created' && !empty($newProps)) {
+                            $showCreate = ['status','status_atual','valor','data_vencimento','descricao','prioridade','forma_pagamento','nome','tipo'];
+                            foreach ($showCreate as $k) {
+                                if (!isset($newProps[$k]) || $newProps[$k] === null || $newProps[$k] === '') continue;
+                                if (!isset($fieldLabels2[$k])) continue;
+                                $createdFields[] = [$fieldLabels2[$k], $fmtVal($k, $newProps[$k])];
+                            }
+                        } elseif ($event === 'deleted' && !empty($oldProps)) {
+                            $showDelete = ['descricao','nome','valor','status','status_atual','data_vencimento'];
+                            foreach ($showDelete as $k) {
+                                if (!isset($oldProps[$k]) || $oldProps[$k] === null) continue;
+                                if (!isset($fieldLabels2[$k])) continue;
+                                $deletedFields[] = [$fieldLabels2[$k], $fmtVal($k, $oldProps[$k])];
+                            }
+                        }
+
+                        // Para andamentos (created + descricao na propriedade)
+                        $andamentoNota = null;
+                        if (str_contains($subjectType ?? '', 'Andamento') && !empty($newProps['descricao'])) {
+                            $andamentoNota = \Illuminate\Support\Str::limit($newProps['descricao'], 120);
+                        }
+                        // Nota de andamento via properties customizadas
+                        if (!$andamentoNota && !empty($propsArr['nota'])) {
+                            $andamentoNota = \Illuminate\Support\Str::limit($propsArr['nota'], 120);
+                        }
                     @endphp
                     <div class="audit-entry">
                         <div class="audit-dot dot-{{ $badge }}"></div>
@@ -352,8 +494,49 @@
                                 @endif
                             </span>
                         </div>
-                        {{-- Nota extra com descrição personalizada (ex: "exclusão em lote — cobranças do contrato") --}}
-                        @if($extraNote)
+                        {{-- Diffs de campos: updated --}}
+                        @if(!empty($fieldDiffs))
+                        <div class="ml-12 mt-1.5 flex flex-wrap gap-1.5">
+                            @foreach($fieldDiffs as [$fLbl, $oldV, $newV])
+                            <span class="inline-flex items-center gap-1 text-xs bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-md px-2 py-0.5">
+                                <span class="font-medium text-gray-500 dark:text-gray-400">{{ $fLbl }}:</span>
+                                <span class="text-red-400 dark:text-red-300 line-through opacity-75">{{ $oldV }}</span>
+                                <span class="text-gray-400 mx-0.5">→</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ $newV }}</span>
+                            </span>
+                            @endforeach
+                        </div>
+                        @endif
+                        {{-- Campos de criação --}}
+                        @if(!empty($createdFields))
+                        <div class="ml-12 mt-1.5 flex flex-wrap gap-1.5">
+                            @foreach($createdFields as [$fLbl, $val])
+                            <span class="inline-flex items-center gap-1 text-xs bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-md px-2 py-0.5">
+                                <span class="font-medium text-gray-500 dark:text-gray-400">{{ $fLbl }}:</span>
+                                <span class="text-emerald-700 dark:text-emerald-300 font-medium">{{ $val }}</span>
+                            </span>
+                            @endforeach
+                        </div>
+                        @endif
+                        {{-- Campos de exclusão --}}
+                        @if(!empty($deletedFields))
+                        <div class="ml-12 mt-1.5 flex flex-wrap gap-1.5">
+                            @foreach($deletedFields as [$fLbl, $val])
+                            <span class="inline-flex items-center gap-1 text-xs bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-md px-2 py-0.5">
+                                <span class="font-medium text-gray-500 dark:text-gray-400">{{ $fLbl }}:</span>
+                                <span class="text-red-500 dark:text-red-300 line-through">{{ $val }}</span>
+                            </span>
+                            @endforeach
+                        </div>
+                        @endif
+                        {{-- Nota de andamento --}}
+                        @if($andamentoNota)
+                        <div class="mt-1 ml-12 text-xs text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-700/40 rounded px-2 py-1 border-l-2 border-gray-300 dark:border-gray-600">
+                            "{{ $andamentoNota }}"
+                        </div>
+                        @endif
+                        {{-- Nota extra com descrição personalizada --}}
+                        @if($extraNote && !$andamentoNota)
                         <div class="mt-0.5 ml-12 text-xs text-gray-400 dark:text-gray-500 italic">
                             {{ $extraNote }}
                         </div>

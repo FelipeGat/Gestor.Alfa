@@ -14,18 +14,20 @@ class AuditoriaController extends Controller
      * Nomes legíveis para cada model auditado.
      */
     private const MODEL_LABELS = [
-        'App\Models\Orcamento'        => 'Orçamento',
-        'App\Models\Cobranca'         => 'Cobrança',
-        'App\Models\ContaPagar'       => 'Conta a Pagar',
-        'App\Models\ContaFinanceira'  => 'Conta Financeira',
-        'App\Models\Cliente'          => 'Cliente',
-        'App\Models\Fornecedor'       => 'Fornecedor',
-        'App\Models\User'             => 'Usuário',
-        'App\Models\Empresa'          => 'Empresa',
-        'App\Models\ContaFixa'        => 'Contrato Recorrente',
-        'App\Models\ContaFixaPagar'   => 'Conta Fixa a Pagar',
-        'App\Models\Atendimento'      => 'Atendimento',
-        'App\Models\Funcionario'      => 'Funcionário',
+        'App\Models\Orcamento'             => 'Orçamento',
+        'App\Models\Cobranca'              => 'Cobrança',
+        'App\Models\ContaPagar'            => 'Conta a Pagar',
+        'App\Models\ContaFinanceira'       => 'Conta Financeira',
+        'App\Models\Cliente'               => 'Cliente',
+        'App\Models\Fornecedor'            => 'Fornecedor',
+        'App\Models\User'                  => 'Usuário',
+        'App\Models\Empresa'               => 'Empresa',
+        'App\Models\ContaFixa'             => 'Contrato Recorrente',
+        'App\Models\ContaFixaPagar'        => 'Conta Fixa a Pagar',
+        'App\Models\Atendimento'           => 'Atendimento',
+        'App\Models\Funcionario'           => 'Funcionário',
+        'App\Models\AtendimentoAndamento'  => 'Andamento',
+        'App\Models\Equipamento'           => 'Equipamento',
     ];
 
     public function index(Request $request): \Illuminate\View\View
