@@ -24,8 +24,21 @@ class PontoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario?->id;
 
-        $registros = RegistroPontoPortal::where('funcionario_id', $funcionarioId)
-            ->orderByDesc('data_referencia')
+        $query = RegistroPontoPortal::where('funcionario_id', $funcionarioId);
+
+        // Filtro por mês (MM/YYYY)
+        $mesParam = $request->query('mes');
+        if ($mesParam && str_contains($mesParam, '/')) {
+            [$mes, $ano] = explode('/', $mesParam);
+            $query->whereMonth('data_referencia', $mes)
+                  ->whereYear('data_referencia', $ano);
+        } else {
+            // Fallback para o mês atual se não enviado
+            $query->whereMonth('data_referencia', now()->month)
+                  ->whereYear('data_referencia', now()->year);
+        }
+
+        $registros = $query->orderByDesc('data_referencia')
             ->paginate(30);
 
         // Adicionar campos calculados em cada registro
@@ -234,12 +247,14 @@ class PontoController extends Controller
             return response()->json(['message' => 'Funcionário não encontrado'], 404);
         }
 
-        // Valida formato do mês (MM/YYYY)
-        $validated = $request->validate([
-            'mes' => 'nullable|regex:/^\d{2}\/\d{4}$/',
-        ]);
+        // Filtro por mês (MM/YYYY)
+        $mesAno = $request->query('mes');
 
-        $mesAno = $validated['mes'] ?? now()->format('m/Y');
+        // Se não enviado ou inválido, usa o mês atual
+        if (!$mesAno || !str_contains($mesAno, '/')) {
+            $mesAno = now()->format('m/Y');
+        }
+
         $saldo = $this->calcularSaldoBancoHorasMesUnico($funcionarioId, $mesAno);
 
         return response()->json([

@@ -27,6 +27,31 @@ class AtendimentoController extends Controller
 
         $atendimentos = $query->paginate(100);
 
+        $atendimentos->getCollection()->transform(function ($atendimento) {
+            $endereco = '';
+            $latitude = null;
+            $longitude = null;
+            
+            if ($atendimento->cliente) {
+                $endereco = implode(', ', array_filter([
+                    $atendimento->cliente->logradouro,
+                    $atendimento->cliente->numero,
+                    $atendimento->cliente->bairro,
+                    $atendimento->cliente->cidade,
+                    $atendimento->cliente->estado,
+                ]));
+                $latitude = $atendimento->cliente->latitude;
+                $longitude = $atendimento->cliente->longitude;
+            }
+            
+            $atendimentoData = $atendimento->toArray();
+            $atendimentoData['endereco'] = $endereco;
+            $atendimentoData['cliente']['latitude'] = $latitude;
+            $atendimentoData['cliente']['longitude'] = $longitude;
+            
+            return $atendimentoData;
+        });
+
         return response()->json($atendimentos);
     }
 
@@ -35,7 +60,28 @@ class AtendimentoController extends Controller
         $atendimento = Atendimento::with(["cliente", "assunto", "andamentos", "pausas"])
             ->findOrFail($id);
 
-        return response()->json($atendimento);
+        $endereco = '';
+        $latitude = null;
+        $longitude = null;
+
+        if ($atendimento->cliente) {
+            $endereco = implode(', ', array_filter([
+                $atendimento->cliente->logradouro,
+                $atendimento->cliente->numero,
+                $atendimento->cliente->bairro,
+                $atendimento->cliente->cidade,
+                $atendimento->cliente->estado,
+            ]));
+            $latitude = $atendimento->cliente->latitude;
+            $longitude = $atendimento->cliente->longitude;
+        }
+
+        $atendimentoData = $atendimento->toArray();
+        $atendimentoData['endereco'] = $endereco;
+        $atendimentoData['cliente']['latitude'] = $latitude;
+        $atendimentoData['cliente']['longitude'] = $longitude;
+
+        return response()->json($atendimentoData);
     }
 
     public function iniciar(int $id): JsonResponse

@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('contas_pagar')) {
+            return;
+        }
+
         Schema::table('contas_pagar', function (Blueprint $table) {
             $table->foreignId('cartao_credito_id')
                 ->nullable()
