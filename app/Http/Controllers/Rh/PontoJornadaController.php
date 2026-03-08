@@ -12,6 +12,7 @@ use App\Models\RegistroPontoPortal;
 use App\Models\RhAjustePonto;
 use App\Models\RhFechamentoPonto;
 use App\Models\User;
+use App\Services\GeocodingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
@@ -26,6 +27,10 @@ class PontoJornadaController extends Controller
     private const SEGUNDOS_META_DIARIA = 28800;
     private const SEGUNDOS_META_MEIO_PERIODO = 14400;
     private const SEGUNDOS_META_SEMANAL = 158400;
+
+    public function __construct(
+        protected GeocodingService $geocodingService
+    ) {}
 
     public function index(Request $request)
     {
@@ -1237,31 +1242,36 @@ class PontoJornadaController extends Controller
     private function montarDetalhesBatida(?RegistroPontoPortal $registro): array
     {
         return [
-            'entrada' => [
-                'horario' => $this->formatarHorario($registro?->entrada_em),
-                'foto_url' => $this->resolverUrlFotoBatida($registro?->entrada_foto_path),
-                'latitude' => $registro?->entrada_latitude,
-                'longitude' => $registro?->entrada_longitude,
-            ],
-            'intervalo_inicio' => [
-                'horario' => $this->formatarHorario($registro?->intervalo_inicio_em),
-                'foto_url' => null,
-                'latitude' => $registro?->intervalo_inicio_latitude,
-                'longitude' => $registro?->intervalo_inicio_longitude,
-            ],
-            'intervalo_fim' => [
-                'horario' => $this->formatarHorario($registro?->intervalo_fim_em),
-                'foto_url' => null,
-                'latitude' => $registro?->intervalo_fim_latitude,
-                'longitude' => $registro?->intervalo_fim_longitude,
-            ],
-            'saida' => [
-                'horario' => $this->formatarHorario($registro?->saida_em),
-                'foto_url' => $this->resolverUrlFotoBatida($registro?->saida_foto_path),
-                'latitude' => $registro?->saida_latitude,
-                'longitude' => $registro?->saida_longitude,
-            ],
+            'entrada' => $this->montarBatidaIndividual($registro?->entrada_em, $registro?->entrada_foto_path, $registro?->entrada_latitude, $registro?->entrada_longitude),
+            'intervalo_inicio' => $this->montarBatidaIndividual($registro?->intervalo_inicio_em, null, $registro?->intervalo_inicio_latitude, $registro?->intervalo_inicio_longitude),
+            'intervalo_fim' => $this->montarBatidaIndividual($registro?->intervalo_fim_em, null, $registro?->intervalo_fim_latitude, $registro?->intervalo_fim_longitude),
+            'saida' => $this->montarBatidaIndividual($registro?->saida_em, $registro?->saida_foto_path, $registro?->saida_latitude, $registro?->saida_longitude),
         ];
+    }
+
+    private function montarBatidaIndividual($horario, ?string $fotoPath, $latitude, $longitude): array
+    {
+        $batida = [
+            'horario' => $this->formatarHorario($horario),
+            'foto_url' => $this->resolverUrlFotoBatida($fotoPath),
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'endereco' => null,
+        ];
+
+        if ($this->coordenadasValidas($latitude, $longitude)) {
+            $endereco = $this->geocodingService->reverseGeocode((float) $latitude, (float) $longitude);
+            if ($endereco && isset($endereco['endereco_formatado'])) {
+                $batida['endereco'] = $endereco['endereco_formatado'];
+            }
+        }
+
+        return $batida;
+    }
+
+    private function coordenadasValidas($latitude, $longitude): bool
+    {
+        return $latitude !== null && $latitude !== '' && $longitude !== null && $longitude !== '';
     }
 
     private function resolverUrlFotoBatida(?string $caminho): ?string

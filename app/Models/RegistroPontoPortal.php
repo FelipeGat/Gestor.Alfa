@@ -30,6 +30,13 @@ class RegistroPontoPortal extends Model
         'justificativa_fora_atendimento',
         'registrado_por_user_id',
         'observacao',
+        'endereco_logradouro',
+        'endereco_numero',
+        'endereco_bairro',
+        'endereco_cidade',
+        'endereco_estado',
+        'endereco_cep',
+        'endereco_formatado',
     ];
 
     protected $casts = [
@@ -48,6 +55,13 @@ class RegistroPontoPortal extends Model
         'saida_longitude' => 'float',
         'registrado_fora_atendimento' => 'boolean',
         'distancia_atendimento_metros' => 'integer',
+        'endereco_logradouro' => 'string',
+        'endereco_numero' => 'string',
+        'endereco_bairro' => 'string',
+        'endereco_cidade' => 'string',
+        'endereco_estado' => 'string',
+        'endereco_cep' => 'string',
+        'endereco_formatado' => 'string',
     ];
 
     public function funcionario()
