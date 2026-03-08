@@ -234,6 +234,19 @@ class ContasPagarController extends Controller
         }
         // Permite valor pago diferente do valor total, para casos de fatura variável
 
+        // VALIDAÇÃO DE SALDO: Verificar se a conta bancária tem saldo suficiente
+        if ($request->conta_financeira_id) {
+            $contaBancariaValidar = \App\Models\ContaFinanceira::find($request->conta_financeira_id);
+            if ($contaBancariaValidar && $contaBancariaValidar->tipo !== 'credito') {
+                $saldoDisponivel = (float) $contaBancariaValidar->saldo + (float) $contaBancariaValidar->limite_cheque_especial;
+                if ($valorPago > $saldoDisponivel + 0.001) {
+                    $nomeContaDisplay = $contaBancariaValidar->nome;
+                    $saldoFormatado = 'R$ ' . number_format($contaBancariaValidar->saldo, 2, ',', '.');
+                    return back()->with('error', "Saldo insuficiente na conta \"{$nomeContaDisplay}\". Saldo disponível: {$saldoFormatado}. Não é possível realizar a baixa.");
+                }
+            }
+        }
+
         DB::transaction(function () use ($conta, $request, $valorPago, $valorTotal, $jurosMulta) {
             // Atualizar a conta atual com o valor pago e o valor total ajustado
             $conta->update([
