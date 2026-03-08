@@ -12,6 +12,7 @@ class ContaFixaPagar extends Model
         'centro_custo_id',
         'fornecedor_id',
         'conta_id',
+        'conta_financeira_id',
         'descricao',
         'valor',
         'dia_vencimento',

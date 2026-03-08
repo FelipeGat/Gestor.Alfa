@@ -16,6 +16,9 @@ class ContaPagar extends Model
         'fornecedor_id',
         'conta_id',
         'conta_financeira_id',
+        'cartao_credito_id',
+        'parcela_num',
+        'parcelas_total',
         'conta_fixa_pagar_id',
         'descricao',
         'valor',
@@ -90,6 +93,11 @@ class ContaPagar extends Model
     public function contaFinanceira()
     {
         return $this->belongsTo(ContaFinanceira::class);
+    }
+
+    public function cartaoCredito()
+    {
+        return $this->belongsTo(ContaFinanceira::class, 'cartao_credito_id');
     }
 
     public function contaFixaPagar()
