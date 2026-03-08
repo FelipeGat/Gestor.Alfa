@@ -611,6 +611,35 @@ class DashboardFinanceiroController extends Controller
             }
         }
 
+        // Cartões de crédito para o flip card do Saldo em Bancos
+        $cartoesCredito = ContaFinanceira::where('tipo', 'credito')
+            ->where('ativo', true)
+            ->when($empresaId, fn ($q) => $q->where('empresa_id', $empresaId))
+            ->with('empresa')
+            ->orderBy('empresa_id')
+            ->orderBy('nome')
+            ->get()
+            ->map(function ($cartao) {
+                $parcelasAberto = ContaPagar::where('cartao_credito_id', $cartao->id)
+                    ->where('status', '!=', 'pago')
+                    ->count();
+
+                return (object) [
+                    'id'                  => $cartao->id,
+                    'nome'                => $cartao->nome,
+                    'empresa'             => $cartao->empresa
+                        ? ($cartao->empresa->nome_fantasia ?? $cartao->empresa->razao_social)
+                        : '—',
+                    'bandeira'            => $cartao->bandeira,
+                    'limite_total'        => (float) $cartao->limite_credito,
+                    'limite_utilizado'    => (float) $cartao->limite_credito_utilizado,
+                    'limite_disponivel'   => $cartao->limite_disponivel,
+                    'parcelas_em_aberto'  => $parcelasAberto,
+                    'melhor_dia_compra'   => $cartao->melhor_dia_compra,
+                    'dia_vencimento_fatura' => $cartao->dia_vencimento_fatura,
+                ];
+            });
+
         // Flip card: resumo de hoje por empresa (a receber e a pagar no dia)
         $hojeResumoPorEmpresa = Empresa::where('ativo', true)
             ->orderBy('nome_fantasia')
@@ -686,6 +715,7 @@ class DashboardFinanceiroController extends Controller
             'lancamentosAtrasado' => $lancamentosAtrasado,
             'lancamentosReceitasAtrasadas' => $lancamentosReceitasAtrasadas,
             'hojeResumoPorEmpresa' => $hojeResumoPorEmpresa,
+            'cartoesCredito' => $cartoesCredito,
         ]);
     }
 }
