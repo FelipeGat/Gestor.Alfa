@@ -493,9 +493,16 @@ class ContasPagarController extends Controller
 
         abort_unless($this->temAcessoFinanceiro($user), 403);
 
-        $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento']);
-
-        return response()->json($conta);
+        try {
+            $conta->load(['centroCusto', 'conta.subcategoria.categoria', 'fornecedor', 'orcamento', 'cartaoCredito']);
+            return response()->json($conta);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ContasPagar show() error: ' . $e->getMessage(), [
+                'conta_id' => $conta->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => $e->getMessage(), 'conta_id' => $conta->id], 500);
+        }
     }
 
     /**
