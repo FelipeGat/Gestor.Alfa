@@ -816,6 +816,8 @@ class OrcamentoController extends Controller
             'itens',
         ])->findOrFail($id);
 
+        abort_if(! $orcamento->empresa, 404, 'Empresa do orçamento não encontrada ou foi removida.');
+
         $view = 'orcamentos.'.$orcamento->empresa->layout_pdf;
 
         if (! view()->exists($view)) {

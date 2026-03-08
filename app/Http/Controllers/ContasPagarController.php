@@ -7,6 +7,7 @@ use App\Models\ContaFixaPagar;
 use App\Models\ContaPagar;
 use App\Models\ContaPagarAnexo;
 use App\Models\Subcategoria;
+use App\Models\User;
 use App\Services\Financeiro\ContaPagarService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -556,16 +557,42 @@ class ContasPagarController extends Controller
 
         if ($conta->tipo === 'fixa' && $request->has('delete_future')) {
             if ($request->delete_future === 'all') {
+                if (! $conta->conta_fixa_pagar_id || ! $conta->data_vencimento) {
+                    return back()->withErrors(['error' => 'Dados insuficientes para excluir parcelas futuras.']);
+                }
+
                 ContaPagar::where('conta_fixa_pagar_id', $conta->conta_fixa_pagar_id)
                     ->where('status', '!=', 'pago')
                     ->where('data_vencimento', '>=', $conta->data_vencimento)
                     ->delete();
 
+                // Log manual: bulk delete não dispara eventos Eloquent
+                activity()
+                    ->causedBy(Auth::user())
+                    ->performedOn($conta)
+                    ->event('deleted')
+                    ->withProperties([
+                        'tipo'                => 'lote_conta_fixa',
+                        'conta_fixa_pagar_id' => $conta->conta_fixa_pagar_id,
+                        'descricao'           => $conta->descricao,
+                        'a_partir_de'         => $conta->data_vencimento?->format('d/m/Y'),
+                    ])
+                    ->log('exclusão em lote — contas a pagar fixas');
+
                 return back()->with('success', 'Conta e próximas parcelas excluídas com sucesso!');
             }
         }
 
-        $this->service->excluir($conta->id);
+        try {
+            $this->service->excluir($conta->id);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Erro ao excluir conta a pagar', [
+                'id'    => $conta->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors(['error' => 'Não foi possível excluir a conta: '.$e->getMessage()]);
+        }
 
         return back()->with('success', 'Conta a pagar excluída com sucesso!');
     }

@@ -389,9 +389,11 @@ class AtendimentoController extends Controller
             ]);
 
             $mensagem = "Agendamento reagendado com sucesso.";
-            
+
             if ($funcionarioAntigo?->id !== $funcionarioNovo?->id) {
-                $mensagem .= " Técnico alterado de {$funcionarioAntigo->nome} para {$funcionarioNovo->nome}.";
+                $nomeAntigo = $funcionarioAntigo?->nome ?? 'Técnico removido';
+                $nomeNovo   = $funcionarioNovo?->nome   ?? 'Técnico desconhecido';
+                $mensagem  .= " Técnico alterado de {$nomeAntigo} para {$nomeNovo}.";
             }
 
             session()->flash('success', $mensagem);
