@@ -117,9 +117,11 @@ class AgendaTecnicaController extends Controller
                     'cliente_id'         => $orcamento->cliente_id,
                     'empresa_id'         => $orcamento->empresa_id,
                     'assunto_id'         => $this->resolverAssuntoIdParaOrcamento($orcamento),
+                    'nome_solicitante'   => $orcamento->nome_cliente,
+                    'data_atendimento'   => $request->data_agendamento,
                     'descricao'          => $orcamento->descricao
                         ?? 'Atendimento vinculado ao Orçamento #' . $orcamento->numero_orcamento,
-                    'status_atual'       => 'agendado',
+                    'status_atual'       => 'aberto',
                     'prioridade'         => 'media',
                     'funcionario_id'     => (int) $request->funcionario_id,
                 ]);
