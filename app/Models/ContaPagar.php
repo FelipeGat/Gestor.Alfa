@@ -123,6 +123,10 @@ class ContaPagar extends Model
             return 'pago';
         }
 
+        if (!$this->data_vencimento) {
+            return 'em_aberto';
+        }
+
         if ($this->data_vencimento->isPast()) {
             return 'vencido';
         }
