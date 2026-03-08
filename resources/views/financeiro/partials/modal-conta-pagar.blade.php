@@ -147,16 +147,55 @@
                 </div>
             </div>
 
-            {{-- Conta Bancária --}}
-            <div>
+            {{-- Conta Bancária (oculta quando for cartão de crédito) --}}
+            <div x-show="formaPagamento !== 'CARTAO_CREDITO'">
                 <label class="text-sm font-medium text-gray-700 mb-1">Conta Bancária</label>
                 <select name="conta_financeira_id" x-model="contaFinanceiraId"
                     class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20">
                     <option value="">Selecione...</option>
-                    @foreach(\App\Models\ContaFinanceira::where('ativo', true)->orderBy('nome')->get() as $contaBancaria)
+                    @foreach(\App\Models\ContaFinanceira::where('ativo', true)->where('tipo', '!=', 'credito')->orderBy('nome')->get() as $contaBancaria)
                         <option value="{{ $contaBancaria->id }}">{{ $contaBancaria->nome }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            {{-- Campos exclusivos de Cartão de Crédito --}}
+            <div x-show="formaPagamento === 'CARTAO_CREDITO'" x-cloak>
+                <div class="rounded-xl p-4" style="background: rgba(63,156,174,0.05); border: 1px solid rgba(63,156,174,0.3);">
+                    <p class="text-xs font-semibold text-[#3f9cae] mb-3 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                        Lançamento em Cartão de Crédito
+                    </p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 mb-1">Selecione o Cartão</label>
+                            <select name="cartao_credito_id" x-model="cartaoCreditoId"
+                                class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20">
+                                <option value="">Selecione o cartão...</option>
+                                @foreach(\App\Models\ContaFinanceira::where('ativo', true)->where('tipo', 'credito')->orderBy('nome')->get() as $cartao)
+                                    <option value="{{ $cartao->id }}">
+                                        {{ $cartao->nome }}{{ $cartao->bandeira ? ' (' . $cartao->bandeira . ')' : '' }}
+                                        — Disponível: R$ {{ number_format(max(0, (float)$cartao->limite_credito - (float)$cartao->limite_credito_utilizado), 2, ',', '.') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 mb-1">Número de Parcelas</label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" name="parcelas" x-model="parcelas" min="1" max="48" value="1"
+                                    class="w-28 rounded-lg border border-gray-300 shadow-sm px-3 py-2 text-sm focus:border-[#3f9cae] focus:ring-[#3f9cae]/20">
+                                <span class="text-xs text-gray-500"
+                                    x-show="parcelas > 1 && valor"
+                                    x-text="`= ${parcelas}x de R$ ${(parseFloat(valor) / parseInt(parcelas || 1)).toFixed(2).replace('.', ',')}`">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Vínculo com Orçamento --}}
@@ -256,6 +295,8 @@
             dataVencimento: '',
             formaPagamento: '',
             contaFinanceiraId: '',
+            cartaoCreditoId: '',
+            parcelas: 1,
             observacoes: '',
 
             fornecedorBusca: '',
@@ -374,6 +415,8 @@
                 this.dataVencimento = '';
                 this.formaPagamento = '';
                 this.contaFinanceiraId = '';
+                this.cartaoCreditoId = '';
+                this.parcelas = 1;
                 this.observacoes = '';
 
                 this.subcategorias = [];

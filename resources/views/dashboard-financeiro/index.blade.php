@@ -82,6 +82,57 @@
             transform: translateX(-4px);
             transition: all 0.2s;
         }
+
+        /* ── Bancos Flip Card ── */
+        .bancos-flip-scene {
+            perspective: 1400px;
+            width: 100%;
+        }
+        .bancos-flip-inner {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .bancos-flip-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        /* FRENTE: fluxo normal — define a altura do container */
+        .bancos-flip-front {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        /* VERSO: absolute overlay — não colapsa o container */
+        .bancos-flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+        .bancos-flip-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .bancos-flip-trigger:hover .flip-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .cartao-credito-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            transition: box-shadow 0.2s;
+        }
+        .cartao-credito-card:hover {
+            box-shadow: 0 2px 8px rgba(63,156,174,0.18);
+            border-color: #3f9cae;
+        }
+
         .empresa-day-card {
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
@@ -283,18 +334,33 @@
                 </div>
             {{-- ================= SALDO EM BANCOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-                <div class="card-grafico p-6 relative">
+                {{-- ═══════════════ BANCOS FLIP CARD ═══════════════ --}}
+                <div class="bancos-flip-scene" id="bancos-flip-scene">
+                <div class="bancos-flip-inner" id="bancos-flip-inner">
+
+                {{-- ═══════════════ FRENTE ═══════════════ --}}
+                <div class="bancos-flip-front card-grafico p-6">
+
                     {{-- HEADER --}}
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        {{-- Título clicável que dispara o flip --}}
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2 bancos-flip-trigger"
+                            onclick="flipBancosCard()"
+                            title="Ver cartões de crédito">
                             {{-- ÍCONE DE BANCO (PRÉDIO) --}}
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                             Saldo em Bancos
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Cartões
+                            </span>
                         </h3>
-                        {{-- BOTAO MOSTRAR / OCULTAR --}}
+                        {{-- BOTAO MOSTRAR / OCULTAR (independente do flip) --}}
                         <button type="button"
                             onclick="toggleValoresBancos()"
                             class="text-gray-400 hover:text-indigo-600 transition p-1 rounded-full hover:bg-gray-100"
@@ -308,6 +374,7 @@
                             </svg>
                         </button>
                     </div>
+
                     {{-- TOTAL (Apenas Contas Correntes) --}}
                     <div class="mb-4 pb-4 border-b">
                         <span class="text-xs text-gray-500 uppercase">Saldo Total (Contas Correntes)</span>
@@ -318,6 +385,7 @@
                             R$ •••••
                         </p>
                     </div>
+
                     {{-- LISTA DE CONTAS AGRUPADAS POR TIPO --}}
                     <div class="space-y-4">
                         @foreach($contasAgrupadasPorTipo as $tipo => $contas)
@@ -360,7 +428,138 @@
                         </div>
                         @endforeach
                     </div>
-                </div>
+
+                </div>{{-- /bancos-flip-front --}}
+
+                {{-- ═══════════════ VERSO ═══════════════ --}}
+                <div class="bancos-flip-back card-grafico p-6">
+
+                    {{-- HEADER clicável (volta ao saldo) --}}
+                    <div class="mb-4 bancos-flip-trigger" onclick="flipBancosCard()" title="Voltar ao Saldo em Bancos">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                {{-- Ícone de cartão de crédito --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Cartões de Crédito
+                            </span>
+                            <span class="flip-hint flex items-center gap-1 text-xs text-teal-600 font-normal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Saldo em Bancos
+                            </span>
+                        </h3>
+                    </div>
+
+                    {{-- CARTÕES DE CRÉDITO --}}
+                    @if(isset($cartoesCredito) && !$cartoesCredito->isEmpty())
+                    <div class="space-y-3 overflow-y-auto" style="max-height: 360px;">
+                        @foreach($cartoesCredito as $cartao)
+                        @php
+                            $utilizadoPct = $cartao->limite_total > 0
+                                ? ($cartao->limite_utilizado / $cartao->limite_total) * 100
+                                : 0;
+                            $disponivelPct = $cartao->limite_total > 0
+                                ? ($cartao->limite_disponivel / $cartao->limite_total) * 100
+                                : 100;
+
+                            // Cor da barra: baseada na utilização
+                            if ($utilizadoPct < 50) {
+                                $barColor = 'bg-green-500';
+                            } elseif ($utilizadoPct < 75) {
+                                $barColor = 'bg-yellow-400';
+                            } else {
+                                $barColor = 'bg-red-500';
+                            }
+
+                            // Cor do limite disponível: baseada na % disponível
+                            if ($disponivelPct > 50) {
+                                $limitColor = 'text-green-600';
+                            } elseif ($disponivelPct >= 25) {
+                                $limitColor = 'text-yellow-600';
+                            } else {
+                                $limitColor = 'text-red-600';
+                            }
+
+                            // Badge de bandeira
+                            $bandeira = strtoupper($cartao->bandeira ?? '');
+                            $bandeiraBg = match($bandeira) {
+                                'VISA'       => 'bg-blue-600',
+                                'MASTERCARD' => 'bg-orange-500',
+                                'ELO'        => 'bg-yellow-500',
+                                'AMEX'       => 'bg-green-600',
+                                'HIPERCARD'  => 'bg-red-600',
+                                default      => 'bg-gray-500',
+                            };
+                        @endphp
+                        <div class="cartao-credito-card">
+                            {{-- Linha superior: bandeira + nome + empresa --}}
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold text-white {{ $bandeiraBg }}">
+                                        {{ $bandeira ?: 'OUTRO' }}
+                                    </span>
+                                    <span class="text-sm font-semibold text-gray-700">{{ $cartao->nome }}</span>
+                                </div>
+                                <span class="text-xs text-gray-400 truncate max-w-[100px]" title="{{ $cartao->empresa }}">
+                                    {{ $cartao->empresa }}
+                                </span>
+                            </div>
+
+                            {{-- Barra de utilização --}}
+                            <div class="mb-3">
+                                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                    <span>Limite utilizado</span>
+                                    <span>{{ number_format($utilizadoPct, 0) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="{{ $barColor }} h-2 rounded-full transition-all"
+                                        style="width: {{ min($utilizadoPct, 100) }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- Grid de informações --}}
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                                <div>
+                                    <span class="text-gray-500 block">Limite Total</span>
+                                    <span class="font-semibold text-gray-700">
+                                        R$ {{ number_format($cartao->limite_total, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Disponível</span>
+                                    <span class="font-semibold {{ $limitColor }}">
+                                        R$ {{ number_format($cartao->limite_disponivel, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Parcelas em Aberto</span>
+                                    <span class="font-semibold text-gray-700">{{ $cartao->parcelas_em_aberto }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500 block">Vencimento Fatura</span>
+                                    <span class="font-semibold text-gray-700">Dia {{ $cartao->dia_vencimento_fatura }}</span>
+                                </div>
+                                <div class="col-span-2">
+                                    <span class="text-gray-500 block">Melhor Dia de Compra</span>
+                                    <span class="font-semibold text-gray-700">Dia {{ $cartao->melhor_dia_compra }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="text-center text-xs text-gray-400 py-8">
+                        Nenhum cartão de crédito cadastrado.
+                    </div>
+                    @endif
+
+                </div>{{-- /bancos-flip-back --}}
+
+                </div>{{-- /bancos-flip-inner --}}
+                </div>{{-- /bancos-flip-scene --}}
                 {{-- RESUMO FINANCEIRO — flip card --}}
                 <div class="resumo-flip-scene" id="resumo-flip-scene">
                 <div class="resumo-flip-inner" id="resumo-flip-inner">
@@ -801,6 +1000,23 @@
                 inner.style.minHeight = back.scrollHeight + 'px';
             } else {
                 // Voltou para a frente: remove a altura forçada, frente volta ao fluxo normal
+                inner.style.minHeight = '';
+            }
+        }
+
+        // ── Flip Card: Saldo em Bancos ──────────────────────────────────
+        function flipBancosCard() {
+            const inner = document.getElementById('bancos-flip-inner');
+            const back  = inner.querySelector('.bancos-flip-back');
+
+            inner.classList.toggle('flipped');
+            const mostrandoVerso = inner.classList.contains('flipped');
+
+            if (mostrandoVerso) {
+                // Verso é position:absolute — força altura mínima para não colapsar
+                inner.style.minHeight = back.scrollHeight + 'px';
+            } else {
+                // Voltou para a frente: remove a altura forçada
                 inner.style.minHeight = '';
             }
         }
