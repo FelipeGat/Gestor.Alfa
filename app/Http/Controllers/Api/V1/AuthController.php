@@ -20,8 +20,10 @@ class AuthController extends Controller
             $user = Auth::user();
             $token = $user->createToken('auth-token')->plainTextToken;
 
+            activity()->causedBy($user)->withProperties(['via' => 'app_mobile'])->log('login');
+
             return response()->json([
-                'user' => $user,
+                'user'  => $user,
                 'token' => $token,
             ]);
         }
@@ -33,7 +35,9 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        activity()->causedBy($user)->withProperties(['via' => 'app_mobile'])->log('logout');
+        $user->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logout realizado com sucesso']);
     }
