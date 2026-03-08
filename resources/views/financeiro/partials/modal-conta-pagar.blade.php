@@ -447,19 +447,28 @@
             },
 
             async carregarConta(id) {
+                let _step = 'fetch';
                 try {
                     const contaUrl = (contaId) => '{{ route("financeiro.contasapagar.show", ["conta" => "__ID__"]) }}'.replace('__ID__', contaId);
                     const response = await fetch(contaUrl(id), {
                         headers: { 'Accept': 'application/json' }
                     });
-                    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+                    if (!response.ok) {
+                        let errMsg = `Erro HTTP ${response.status}`;
+                        try {
+                            const errData = await response.json();
+                            if (errData && errData.error) errMsg += ': ' + errData.error;
+                        } catch(e) {}
+                        throw new Error(errMsg);
+                    }
+                    _step = 'parse-json';
                     const data = await response.json();
-
                     console.log('Dados recebidos:', data);
 
                     // Definir estado de edição para impedir reset acidental
                     this.isEditing = true;
 
+                    _step = 'campos-simples';
                     // 1. Preencher campos simples diretamente
                     this.centroCustoId = data.centro_custo_id || '';
                     this.descricao = data.descricao || '';
@@ -467,15 +476,17 @@
                     this.observacoes = data.observacoes || '';
                     this.formaPagamento = data.forma_pagamento || '';
                     this.contaFinanceiraId = data.conta_financeira_id || '';
+                    this.cartaoCreditoId = data.cartao_credito_id || '';
                     this.dataVencimento = data.data_vencimento ? data.data_vencimento.split('T')[0] : '';
 
+                    _step = 'categoria';
                     // 2. Carregar categoria, subcategoria e conta
                     if (data.conta && data.conta.subcategoria && data.conta.subcategoria.categoria_id) {
                         this.categoriaId = String(data.conta.subcategoria.categoria_id);
-                        await this.loadSubcategorias(); // Carrega subcategorias para a categoria selecionada
-                        this.subcategoriaId = String(data.conta.subcategoria_id);
-                        await this.loadContas(); // Carrega contas para a subcategoria selecionada
-                        this.contaId = String(data.conta_id);
+                        await this.loadSubcategorias();
+                        this.subcategoriaId = String(data.conta.subcategoria_id || '');
+                        await this.loadContas();
+                        this.contaId = String(data.conta_id || '');
                     } else {
                         this.categoriaId = '';
                         this.subcategoriaId = '';
@@ -484,20 +495,23 @@
                         this.contas = [];
                     }
 
+                    _step = 'fornecedor';
                     // 3. Preencher fornecedor
+                    const fornecedorInput = this.$refs.fornecedorId;
                     if (data.fornecedor_id) {
-                        this.$refs.fornecedorId.value = data.fornecedor_id;
+                        if (fornecedorInput) fornecedorInput.value = data.fornecedor_id;
                         const f = this.fornecedores.find(f => f.id == data.fornecedor_id);
                         if (f) this.fornecedorBusca = f.razao_social || f.nome_fantasia;
                     } else {
-                        this.$refs.fornecedorId.value = '';
+                        if (fornecedorInput) fornecedorInput.value = '';
                         this.fornecedorBusca = '';
                     }
 
+                    _step = 'orcamento';
                     // 4. Vínculo com Orçamento
                     this.vincularOrcamento = !!data.orcamento_id;
                     if (data.orcamento_id && data.orcamento) {
-                        this.clienteId = data.orcamento.cliente_id;
+                        this.clienteId = data.orcamento.cliente_id || '';
                         await this.carregarOrcamentos();
                         this.orcamentoId = data.orcamento_id;
                     } else {
@@ -506,6 +520,7 @@
                         this.orcamentoId = '';
                     }
 
+                    _step = 'form-action';
                     // 5. Atualizar action e method do form
                     const form = this.$el;
                     if (form) {
@@ -520,11 +535,11 @@
                         methodInput.value = 'PUT';
                     }
 
-                    console.log('Formulário preenchido');
+                    console.log('Formulário preenchido com sucesso');
                     return Promise.resolve();
                 } catch (error) {
-                    console.error('Erro ao carregar conta:', error);
-                    alert('Erro ao carregar dados da conta');
+                    console.error('Erro em carregarConta() na etapa [' + _step + ']:', error);
+                    alert('Erro ao carregar dados da conta.\nEtapa: ' + _step + '\n' + error.message);
                     return Promise.reject(error);
                 }
             }
