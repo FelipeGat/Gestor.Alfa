@@ -707,8 +707,9 @@ class OrcamentoController extends Controller
 
             $novoStatus = $request->orcamento_status;
 
-            if (in_array($novoStatus, ['aprovado', 'agendado'], true)) {
-                return back()->with('error', 'Para este status, utilize o agendamento técnico no modal da tela de orçamentos.');
+            // 'agendado' exige técnico + data — deve ser feito via modal de agendamento
+            if ($novoStatus === 'agendado') {
+                return back()->with('error', 'Para agendar, utilize o botão de agendamento técnico na listagem.');
             }
 
             // Atualiza status do orçamento
