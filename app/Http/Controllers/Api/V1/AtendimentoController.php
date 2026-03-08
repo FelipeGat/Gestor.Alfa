@@ -222,40 +222,96 @@ class AtendimentoController extends Controller
 
     public function finalizar(int $id, Request $request): JsonResponse
     {
-        $atendimento = Atendimento::findOrFail($id);
+        try {
+            $atendimento = Atendimento::findOrFail($id);
 
-        if (!in_array($atendimento->status_atual, ["em_atendimento", "pausado"])) {
-            return response()->json(["message" => "Atendimento não pode ser finalizado. Status: " . $atendimento->status_atual], 400);
-        }
-
-        $agora = now();
-        $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
-
-        if ($atendimento->em_execucao && $atendimento->iniciado_em) {
-            $tempoDecorrido = max(0, $agora->timestamp - $atendimento->iniciado_em->timestamp);
-            $tempoExecucao += $tempoDecorrido;
-        }
-
-        // Se finalizar enquanto pausado, encerrar a pausa também
-        if ($atendimento->em_pausa) {
-            $pausaAtiva = $atendimento->pausaAtiva();
-            if ($pausaAtiva) {
-                $pausaAtiva->encerrar();
-                $atendimento->tempo_pausa_segundos = ($atendimento->tempo_pausa_segundos ?? 0) + ($pausaAtiva->tempo_segundos ?? 0);
+            if (!in_array($atendimento->status_atual, ["em_atendimento", "pausado"])) {
+                return response()->json(["message" => "Atendimento não pode ser finalizado. Status: " . $atendimento->status_atual], 400);
             }
+
+            // Validação rigorosa (Mobile deve enviar multipart/form-data)
+            $request->validate([
+                'fotos' => 'required|array|min:1',
+                'fotos.*' => 'required|image|max:5120',
+                'observacoes' => 'required|string|min:5',
+                'assinatura_cliente_nome' => 'required|string|min:2',
+                'assinatura_cliente_cargo' => 'required|string|min:2',
+                'assinatura_cliente' => 'required|string', // Base64 da imagem
+            ]);
+
+            $agora = now();
+            $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
+
+            // 1. Cálculo de tempo final se ainda estiver em execução
+            if ($atendimento->em_execucao && $atendimento->iniciado_em) {
+                $tempoDecorrido = max(0, $agora->timestamp - $atendimento->iniciado_em->timestamp);
+                $tempoExecucao += $tempoDecorrido;
+            }
+
+            // 2. Encerrar pausas ativas se houver
+            if ($atendimento->em_pausa) {
+                $pausaAtiva = $atendimento->pausaAtiva();
+                if ($pausaAtiva) {
+                    $pausaAtiva->encerrar();
+                    $atendimento->tempo_pausa_segundos = ($atendimento->tempo_pausa_segundos ?? 0) + ($pausaAtiva->tempo_segundos ?? 0);
+                }
+            }
+
+            // 3. Processar Assinatura (Base64 -> Arquivo)
+            $assinaturaPath = null;
+            if (preg_match('/^data:image\/(\w+);base64,/', $request->assinatura_cliente, $matches)) {
+                $extensao = strtolower($matches[1]) === 'jpeg' ? 'jpg' : strtolower($matches[1]);
+                $conteudo = base64_decode(substr($request->assinatura_cliente, strpos($request->assinatura_cliente, ',') + 1));
+                
+                $nomeArquivo = 'assinatura_' . uniqid() . '.' . $extensao;
+                $assinaturaPath = 'atendimentos/assinaturas/' . $nomeArquivo;
+                \Storage::disk('public')->put($assinaturaPath, $conteudo);
+            }
+
+            // 4. Atualizar Atendimento (Status 'finalizacao' aguarda aprovação do gerente)
+            $atendimento->update([
+                "status_atual" => "finalizacao",
+                "finalizado_em" => $agora,
+                "finalizado_por_user_id" => auth()->id(),
+                "observacoes_finais" => $request->observacoes,
+                "em_execucao" => false,
+                "em_pausa" => false,
+                "tempo_execucao_segundos" => $tempoExecucao,
+                "assinatura_cliente_nome" => trim($request->assinatura_cliente_nome),
+                "assinatura_cliente_cargo" => trim($request->assinatura_cliente_cargo),
+                "assinatura_cliente_path" => $assinaturaPath,
+            ]);
+
+            // 5. Criar Andamento Final e Salvar Fotos
+            $andamento = AtendimentoAndamento::create([
+                "atendimento_id" => $atendimento->id,
+                "user_id" => auth()->id(),
+                "status" => "finalizado",
+                "descricao" => $request->observacoes,
+            ]);
+
+            if ($request->hasFile('fotos')) {
+                foreach ($request->file('fotos') as $foto) {
+                    $path = $foto->store('atendimentos/fotos', 'public');
+                    // Salva caminho relativo sem o prefixo public/
+                    $relativePath = ltrim(str_replace(['public/', 'storage/'], '', $path), '/');
+                    $andamento->fotos()->create([
+                        'arquivo' => $relativePath,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'message' => 'Atendimento finalizado com sucesso. Aguardando aprovação.',
+                'data' => $atendimento->fresh(['cliente', 'assunto'])
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Dados inválidos', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao finalizar atendimento via API: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao finalizar: ' . $e->getMessage()], 500);
         }
-
-        $atendimento->update([
-            "status_atual" => "concluido",
-            "finalizado_em" => $agora,
-            "finalizado_por_user_id" => auth()->id(),
-            "observacoes_finais" => $request->observacoes,
-            "em_execucao" => false,
-            "em_pausa" => false,
-            "tempo_execucao_segundos" => $tempoExecucao,
-        ]);
-
-        return response()->json(['data' => $atendimento->fresh()]);
     }
 
     /**
