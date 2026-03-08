@@ -305,9 +305,6 @@
                                     <a href="{{ route('rh.ponto-jornada.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Ponto & Jornada">Ponto & Jornada</a>
                                     <a href="{{ route('rh.jornadas.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Jornada">Jornadas</a>
                                     <a href="{{ route('rh.feriados.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Feriados">Feriados</a>
-                                    @if($isAdmin)
-                                    <a href="{{ route('relatorios.auditoria') }}" class="portal-nav-item py-1 text-xs text-red-700 font-bold" data-tab-link data-tab-label="Auditoria do Sistema">Auditoria</a>
-                                    @endif
                                 </div>
                             </div>
                             @endif
@@ -614,18 +611,6 @@
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Comercial</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Técnico</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'rh'])" data-tab-icon="relatorios">RH</x-responsive-nav-link>
-                        @if($user && $user->isAdmin())
-                        {{-- Auditoria removido do menu Relatórios responsivo --}}
-                                        @if($isRhAdmin)
-                                        <x-responsive-nav-link :href="route('rh.funcionarios.index')" data-tab-icon="funcionarios">Funcionários</x-responsive-nav-link>
-                                        <x-responsive-nav-link :href="route('rh.ponto-jornada.index')" data-tab-icon="rh">Ponto & Jornada</x-responsive-nav-link>
-                                        <x-responsive-nav-link :href="route('rh.jornadas.index')" data-tab-icon="rh">Cadastro de Jornada</x-responsive-nav-link>
-                                        <x-responsive-nav-link :href="route('rh.feriados.index')" data-tab-icon="rh">Cadastro de Feriados</x-responsive-nav-link>
-                                        @if($isAdmin)
-                                        <x-responsive-nav-link :href="route('relatorios.auditoria')" data-tab-icon="relatorios" class="text-red-700 font-bold">Auditoria</x-responsive-nav-link>
-                                        @endif
-                                        @endif
-                        @endif
                         @endif
                     </div>
                 </details>
