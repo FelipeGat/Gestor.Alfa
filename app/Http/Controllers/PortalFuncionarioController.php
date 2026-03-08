@@ -304,6 +304,13 @@ class PortalFuncionarioController extends Controller
 
             DB::commit();
 
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($atendimento)
+                ->event('updated')
+                ->withProperties(['cliente' => $atendimento->cliente?->nome])
+                ->log('iniciou atendimento');
+
             return redirect()
                 ->route('portal-funcionario.atendimento.show', $atendimento)
                 ->with('success', '✅ Atendimento iniciado! Execução em andamento. Bom trabalho!');
@@ -379,11 +386,18 @@ class PortalFuncionarioController extends Controller
             DB::commit();
 
             $tipoLabel = [
-                'almoco' => 'Almoço',
+                'almoco'       => 'Almoço',
                 'deslocamento' => 'Deslocamento entre Clientes',
-                'material' => 'Compra de Material',
-                'fim_dia' => 'Encerramento do Dia',
+                'material'     => 'Compra de Material',
+                'fim_dia'      => 'Encerramento do Dia',
             ][$request->tipo_pausa] ?? 'Pausa';
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($atendimento)
+                ->event('updated')
+                ->withProperties(['tipo_pausa' => $tipoLabel, 'cliente' => $atendimento->cliente?->nome])
+                ->log('pausou atendimento');
 
             return back()->with('success', '⏸️ Atendimento pausado. Cronômetro de pausa iniciado para: ' . $tipoLabel);
         } catch (\Exception $e) {
@@ -443,6 +457,14 @@ class PortalFuncionarioController extends Controller
 
             $atendimento->refresh();
             DB::commit();
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($atendimento)
+                ->event('updated')
+                ->withProperties(['cliente' => $atendimento->cliente?->nome])
+                ->log('retomou atendimento');
+
             return back()->with('success', 'Atendimento retomado. Cronômetro de execução reiniciado.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -560,6 +582,17 @@ class PortalFuncionarioController extends Controller
             }
 
             DB::commit();
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($atendimento)
+                ->event('updated')
+                ->withProperties([
+                    'cliente'               => $atendimento->cliente?->nome,
+                    'assinante'             => trim($request->assinatura_cliente_nome),
+                    'cargo_assinante'       => trim($request->assinatura_cliente_cargo),
+                ])
+                ->log('finalizou atendimento');
 
             return redirect()
                 ->route('portal-funcionario.chamados')
@@ -1024,7 +1057,7 @@ class PortalFuncionarioController extends Controller
 
         $entradaTimestamp = strtotime((string) $entrada);
         $saidaTimestamp = strtotime((string) $saida);
-        
+
         if (!$entradaTimestamp || !$saidaTimestamp || $saidaTimestamp <= $entradaTimestamp) {
             return 0;
         }
