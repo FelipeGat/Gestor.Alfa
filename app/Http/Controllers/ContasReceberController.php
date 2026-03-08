@@ -355,28 +355,63 @@ class ContasReceberController extends Controller
     public function destroy(Request $request, Cobranca $cobranca)
     {
         $tipoExclusao = $request->input('tipo_exclusao', 'unica');
-        $dataVencimento = $request->input('data_vencimento');
+        // Fallback para a data do próprio registro quando o form não envia data_vencimento
+        $dataVencimento = $request->input('data_vencimento')
+            ?? $cobranca->data_vencimento?->toDateString();
 
         DB::transaction(function () use ($cobranca, $tipoExclusao, $dataVencimento) {
             $orcamento = $cobranca->orcamento;
 
             if ($tipoExclusao === 'todas_contrato' && $cobranca->conta_fixa_id) {
                 // Excluir esta e todas as cobranças futuras do mesmo contrato
-                $totalExcluidas = Cobranca::where('conta_fixa_id', $cobranca->conta_fixa_id)
-                    ->where('status', '!=', 'pago')
-                    ->where('data_vencimento', '>=', $dataVencimento)
-                    ->delete();
+                $query = Cobranca::where('conta_fixa_id', $cobranca->conta_fixa_id)
+                    ->where('status', '!=', 'pago');
+
+                if ($dataVencimento) {
+                    $query->where('data_vencimento', '>=', $dataVencimento);
+                }
+
+                $totalExcluidas = $query->delete();
+
+                // Log manual: bulk delete não dispara eventos Eloquent
+                activity()
+                    ->causedBy(Auth::user())
+                    ->performedOn($cobranca)
+                    ->event('deleted')
+                    ->withProperties([
+                        'tipo'          => 'lote_contrato',
+                        'total'         => $totalExcluidas,
+                        'conta_fixa_id' => $cobranca->conta_fixa_id,
+                        'descricao'     => $cobranca->descricao,
+                        'cliente'       => $cobranca->cliente?->nome,
+                    ])
+                    ->log('exclusão em lote — cobranças do contrato');
 
                 session()->flash('success', "{$totalExcluidas} cobrança(s) do contrato excluída(s) com sucesso.");
+
             } elseif ($tipoExclusao === 'todas' && $cobranca->orcamento_id) {
                 // Excluir todas as cobranças pendentes do mesmo orçamento
                 $totalExcluidas = Cobranca::where('orcamento_id', $cobranca->orcamento_id)
                     ->where('status', '!=', 'pago')
                     ->delete();
 
+                // Log manual: bulk delete não dispara eventos Eloquent
+                activity()
+                    ->causedBy(Auth::user())
+                    ->performedOn($cobranca)
+                    ->event('deleted')
+                    ->withProperties([
+                        'tipo'         => 'lote_orcamento',
+                        'total'        => $totalExcluidas,
+                        'orcamento_id' => $cobranca->orcamento_id,
+                        'descricao'    => $cobranca->descricao,
+                        'cliente'      => $cobranca->cliente?->nome,
+                    ])
+                    ->log('exclusão em lote — todas as cobranças do orçamento');
+
                 session()->flash('success', "{$totalExcluidas} cobrança(s) excluída(s) com sucesso.");
             } else {
-                // Excluir apenas a cobrança específica
+                // Excluir apenas a cobrança específica — evento Eloquent dispara automaticamente
                 $cobranca->delete();
                 session()->flash('success', 'Cobrança excluída com sucesso.');
             }
@@ -543,23 +578,7 @@ class ContasReceberController extends Controller
                     });
             });
         }
-        $cobrancasPagas = $cobrancasQuery->get();
-        // Montar movimentações de entrada a partir das cobranças pagas
-        $movFinanceirasEntradas = $cobrancasPagas->map(function ($cobranca) {
-            $mov = new \stdClass;
-            $mov->tipo_movimentacao = 'entrada';
-            $mov->is_financeiro = false;
-            $mov->valor = $cobranca->valor;
-            $mov->descricao = $cobranca->descricao;
-            $mov->cliente = $cobranca->cliente;
-            $mov->pago_em = $cobranca->data_pagamento ?? $cobranca->pago_em; // data_pagamento como campo canônico
-            $mov->forma_pagamento = $cobranca->forma_pagamento;
-            $mov->contaFinanceira = $cobranca->contaFinanceira;
-            $mov->usuario = $cobranca->usuario;
-            $mov->cobranca = $cobranca;
-
-            return $mov;
-        });
+        // Nota: $cobrancasQuery ainda não foi executada — a busca será aplicada abaixo antes do ->get()
 
         // ================= BUSCAR CONTAS A PAGAR (SAÍDAS) =================
         $contasPagarQuery = \App\Models\ContaPagar::with([
@@ -640,6 +659,23 @@ class ContasReceberController extends Controller
             $contasPagarQuery->whereDate('data_pagamento', '<=', $request->data_fim);
         }
 
+        // Executar query de cobranças com TODOS os filtros aplicados (busca, data, empresa)
+        $cobrancasPagas = $cobrancasQuery->get();
+        $movFinanceirasEntradas = $cobrancasPagas->map(function ($cobranca) {
+            $mov = new \stdClass;
+            $mov->tipo_movimentacao = 'entrada';
+            $mov->is_financeiro    = false;
+            $mov->valor            = $cobranca->valor;
+            $mov->descricao        = $cobranca->descricao;
+            $mov->cliente          = $cobranca->cliente;
+            $mov->pago_em          = $cobranca->data_pagamento ?? $cobranca->pago_em;
+            $mov->forma_pagamento  = $cobranca->forma_pagamento;
+            $mov->contaFinanceira  = $cobranca->contaFinanceira;
+            $mov->usuario          = $cobranca->usuario;
+            $mov->cobranca         = $cobranca;
+            return $mov;
+        });
+
         // ================= MOVIMENTAÇÕES FINANCEIRAS (AJUSTES, TRANSFERÊNCIAS, INJEÇÕES) =================
         $movFinanceirasQuery = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario']);
         // Filtros de data para movimentações financeiras
@@ -673,30 +709,7 @@ class ContasReceberController extends Controller
             });
 
         // ================= COMBINAR E ORDENAR =================
-        // Entradas: apenas movimentações financeiras de recebimento (tipo entrada, observação 'Recebimento de cobrança ID%')
-        $movFinanceirasEntradasQuery = \App\Models\MovimentacaoFinanceira::with(['contaOrigem', 'contaDestino', 'usuario'])
-            ->where('tipo', 'entrada')
-            ->where('observacao', 'like', 'Recebimento de cobrança ID%');
-        if ($request->filled('empresa_id')) {
-            $empresaId = $request->input('empresa_id');
-            $movFinanceirasEntradasQuery->whereHas('contaDestino', function ($q) use ($empresaId) {
-                $q->where('empresa_id', $empresaId);
-            });
-        }
-        $movFinanceirasEntradas = $movFinanceirasEntradasQuery
-            ->when($request->filled('data_inicio'), function ($query) use ($request) {
-                $query->whereDate('data_movimentacao', '>=', $request->data_inicio);
-            })
-            ->when($request->filled('data_fim'), function ($query) use ($request) {
-                $query->whereDate('data_movimentacao', '<=', $request->data_fim);
-            })
-            ->get()
-            ->map(function ($item) {
-                $item->tipo_movimentacao = 'entrada';
-                $item->is_financeiro = true;
-
-                return $item;
-            });
+        // Entradas: provenientes de cobranças pagas ($movFinanceirasEntradas já montado acima com todos os filtros aplicados)
 
         $contasPagar = $contasPagarQuery->get()->map(function ($item) {
             $item->tipo_movimentacao = 'saida';
@@ -1291,5 +1304,64 @@ class ContasReceberController extends Controller
                 'message' => 'Erro ao excluir anexo: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Renegociar uma parcela de cobrança de orçamento em N novas parcelas.
+     */
+    public function renegociar(Request $request, Cobranca $cobranca)
+    {
+        if ($cobranca->status === 'pago') {
+            return back()->with('error', 'Não é possível renegociar uma cobrança já paga.');
+        }
+
+        if (! $cobranca->orcamento_id) {
+            return back()->with('error', 'Renegociação disponível apenas para cobranças de orçamento.');
+        }
+
+        $validated = $request->validate([
+            'parcelas'                   => ['required', 'array', 'min:2', 'max:12'],
+            'parcelas.*.valor'           => ['required', 'numeric', 'min:0.01'],
+            'parcelas.*.data_vencimento' => ['required', 'date'],
+        ]);
+
+        $totalNovo = collect($validated['parcelas'])->sum(fn ($p) => floatval($p['valor']));
+        if (abs($totalNovo - $cobranca->valor) > 0.02) {
+            return back()->with('error', sprintf(
+                'A soma das parcelas (R$ %s) deve ser igual ao valor original (R$ %s).',
+                number_format($totalNovo, 2, ',', '.'),
+                number_format($cobranca->valor, 2, ',', '.')
+            ));
+        }
+
+        $n                  = count($validated['parcelas']);
+        $cobrancaOriginalId = $cobranca->id;
+
+        DB::transaction(function () use ($cobranca, $validated, $n, $cobrancaOriginalId) {
+            $cobranca->delete();
+
+            foreach ($validated['parcelas'] as $i => $dados) {
+                Cobranca::create([
+                    'orcamento_id'        => $cobranca->orcamento_id,
+                    'cliente_id'          => $cobranca->cliente_id,
+                    'conta_financeira_id' => $cobranca->conta_financeira_id,
+                    'descricao'           => $cobranca->descricao,
+                    'valor'               => floatval($dados['valor']),
+                    'data_vencimento'     => $dados['data_vencimento'],
+                    'status'              => 'pendente',
+                    'tipo'                => $cobranca->tipo,
+                    'parcela_num'         => $i + 1,
+                    'parcelas_total'      => $n,
+                    'user_id'             => Auth::id(),
+                ]);
+            }
+
+            activity()
+                ->causedBy(Auth::user())
+                ->withProperties(['cobranca_original_id' => $cobrancaOriginalId, 'novas_parcelas' => $n])
+                ->log('renegociação');
+        });
+
+        return back()->with('success', "Parcela renegociada com sucesso em {$n}x.");
     }
 }
