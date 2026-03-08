@@ -385,6 +385,13 @@
                             'tipo_pessoa'      => 'Tipo pessoa',
                             'tipo_cliente'     => 'Tipo cliente',
                             'periodicidade'    => 'Periodicidade',
+                            // Ponto
+                            'data_referencia'           => 'Data',
+                            'entrada_em'                => 'Entrada',
+                            'saida_em'                  => 'Saída',
+                            'intervalo_inicio_em'       => 'Início Intervalo',
+                            'intervalo_fim_em'          => 'Fim Intervalo',
+                            'registrado_fora_atendimento' => 'Fora do Atendimento',
                         ];
                         $valueMappings2 = [
                             'a_vencer'       => 'A Vencer',   'vencido'        => 'Vencido',

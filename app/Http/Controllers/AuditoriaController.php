@@ -28,13 +28,14 @@ class AuditoriaController extends Controller
         'App\Models\Funcionario'           => 'Funcionário',
         'App\Models\AtendimentoAndamento'  => 'Andamento',
         'App\Models\Equipamento'           => 'Equipamento',
+        'App\Models\RegistroPontoPortal'   => 'Ponto',
     ];
 
     public function index(Request $request): \Illuminate\View\View
     {
         /** @var User $user */
         $authedUser = Auth::user();
-        abort_unless($authedUser && $authedUser->isAdminPanel(), 403, 'Acesso restrito a administradores.');
+        abort_unless($authedUser && $authedUser->isAdmin(), 403, 'Acesso restrito a administradores.');
 
         // ── Filtros ──────────────────────────────────────────────────────────
         $data    = $request->get('data', now()->toDateString());
