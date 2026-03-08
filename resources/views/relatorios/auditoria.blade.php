@@ -304,6 +304,13 @@
                             $subjectType ? class_basename($subjectType) : null
                         );
 
+                        // Número legível: numero_orcamento, numero_atendimento, etc.
+                        $subjectNumero = null;
+                        if ($activity->subject) {
+                            $s = $activity->subject;
+                            $subjectNumero = $s->numero_orcamento ?? $s->numero_atendimento ?? null;
+                        }
+
                         // Propriedades brutas
                         $props    = $activity->properties ?? collect();
                         $propsArr = is_array($props) ? $props : (is_object($props) ? $props->toArray() : []);
@@ -494,7 +501,11 @@
                                     <span class="font-semibold">{{ $modelLabel }}</span>
                                 @endif
                                 @if($subjectId)
-                                    <span class="text-gray-400 dark:text-gray-500 text-xs">#{{ $subjectId }}</span>
+                                    @if($subjectNumero)
+                                        <span class="text-gray-400 dark:text-gray-500 text-xs">{{ $subjectNumero }}</span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500 text-xs">#{{ $subjectId }}</span>
+                                    @endif
                                 @endif
                                 @if($totalLote)
                                     <span class="text-red-500 dark:text-red-400 text-xs font-semibold"> ({{ $totalLote }} registros)</span>
