@@ -611,6 +611,88 @@ class DashboardFinanceiroController extends Controller
             }
         }
 
+        // ================= RECEITAS POR EMPRESA (flip card) =================
+        $todasEmpresasAtivas = Empresa::where('ativo', true)->orderBy('nome_fantasia')->get();
+
+        $receitasPorEmpresa = $todasEmpresasAtivas->map(function ($empresa) use ($inicio, $fim, $statusOrcamentoAtivo) {
+            // -- Receita realizada por tipo (orçamento vs contrato) --
+            $realizadaRaw = Cobranca::where('status', 'pago')
+                ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+                ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+                ->where(function ($q) use ($empresa) {
+                    $q->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empresa->id))
+                      ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empresa->id));
+                })
+                ->selectRaw('tipo, SUM(valor) as total, COUNT(*) as qtd')
+                ->groupBy('tipo')
+                ->get()
+                ->keyBy('tipo');
+
+            $realizadaOrcamento = (float) ($realizadaRaw->get('orcamento')->total ?? 0);
+            $realizadaContrato  = (float) ($realizadaRaw->get('contrato')->total ?? 0);
+            $realizadaTotal     = $realizadaOrcamento + $realizadaContrato;
+            $qtdCobrancas       = (int)   $realizadaRaw->sum('qtd');
+
+            // -- A receber no período (previsto, não pago) --
+            $aReceberPeriodo = Cobranca::where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+                ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
+                ->where(function ($q) use ($statusOrcamentoAtivo) {
+                    $q->where('tipo', 'contrato')
+                      ->orWhere(function ($sq) use ($statusOrcamentoAtivo) {
+                          $sq->where('tipo', 'orcamento')
+                             ->whereHas('orcamento', fn ($oq) => $oq->whereIn('status', $statusOrcamentoAtivo));
+                      });
+                })
+                ->where(function ($q) use ($empresa) {
+                    $q->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empresa->id))
+                      ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empresa->id));
+                })
+                ->sum('valor');
+
+            // -- Atrasado (global — independente de período) --
+            $atrasado = Cobranca::where('status', '!=', 'pago')
+                ->whereDate('data_vencimento', '<', now()->toDateString())
+                ->where(function ($q) use ($empresa) {
+                    $q->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empresa->id))
+                      ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empresa->id));
+                })
+                ->sum('valor');
+
+            // -- Receita total anual (para % participação) --
+            $receitaAnual = Cobranca::where('status', 'pago')
+                ->whereYear('data_pagamento', now()->year)
+                ->where(function ($q) use ($empresa) {
+                    $q->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empresa->id))
+                      ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empresa->id));
+                })
+                ->sum('valor');
+
+            $ticketMedio = $qtdCobrancas > 0 ? round($realizadaTotal / $qtdCobrancas, 2) : 0;
+
+            return (object) [
+                'id'                  => $empresa->id,
+                'nome'                => $empresa->nome_fantasia ?? $empresa->razao_social,
+                'realizada'           => $realizadaTotal,
+                'realizada_orcamento' => $realizadaOrcamento,
+                'realizada_contrato'  => $realizadaContrato,
+                'a_receber'           => (float) $aReceberPeriodo,
+                'atrasado'            => (float) $atrasado,
+                'receita_anual'       => (float) $receitaAnual,
+                'ticket_medio'        => $ticketMedio,
+                'qtd_cobrancas'       => $qtdCobrancas,
+            ];
+        })->filter(fn ($e) => $e->realizada > 0 || $e->a_receber > 0 || $e->atrasado > 0)->values();
+
+        // Calcular % participação de cada empresa no total realizado do período
+        $totalRealizadoTodasEmpresas = $receitasPorEmpresa->sum('realizada') ?: 1;
+        $receitasPorEmpresa = $receitasPorEmpresa->map(function ($emp) use ($totalRealizadoTodasEmpresas) {
+            $emp->percentual = $emp->realizada > 0
+                ? round(($emp->realizada / $totalRealizadoTodasEmpresas) * 100, 1)
+                : 0;
+            return $emp;
+        });
+
         // Cartões de crédito para o flip card do Saldo em Bancos
         $cartoesCredito = ContaFinanceira::where('tipo', 'credito')
             ->where('ativo', true)
@@ -716,6 +798,7 @@ class DashboardFinanceiroController extends Controller
             'lancamentosReceitasAtrasadas' => $lancamentosReceitasAtrasadas,
             'hojeResumoPorEmpresa' => $hojeResumoPorEmpresa,
             'cartoesCredito' => $cartoesCredito,
+            'receitasPorEmpresa' => $receitasPorEmpresa,
         ]);
     }
 }
