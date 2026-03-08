@@ -286,11 +286,11 @@
                     agendaTecnicos: {{ \Illuminate\Support\Js::from($agendaTecnicos ?? []) }},
                     diasSemana: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
                     meses: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-                    viewAtual: 'semana',
+                    viewAtual: 'dia',
                     dataAtual: new Date().toISOString().slice(0, 10),
                     diaSelecionado: new Date().toISOString().slice(0, 10),
                     tecnicoSelecionado: '',
-                    mostrarDiasLivres: true,
+                    mostrarDiasLivres: false,
                     tituloPeriodo: '',
                     celulasCalendario: [],
                     eventosDia: [],
@@ -298,6 +298,9 @@
                     kpiPeriodo: 0,
                     kpiDia: 0,
                     kpiLivres: 0,
+                    detalhesHtml: '',
+                    carregandoDetalhes: false,
+                    eventoSelecionado: null,
 
                     init() {
                         this.recalcularAgenda();
@@ -311,6 +314,7 @@
                     },
                     setView(view) {
                         this.viewAtual = view;
+                        this.detalhesHtml = '';
                         this.recalcularAgenda();
                     },
                     navegarPeriodo(direcao) {
@@ -497,6 +501,24 @@
                         if (prioridade === 'alta') return 'bg-red-100 text-red-800';
                         if (prioridade === 'media') return 'bg-amber-100 text-amber-800';
                         return 'bg-cyan-100 text-cyan-800';
+                    },
+                    async verDetalhes(evento) {
+                        if (this.viewAtual !== 'dia') {
+                            window.location.href = evento.url;
+                            return;
+                        }
+                        this.eventoSelecionado = evento;
+                        this.detalhesHtml = '';
+                        this.carregandoDetalhes = true;
+                        try {
+                            const r = await fetch(`/dashboard-tecnico/atendimento/${evento.id}`);
+                            const d = await r.json();
+                            if (d.success) this.detalhesHtml = d.html;
+                        } catch (e) {
+                            console.error('Erro ao carregar detalhes:', e);
+                        } finally {
+                            this.carregandoDetalhes = false;
+                        }
                     }
                  }"
                  x-init="init()">
@@ -520,7 +542,7 @@
 
                         <label class="inline-flex items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
                             <input type="checkbox" class="rounded border-gray-300 text-indigo-600" x-model="mostrarDiasLivres" @change="recalcularAgenda()">
-                            Mostrar dias livres
+                            Mostrar Técnicos Livres no dia
                         </label>
                     </div>
                 </div>
@@ -549,6 +571,32 @@
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+
+                    {{-- ── Painel de Detalhes (dia view, ao clicar no card) ─── --}}
+                    <div class="xl:col-span-2 bg-white border border-indigo-200 rounded-xl shadow-sm overflow-hidden xl:self-start"
+                         x-show="viewAtual === 'dia' && (carregandoDetalhes || detalhesHtml !== '')"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-x-2"
+                         x-transition:enter-end="opacity-100 translate-x-0">
+                        <div class="px-4 py-3 border-b border-gray-100 bg-slate-50 rounded-t-xl flex items-center justify-between">
+                            <p class="text-sm font-semibold text-gray-700">Detalhes</p>
+                            <div class="flex items-center gap-3">
+                                <a :href="eventoSelecionado?.url" target="_blank" class="text-xs text-indigo-600 hover:underline" x-show="eventoSelecionado">Abrir edição ↗</a>
+                                <button @click="detalhesHtml = ''; eventoSelecionado = null;" class="text-gray-400 hover:text-gray-700 text-base leading-none font-bold">✕</button>
+                            </div>
+                        </div>
+                        <div x-show="carregandoDetalhes" class="p-8 flex items-center justify-center text-gray-400 text-sm gap-2">
+                            <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Carregando detalhes...
+                        </div>
+                        <div class="overflow-auto max-h-[520px] p-4" x-show="!carregandoDetalhes && detalhesHtml !== ''" x-html="detalhesHtml"></div>
+                    </div>
+
+                    {{-- ── Calendário (semana / mês) ────────────────────────── --}}
                     <div class="xl:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:self-start" x-show="viewAtual !== 'dia'" x-cloak>
                         <div class="grid grid-cols-7 bg-slate-800 text-white text-[11px] font-semibold uppercase tracking-wide">
                             <template x-for="dia in diasSemana" :key="dia">
@@ -573,7 +621,7 @@
                                             <template x-for="(evento, eventIdx) in celula.eventos.slice(0, 2)" :key="`${evento.id}-${eventIdx}`">
                                                 <div class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold truncate"
                                                      :class="chipPrioridade(evento.prioridade)">
-                                                    <span x-text="`${evento.inicio || '--:--'} #${evento.numero_atendimento} ${evento.tecnico_nome}`"></span>
+                                                    <span x-text="`${evento.inicio || '--:--'} ${evento.numero_orcamento ? evento.numero_orcamento + ' #' + evento.numero_atendimento : '#' + evento.numero_atendimento} ${evento.tecnico_nome}`"></span>
                                                 </div>
                                             </template>
                                             <template x-if="celula.eventos.length > 2">
@@ -589,31 +637,41 @@
                         </div>
                     </div>
 
+                    {{-- ── Painel do Dia ────────────────────────────────────── --}}
                     <div class="border border-gray-200 rounded-xl shadow-sm bg-white">
                         <div class="px-4 py-3 border-b border-gray-100 bg-slate-50 rounded-t-xl">
                             <p class="text-sm font-semibold text-gray-700" x-text="`Agenda de ${formatarDataBr(diaSelecionado)}`"></p>
                             <p class="text-xs text-gray-500" x-text="`${eventosDia.length} atendimento(s) | ${tecnicosLivresDia.length} técnico(s) livre(s)`"></p>
                         </div>
 
-                        <div class="max-h-[420px] overflow-auto p-3 space-y-3">
+                        <div class="max-h-[520px] overflow-auto p-3 space-y-3">
                             <template x-if="eventosDia.length === 0">
                                 <div class="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-500 text-center">Nenhum atendimento agendado para este dia.</div>
                             </template>
 
                             <template x-for="evento in eventosDia" :key="evento.id">
-                                <a :href="evento.url" class="block border border-gray-200 rounded-lg p-3 hover:bg-gray-50 hover:shadow-sm transition">
+                                <div @click="verDetalhes(evento)"
+                                     class="block border rounded-lg p-3 cursor-pointer hover:shadow-sm transition"
+                                     :class="eventoSelecionado?.id === evento.id ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:bg-gray-50'">
                                     <div class="flex items-center justify-between gap-2 mb-1">
-                                        <p class="text-xs font-bold text-gray-700" x-text="`#${evento.numero_atendimento}`"></p>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <p class="text-xs font-bold text-gray-700" x-text="`#${evento.numero_atendimento}`"></p>
+                                            <template x-if="evento.numero_orcamento">
+                                                <span class="text-xs font-semibold text-purple-600" x-text="`· ${evento.numero_orcamento}`"></span>
+                                            </template>
+                                        </div>
                                         <p class="text-xs font-bold text-teal-700" x-text="evento.inicio ? `${evento.inicio}${evento.fim ? ' às ' + evento.fim : ''}` : 'Sem horário'"></p>
                                     </div>
                                     <p class="text-sm font-semibold text-gray-900" x-text="evento.cliente_nome"></p>
+                                    <p class="text-xs text-gray-400 mt-0.5" x-text="evento.empresa_nome"></p>
                                     <p class="text-xs text-gray-600 mt-1" x-text="`Técnico: ${evento.tecnico_nome}`"></p>
                                     <div class="mt-2 flex items-center gap-1 flex-wrap">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-slate-100 text-slate-700" x-text="evento.tipo_demanda"></span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-slate-100 text-slate-700"
+                                              x-text="evento.numero_orcamento ? 'orçamento' : 'atendimento'"></span>
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold" :class="chipPrioridade(evento.prioridade)" x-text="evento.prioridade"></span>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700" x-text="evento.status.replace('_', ' ')"></span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700" x-text="evento.status.replace(/_/g, ' ')"></span>
                                     </div>
-                                </a>
+                                </div>
                             </template>
 
                             <template x-if="mostrarDiasLivres && tecnicosLivresDia.length > 0">
