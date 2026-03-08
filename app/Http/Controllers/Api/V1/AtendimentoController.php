@@ -88,14 +88,26 @@ class AtendimentoController extends Controller
     {
         $atendimento = Atendimento::findOrFail($id);
 
+        // Se já estiver em atendimento mas com flags erradas (limbo), permite "reiniciar" ou corrigir
+        if ($atendimento->status_atual === "em_atendimento" && !$atendimento->em_execucao && !$atendimento->em_pausa) {
+             $atendimento->update([
+                "em_execucao" => true,
+                "em_pausa" => false,
+                "iniciado_em" => now(),
+            ]);
+            return response()->json(['data' => $atendimento->fresh(), 'message' => 'Estado corrigido e atendimento iniciado']);
+        }
+
         if ($atendimento->status_atual !== "aberto") {
-            return response()->json(["message" => "Atendimento não pode ser iniciado"], 400);
+            return response()->json(["message" => "Atendimento não pode ser iniciado. Status atual: " . $atendimento->status_atual], 400);
         }
 
         $atendimento->update([
             "status_atual" => "em_atendimento",
             "iniciado_em" => now(),
             "iniciado_por_user_id" => auth()->id(),
+            "em_execucao" => true,
+            "em_pausa" => false,
         ]);
 
         AtendimentoAndamento::create([
@@ -126,29 +138,38 @@ class AtendimentoController extends Controller
                 return response()->json(['message' => 'Atendimento não está em execução'], 400);
             }
 
-            // Atualizar estado corretamente (NÃO muda status_atual, só em_execucao e em_pausa)
+            $agora = now();
+            $tempoDecorrido = 0;
+
+            if ($atendimento->iniciado_em) {
+                $tempoDecorrido = max(0, $agora->timestamp - $atendimento->iniciado_em->timestamp);
+            }
+
+            $novoTempoExecucao = ($atendimento->tempo_execucao_segundos ?? 0) + $tempoDecorrido;
+
+            // Atualizar estado corretamente
             $atendimento->update([
                 "em_execucao" => false,
                 "em_pausa" => true,
+                "tempo_execucao_segundos" => $novoTempoExecucao,
             ]);
 
             // Criar pausa com campos corretos
-            $pausa = AtendimentoPausa::create([
+            AtendimentoPausa::create([
                 "atendimento_id" => $atendimento->id,
                 "user_id" => auth()->id(),
                 "tipo_pausa" => in_array($request->tipo_pausa, ['almoco', 'deslocamento', 'material', 'fim_dia']) ? $request->tipo_pausa : 'deslocamento',
-                "iniciada_em" => now(),
+                "iniciada_em" => $agora,
             ]);
 
             return response()->json(['data' => $atendimento->fresh()]);
 
         } catch (\Exception $e) {
-            // Log do erro para debug
             \Log::error('Erro ao pausar atendimento: ' . $e->getMessage(), [
                 'atendimento_id' => $id,
                 'stack' => $e->getTraceAsString(),
             ]);
-            return response()->json(['message' => 'Server Error'], 500);
+            return response()->json(['message' => 'Server Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -157,14 +178,35 @@ class AtendimentoController extends Controller
         try {
             $atendimento = Atendimento::findOrFail($id);
 
+            // Se estiver no limbo (em_atendimento mas flags false), forçar retomada
+            if ($atendimento->status_atual === "em_atendimento" && !$atendimento->em_execucao && !$atendimento->em_pausa) {
+                $atendimento->update([
+                    "em_execucao" => true,
+                    "em_pausa" => false,
+                    "iniciado_em" => now(),
+                ]);
+                return response()->json(['data' => $atendimento->fresh(), 'message' => 'Atendimento retirado do estado inconsistente']);
+            }
+
             if (!$atendimento->em_pausa) {
                 return response()->json(['message' => 'Atendimento não está pausado'], 400);
             }
+
+            $pausaAtiva = $atendimento->pausaAtiva();
+            $tempoPausa = 0;
+            if ($pausaAtiva) {
+                $pausaAtiva->encerrar();
+                $tempoPausa = $pausaAtiva->tempo_segundos ?? 0;
+            }
+
+            $novoTempoPausa = ($atendimento->tempo_pausa_segundos ?? 0) + $tempoPausa;
 
             $atendimento->update([
                 "em_execucao" => true,
                 "em_pausa" => false,
                 "status_atual" => "em_atendimento",
+                "iniciado_em" => now(), // Reinicia base para próximo cálculo de execução
+                "tempo_pausa_segundos" => $novoTempoPausa,
             ]);
 
             return response()->json(['data' => $atendimento->fresh()]);
@@ -174,7 +216,7 @@ class AtendimentoController extends Controller
                 'atendimento_id' => $id,
                 'stack' => $e->getTraceAsString(),
             ]);
-            return response()->json(['message' => 'Server Error'], 500);
+            return response()->json(['message' => 'Server Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -183,14 +225,34 @@ class AtendimentoController extends Controller
         $atendimento = Atendimento::findOrFail($id);
 
         if (!in_array($atendimento->status_atual, ["em_atendimento", "pausado"])) {
-            return response()->json(["message" => "Atendimento não pode ser finalizado"], 400);
+            return response()->json(["message" => "Atendimento não pode ser finalizado. Status: " . $atendimento->status_atual], 400);
+        }
+
+        $agora = now();
+        $tempoExecucao = $atendimento->tempo_execucao_segundos ?? 0;
+
+        if ($atendimento->em_execucao && $atendimento->iniciado_em) {
+            $tempoDecorrido = max(0, $agora->timestamp - $atendimento->iniciado_em->timestamp);
+            $tempoExecucao += $tempoDecorrido;
+        }
+
+        // Se finalizar enquanto pausado, encerrar a pausa também
+        if ($atendimento->em_pausa) {
+            $pausaAtiva = $atendimento->pausaAtiva();
+            if ($pausaAtiva) {
+                $pausaAtiva->encerrar();
+                $atendimento->tempo_pausa_segundos = ($atendimento->tempo_pausa_segundos ?? 0) + ($pausaAtiva->tempo_segundos ?? 0);
+            }
         }
 
         $atendimento->update([
             "status_atual" => "concluido",
-            "finalizado_em" => now(),
+            "finalizado_em" => $agora,
             "finalizado_por_user_id" => auth()->id(),
             "observacoes_finais" => $request->observacoes,
+            "em_execucao" => false,
+            "em_pausa" => false,
+            "tempo_execucao_segundos" => $tempoExecucao,
         ]);
 
         return response()->json(['data' => $atendimento->fresh()]);
