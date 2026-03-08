@@ -15,22 +15,41 @@ class DashboardTecnicoController extends Controller
         $user = $request->user();
         $funcionarioId = $user->funcionario_id;
 
+        $periodo = $request->query("periodo", "todos");
+
+        // Builder base com filtro de funcionário
+        $queryBase = Atendimento::where("funcionario_id", $funcionarioId);
+
+        // Aplicar filtro de período
+        if ($periodo === "hoje") {
+            $queryBase->whereDate("data_atendimento", Carbon::today());
+        } elseif ($periodo === "semana") {
+            $queryBase->whereBetween("data_atendimento", [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek(),
+            ]);
+        } elseif ($periodo === "mes") {
+            $queryBase->whereMonth("data_atendimento", Carbon::now()->month)
+                ->whereYear("data_atendimento", Carbon::now()->year);
+        }
+        // 'todos' não aplica filtro de data
+
         // Status válidos: aberto, em_atendimento, finalizacao, concluido, cancelado
-        // KPIs - Sempre filtra por funcionario_id
-        $pendentes = Atendimento::where("status_atual", "aberto")
-            ->where("funcionario_id", $funcionarioId)
+        // KPIs - Sempre filtra por funcionario_id e período selecionado
+        $pendentes = (clone $queryBase)
+            ->where("status_atual", "aberto")
             ->count();
 
-        $emAndamento = Atendimento::where("status_atual", "em_atendimento")
-            ->where("funcionario_id", $funcionarioId)
+        $emAndamento = (clone $queryBase)
+            ->where("status_atual", "em_atendimento")
             ->count();
 
-        $concluidos = Atendimento::where("status_atual", "concluido")
-            ->where("funcionario_id", $funcionarioId)
+        $concluidos = (clone $queryBase)
+            ->where("status_atual", "concluido")
             ->count();
 
-        $cancelados = Atendimento::where("status_atual", "cancelado")
-            ->where("funcionario_id", $funcionarioId)
+        $cancelados = (clone $queryBase)
+            ->where("status_atual", "cancelado")
             ->count();
 
         $total = $pendentes + $emAndamento + $concluidos + $cancelados;
@@ -43,17 +62,16 @@ class DashboardTecnicoController extends Controller
         $horasTrabalhadasHoje = $concluidosHoje * 1.5;
         $horasTrabalhadasSemana = $concluidos * 1.5;
 
-        // Atendimento em andamento
-        $atendimentoEmAndamento = Atendimento::with(["cliente"])
+        // Atendimento em andamento (com filtro de período)
+        $atendimentoEmAndamento = (clone $queryBase)
+            ->with(["cliente"])
             ->where("status_atual", "em_atendimento")
-            ->where("funcionario_id", $funcionarioId)
             ->first();
 
         // Próximos atendimentos
         $proximosAtendimentos = collect();
 
-        $periodo = $request->query("periodo", "todos");
-        $periodoLabel = $periodo === "hoje" ? "Hoje" : ($periodo === "semana" ? "Esta Semana" : "Todos");
+        $periodoLabel = $periodo === "hoje" ? "Hoje" : ($periodo === "semana" ? "Esta Semana" : ($periodo === "mes" ? "Este Mês" : "Todos"));
 
         return response()->json([
             "data" => [

@@ -116,6 +116,21 @@
                     <form method="POST" action="{{ route('login') }}" class="space-y-5" id="loginForm">
                         @csrf
 
+                        <!-- Mensagem de erro 419 (CSRF expirado) -->
+                        @if ($errors->has('email') && str_contains($errors->first('email'), 'CSRF'))
+                        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold">Sessão expirada</p>
+                                    <p class="text-sm mt-1">Por segurança, seu token de autenticação expirou. Por favor, tente novamente.</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Email Input -->
                         <div>
                             <label for="email" class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Email</label>
@@ -241,6 +256,90 @@
 
             }
         }
+
+        // Auto-refresh do token CSRF para prevenir erro 419
+        // Renova o token a cada 30 minutos (antes da expiração de 120 min)
+        let csrfRefreshInterval;
+
+        function startCsrfRefresh() {
+            // Primeiro refresh após 30 minutos
+            csrfRefreshInterval = setInterval(refreshCsrfToken, 30 * 60 * 1000);
+        }
+
+        async function refreshCsrfToken() {
+            try {
+                const response = await fetch('{{ route("csrf.refresh") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Atualiza o token CSRF no formulário
+                    const csrfInput = document.querySelector('input[name="_token"]');
+                    if (csrfInput) {
+                        csrfInput.value = data.token;
+                        console.log('Token CSRF renovado com sucesso');
+                    }
+                } else {
+                    console.warn('Falha ao renovar token CSRF:', response.status);
+                }
+            } catch (error) {
+                console.warn('Erro ao renovar token CSRF:', error);
+            }
+        }
+
+        // Detectar erro 419 e recarregar a página
+        function handle419Error() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('expired') === '1') {
+                showSessionExpiredMessage();
+                // Limpar parâmetro da URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function showSessionExpiredMessage() {
+            // Criar notificação de sessão expirada
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 z-50 bg-yellow-50 border border-yellow-200 rounded-xl p-4 shadow-lg max-w-sm';
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-semibold text-yellow-800">Sessão expirada</p>
+                        <p class="text-sm text-yellow-700 mt-1">Seu token de segurança expirou. A página foi recarregada para sua segurança.</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            // Remover após 5 segundos
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Iniciar refresh do CSRF ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            startCsrfRefresh();
+            handle419Error();
+
+            // Intercepta submit do formulário para detectar erro 419
+            const form = document.getElementById('loginForm');
+            const originalSubmit = form.submit;
+
+            form.addEventListener('submit', async function(e) {
+                // Se já está sendo submetido normalmente, não interfere
+                // Apenas monitora se há redirecionamento com erro
+            });
+        });
     </script>
 </body>
 

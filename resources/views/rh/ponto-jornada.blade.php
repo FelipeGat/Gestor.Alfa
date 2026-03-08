@@ -143,6 +143,13 @@
 
                     for (const campo of campos) {
                         const ponto = this.detalhesBatida[campo] || {};
+                        
+                        // Se já veio endereço do backend, usar diretamente
+                        if (ponto.endereco) {
+                            this.detalhesBatida[campo] = { ...ponto, endereco: ponto.endereco };
+                            continue;
+                        }
+                        
                         if (!this.coordenadasValidas(ponto.latitude, ponto.longitude)) {
                             this.detalhesBatida[campo] = { ...ponto, endereco: null };
                             continue;
@@ -532,10 +539,10 @@
                                             @click="abrirModalDetalhesBatida({
                                                 funcionario_nome: {{ \Illuminate\Support\Js::from($linha['funcionario'] ?? '') }},
                                                 data_referencia: {{ \Illuminate\Support\Js::from($linha['data'] ?? '') }},
-                                                entrada: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['entrada'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
-                                                intervalo_inicio: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_inicio'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
-                                                intervalo_fim: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_fim'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }},
-                                                saida: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['saida'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null]) }}
+                                                entrada: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['entrada'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null, 'endereco' => null]) }},
+                                                intervalo_inicio: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_inicio'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null, 'endereco' => null]) }},
+                                                intervalo_fim: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['intervalo_fim'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null, 'endereco' => null]) }},
+                                                saida: {{ \Illuminate\Support\Js::from($linha['detalhes_batida']['saida'] ?? ['horario' => '—', 'foto_url' => null, 'latitude' => null, 'longitude' => null, 'endereco' => null]) }}
                                             })">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-9-3a1 1 0 112 0 1 1 0 01-2 0zm2 7a1 1 0 10-2 0 1 1 0 002 0zm-2-5a1 1 0 000 2v2a1 1 0 102 0v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />

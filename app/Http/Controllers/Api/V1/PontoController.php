@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegistrarPontoRequest;
 use App\Models\RegistroPontoPortal;
+use App\Services\GeocodingService;
 use App\Traits\CalculaPonto;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +14,10 @@ use Illuminate\Http\Request;
 class PontoController extends Controller
 {
     use CalculaPonto;
+
+    public function __construct(
+        protected GeocodingService $geocodingService
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -48,6 +54,13 @@ class PontoController extends Controller
                 'registrado_fora_atendimento' => $registro->registrado_fora_atendimento,
                 'distancia_atendimento_metros' => $registro->distancia_atendimento_metros,
                 'justificativa_fora_atendimento' => $registro->justificativa_fora_atendimento,
+                'endereco_logradouro' => $registro->endereco_logradouro,
+                'endereco_numero' => $registro->endereco_numero,
+                'endereco_bairro' => $registro->endereco_bairro,
+                'endereco_cidade' => $registro->endereco_cidade,
+                'endereco_estado' => $registro->endereco_estado,
+                'endereco_cep' => $registro->endereco_cep,
+                'endereco_formatado' => $registro->endereco_formatado,
                 'tempo_trabalhado_segundos' => $segundosTrabalhados,
                 'tempo_trabalhado_formatado' => $this->formatarSegundos($segundosTrabalhados),
                 'status' => $this->resolverStatus($registro, $segundosTrabalhados, $dataReferencia),
@@ -100,7 +113,7 @@ class PontoController extends Controller
         }
 
         // Calcular tempo trabalhado (usa mesma lógica do sistema web)
-        $tempoTrabalhadoSegundos = $this->calcularSegundosTrabalhados($registro);
+        $tempoTrabalhadoSegundos = $registro ? $this->calcularSegundosTrabalhados($registro) : 0;
         $tempoTrabalhadoFormatado = $this->formatarSegundos($tempoTrabalhadoSegundos);
 
         // Determinar data de referência para resposta
@@ -117,10 +130,17 @@ class PontoController extends Controller
             'proximo_evento' => $proximoEvento,
             'proximo_evento_label' => $proximoEvento ? ucfirst(str_replace('_', ' ', $proximoEvento)) : null,
             'data_referencia' => $dataReferencia,
+            'endereco_logradouro' => $registro?->endereco_logradouro,
+            'endereco_numero' => $registro?->endereco_numero,
+            'endereco_bairro' => $registro?->endereco_bairro,
+            'endereco_cidade' => $registro?->endereco_cidade,
+            'endereco_estado' => $registro?->endereco_estado,
+            'endereco_cep' => $registro?->endereco_cep,
+            'endereco_formatado' => $registro?->endereco_formatado,
         ]);
     }
 
-    public function registrar(Request $request): JsonResponse
+    public function registrar(RegistrarPontoRequest $request): JsonResponse
     {
         $user = $request->user();
         $funcionarioId = $user->funcionario?->id;
@@ -129,12 +149,7 @@ class PontoController extends Controller
             return response()->json(['message' => 'Funcionário não encontrado'], 400);
         }
 
-        $validated = $request->validate([
-            'tipo' => 'required|in:entrada,intervalo_inicio,intervalo_fim,saida',
-            'foto' => 'nullable|image|mimes:jpeg,png|max:2048',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-        ]);
+        $validated = $request->validated();
 
         $registro = RegistroPontoPortal::firstOrNew([
             'funcionario_id' => $funcionarioId,
@@ -169,6 +184,24 @@ class PontoController extends Controller
         }
         if ($request->has('longitude')) {
             $registro->{$campoLongitude} = $request->longitude;
+        }
+
+        // Reverse geocoding: converter coordenadas em endereço
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $endereco = $this->geocodingService->reverseGeocode(
+                (float) $request->latitude,
+                (float) $request->longitude
+            );
+
+            if ($endereco) {
+                $registro->endereco_logradouro = $endereco['endereco_logradouro'];
+                $registro->endereco_numero = $endereco['endereco_numero'];
+                $registro->endereco_bairro = $endereco['endereco_bairro'];
+                $registro->endereco_cidade = $endereco['endereco_cidade'];
+                $registro->endereco_estado = $endereco['endereco_estado'];
+                $registro->endereco_cep = $endereco['endereco_cep'];
+                $registro->endereco_formatado = $endereco['endereco_formatado'];
+            }
         }
 
         if ($request->hasFile('foto')) {
