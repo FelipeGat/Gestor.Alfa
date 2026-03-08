@@ -57,6 +57,8 @@ class Cliente extends Model
         'inscricao_estadual',
         'inscricao_municipal',
         'observacoes',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [
