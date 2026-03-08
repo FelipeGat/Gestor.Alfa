@@ -8,10 +8,17 @@ use Illuminate\Support\Facades\DB;
 use App\Models\OrcamentoItem;
 use App\Models\OrcamentoTaxa;
 use App\Models\OrcamentoPagamento;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Orcamento extends Model
 {
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll()->dontSubmitEmptyLogs();
+    }
 
     public function centroCusto()
     {

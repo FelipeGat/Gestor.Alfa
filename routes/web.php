@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\RelatorioComercialController;
 use App\Http\Controllers\RelatorioCustosOrcamentosController;
 use App\Http\Controllers\RelatorioFinanceiroController;
@@ -36,6 +37,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('relatorios.modulo');
     Route::get('/relatorios/modulo/imprimir', [RelatoriosModuloController::class, 'imprimir'])
         ->name('relatorios.modulo.imprimir');
+    Route::get('/relatorios/auditoria', [AuditoriaController::class, 'index'])
+        ->name('relatorios.auditoria');
 
     // Cadastros
     Route::get('/cadastros', function () {
@@ -502,6 +505,12 @@ Route::middleware(['auth', 'financeiro', 'primeiro_acesso'])
             [ContasReceberController::class, 'destroy']
         )->middleware('rate.forms')
             ->name('contasareceber.destroy');
+
+        Route::post(
+            '/contas-a-receber/{cobranca}/renegociar',
+            [ContasReceberController::class, 'renegociar']
+        )->middleware('rate.forms')
+            ->name('contasareceber.renegociar');
 
         // Contas Fixas
         Route::post(

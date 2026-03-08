@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Cliente extends Model
 {
@@ -13,7 +15,12 @@ class Cliente extends Model
         return $this->hasMany(\App\Models\Atendimento::class);
     }
 
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll()->dontSubmitEmptyLogs();
+    }
 
     /**
      * Retorna o CPF ou CNPJ formatado

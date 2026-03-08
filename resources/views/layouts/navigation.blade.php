@@ -286,6 +286,7 @@
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'comercial']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Comerciais">Comercial</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'tecnico']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios Técnicos">Técnico</a>
                                     <a href="{{ route('relatorios.modulo', ['tipo' => 'rh']) }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Relatórios RH">RH</a>
+                                    <a href="{{ route('relatorios.auditoria') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Auditoria do Sistema">Auditoria</a>
                                     @endif
                                 </div>
                             </div>
@@ -611,6 +612,7 @@
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'comercial'])" data-tab-icon="relatorios">Comercial</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'tecnico'])" data-tab-icon="relatorios">Técnico</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('relatorios.modulo', ['tipo' => 'rh'])" data-tab-icon="relatorios">RH</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('relatorios.auditoria')" data-tab-icon="relatorios">Auditoria</x-responsive-nav-link>
                         @endif
                     </div>
                 </details>
