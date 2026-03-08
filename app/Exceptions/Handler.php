@@ -6,6 +6,8 @@ use App\Domain\Exceptions\DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -25,8 +27,26 @@ class Handler extends ExceptionHandler
         });
     }
 
-    public function render($request, Throwable $e): JsonResponse|\Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response
+    public function render($request, Throwable $e): JsonResponse|\Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response|RedirectResponse
     {
+        // Tratar erro 419 (CSRF Token Mismatch) - redirecionar de volta para login
+        if ($e instanceof TokenMismatchException) {
+            // Se for uma requisição AJAX/JSON, retorna erro JSON
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Sessão expirada. Por favor, recarregue a página e tente novamente.',
+                ], 419);
+            }
+
+            // Para requisições web, redireciona de volta com o email preenchido
+            return redirect()
+                ->back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'Sua sessão expirou por segurança. Por favor, tente novamente.',
+                ]);
+        }
+
         if ($request->expectsJson() || $request->is('api/*')) {
             return $this->handleApiException($request, $e);
         }

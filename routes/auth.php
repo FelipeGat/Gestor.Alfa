@@ -22,6 +22,10 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
+    // Rota para refresh do token CSRF (previne erro 419)
+    Route::get('csrf-refresh', [AuthenticatedSessionController::class, 'refreshCsrf'])
+        ->name('csrf.refresh');
+
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
