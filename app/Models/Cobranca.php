@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Cobranca extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll()->dontSubmitEmptyLogs();
+    }
 
     /**
      * Accessor para empresa relacionada via Conta Fixa ou Orçamento
@@ -105,7 +112,10 @@ class Cobranca extends Model
             return 'pago';
         }
 
-        $hoje = Carbon::today();
+        // Sem data de vencimento definida (cobranças em aberto sem prazo)
+        if (! $this->data_vencimento) {
+            return 'em_aberto';
+        }
 
         if ($this->data_vencimento->isToday()) {
             return 'vence_hoje';

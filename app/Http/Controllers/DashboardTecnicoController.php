@@ -255,6 +255,8 @@ class DashboardTecnicoController extends Controller
                 'empresa:id,nome_fantasia',
                 'assunto:id,nome',
                 'funcionario.user:id,name,funcionario_id',
+                'orcamento:id,numero_orcamento,pre_cliente_id,atendimento_id',
+                'orcamento.preCliente:id,nome_fantasia,razao_social',
             ])
             ->whereNotNull('funcionario_id')
             ->where(function ($query) use ($agendaInicio, $agendaFim) {
@@ -288,9 +290,17 @@ class DashboardTecnicoController extends Controller
                 return [
                     'id' => (int) $atendimento->id,
                     'numero_atendimento' => (string) ($atendimento->numero_atendimento ?: ('#' . $atendimento->id)),
+                    'numero_orcamento'   => (string) ($atendimento->orcamento?->numero_orcamento ?? ''),
                     'tecnico_id' => (int) $atendimento->funcionario_id,
                     'tecnico_nome' => (string) ($atendimento->funcionario?->user?->name ?? '—'),
-                    'cliente_nome' => (string) ($atendimento->cliente?->nome_fantasia ?: ($atendimento->cliente?->nome ?: ($atendimento->cliente?->razao_social ?? 'Sem cliente'))),
+                    'cliente_nome' => (string) (
+                        $atendimento->cliente?->nome_fantasia
+                        ?: $atendimento->cliente?->nome
+                        ?: $atendimento->cliente?->razao_social
+                        ?: $atendimento->orcamento?->preCliente?->nome_fantasia
+                        ?: $atendimento->orcamento?->preCliente?->razao_social
+                        ?? 'Sem cliente'
+                    ),
                     'empresa_nome' => (string) ($atendimento->empresa?->nome_fantasia ?? '—'),
                     'assunto_nome' => (string) ($atendimento->assunto?->nome ?? 'Sem assunto'),
                     'status' => (string) ($atendimento->status_atual ?? '—'),

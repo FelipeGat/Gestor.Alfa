@@ -105,7 +105,7 @@
             </div>
 
             {{-- ================= FILTROS ================= --}}
-            
+
             <form method="GET" action="{{ route('financeiro.movimentacao') }}" class="filters-card">
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2">
                     <div class="filter-group relative">
@@ -348,7 +348,11 @@
                                     $contaMov = null;
                                     $formaPagtoMov = null;
                                     $empresaMov = null;
-                                    // Corrige descrição e cliente para movimentações financeiras de recebimento
+                                    // Entrada direta de cobrança (stdClass — novo fluxo pós-refatoração)
+                                    if ($isEntrada && isset($mov->is_financeiro) && !$mov->is_financeiro) {
+                                        $clienteMov = $mov->cliente ?? null;
+                                    }
+                                    // Corrige descrição e cliente para movimentações financeiras de recebimento (fluxo legado)
                                     if ($isEntrada && isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
                                         $cobranca = \App\Models\Cobranca::with(['cliente', 'orcamento'])->find($matches[1]);
                                         if ($cobranca) {
@@ -469,7 +473,7 @@
                                     <td>
                                         @php
                                             $usuario = null;
-                                            
+
                                             if (isset($mov->usuario) && is_object($mov->usuario)) {
                                                 $usuario = $mov->usuario;
                                             } elseif (isset($mov->user) && is_object($mov->user)) {
@@ -488,20 +492,28 @@
                                         <div class="flex items-center gap-2">
 
                                             @if($isEntrada)
-                                            {{-- IMPRIMIR COMPROVANTE --}}
-                                            <a href="{{ route('financeiro.cobrancas.recibo', $mov) }}"
+                                            {{-- IMPRIMIR COMPROVANTE (apenas cobranças, não ajustes financeiros) --}}
+                                            @if(!($mov->is_financeiro ?? false) && isset($mov->cobranca))
+                                            <a href="{{ route('financeiro.cobrancas.recibo', $mov->cobranca) }}"
                                                 target="_blank"
                                                 class="btn btn-secondary btn-sm"
                                                 title="Imprimir Comprovante">
                                                 🖨️
                                             </a>
+                                            @endif
 
                                             {{-- DELETAR / ESTORNAR --}}
                                             @php
-                                                // Para movimentações de recebimento, buscar o ID da cobrança
+                                                // Buscar o ID da cobrança para estorno
                                                 $cobrancaId = null;
-                                                if ($isEntrada && isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
-                                                    $cobrancaId = $matches[1];
+                                                if ($isEntrada) {
+                                                    if (!($mov->is_financeiro ?? false) && isset($mov->cobranca)) {
+                                                        // Entrada direta de cobrança (novo fluxo)
+                                                        $cobrancaId = $mov->cobranca->id;
+                                                    } elseif (isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
+                                                        // Entrada via MovimentacaoFinanceira (fluxo legado)
+                                                        $cobrancaId = $matches[1];
+                                                    }
                                                 }
                                             @endphp
                                             @if($cobrancaId)

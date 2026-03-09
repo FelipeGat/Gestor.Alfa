@@ -305,6 +305,9 @@
                                     <a href="{{ route('rh.ponto-jornada.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Ponto & Jornada">Ponto & Jornada</a>
                                     <a href="{{ route('rh.jornadas.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Jornada">Jornadas</a>
                                     <a href="{{ route('rh.feriados.index') }}" class="portal-nav-item py-1 text-xs" data-tab-link data-tab-label="Cadastro de Feriados">Feriados</a>
+                                    @if($isAdmin)
+                                    <a href="{{ route('relatorios.auditoria') }}" class="portal-nav-item py-1 text-xs text-red-700 font-bold" data-tab-link data-tab-label="Auditoria do Sistema">Auditoria</a>
+                                    @endif
                                 </div>
                             </div>
                             @endif

@@ -11,10 +11,17 @@ use App\Models\Funcionario;
 use App\Models\Assunto;
 use App\Models\Orcamento;
 use App\Models\Equipamento;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Atendimento extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll()->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'numero_atendimento',

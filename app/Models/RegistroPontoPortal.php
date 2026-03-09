@@ -3,10 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class RegistroPontoPortal extends Model
 {
+    use LogsActivity;
+
     protected $table = 'registro_pontos_portal';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logOnly([
+            'data_referencia', 'entrada_em', 'intervalo_inicio_em',
+            'intervalo_fim_em', 'saida_em', 'observacao',
+            'registrado_fora_atendimento',
+        ])->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'funcionario_id',

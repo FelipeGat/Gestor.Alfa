@@ -42,6 +42,9 @@ class AuthenticatedSessionController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        // Registrar evento de login na auditoria
+        activity()->causedBy($user)->log('login');
+
         // Redirecionamento para Comercial
         if ($user->tipo === 'comercial') {
             return redirect()->route('dashboard.comercial');
@@ -76,6 +79,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Capturar usuário antes do logout para registrar na auditoria
+        $user = Auth::user();
+        if ($user) {
+            activity()->causedBy($user)->log('logout');
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

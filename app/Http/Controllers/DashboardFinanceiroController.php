@@ -548,67 +548,102 @@ class DashboardFinanceiroController extends Controller
         $percentualMeta = $orcado > 0 ? round(($realizado / $orcado) * 100, 1) : 0;
 
         // ================= ALERTAS E INSIGHTS AUTOMÁTICOS =================
+        // Baseados em dados reais do período selecionado — sem dependência de nomes de categoria fixos.
         $alertasFinanceiros = [];
-        // 1) Gastos acima do normal em Alimentação
-        $categoriaAlimentacao = \App\Models\Categoria::where('nome', 'Alimentação')->first();
-        if ($categoriaAlimentacao) {
-            // Buscar IDs das subcategorias de Alimentação
-            $subcategoriasIds = $categoriaAlimentacao->subcategorias->pluck('id');
-            // Buscar IDs das contas dessas subcategorias
-            $contasIds = \App\Models\Conta::whereIn('subcategoria_id', $subcategoriasIds)->pluck('id');
-            // Média dos últimos 3 meses
-            $mediaUltimos3 = ContaPagar::where('status', 'pago')
-                ->whereIn('conta_id', $contasIds)
-                ->whereBetween('data_pagamento', [
-                    Carbon::parse($inicio)->copy()->subMonths(3)->startOfMonth(),
-                    Carbon::parse($inicio)->copy()->subMonths(1)->endOfMonth()
-                ])
-                ->sum('valor') / 3;
-            // Gasto atual
-            $gastoAtual = ContaPagar::where('status', 'pago')
-                ->whereIn('conta_id', $contasIds)
-                ->whereBetween('data_pagamento', [$inicio, $fim])
-                ->sum('valor');
-            if ($mediaUltimos3 > 0 && $gastoAtual > $mediaUltimos3 * 1.2) {
-                $percentualAcima = round((($gastoAtual - $mediaUltimos3) / $mediaUltimos3) * 100, 1);
+
+        // ── 1) Saldo do período: despesas superam receitas ──────────────────────────────
+        if ($despesaRealizada > 0 && $despesaRealizada > $receitaRealizada) {
+            $deficit = $despesaRealizada - $receitaRealizada;
+            $alertasFinanceiros[] = [
+                'tipo'     => 'alerta',
+                'mensagem' => 'As despesas realizadas (R$ ' . number_format($despesaRealizada, 2, ',', '.') . ') superaram as receitas (R$ ' . number_format($receitaRealizada, 2, ',', '.') . ') em R$ ' . number_format($deficit, 2, ',', '.') . ' no período.',
+            ];
+        }
+
+        // ── 2) Cobranças vencidas representam risco alto de inadimplência ───────────────
+        if ($receitasAtrasadas > 0) {
+            $totalReceberGlobal = Cobranca::where('status', '!=', 'pago')->sum('valor') ?: 1;
+            $percInadimplencia = round(($receitasAtrasadas / $totalReceberGlobal) * 100, 1);
+            if ($percInadimplencia >= 30) {
                 $alertasFinanceiros[] = [
-                    'tipo' => 'alerta',
-                    'mensagem' => "Gastos acima do normal em Alimentação: {$percentualAcima}% acima da média dos últimos 3 meses.",
+                    'tipo'     => 'alerta',
+                    'mensagem' => "Inadimplência crítica: {$percInadimplencia}% das cobranças em aberto estão vencidas (R$ " . number_format($receitasAtrasadas, 2, ',', '.') . ').',
+                ];
+            } elseif ($percInadimplencia >= 10) {
+                $alertasFinanceiros[] = [
+                    'tipo'     => 'info',
+                    'mensagem' => "Atenção: {$percInadimplencia}% das cobranças em aberto estão vencidas (R$ " . number_format($receitasAtrasadas, 2, ',', '.') . '). Considere acionar os clientes.',
                 ];
             }
         }
 
-        // 2) Meta de economia atingida
-        $categoriaEconomia = \App\Models\Categoria::where('nome', 'Economia')->first();
-        if ($categoriaEconomia) {
-            $subcategoriasIds = $categoriaEconomia->subcategorias->pluck('id');
-            $contasIds = \App\Models\Conta::whereIn('subcategoria_id', $subcategoriasIds)->pluck('id');
-            // Orçado: soma de contas fixas dessa categoria
-            $orcadoEconomia = \App\Models\ContaFixaPagar::whereIn('conta_id', $contasIds)
-                ->where(function ($q) use ($inicio, $fim) {
-                    $q->whereNull('data_fim')
-                        ->orWhere('data_fim', '>=', $inicio->format('Y-m-d'));
+        // ── 3) Despesas atrasadas representam risco para o fluxo de caixa ───────────────
+        if ($despesasAtrasadas > 0) {
+            $alertasFinanceiros[] = [
+                'tipo'     => 'alerta',
+                'mensagem' => 'Existem R$ ' . number_format($despesasAtrasadas, 2, ',', '.') . ' em despesas vencidas e não pagas. Regularize para evitar juros e multas.',
+            ];
+        }
+
+        // ── 4) Concentração de receita em uma única empresa ─────────────────────────────
+        if ($receitaRealizada > 0 && !$empresaId) {
+            $receitaTopEmpresa = Cobranca::where('status', 'pago')
+                ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
+                ->whereDate('data_pagamento', '<=', $fim->format('Y-m-d'))
+                ->with('orcamento:id,empresa_id', 'orcamento.empresa:id,nome_fantasia,razao_social',
+                        'contaFixa:id,empresa_id', 'contaFixa.empresa:id,nome_fantasia,razao_social')
+                ->get()
+                ->groupBy(function ($c) {
+                    if ($c->orcamento && $c->orcamento->empresa_id) return $c->orcamento->empresa_id;
+                    if ($c->contaFixa && $c->contaFixa->empresa_id) return $c->contaFixa->empresa_id;
+                    return 0;
                 })
-                ->where('data_inicial', '<=', $fim->format('Y-m-d'))
-                ->where('ativo', true)
-                ->sum('valor');
-            // Realizado: soma de contas pagas dessa categoria
-            $realizadoEconomia = ContaPagar::where('status', 'pago')
-                ->whereIn('conta_id', $contasIds)
-                ->whereBetween('data_pagamento', [$inicio, $fim])
-                ->sum('valor');
-            if ($orcadoEconomia > 0 && $realizadoEconomia >= $orcadoEconomia) {
+                ->map(function ($group) {
+                    $first = $group->first();
+                    $nome = $first->orcamento?->empresa?->nome_fantasia
+                         ?? $first->orcamento?->empresa?->razao_social
+                         ?? $first->contaFixa?->empresa?->nome_fantasia
+                         ?? 'Sem empresa';
+                    return ['total' => $group->sum('valor'), 'nome' => $nome];
+                })
+                ->sortByDesc('total')
+                ->first();
+            if ($receitaTopEmpresa) {
+                $percConcentracao = round(($receitaTopEmpresa['total'] / $receitaRealizada) * 100, 1);
+                if ($percConcentracao >= 70) {
+                    $alertasFinanceiros[] = [
+                        'tipo'     => 'info',
+                        'mensagem' => "Atenção à concentração: {$percConcentracao}% das receitas do período vêm apenas de <b>{$receitaTopEmpresa['nome']}</b>. Diversificar reduz o risco.",
+                    ];
+                }
+            }
+        }
+
+        // ── 5) Período com saldo positivo e sem inadimplência ───────────────────────────
+        if ($receitaRealizada > 0 && $receitaRealizada > $despesaRealizada && $receitasAtrasadas == 0 && $despesasAtrasadas == 0) {
+            $alertasFinanceiros[] = [
+                'tipo'     => 'sucesso',
+                'mensagem' => 'Excelente! O período está com saldo positivo de R$ ' . number_format($receitaRealizada - $despesaRealizada, 2, ',', '.') . ' e sem inadimplências.',
+            ];
+        }
+
+        // ── 6) Previsto a receber alto vs realizado (oportunidade de cobrança) ───────────
+        if ($aReceber > 0 && $receitaRealizada > 0) {
+            $percRealizado = round(($receitaRealizada / ($receitaRealizada + $aReceber)) * 100, 1);
+            if ($percRealizado < 50) {
                 $alertasFinanceiros[] = [
-                    'tipo' => 'sucesso',
-                    'mensagem' => 'Meta de economia atingida! 🎉',
-                ];
-            } elseif ($orcadoEconomia > 0) {
-                $falta = $orcadoEconomia - $realizadoEconomia;
-                $alertasFinanceiros[] = [
-                    'tipo' => 'info',
-                    'mensagem' => 'Faltam R$ ' . number_format($falta, 2, ',', '.') . ' para atingir a meta de economia.',
+                    'tipo'     => 'info',
+                    'mensagem' => "Apenas {$percRealizado}% do previsto foi realizado no período. Há R$ " . number_format($aReceber, 2, ',', '.') . ' ainda a receber.',
                 ];
             }
+        }
+
+        // ── 7) Sem movimentação no período ──────────────────────────────────────────────
+        if ($receitaRealizada == 0 && $despesaRealizada == 0) {
+            $alertasFinanceiros[] = [
+                'tipo'     => 'info',
+                'mensagem' => 'Nenhuma movimentação financeira realizada foi registrada no período selecionado.',
+            ];
         }
 
         // ================= RECEITAS POR EMPRESA (flip card) =================
