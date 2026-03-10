@@ -27,8 +27,10 @@ class NotificacaoService
         try {
             $notification = Notification::create($titulo, $corpo);
             
-            // Correção para versão do SDK Kreait (usando withToken)
-            $message = CloudMessage::withToken($user->fcm_token)
+            // Correção: withToken() não é estático. Deve-se usar withChangedTarget ou instanciar.
+            // Na versão atual do SDK, o método estático para iniciar é 'withTarget' ou 'new'.
+            $message = CloudMessage::new()
+                ->withToken($user->fcm_token)
                 ->withNotification($notification)
                 ->withData($dados);
 
