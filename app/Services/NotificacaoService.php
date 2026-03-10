@@ -26,13 +26,15 @@ class NotificacaoService
 
         try {
             $notification = Notification::create($titulo, $corpo);
-            $message = CloudMessage::withTarget('token', $user->fcm_token)
+            
+            // Correção para versão do SDK Kreait (usando withToken)
+            $message = CloudMessage::withToken($user->fcm_token)
                 ->withNotification($notification)
                 ->withData($dados);
 
             FirebaseMessaging::send($message);
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Erro ao enviar notificação FCM para o usuário {$user->id}: " . $e->getMessage());
             return false;
         }
