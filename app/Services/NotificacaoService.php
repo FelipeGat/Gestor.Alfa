@@ -3,12 +3,19 @@
 namespace App\Services;
 
 use App\Models\User;
-use Kreait\Laravel\Facades\FirebaseMessaging;
+use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
 class NotificacaoService
 {
+    protected $messaging;
+
+    public function __construct(Messaging $messaging)
+    {
+        $this->messaging = $messaging;
+    }
+
     /**
      * Envia uma notificação para um usuário específico
      *
@@ -27,14 +34,18 @@ class NotificacaoService
         try {
             $notification = Notification::create($titulo, $corpo);
             
-            // Correção: withToken() não é estático. Deve-se usar withChangedTarget ou instanciar.
-            // Na versão atual do SDK, o método estático para iniciar é 'withTarget' ou 'new'.
+            // Garantir que todos os valores no array 'data' sejam strings
+            $dadosFormatados = [];
+            foreach ($dados as $key => $value) {
+                $dadosFormatados[(string)$key] = (string)$value;
+            }
+
             $message = CloudMessage::new()
                 ->withToken($user->fcm_token)
                 ->withNotification($notification)
-                ->withData($dados);
+                ->withData($dadosFormatados);
 
-            FirebaseMessaging::send($message);
+            $this->messaging->send($message);
             return true;
         } catch (\Throwable $e) {
             \Log::error("Erro ao enviar notificação FCM para o usuário {$user->id}: " . $e->getMessage());
