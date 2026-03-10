@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\AgendaController;
 use App\Http\Controllers\Api\V1\AtendimentoController;
 use App\Http\Controllers\Api\V1\DashboardTecnicoController;
 use App\Http\Controllers\Api\V1\PerfilController;
+use App\Http\Controllers\Api\V1\RotaController;
+use App\Http\Controllers\Api\V1\NotificacaoTokenController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -16,6 +18,11 @@ Route::prefix('v1')->group(function () {
     // Auth
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::get('auth/me', [AuthController::class, 'me']);
+
+    // Notificações (token FCM)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('notificacoes/token', [NotificacaoTokenController::class, 'store']);
+    });
 
     // Ponto (protegido)
     Route::middleware('auth:sanctum')->group(function () {
@@ -62,4 +69,7 @@ Route::prefix('v1')->group(function () {
     Route::post('cobrancas/{id}/baixa', [CobrancaApiController::class, 'baixa'])->name('api.cobrancas.baixa');
     Route::get('cobrancas/pendentes', [CobrancaApiController::class, 'pendentes'])->name('api.cobrancas.pendentes');
     Route::get('cobrancas/vencidas', [CobrancaApiController::class, 'vencidas'])->name('api.cobrancas.vencidas');
+
+    // Rota - pública (sem autenticação)
+    Route::get('rota/consulta', [RotaController::class, 'consulta']);
 });

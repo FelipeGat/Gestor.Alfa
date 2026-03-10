@@ -33,6 +33,8 @@ class User extends Authenticatable
         'cliente_id',
         'funcionario_id',
         'primeiro_acesso',
+        'fcm_token',
+        'plataforma',
     ];
 
     /**

@@ -138,6 +138,29 @@ services:
       - gestor-network
     restart: unless-stopped
 
+  # OSRM - Open Source Routing Machine
+  osrm:
+    image: osrm/osrm-backend
+    container_name: gestor_osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data/osrm:/data
+    networks:
+      - gestor-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Starting OSRM server with pre-processed data...';
+        osrm-routed --algorithm mld /data/espirito-santo.osrm;
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   # Backup Service
   backup:
     image: docker:cli
