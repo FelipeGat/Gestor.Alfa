@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'tomtom_api_key' => env('TOMTOM_API_KEY', 'mG0UAzcg0C6K7PT0NgIzxqCY6L8Z6reG'),
+
 ];
