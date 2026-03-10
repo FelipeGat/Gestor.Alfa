@@ -90,6 +90,93 @@ O sistema oferece dashboards especializados por departamento (Administrativo, Co
 - **Orçamentos**: Emissão e acompanhamento
 - **Itens Comerciais**: Catálogo de produtos/serviços
 
+### 🗺️ API de Cálculo de Rotas
+
+O sistema possui uma API para cálculo de rotas com **tráfego real**, integrada ao app mobile Flutter.
+
+#### Provedores
+
+| Provedor | Descrição | Status |
+|----------|-----------|--------|
+| **TomTom** | Rotas com tráfego em tempo real | ✅ Primário |
+| **OSRM** | Rotas teóricas (fallback) | ✅ Backup |
+
+#### Multiplicadores de Tráfego (Fallback OSRM)
+
+O sistema aplica multiplicadores baseados no horário para estimar o tempo real:
+
+| Horário | Multiplicador |
+|---------|---------------|
+| Pico manhã (07:00-09:30) | ×1.8 |
+| Pico tarde (17:00-19:30) | ×1.8 |
+| Comercial (10:00-16:30) | ×1.4 |
+| Madrugada (22:00-06:00) | ×1.1 |
+| Outros horários | ×1.2 |
+
+#### Endpoint
+
+```
+GET /api/v1/rota/consulta
+```
+
+#### Parâmetros
+
+| Parâmetro | Tipo | Obrigatório | Descrição |
+|-----------|------|-------------|-----------|
+| `origem_lat` | float | ✅ | Latitude de origem |
+| `origem_lon` | float | ✅ | Longitude de origem |
+| `destino_lat` | float | ✅ | Latitude de destino |
+| `destino_lon` | float | ✅ | Longitude de destino |
+| `nocache` | boolean | ❌ | Ignorar cache (para debug) |
+
+#### Exemplo de Requisição
+
+```bash
+curl -s "https://gestor.alfa.solucoesgrupo.com/api/v1/rota/consulta?origem_lat=-20.2643&origem_lon=-40.4207&destino_lat=-20.3155&destino_lon=-40.3124"
+```
+
+#### Resposta
+
+```json
+{
+  "origem": {"lat": -20.2643, "lon": -40.4207},
+  "destino": {"lat": -20.3155, "lon": -40.3124},
+  "distancia_km": 18.01,
+  "distancia": 18.01,
+  "tempo_total_minutos": 31,
+  "tempo": 31,
+  "atraso_por_trafego_minutos": 0,
+  "provedor": "TomTom",
+  "nivel_confianca": "alta",
+  "geometry": [
+    {"lat": -20.26413, "lon": -40.42058},
+    {"lat": -20.26416, "lon": -40.42053},
+    {"lat": -20.26427, "lon": -40.42038}
+  ]
+}
+```
+
+#### Códigos de Erro
+
+| Código | Descrição |
+|--------|-----------|
+| `NO_ROUTE_FOUND` | Coordenadas inválidas ou sem rota viária |
+| `OSRM_DOWN` | Servidor OSRM indisponível |
+| `TOMTOM_EXCEPTION` | Erro na API TomTom |
+
+#### Configuração
+
+Adicione a API Key do TomTom no arquivo `.env`:
+
+```env
+TOMTOM_API_KEY=sua_api_key_aqui
+```
+
+#### Cache
+
+- As rotas são cacheadas por **10 minutos**
+- Para ignorar o cache, adicione `&nocache=1` à URL
+
 ---
 
 ## 🛠 Tecnologias
@@ -466,11 +553,12 @@ Gestor.Alfa/
 | `DashboardComercialController` | Dashboard comercial |
 | `DashboardFinanceiroController` | Dashboard financeiro |
 | `ContasPagarController` | Gestão de contas a pagar |
-| `ContasReceberController` | Gestão de contas a receber |
+| `ContasReceber de contas a receberController` | Gestão |
 | `FornecedorController` | Cadastro de fornecedores |
 | `ClienteController` | Gestão de clientes |
 | `OrcamentoController` | Emissão de orçamentos |
 | `PortalFuncionarioController` | Portal do funcionário |
+| `RotaController` | Cálculo de rotas (TomTom/OSRM) |
 
 ---
 
