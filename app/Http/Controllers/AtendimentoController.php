@@ -11,6 +11,7 @@ use App\Models\Assunto;
 use App\Models\AtendimentoStatusHistorico;
 use App\Models\User;
 use App\Services\AgendaTecnicaService;
+use App\Services\NotificacaoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,13 @@ use Illuminate\Validation\ValidationException;
 
 class AtendimentoController extends Controller
 {
+    protected $notificacaoService;
+
+    public function __construct(NotificacaoService $notificacaoService)
+    {
+        $this->notificacaoService = $notificacaoService;
+    }
+
     public function index(Request $request)
     {
         $query = Atendimento::with([
@@ -222,6 +230,19 @@ class AtendimentoController extends Controller
             'user_id'        => Auth::id(),
         ]);
 
+        // Notificar técnico
+        if ($atendimento->funcionario_id) {
+            $tecnico = Funcionario::with('user')->find($atendimento->funcionario_id);
+            if ($tecnico && $tecnico->user) {
+                $this->notificacaoService->enviarParaUsuario(
+                    $tecnico->user,
+                    "Novo Chamado #{$atendimento->numero_atendimento}",
+                    "Você recebeu um novo chamado: {$atendimento->assunto->nome}",
+                    ['type' => 'novo_chamado', 'id' => $atendimento->id]
+                );
+            }
+        }
+
         return redirect()
             ->route('atendimentos.index')
             ->with('success', $agendarTecnico
@@ -319,6 +340,19 @@ class AtendimentoController extends Controller
                 'user_id'        => Auth::id(),
             ]);
 
+            // Notificar alteração de status
+            if ($atendimento->funcionario_id) {
+                $tecnico = Funcionario::with('user')->find($atendimento->funcionario_id);
+                if ($tecnico && $tecnico->user) {
+                    $this->notificacaoService->enviarParaUsuario(
+                        $tecnico->user,
+                        "Status Atualizado #{$atendimento->numero_atendimento}",
+                        "O atendimento foi alterado para: " . strtoupper((string) $request->valor),
+                        ['type' => 'status_atualizado', 'id' => $atendimento->id, 'status' => $request->valor]
+                    );
+                }
+            }
+
             return response()->json(['success' => true]);
         }
 
@@ -326,6 +360,19 @@ class AtendimentoController extends Controller
         $atendimento->update([
             $request->campo => $request->valor
         ]);
+
+        // Notificar novo técnico se for o caso
+        if ($request->campo === 'funcionario_id' && filled($request->valor)) {
+            $tecnico = Funcionario::with('user')->find($request->valor);
+            if ($tecnico && $tecnico->user) {
+                $this->notificacaoService->enviarParaUsuario(
+                    $tecnico->user,
+                    "Chamado Atribuído #{$atendimento->numero_atendimento}",
+                    "Você foi designado para o atendimento: {$atendimento->assunto->nome}",
+                    ['type' => 'atribuicao_tecnico', 'id' => $atendimento->id]
+                );
+            }
+        }
 
         return response()->json(['success' => true]);
     }
