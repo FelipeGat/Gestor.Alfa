@@ -104,15 +104,24 @@ class Orcamento extends Model
     public static function gerarNumero(int $empresaId): string
     {
         $ano = now()->year;
+        $maxTentativas = 100;
 
-        $ultimo = self::where('empresa_id', $empresaId)
-            ->whereYear('created_at', $ano)
-            ->select(DB::raw("MAX(CAST(SUBSTRING_INDEX(numero_orcamento, '/', 1) AS UNSIGNED)) as ultimo"))
-            ->value('ultimo');
+        for ($i = 1; $i <= $maxTentativas; $i++) {
+            $ultimo = self::withTrashed()
+                ->where('empresa_id', $empresaId)
+                ->whereYear('created_at', $ano)
+                ->select(DB::raw("MAX(CAST(SUBSTRING_INDEX(numero_orcamento, '/', 1) AS UNSIGNED)) as ultimo"))
+                ->value('ultimo');
 
-        $sequencial = str_pad(($ultimo ?? 0) + 1, 3, '0', STR_PAD_LEFT);
+            $sequencial = str_pad(($ultimo ?? 0) + 1, 3, '0', STR_PAD_LEFT);
+            $numero = "{$sequencial}/{$ano}";
 
-        return "{$sequencial}/{$ano}";
+            if (!self::withTrashed()->where('empresa_id', $empresaId)->where('numero_orcamento', $numero)->exists()) {
+                return $numero;
+            }
+        }
+
+        throw new \RuntimeException("Não foi possível gerar um número de orçamento único após {$maxTentativas} tentativas.");
     }
 
     public function preCliente()
