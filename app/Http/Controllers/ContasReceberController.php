@@ -1307,7 +1307,7 @@ class ContasReceberController extends Controller
     }
 
     /**
-     * Renegociar uma parcela de cobrança de orçamento em N novas parcelas.
+     * Renegociar uma parcela: altera apenas a data OU divide em N novas parcelas.
      */
     public function renegociar(Request $request, Cobranca $cobranca)
     {
@@ -1319,49 +1319,74 @@ class ContasReceberController extends Controller
             return back()->with('error', 'Renegociação disponível apenas para cobranças de orçamento.');
         }
 
-        $validated = $request->validate([
-            'parcelas'                   => ['required', 'array', 'min:2', 'max:12'],
-            'parcelas.*.valor'           => ['required', 'numeric', 'min:0.01'],
-            'parcelas.*.data_vencimento' => ['required', 'date'],
-        ]);
+        $modo = $request->input('modo', 'data');
 
-        $totalNovo = collect($validated['parcelas'])->sum(fn ($p) => floatval($p['valor']));
-        if (abs($totalNovo - $cobranca->valor) > 0.02) {
-            return back()->with('error', sprintf(
-                'A soma das parcelas (R$ %s) deve ser igual ao valor original (R$ %s).',
-                number_format($totalNovo, 2, ',', '.'),
-                number_format($cobranca->valor, 2, ',', '.')
-            ));
-        }
+        if ($modo === 'parcelas') {
+            $validated = $request->validate([
+                'parcelas'                   => ['required', 'array', 'min:2', 'max:12'],
+                'parcelas.*.valor'           => ['required', 'numeric', 'min:0.01'],
+                'parcelas.*.data_vencimento' => ['required', 'date'],
+            ]);
 
-        $n                  = count($validated['parcelas']);
-        $cobrancaOriginalId = $cobranca->id;
-
-        DB::transaction(function () use ($cobranca, $validated, $n, $cobrancaOriginalId) {
-            $cobranca->delete();
-
-            foreach ($validated['parcelas'] as $i => $dados) {
-                Cobranca::create([
-                    'orcamento_id'        => $cobranca->orcamento_id,
-                    'cliente_id'          => $cobranca->cliente_id,
-                    'conta_financeira_id' => $cobranca->conta_financeira_id,
-                    'descricao'           => $cobranca->descricao,
-                    'valor'               => floatval($dados['valor']),
-                    'data_vencimento'     => $dados['data_vencimento'],
-                    'status'              => 'pendente',
-                    'tipo'                => $cobranca->tipo,
-                    'parcela_num'         => $i + 1,
-                    'parcelas_total'      => $n,
-                    'user_id'             => Auth::id(),
-                ]);
+            $totalNovo = collect($validated['parcelas'])->sum(fn ($p) => floatval($p['valor']));
+            if (abs($totalNovo - $cobranca->valor) > 0.02) {
+                return back()->with('error', sprintf(
+                    'A soma das parcelas (R$ %s) deve ser igual ao valor original (R$ %s).',
+                    number_format($totalNovo, 2, ',', '.'),
+                    number_format($cobranca->valor, 2, ',', '.')
+                ));
             }
 
-            activity()
-                ->causedBy(Auth::user())
-                ->withProperties(['cobranca_original_id' => $cobrancaOriginalId, 'novas_parcelas' => $n])
-                ->log('renegociação');
-        });
+            $n                  = count($validated['parcelas']);
+            $cobrancaOriginalId = $cobranca->id;
 
-        return back()->with('success', "Parcela renegociada com sucesso em {$n}x.");
+            DB::transaction(function () use ($cobranca, $validated, $n, $cobrancaOriginalId) {
+                $cobranca->delete();
+
+                foreach ($validated['parcelas'] as $i => $dados) {
+                    Cobranca::create([
+                        'orcamento_id'        => $cobranca->orcamento_id,
+                        'cliente_id'          => $cobranca->cliente_id,
+                        'conta_financeira_id' => $cobranca->conta_financeira_id,
+                        'descricao'           => $cobranca->descricao,
+                        'valor'               => floatval($dados['valor']),
+                        'data_vencimento'     => $dados['data_vencimento'],
+                        'status'              => 'pendente',
+                        'tipo'                => $cobranca->tipo,
+                        'parcela_num'         => $i + 1,
+                        'parcelas_total'      => $n,
+                        'user_id'             => Auth::id(),
+                    ]);
+                }
+
+                activity()
+                    ->causedBy(Auth::user())
+                    ->withProperties(['cobranca_original_id' => $cobrancaOriginalId, 'novas_parcelas' => $n])
+                    ->log('renegociação');
+            });
+
+            return back()->with('success', "Parcela renegociada com sucesso em {$n}x.");
+        }
+
+        // Modo 'data': apenas atualiza o vencimento
+        $validated = $request->validate([
+            'data_vencimento' => ['required', 'date'],
+        ]);
+
+        $dataAnterior = $cobranca->data_vencimento->format('Y-m-d');
+
+        $cobranca->data_vencimento = $validated['data_vencimento'];
+        $cobranca->save();
+
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($cobranca)
+            ->withProperties([
+                'data_anterior' => $dataAnterior,
+                'data_nova'     => $validated['data_vencimento'],
+            ])
+            ->log('renegociação de data');
+
+        return back()->with('success', 'Data de vencimento atualizada com sucesso.');
     }
 }
