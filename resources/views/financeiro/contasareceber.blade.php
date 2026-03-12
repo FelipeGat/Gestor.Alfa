@@ -405,7 +405,7 @@
                                             type="button"
                                             x-data
                                             class="p-2 rounded-full inline-flex items-center justify-center text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition"
-                                            title="Renegociar Parcela"
+                                            title="Renegociar"
                                             @click="$dispatch('renegociar-cobranca', {
                                                 cobrancaId: {{ $cobranca->id }},
                                                 clienteNome: '{{ addslashes($cobranca->cliente?->nome ?? 'Cliente') }}',
