@@ -49,7 +49,7 @@ class ContasPagarController extends Controller
         // Monta a query base
         $query = ContaPagar::with(['fornecedor', 'centroCusto', 'conta']);
 
-        // Filtro de busca geral
+        // Filtro de busca geral (Descrição, Fornecedor, Centro de Custo ou Valor)
         if ($request->filled('search')) {
             $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
@@ -60,7 +60,8 @@ class ContasPagarController extends Controller
                     })
                     ->orWhereHas('centroCusto', function ($sq) use ($searchTerm) {
                         $sq->where('nome', 'like', $searchTerm);
-                    });
+                    })
+                    ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$searchTerm]);
             });
         }
 

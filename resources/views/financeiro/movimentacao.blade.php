@@ -31,18 +31,19 @@
             <form method="GET" action="{{ route('financeiro.movimentacao') }}"
                 class="bg-white rounded-lg p-6"
                 style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                {{-- Linha 1: Buscar / Empresa / Centro de Custo --}}
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-                    <div class="md:col-span-3 relative">
+                    <div class="md:col-span-4 relative">
                         <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Buscar</label>
                         <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
-                            placeholder="Descrição, centro de custo, cliente ou fornecedor..."
+                            placeholder="Descrição, cliente, fornecedor ou valor..."
                             autocomplete="off"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                         <input type="hidden" name="fornecedor_id" id="busca-fornecedor-id" value="{{ request('fornecedor_id') }}">
                         <div id="autocomplete-fornecedor" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-4">
                         <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Empresa</label>
                         <select name="empresa_id" onchange="this.form.submit()"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
@@ -55,7 +56,7 @@
                         </select>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-4">
                         <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Centro de Custo</label>
                         <select name="centro_custo_id" onchange="this.form.submit()"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
@@ -67,10 +68,12 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
 
-                    <div class="md:col-span-5">
-                        <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Navegação</label>
-                        <div class="flex items-center gap-2 flex-wrap" style="max-width: 700px;">
+                {{-- Linha 2: Navegação --}}
+                <div class="mb-4">
+                    <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Navegação</label>
+                    <div class="flex items-center gap-2 flex-wrap">
                             <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
                                     {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
@@ -101,11 +104,10 @@
                                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-                        </div>
                     </div>
                 </div>
 
-                <details class="mt-4" {{ request('data_inicio') || request('data_fim') ? 'open' : '' }}>
+                <details class="mt-4">
                     <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                         Período Personalizado
                     </summary>
@@ -264,28 +266,37 @@
 
                                     {{-- DATA --}}
                                     <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Data">
-                                        {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m/Y') }}
+                                        {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m') }}
                                     </td>
 
                                     {{-- DESCRIÇÃO --}}
                                     <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Descrição">
-                                        <div>{{ $descricaoMov }}</div>
-                                        @if(isset($mov->observacao) && $mov->observacao && !preg_match('/^Recebimento de cobrança ID \d+$/', $mov->observacao) && !preg_match('/^Pagamento de conta a pagar ID \d+$/', $mov->observacao))
-                                        <div class="text-xs text-blue-600 mt-0.5">{{ $mov->observacao }}</div>
+                                        @php
+                                            $obsExtra = isset($mov->observacao) && $mov->observacao
+                                                && !preg_match('/^Recebimento de cobrança ID \d+$/', $mov->observacao)
+                                                && !preg_match('/^Pagamento de conta a pagar ID \d+$/', $mov->observacao)
+                                                ? $mov->observacao : null;
+                                            $descFull = $descricaoMov . ($obsExtra ? ' · ' . $obsExtra : '');
+                                        @endphp
+                                        <span class="block truncate max-w-[180px]" title="{{ $descFull }}">{{ $descricaoMov }}</span>
+                                        @if($obsExtra)
+                                        <span class="block truncate max-w-[180px] text-xs text-blue-600" title="{{ $obsExtra }}">{{ $obsExtra }}</span>
                                         @endif
                                     </td>
 
                                     {{-- CLIENTE/FORNECEDOR --}}
                                     <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Cliente/Fornecedor">
-                                        @if($isEntrada && $clienteMov)
-                                            {{ $clienteMov->nome_fantasia ?? $clienteMov->nome ?? $clienteMov->razao_social ?? '—' }}
-                                        @elseif(!$isEntrada && $fornecedorMov)
-                                            {{ $fornecedorMov->razao_social ?? $fornecedorMov->nome_fantasia ?? '—' }}
-                                        @elseif(!$isEntrada && isset($mov->fornecedor))
-                                            {{ $mov->fornecedor?->razao_social ?? $mov->fornecedor?->nome_fantasia ?? '—' }}
-                                        @else
-                                            —
-                                        @endif
+                                        @php
+                                            $nomeParticipante = '—';
+                                            if ($isEntrada && $clienteMov) {
+                                                $nomeParticipante = $clienteMov->nome_fantasia ?? $clienteMov->nome ?? $clienteMov->razao_social ?? '—';
+                                            } elseif (!$isEntrada && $fornecedorMov) {
+                                                $nomeParticipante = $fornecedorMov->razao_social ?? $fornecedorMov->nome_fantasia ?? '—';
+                                            } elseif (!$isEntrada && isset($mov->fornecedor)) {
+                                                $nomeParticipante = $mov->fornecedor?->razao_social ?? $mov->fornecedor?->nome_fantasia ?? '—';
+                                            }
+                                        @endphp
+                                        <span class="block truncate max-w-[160px]" title="{{ $nomeParticipante }}">{{ $nomeParticipante }}</span>
                                     </td>
 
                                     {{-- VALOR --}}
@@ -321,14 +332,21 @@
                                     </td>
 
                                     {{-- USUÁRIO --}}
-                                    <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Usuário">
+                                    <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Usuário">
                                         @php
                                             $usuario = $mov->usuario ?? $mov->user ?? $mov->cobranca?->usuario ?? $mov->contaPagar?->usuario ?? null;
                                             if (!$usuario && isset($mov->user_id) && $mov->user_id) {
                                                 $usuario = \App\Models\User::find($mov->user_id);
                                             }
+                                            $nomeCompleto = $usuario?->name ?? $usuario?->nome ?? '—';
+                                            if ($nomeCompleto !== '—') {
+                                                $partes = array_filter(explode(' ', trim($nomeCompleto)));
+                                                $nomeCompleto = count($partes) > 1
+                                                    ? reset($partes) . ' ' . end($partes)
+                                                    : reset($partes);
+                                            }
                                         @endphp
-                                        {{ $usuario?->name ?? $usuario?->nome ?? '—' }}
+                                        {{ $nomeCompleto }}
                                     </td>
 
                                     {{-- AÇÕES --}}

@@ -99,12 +99,15 @@ class ContasReceberController extends Controller
 
         // ================= APLICAÇÃO DOS FILTROS =================
 
-        // Filtro de Busca (Cliente ou Descrição)
+        // Filtro de Busca (Cliente, Descrição ou Valor)
         if ($request->filled('search')) {
             $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('clientes.nome_fantasia', 'like', $searchTerm)
-                    ->orWhere('cobrancas.descricao', 'like', $searchTerm);
+                    ->orWhere('clientes.nome', 'like', $searchTerm)
+                    ->orWhere('clientes.razao_social', 'like', $searchTerm)
+                    ->orWhere('cobrancas.descricao', 'like', $searchTerm)
+                    ->orWhereRaw('CAST(cobrancas.valor AS CHAR) LIKE ?', [$searchTerm]);
             });
         }
 

@@ -143,7 +143,7 @@
                     </div>
                 </div>
 
-                <details class="mt-4" {{ request('vencimento_inicio') || request('vencimento_fim') ? 'open' : '' }}>
+                <details class="mt-4">
                     <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                         Período Personalizado
                     </summary>
