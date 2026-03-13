@@ -555,7 +555,9 @@ class ContasReceberController extends Controller
         $cobrancasQuery = Cobranca::with([
             'cliente:id,nome,nome_fantasia,razao_social,cpf_cnpj',
             'orcamento:id,empresa_id,forma_pagamento',
+            'orcamento.empresa:id,nome_fantasia',
             'contaFixa:id,empresa_id',
+            'contaFixa.empresa:id,nome_fantasia',
             'contaFinanceira:id,nome,tipo,empresa_id',
             'usuario:id,name',
         ])
@@ -678,6 +680,7 @@ class ContasReceberController extends Controller
             $mov->contaFinanceira  = $cobranca->contaFinanceira;
             $mov->usuario          = $cobranca->usuario;
             $mov->cobranca         = $cobranca;
+            $mov->empresaNome      = $cobranca->empresa_relacionada?->nome_fantasia;
             return $mov;
         });
 

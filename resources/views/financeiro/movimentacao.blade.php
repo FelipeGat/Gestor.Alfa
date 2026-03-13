@@ -307,7 +307,7 @@
                                     {{-- CENTRO DE CUSTO --}}
                                     <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Centro de Custo">
                                         @if($isEntrada)
-                                            {{ $mov->contaDestino?->nome ?? '—' }}
+                                            {{ $mov->empresaNome ?? $mov->contaDestino?->nome ?? '—' }}
                                         @elseif($contaPagar && $contaPagar->centroCusto)
                                             {{ $contaPagar->centroCusto->nome }}
                                         @elseif(isset($mov->centroCusto))
