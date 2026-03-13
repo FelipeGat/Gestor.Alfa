@@ -35,9 +35,8 @@
         }
         .tabela-orcamentos tbody td:nth-child(1),
         .tabela-orcamentos tbody td:nth-child(2),
-        .tabela-orcamentos tbody td:nth-child(3),
-        .tabela-orcamentos tbody td:nth-child(5),
-        .tabela-orcamentos tbody td:nth-child(6) {
+        .tabela-orcamentos tbody td:nth-child(4),
+        .tabela-orcamentos tbody td:nth-child(5) {
             font-family: 'Inter', sans-serif !important;
             font-weight: 400 !important;
             color: rgb(17, 24, 39) !important;
@@ -298,7 +297,6 @@
                             <tr>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Nº', 'numero_orcamento') !!}</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Cliente', 'nome_cliente') !!}</th>
-                                <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">Empresa</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Status', 'status') !!}</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Valor Total', 'valor_total') !!}</th>
                                 <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600;">{!! sortLink('Data', 'created_at') !!}</th>
@@ -308,8 +306,11 @@
                         <tbody class="divide-y divide-gray-200">
                             @foreach($orcamentos as $orcamento)
                             <tr class="hover:bg-gray-50 transition" data-orcamento-id="{{ $orcamento->id }}" data-status-url="{{ route('orcamentos.updateStatus', $orcamento) }}">
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                    {{ $orcamento->numero_orcamento }}
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="text-sm font-medium text-gray-900">{{ $orcamento->numero_orcamento }}</span>
+                                    @if($orcamento->empresa?->nome_fantasia)
+                                    <span class="block text-[11px] text-gray-400">{{ $orcamento->empresa->nome_fantasia }}</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <div class="flex flex-col gap-0.5 min-w-0">
@@ -319,7 +320,6 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $orcamento->empresa?->nome_fantasia ?? '—' }}</td>
                                 <td class="px-4 py-3 text-left" onclick="event.stopPropagation();">
                                     <form action="{{ route('orcamentos.updateStatus', $orcamento) }}" method="POST">
                                         @csrf
@@ -546,7 +546,7 @@
             };
 
             statusLabelInput.value = statusSelecionado === 'aprovado' ? 'Aprovado' : 'Agendado';
-            
+
             if (isReprogramacao && dadosAgendamento) {
                 tituloModal.textContent = 'Reprogramar Agendamento';
                 funcionarioInput.value = dadosAgendamento.funcionarioId || '';
@@ -554,7 +554,7 @@
                 periodoInput.value = dadosAgendamento.periodo || '';
                 horaInicioInput.value = dadosAgendamento.horaInicio || '';
                 duracaoInput.value = dadosAgendamento.duracao || '1';
-                
+
                 if (periodoInput.value === 'dia_todo') {
                     horaInicioInput.disabled = true;
                     duracaoInput.disabled = true;
@@ -761,7 +761,7 @@
 
             const form = document.createElement('form');
             form.method = 'POST';
-            
+
             // Usa endpoint diferente para reprogramação
             if (contextoAgendamento.isReprogramacao) {
                 form.action = `{{ url('orcamentos') }}/${orcamentoId}/reprogramar-agendamento`;
