@@ -312,10 +312,10 @@
                                     {{ $orcamento->numero_orcamento }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <div class="flex flex-col">
-                                        <span class="font-medium text-gray-900">{{ $orcamento->nome_cliente }}</span>
-                                        @if($orcamento->pre_cliente_id)
-                                        <span class="text-[10px] uppercase font-bold text-orange-500">Pré-Cliente</span>
+                                    <div class="flex flex-col gap-0.5 min-w-0">
+                                        <span class="{{ $orcamento->pre_cliente_id ? 'font-bold' : 'font-medium' }} text-gray-900">{{ $orcamento->nome_cliente }}</span>
+                                        @if($orcamento->descricao)
+                                        <span class="text-[11px] text-gray-400 truncate max-w-[220px]" title="{{ $orcamento->descricao }}">{{ $orcamento->descricao }}</span>
                                         @endif
                                     </div>
                                 </td>
