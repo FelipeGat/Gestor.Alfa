@@ -7,10 +7,12 @@ use App\Models\Perfil;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Facades\Hash;
 
 class UsuarioController extends Controller
 {
+    use LogsUserActivity;
     public function index(Request $request)
     {
         /** @var User $user */
@@ -118,6 +120,11 @@ class UsuarioController extends Controller
             $novoUsuario->empresas()->sync($request->empresas);
         }
 
+        $this->registrarLog('usuário criado', $novoUsuario, [
+            'email' => $novoUsuario->email,
+            'tipo'  => $novoUsuario->tipo,
+        ]);
+
         return redirect()
             ->route('usuarios.index')
             ->with('success', 'Usuário criado com sucesso.');
@@ -176,6 +183,12 @@ class UsuarioController extends Controller
             $usuario->empresas()->detach();
         }
 
+        $props = ['email' => $usuario->email, 'tipo' => $usuario->tipo];
+        if ($request->filled('password')) {
+            $props['senha_alterada'] = true;
+        }
+        $this->registrarLog('usuário atualizado', $usuario, $props);
+
         return redirect()
             ->route('usuarios.index')
             ->with('success', 'Usuário atualizado com sucesso.');
@@ -187,6 +200,12 @@ class UsuarioController extends Controller
         $user = Auth::user();
 
         abort_if(! $user || ! $user->isAdminPanel(), 403, 'Acesso não autorizado');
+
+        $this->registrarLog('usuário excluído', null, [
+            'id'    => $usuario->id,
+            'email' => $usuario->email,
+            'tipo'  => $usuario->tipo,
+        ]);
 
         $usuario->delete();
 

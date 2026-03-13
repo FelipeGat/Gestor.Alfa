@@ -13,10 +13,13 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Facades\Storage;
 
 class ContasPagarController extends Controller
 {
+    use LogsUserActivity;
+
     protected $service;
 
     public function __construct(ContaPagarService $service)
@@ -1085,6 +1088,11 @@ class ContasPagarController extends Controller
 
             \Log::info('Arquivo encontrado, iniciando download', [
                 'caminho' => $anexo->caminho,
+            ]);
+
+            $this->registrarLog('anexo de conta a pagar baixado', $anexo, [
+                'arquivo' => $anexo->nome_original,
+                'tipo'    => $anexo->tipo ?? null,
             ]);
 
             return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);

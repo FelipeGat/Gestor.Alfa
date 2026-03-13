@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Boleto;
 use App\Models\Cliente;
+use App\Traits\LogsUserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class BoletoController extends Controller
 {
+    use LogsUserActivity;
+
     public function upload(Request $request, Cliente $cliente)
     {
         $request->validate([
@@ -30,7 +33,7 @@ class BoletoController extends Controller
             ->storeAs($path, $fileName);
 
         // 💾 Cria ou atualiza o boleto
-        Boleto::updateOrCreate(
+        $boleto = Boleto::updateOrCreate(
             [
                 'cliente_id' => $cliente->id,
                 'mes' => $request->mes,
@@ -43,6 +46,13 @@ class BoletoController extends Controller
                 'data_vencimento' => $request->data_vencimento,
             ]
         );
+
+        $this->registrarLog('boleto enviado', $boleto, [
+            'cliente' => $cliente->nome,
+            'mes'     => $request->mes,
+            'ano'     => $request->ano,
+            'valor'   => $request->valor,
+        ]);
 
         return back()->with('success', 'Boleto enviado com sucesso!');
     }

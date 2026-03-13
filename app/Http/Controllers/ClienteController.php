@@ -8,10 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Traits\LogsUserActivity;
 use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
+    use LogsUserActivity;
     public function index(Request $request)
     {
         /** @var User $user */
@@ -205,6 +207,12 @@ class ClienteController extends Controller
         // Vincular usuário ao cliente na tabela cliente_user
         $userCliente->clientes()->syncWithoutDetaching([$cliente->id]);
 
+        $this->registrarLog('cliente cadastrado', $cliente, [
+            'nome'       => $cliente->nome,
+            'cpf_cnpj'   => $cliente->cpf_cnpj,
+            'tipo'       => $cliente->tipo_cliente,
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -323,6 +331,11 @@ class ClienteController extends Controller
             $cliente->users()->sync($request->usuarios_portal);
         }
 
+        $this->registrarLog('cliente atualizado', $cliente, [
+            'nome'     => $cliente->nome,
+            'cpf_cnpj' => $cliente->cpf_cnpj,
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -402,6 +415,12 @@ class ClienteController extends Controller
             403,
             'Acesso não autorizado'
         );
+
+        $this->registrarLog('cliente excluído', null, [
+            'id'       => $cliente->id,
+            'nome'     => $cliente->nome,
+            'cpf_cnpj' => $cliente->cpf_cnpj,
+        ]);
 
         $cliente->delete();
 

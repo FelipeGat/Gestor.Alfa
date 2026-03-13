@@ -10,10 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Facades\Storage;
 
 class ContasReceberController extends Controller
 {
+    use LogsUserActivity;
     /**
      * Baixa múltipla de cobranças
      */
@@ -1262,6 +1264,11 @@ class ContasReceberController extends Controller
         if (! Storage::disk('public')->exists($anexo->caminho)) {
             abort(404, 'Arquivo não encontrado no servidor: '.$anexo->nome_original);
         }
+
+        $this->registrarLog('anexo de cobrança baixado', $anexo, [
+            'arquivo' => $anexo->nome_original,
+            'tipo'    => $anexo->tipo ?? null,
+        ]);
 
         return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
     }

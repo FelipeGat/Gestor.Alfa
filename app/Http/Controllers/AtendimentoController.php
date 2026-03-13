@@ -17,9 +17,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Traits\LogsUserActivity;
 
 class AtendimentoController extends Controller
 {
+    use LogsUserActivity;
+
     protected $notificacaoService;
 
     public function __construct(NotificacaoService $notificacaoService)
@@ -243,6 +246,12 @@ class AtendimentoController extends Controller
             }
         }
 
+        $this->registrarLog('chamado aberto', $atendimento, [
+            'numero'     => $atendimento->numero_atendimento,
+            'prioridade' => $atendimento->prioridade,
+            'status'     => $atendimento->status_atual,
+        ]);
+
         return redirect()
             ->route('atendimentos.index')
             ->with('success', $agendarTecnico
@@ -270,6 +279,11 @@ class AtendimentoController extends Controller
             'prioridade'           => $request->prioridade,
             'empresa_id'           => $request->empresa_id,
             'funcionario_id'       => $request->funcionario_id,
+        ]);
+
+        $this->registrarLog('chamado atualizado', $atendimento, [
+            'numero'     => $atendimento->numero_atendimento,
+            'prioridade' => $atendimento->prioridade,
         ]);
 
         return redirect()
@@ -353,6 +367,11 @@ class AtendimentoController extends Controller
                 }
             }
 
+            $this->registrarLog('chamado status alterado', $atendimento, [
+                'numero'      => $atendimento->numero_atendimento,
+                'status_novo' => $request->valor,
+            ]);
+
             return response()->json(['success' => true]);
         }
 
@@ -374,11 +393,22 @@ class AtendimentoController extends Controller
             }
         }
 
+        $this->registrarLog('chamado campo atualizado', $atendimento, [
+            'numero' => $atendimento->numero_atendimento,
+            'campo'  => $request->campo,
+            'valor'  => $request->valor,
+        ]);
+
         return response()->json(['success' => true]);
     }
 
     public function destroy(Atendimento $atendimento)
     {
+        $this->registrarLog('chamado excluído', null, [
+            'id'     => $atendimento->id,
+            'numero' => $atendimento->numero_atendimento,
+        ]);
+
         $atendimento->delete();
 
         return redirect()
