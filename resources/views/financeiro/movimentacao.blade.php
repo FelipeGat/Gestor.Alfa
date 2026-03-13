@@ -175,8 +175,8 @@
                         <table class="w-full table-auto">
                             <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Tipo</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Tipo</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
                                         <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), ['order_by' => 'data', 'order_dir' => request('order_dir') === 'asc' ? 'desc' : 'asc'])) }}"
                                             class="inline-flex items-center gap-1 hover:text-[#3f9cae] transition">
                                             Data
@@ -189,9 +189,9 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Descrição</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Cliente/Fornecedor</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Descrição</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Cliente/Fornecedor</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
                                         <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), ['order_by' => 'valor', 'order_dir' => request('order_by') === 'valor' && request('order_dir') === 'asc' ? 'desc' : 'asc'])) }}"
                                             class="inline-flex items-center gap-1 hover:text-[#3f9cae] transition">
                                             Valor
@@ -204,10 +204,10 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Centro de Custo</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Forma Pagto</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Usuário</th>
-                                    <th class="px-4 py-3 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Ações</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">C. Custo</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Forma Pagto</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Usuário</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Ações</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -247,7 +247,7 @@
                                 <tr class="{{ $linhaClass }} hover:bg-gray-50 transition">
 
                                     {{-- TIPO --}}
-                                    <td class="px-4 py-3" data-label="Tipo">
+                                    <td class="px-3 py-2" data-label="Tipo">
                                         <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $isEntrada ? 'bg-green-600' : 'bg-red-600' }} text-white whitespace-nowrap">
                                             {{ $isEntrada ? 'ENTRADA' : 'SAÍDA' }}
                                         </span>
@@ -265,12 +265,12 @@
                                     </td>
 
                                     {{-- DATA --}}
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Data">
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Data">
                                         {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m') }}
                                     </td>
 
                                     {{-- DESCRIÇÃO --}}
-                                    <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Descrição">
+                                    <td class="px-3 py-2 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Descrição">
                                         @php
                                             $obsExtra = isset($mov->observacao) && $mov->observacao
                                                 && !preg_match('/^Recebimento de cobrança ID \d+$/', $mov->observacao)
@@ -285,7 +285,7 @@
                                     </td>
 
                                     {{-- CLIENTE/FORNECEDOR --}}
-                                    <td class="px-4 py-3 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Cliente/Fornecedor">
+                                    <td class="px-3 py-2 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Cliente/Fornecedor">
                                         @php
                                             $nomeParticipante = '—';
                                             if ($isEntrada && $clienteMov) {
@@ -300,12 +300,12 @@
                                     </td>
 
                                     {{-- VALOR --}}
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap font-semibold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}" data-label="Valor">
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap font-semibold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}" data-label="Valor">
                                         {{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}
                                     </td>
 
                                     {{-- CENTRO DE CUSTO --}}
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Centro de Custo">
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Centro de Custo">
                                         @if($isEntrada)
                                             {{ $mov->contaDestino?->nome ?? '—' }}
                                         @elseif($contaPagar && $contaPagar->centroCusto)
@@ -318,7 +318,7 @@
                                     </td>
 
                                     {{-- FORMA PAGAMENTO --}}
-                                    <td class="px-4 py-3 text-sm" data-label="Forma Pagto">
+                                    <td class="px-3 py-2 text-sm" data-label="Forma Pagto">
                                         @php
                                             $forma = $formaPagtoMov ?? $mov->forma_pagamento ?? ($mov->contaDestino?->tipo ?? null);
                                         @endphp
@@ -332,7 +332,7 @@
                                     </td>
 
                                     {{-- USUÁRIO --}}
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Usuário">
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Usuário">
                                         @php
                                             $usuario = $mov->usuario ?? $mov->user ?? $mov->cobranca?->usuario ?? $mov->contaPagar?->usuario ?? null;
                                             if (!$usuario && isset($mov->user_id) && $mov->user_id) {
@@ -350,7 +350,7 @@
                                     </td>
 
                                     {{-- AÇÕES --}}
-                                    <td class="px-4 py-3" data-label="Ações">
+                                    <td class="px-3 py-2" data-label="Ações">
                                         <div class="flex gap-1 justify-end">
                                             @if($isEntrada)
                                                 @if(!($mov->is_financeiro ?? false) && isset($mov->cobranca))
