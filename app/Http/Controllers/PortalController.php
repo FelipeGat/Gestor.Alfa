@@ -12,10 +12,12 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Str;
 
 class PortalController extends Controller
 {
+    use LogsUserActivity;
     /**
      * Lista de Atendimentos do Cliente
      */
@@ -735,6 +737,13 @@ class PortalController extends Controller
             abort(404, 'Boleto não encontrado.');
         }
 
+        $this->registrarLog('boleto baixado pelo cliente', $boleto, [
+            'cliente_id' => $boleto->cliente_id,
+            'mes'        => $boleto->mes,
+            'ano'        => $boleto->ano,
+            'valor'      => $boleto->valor,
+        ]);
+
         return response()->download($filePath);
     }
 
@@ -761,6 +770,11 @@ class PortalController extends Controller
         if (! file_exists($caminho)) {
             abort(404, 'Nota fiscal não encontrada.');
         }
+
+        $this->registrarLog('nota fiscal baixada pelo cliente', null, [
+            'cliente_id' => $cliente->id,
+            'arquivo'    => $arquivo,
+        ]);
 
         return response()->download($caminho);
     }

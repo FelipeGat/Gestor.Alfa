@@ -3,43 +3,54 @@
 namespace App\Observers;
 
 use App\Models\Cobranca;
-use Illuminate\Support\Facades\Log;
 
 class CobrancaObserver
 {
     public function created(Cobranca $cobranca): void
     {
-        Log::info('Cobrança criada', [
-            'id' => $cobranca->id,
-            'orcamento_id' => $cobranca->orcamento_id,
-            'valor' => $cobranca->valor,
-            'vencimento' => $cobranca->data_vencimento,
-        ]);
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($cobranca)
+            ->withProperties([
+                'orcamento_id' => $cobranca->orcamento_id,
+                'valor'        => $cobranca->valor,
+                'vencimento'   => optional($cobranca->data_vencimento)->format('d/m/Y'),
+            ])
+            ->log('cobrança criada');
     }
 
     public function updated(Cobranca $cobranca): void
     {
         if ($cobranca->isDirty('status') && $cobranca->status === 'pago') {
-            Log::info('Cobrança marcada como paga', [
-                'id' => $cobranca->id,
-                'valor_pago' => $cobranca->valor_pago,
-                'data_pagamento' => $cobranca->data_pagamento,
-            ]);
+            activity()
+                ->causedBy(auth()->user())
+                ->performedOn($cobranca)
+                ->withProperties([
+                    'valor_pago'      => $cobranca->valor_pago,
+                    'data_pagamento'  => optional($cobranca->data_pagamento)->format('d/m/Y'),
+                ])
+                ->log('cobrança paga');
         }
 
-        if ($cobranca->isDirty('status') && $cobranca->getOriginal('status') !== 'pago' && $cobranca->status === 'vencido') {
-            Log::warning('Cobrança vencida', [
-                'id' => $cobranca->id,
-                'data_vencimento' => $cobranca->data_vencimento,
-            ]);
+        if ($cobranca->isDirty('status') && $cobranca->status === 'vencido') {
+            activity()
+                ->causedBy(auth()->user())
+                ->performedOn($cobranca)
+                ->withProperties([
+                    'data_vencimento' => optional($cobranca->data_vencimento)->format('d/m/Y'),
+                ])
+                ->log('cobrança vencida');
         }
     }
 
     public function deleted(Cobranca $cobranca): void
     {
-        Log::warning('Cobrança excluída', [
-            'id' => $cobranca->id,
-            'orcamento_id' => $cobranca->orcamento_id,
-        ]);
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'id'           => $cobranca->id,
+                'orcamento_id' => $cobranca->orcamento_id,
+            ])
+            ->log('cobrança excluída');
     }
 }

@@ -10,10 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Facades\Storage;
 
 class ContasReceberController extends Controller
 {
+    use LogsUserActivity;
     /**
      * Baixa múltipla de cobranças
      */
@@ -97,12 +99,15 @@ class ContasReceberController extends Controller
 
         // ================= APLICAÇÃO DOS FILTROS =================
 
-        // Filtro de Busca (Cliente ou Descrição)
+        // Filtro de Busca (Cliente, Descrição ou Valor)
         if ($request->filled('search')) {
             $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('clientes.nome_fantasia', 'like', $searchTerm)
-                    ->orWhere('cobrancas.descricao', 'like', $searchTerm);
+                    ->orWhere('clientes.nome', 'like', $searchTerm)
+                    ->orWhere('clientes.razao_social', 'like', $searchTerm)
+                    ->orWhere('cobrancas.descricao', 'like', $searchTerm)
+                    ->orWhereRaw('CAST(cobrancas.valor AS CHAR) LIKE ?', [$searchTerm]);
             });
         }
 
@@ -1262,6 +1267,11 @@ class ContasReceberController extends Controller
         if (! Storage::disk('public')->exists($anexo->caminho)) {
             abort(404, 'Arquivo não encontrado no servidor: '.$anexo->nome_original);
         }
+
+        $this->registrarLog('anexo de cobrança baixado', $anexo, [
+            'arquivo' => $anexo->nome_original,
+            'tipo'    => $anexo->tipo ?? null,
+        ]);
 
         return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
     }

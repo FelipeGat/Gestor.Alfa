@@ -1,8 +1,7 @@
 <x-app-layout>
+
     @push('styles')
-    @vite('resources/css/contas-bancarias/contas-bancarias.css')
     @vite('resources/css/financeiro/contasareceber.css')
-    @vite('resources/css/financeiro/index.css')
     @endpush
 
     <x-slot name="breadcrumb">
@@ -12,115 +11,42 @@
         ]" />
     </x-slot>
 
-    {{-- HEADER --}}
-    <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-
-            {{-- TÍTULO --}}
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M9 16h6m-6-4h6" />
-                    </svg>
-                </div>
-                <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                    Movimentação Financeira
-                </h2>
-            </div>
-
-            {{-- BOTÃO VOLTAR --}}
-            <a href="{{ route('financeiro.dashboard') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold
-                      text-gray-600 bg-white border border-gray-200 rounded-lg
-                      hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 transition-transform group-hover:-translate-x-1"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span>Voltar</span>
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- ================= NAVEGAÇÃO ================= --}}
-            <div class="section-card financeiro-nav">
-                {{-- BANCOS --}}
-                <a href="{{ route('financeiro.contas-financeiras.index') }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-lg transition shadow-sm border border-yellow-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    Bancos
-                </a>
-
-                {{-- COBRANÇA --}}
-                <a href="{{ route('financeiro.cobrar' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-md border border-indigo-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Cobrar
-                </a>
-
-                {{-- CONTAS A RECEBER --}}
-                <a href="{{ route('financeiro.contasareceber' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md border border-emerald-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-2-2m2 2l2-2" />
-                    </svg>
-                    Receber
-                </a>
-
-                {{-- CONTAS A PAGAR --}}
-                <a href="{{ route('financeiro.contasapagar') }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition shadow-md border border-red-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12V6m0 0l-2 2m2-2l2 2" />
-                    </svg>
-                    Pagar
-                </a>
-
-                {{-- MOVIMENTAÇÃO --}}
-                <a href="{{ route('financeiro.movimentacao' ) }}"
-                    class="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-md border border-blue-700/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                    Extrato
-                </a>
-            </div>
+    <div class="pb-8 pt-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ================= FILTROS ================= --}}
+            @php
+                $hoje = \Carbon\Carbon::today();
+                $ontem = \Carbon\Carbon::yesterday();
+                $amanha = \Carbon\Carbon::tomorrow();
+                $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
+                $mesAnterior = $dataAtual->copy()->subMonth();
+                $proximoMes = $dataAtual->copy()->addMonth();
+                $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+                $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
+                $dataInicio = request('data_inicio') ?? $dataAtual->copy()->startOfMonth()->format('Y-m-d');
+                $dataFim = request('data_fim') ?? $dataAtual->copy()->endOfMonth()->format('Y-m-d');
+            @endphp
 
-            <form method="GET" action="{{ route('financeiro.movimentacao') }}" class="filters-card">
-                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-2">
-                    <div class="filter-group relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+            <form method="GET" action="{{ route('financeiro.movimentacao') }}"
+                class="bg-white rounded-lg p-6"
+                style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                {{-- Linha 1: Buscar / Empresa / Centro de Custo --}}
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                    <div class="md:col-span-4 relative">
+                        <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Buscar</label>
                         <input type="text" name="search" id="busca-geral" value="{{ request('search') }}"
-                            placeholder="Descrição, centro de custo, cliente ou fornecedor..."
+                            placeholder="Descrição, cliente, fornecedor ou valor..."
                             autocomplete="off"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                         <input type="hidden" name="fornecedor_id" id="busca-fornecedor-id" value="{{ request('fornecedor_id') }}">
                         <div id="autocomplete-fornecedor" class="absolute left-0 right-0 z-10 bg-white border border-gray-200 rounded shadow max-h-40 overflow-y-auto hidden"></div>
                     </div>
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+
+                    <div class="md:col-span-4">
+                        <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Empresa</label>
                         <select name="empresa_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                             <option value="">Todas as Empresas</option>
                             @foreach($empresas as $empresa)
                             <option value="{{ $empresa->id }}" {{ request('empresa_id') == $empresa->id ? 'selected' : '' }}>
@@ -129,11 +55,12 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Custo</label>
+
+                    <div class="md:col-span-4">
+                        <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Centro de Custo</label>
                         <select name="centro_custo_id" onchange="this.form.submit()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                            <option value="">Todos os Centros de Custo</option>
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Todos</option>
                             @foreach($centrosCusto as $centro)
                             <option value="{{ $centro->id }}" {{ request('centro_custo_id') == $centro->id ? 'selected' : '' }}>
                                 {{ $centro->nome }}
@@ -143,164 +70,116 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
-                    <div class="filter-group">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Navegação Rápida</label>
-                        <div class="w-full flex justify-center">
-                            <div class="flex items-center gap-2 flex-wrap" style="max-width: 700px; width: 100%; justify-content: center;">
-                            @php
-                                $hoje = \Carbon\Carbon::today();
-                                $ontem = \Carbon\Carbon::yesterday();
-                            @endphp
+                {{-- Linha 2: Navegação --}}
+                <div class="mb-4">
+                    <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Navegação</label>
+                    <div class="flex items-center gap-2 flex-wrap">
                             <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $ontem->format('Y-m-d'), 'data_fim' => $ontem->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
-                                >
+                                    {{ request('data_inicio') == $ontem->format('Y-m-d') && request('data_fim') == $ontem->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
                                 Ontem
                             </a>
                             <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $hoje->format('Y-m-d'), 'data_fim' => $hoje->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
-                                    {{ request('data_inicio') == $hoje->format('Y-m-d') && request('data_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}"
-                                >
+                                    {{ request('data_inicio') == $hoje->format('Y-m-d') && request('data_fim') == $hoje->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
                                 Hoje
                             </a>
-                            @php
-                            $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
-                            $mesAnterior = $dataAtual->copy()->subMonth();
-                            $proximoMes = $dataAtual->copy()->addMonth();
-                            $meses = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
-                            $mesAtualNome = $meses[$dataAtual->month] . '/' . $dataAtual->year;
-                            @endphp
-
+                            <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $amanha->format('Y-m-d'), 'data_fim' => $amanha->format('Y-m-d')])) }}"
+                                class="inline-flex items-center justify-center px-3 h-10 rounded-lg transition border font-semibold min-w-[70px]
+                                    {{ request('data_inicio') == $amanha->format('Y-m-d') && request('data_fim') == $amanha->format('Y-m-d') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300 shadow-sm' }}">
+                                Amanhã
+                            </a>
                             <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $mesAnterior->startOfMonth()->format('Y-m-d'), 'data_fim' => $mesAnterior->endOfMonth()->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-
                             <div class="flex-1 text-center font-bold text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
                                 {{ $mesAtualNome }}
                             </div>
-
                             <a href="{{ route('financeiro.movimentacao', array_merge(request()->except(['data_inicio', 'data_fim']), ['data_inicio' => $proximoMes->startOfMonth()->format('Y-m-d'), 'data_fim' => $proximoMes->endOfMonth()->format('Y-m-d')])) }}"
                                 class="inline-flex items-center justify-center w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition border border-gray-300 shadow-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-                            </div>
-                        </div>
-                        <details class="mt-2" id="periodoPersonalizadoDetails">
-                            <summary id="periodoPersonalizadoSummary" class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                                🗓️ Período Personalizado
-                            </summary>
-                            @php
-                                $dataAtual = request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio')) : \Carbon\Carbon::now();
-                                $inicioPadrao = $dataAtual->copy()->startOfMonth()->format('Y-m-d');
-                                $fimPadrao = $dataAtual->copy()->endOfMonth()->format('Y-m-d');
-                                $dataInicio = request('data_inicio') ?? $inicioPadrao;
-                                $dataFim = request('data_fim') ?? $fimPadrao;
-                            @endphp
-                            <div id="periodoPersonalizadoContent" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Data Inicial</label>
-                                    <input type="date" name="data_inicio" id="data_inicio_movimentacao" value="{{ $dataInicio }}"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Data Final</label>
-                                    <input type="date" name="data_fim" id="data_fim_movimentacao" value="{{ $dataFim }}"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                </div>
-                            </div>
-                            @push('scripts')
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const details = document.getElementById('periodoPersonalizadoDetails');
-                                    const summary = document.getElementById('periodoPersonalizadoSummary');
-                                    if (details && summary) {
-                                        summary.addEventListener('click', function (e) {
-                                            if (!details.open) {
-                                                e.preventDefault();
-                                                details.open = true;
-                                            }
-                                        });
-                                    }
-                                    // Preencher data final automaticamente ao escolher data inicial
-                                    const dataInicio = document.getElementById('data_inicio_movimentacao');
-                                    const dataFim = document.getElementById('data_fim_movimentacao');
-                                    if (dataInicio && dataFim) {
-                                        dataInicio.addEventListener('change', function () {
-                                            if (dataInicio.value) {
-                                                const data = new Date(dataInicio.value);
-                                                data.setDate(data.getDate() + 1);
-                                                const nextDay = data.toISOString().slice(0, 10);
-                                                dataFim.value = nextDay;
-                                            }
-                                        });
-                                    }
-                                });
-                            </script>
-                            @endpush
-                        </details>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-2 items-center justify-between mt-2">
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'entrada'])) }}"
-                            class="quick-filter-btn status-recebido {{ request('tipo_movimentacao') === 'entrada' ? 'active' : '' }}"
-                            @if(request('tipo_movimentacao') === 'entrada') style="background:#16a34a;color:#fff;border-color:#16a34a" @endif>
-                            <span>Recebidos</span>
-                            <span class="count">{{ $contadoresStatus['recebido'] ?? 0 }}</span>
-                        </a>
-                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'saida'])) }}"
-                            class="quick-filter-btn status-pago {{ request('tipo_movimentacao') === 'saida' ? 'active' : '' }}"
-                            @if(request('tipo_movimentacao') === 'saida') style="background:#dc2626;color:#fff;border-color:#dc2626" @endif>
-                            <span>Pagos</span>
-                            <span class="count">{{ $contadoresStatus['pago'] ?? 0 }}</span>
-                        </a>
+                <details class="mt-4">
+                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                        Período Personalizado
+                    </summary>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Data Inicial</label>
+                            <input type="date" name="data_inicio" id="data_inicio_movimentacao" value="{{ $dataInicio }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label style="font-size: 14px !important; font-weight: 500 !important; color: #374151 !important; display: block; margin-bottom: 4px;">Data Final</label>
+                            <input type="date" name="data_fim" id="data_fim_movimentacao" value="{{ $dataFim }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
-                        <a href="{{ route('financeiro.movimentacao') }}" class="btn btn-secondary">Limpar</a>
-                    </div>
+                </details>
+
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'entrada'])) }}"
+                        class="quick-filter-btn status-recebido {{ request('tipo_movimentacao') === 'entrada' ? 'active' : '' }}"
+                        @if(request('tipo_movimentacao') === 'entrada') style="background:#16a34a;color:#fff;border-color:#16a34a" @endif>
+                        <span>Recebidos</span>
+                        <span class="count">{{ $contadoresStatus['recebido'] ?? 0 }}</span>
+                    </a>
+                    <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('tipo_movimentacao'), ['tipo_movimentacao' => 'saida'])) }}"
+                        class="quick-filter-btn status-pago {{ request('tipo_movimentacao') === 'saida' ? 'active' : '' }}"
+                        @if(request('tipo_movimentacao') === 'saida') style="background:#dc2626;color:#fff;border-color:#dc2626" @endif>
+                        <span>Pagos</span>
+                        <span class="count">{{ $contadoresStatus['pago'] ?? 0 }}</span>
+                    </a>
+                </div>
+
+                <div class="flex justify-start gap-2 mt-4">
+                    <x-button type="submit" variant="primary" size="sm" class="min-w-[100px]">
+                        <x-slot name="iconLeft">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                            </svg>
+                        </x-slot>
+                        Filtrar
+                    </x-button>
+                    <x-button href="{{ route('financeiro.movimentacao') }}" variant="secondary" size="sm" class="min-w-[100px]">
+                        <x-slot name="iconLeft">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </x-slot>
+                        Limpar
+                    </x-button>
                 </div>
             </form>
 
-            {{-- ================= KPI ================= --}}
-            <div class="kpi-grid mb-6">
-                <div class="kpi-card border-green">
-                    <div class="label">Total de Entradas no Período</div>
-                    <div class="value text-green-600">R$ {{ number_format($totalEntradas, 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card border-red">
-                    <div class="label">Total de Saídas no Período</div>
-                    <div class="value text-red-600">R$ {{ number_format($totalSaidas, 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card border-blue">
-                    <div class="label">Saldo Líquido do Período</div>
-                    <div class="value {{ ($totalEntradas - $totalSaidas) >= 0 ? 'text-blue-600' : 'text-red-600' }}">
-                        R$ {{ number_format($totalEntradas - $totalSaidas, 2, ',', '.') }}
-                    </div>
-                </div>
+            {{-- ================= KPIs ================= --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <x-kpi-card title="Total de Entradas no Período" :value="'R$ ' . number_format($totalEntradas, 2, ',', '.')" color="green" />
+                <x-kpi-card title="Total de Saídas no Período" :value="'R$ ' . number_format($totalSaidas, 2, ',', '.')" color="red" />
+                <x-kpi-card title="Saldo Líquido do Período" :value="'R$ ' . number_format($totalEntradas - $totalSaidas, 2, ',', '.')" color="{{ ($totalEntradas - $totalSaidas) >= 0 ? 'blue' : 'red' }}" />
             </div>
 
-            {{-- ================= TABELA (EXTRATO) ================= --}}
-            <div class="section-card">
-                <div class="table-container">
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
+            {{-- ================= TABELA ================= --}}
+            @if($movimentacoes->count())
+            <div class="table-card">
+                <div class="rounded-lg overflow-hidden" style="border: 1px solid #3f9cae; border-top-width: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead style="background-color: rgba(63, 156, 174, 0.05);">
                                 <tr>
-                                    <th>TIPO</th>
-                                    <th>
-                                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), [
-                                            'order_by' => 'data',
-                                            'order_dir' => request('order_dir') === 'asc' ? 'desc' : 'asc'
-                                        ])) }}" class="flex items-center gap-1 text-indigo-700 hover:underline">
-                                            DATA
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Tipo</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
+                                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), ['order_by' => 'data', 'order_dir' => request('order_dir') === 'asc' ? 'desc' : 'asc'])) }}"
+                                            class="inline-flex items-center gap-1 hover:text-[#3f9cae] transition">
+                                            Data
                                             @if(request('order_by') === 'data')
                                                 @if(request('order_dir') === 'asc')
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
@@ -310,14 +189,12 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th>DESCRIÇÃO</th>
-                                    <th>CLIENTE/FORNECEDOR</th>
-                                    <th>
-                                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), [
-                                            'order_by' => 'valor',
-                                            'order_dir' => request('order_by') === 'valor' && request('order_dir') === 'asc' ? 'desc' : 'asc'
-                                        ])) }}" class="flex items-center gap-1 text-indigo-700 hover:underline">
-                                            VALOR
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Descrição</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Cliente/Fornecedor</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">
+                                        <a href="{{ route('financeiro.movimentacao', array_merge(request()->except('order_by', 'order_dir'), ['order_by' => 'valor', 'order_dir' => request('order_by') === 'valor' && request('order_dir') === 'asc' ? 'desc' : 'asc'])) }}"
+                                            class="inline-flex items-center gap-1 hover:text-[#3f9cae] transition">
+                                            Valor
                                             @if(request('order_by') === 'valor')
                                                 @if(request('order_dir') === 'asc')
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
@@ -327,32 +204,29 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th>CENTRO DE CUSTO</th>
-                                    <th>FORMA PAGTO</th>
-                                    <th>USUÁRIO</th>
-                                    <th>AÇÕES</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">C. Custo</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Forma Pagto</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Usuário</th>
+                                    <th class="px-3 py-2 text-left uppercase text-sm font-bold text-gray-700 whitespace-nowrap">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-200">
                                 @php $totalPagina = 0; @endphp
 
-                                @forelse($movimentacoes as $mov)
-
+                                @foreach($movimentacoes as $mov)
                                 @php
                                     $isEntrada = $mov->tipo_movimentacao === 'entrada';
                                     $totalPagina += $isEntrada ? $mov->valor : -$mov->valor;
+                                    $linhaClass = $isEntrada ? 'bg-green-50 border-l-4 border-green-400' : 'bg-red-50 border-l-4 border-red-400';
                                     $descricaoMov = $mov->descricao ?? '-';
                                     $clienteMov = null;
                                     $contaPagar = null;
                                     $fornecedorMov = null;
                                     $contaMov = null;
                                     $formaPagtoMov = null;
-                                    $empresaMov = null;
-                                    // Entrada direta de cobrança (stdClass — novo fluxo pós-refatoração)
                                     if ($isEntrada && isset($mov->is_financeiro) && !$mov->is_financeiro) {
                                         $clienteMov = $mov->cliente ?? null;
                                     }
-                                    // Corrige descrição e cliente para movimentações financeiras de recebimento (fluxo legado)
                                     if ($isEntrada && isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
                                         $cobranca = \App\Models\Cobranca::with(['cliente', 'orcamento'])->find($matches[1]);
                                         if ($cobranca) {
@@ -360,224 +234,214 @@
                                             $clienteMov = $cobranca->cliente;
                                         }
                                     }
-                                    // Detecta se é ajuste de saída de conta a pagar
-                                    if(isset($mov->observacao) && preg_match('/Pagamento de conta a pagar ID (\d+)/', $mov->observacao, $matches)) {
+                                    if (isset($mov->observacao) && preg_match('/Pagamento de conta a pagar ID (\d+)/', $mov->observacao, $matches)) {
                                         $contaPagar = \App\Models\ContaPagar::with(['fornecedor', 'conta', 'contaFinanceira', 'orcamento'])->find($matches[1]);
-                                        if($contaPagar) {
+                                        if ($contaPagar) {
                                             $descricaoMov = $contaPagar->descricao;
                                             $fornecedorMov = $contaPagar->fornecedor;
                                             $contaMov = $contaPagar->conta;
                                             $formaPagtoMov = $contaPagar->forma_pagamento;
-                                            $empresaMov = $contaPagar->orcamento && $contaPagar->orcamento->empresa ? $contaPagar->orcamento->empresa : null;
                                         }
                                     }
                                 @endphp
-                                <tr class="{{ $isEntrada ? 'bg-green-50' : 'bg-red-50' }}">
+                                <tr class="{{ $linhaClass }} hover:bg-gray-50 transition">
+
                                     {{-- TIPO --}}
-                                    <td>
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $isEntrada ? 'bg-green-600' : 'bg-red-600' }} text-white">
+                                    <td class="px-3 py-2" data-label="Tipo">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $isEntrada ? 'bg-green-600' : 'bg-red-600' }} text-white whitespace-nowrap">
                                             {{ $isEntrada ? 'ENTRADA' : 'SAÍDA' }}
                                         </span>
                                         @if(isset($mov->tipo))
-                                            <div class="text-xs text-gray-700 mt-1">
-                                                {{
-                                                    [
-                                                        'ajuste_entrada' => 'AJUSTE',
-                                                        'ajuste_saida' => 'AJUSTE',
-                                                        'injeção_receita' => 'INJEÇÃO DE RECEITA',
-                                                        'transferencia_entrada' => 'TRANSFERÊNCIA',
-                                                        'transferencia_saida' => 'TRANSFERÊNCIA',
-                                                    ][$mov->tipo] ?? strtoupper($mov->tipo ?? $mov->tipo_movimentacao)
-                                                }}
-                                            </div>
+                                        <div class="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                                            {{ [
+                                                'ajuste_entrada'        => 'Ajuste',
+                                                'ajuste_saida'          => 'Ajuste',
+                                                'injeção_receita'       => 'Injeção de Receita',
+                                                'transferencia_entrada' => 'Transferência',
+                                                'transferencia_saida'   => 'Transferência',
+                                            ][$mov->tipo] ?? ucfirst(str_replace('_', ' ', $mov->tipo ?? $mov->tipo_movimentacao)) }}
+                                        </div>
                                         @endif
                                     </td>
+
                                     {{-- DATA --}}
-                                    <td>
-                                        {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m/Y') }}
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Data">
+                                        {{ \Carbon\Carbon::parse($mov->data_movimentacao ?? $mov->pago_em)->format('d/m') }}
                                     </td>
+
                                     {{-- DESCRIÇÃO --}}
-                                    <td>
-                                        {{ $descricaoMov ?? '-' }}
-                                        @if(isset($mov->observacao) && $mov->observacao)
-                                            @php
-                                                // Remove exibição da observação se for 'Recebimento de cobrança ID ...'
-                                                $obs = $mov->observacao;
-                                            @endphp
-                                            @if(!preg_match('/^Recebimento de cobrança ID \d+$/', $obs))
-                                                <div class="text-xs text-blue-700 font-semibold mt-1">
-                                                    {{ $obs }}
-                                                </div>
-                                            @endif
+                                    <td class="px-3 py-2 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Descrição">
+                                        @php
+                                            $obsExtra = isset($mov->observacao) && $mov->observacao
+                                                && !preg_match('/^Recebimento de cobrança ID \d+$/', $mov->observacao)
+                                                && !preg_match('/^Pagamento de conta a pagar ID \d+$/', $mov->observacao)
+                                                ? $mov->observacao : null;
+                                            $descFull = $descricaoMov . ($obsExtra ? ' · ' . $obsExtra : '');
+                                        @endphp
+                                        <span class="block truncate max-w-[180px]" title="{{ $descFull }}">{{ $descricaoMov }}</span>
+                                        @if($obsExtra)
+                                        <span class="block truncate max-w-[180px] text-xs text-blue-600" title="{{ $obsExtra }}">{{ $obsExtra }}</span>
                                         @endif
                                     </td>
+
                                     {{-- CLIENTE/FORNECEDOR --}}
-                                    <td>
-                                        @if($isEntrada && $clienteMov)
-                                            {{ $clienteMov->nome_fantasia ?? $clienteMov->nome ?? $clienteMov->razao_social ?? '—' }}
-                                        @elseif(!$isEntrada && isset($mov->fornecedor))
-                                            {{ $mov->fornecedor?->nome_fantasia ?? $mov->fornecedor?->razao_social ?? '—' }}
+                                    <td class="px-3 py-2 text-sm" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Cliente/Fornecedor">
+                                        @php
+                                            $nomeParticipante = '—';
+                                            if ($isEntrada && $clienteMov) {
+                                                $nomeParticipante = $clienteMov->nome_fantasia ?? $clienteMov->nome ?? $clienteMov->razao_social ?? '—';
+                                            } elseif (!$isEntrada && $fornecedorMov) {
+                                                $nomeParticipante = $fornecedorMov->razao_social ?? $fornecedorMov->nome_fantasia ?? '—';
+                                            } elseif (!$isEntrada && isset($mov->fornecedor)) {
+                                                $nomeParticipante = $mov->fornecedor?->razao_social ?? $mov->fornecedor?->nome_fantasia ?? '—';
+                                            }
+                                        @endphp
+                                        <span class="block truncate max-w-[160px]" title="{{ $nomeParticipante }}">{{ $nomeParticipante }}</span>
+                                    </td>
+
+                                    {{-- VALOR --}}
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap font-semibold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}" data-label="Valor">
+                                        {{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}
+                                    </td>
+
+                                    {{-- CENTRO DE CUSTO --}}
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Centro de Custo">
+                                        @if($isEntrada)
+                                            {{ $mov->contaDestino?->nome ?? '—' }}
+                                        @elseif($contaPagar && $contaPagar->centroCusto)
+                                            {{ $contaPagar->centroCusto->nome }}
+                                        @elseif(isset($mov->centroCusto))
+                                            {{ $mov->centroCusto->nome ?? '—' }}
                                         @else
                                             —
                                         @endif
                                     </td>
 
-                                    {{-- VALOR --}}
-                                    <td class="text-right font-bold {{ $isEntrada ? 'text-green-600' : 'text-red-600' }}">
-                                        <span style="white-space: nowrap;">{{ $isEntrada ? '+' : '-' }} R$ {{ number_format($mov->valor, 2, ',', '.') }}</span>
-                                    </td>
-                                    {{-- CENTRO DE CUSTO --}}
-                                    <td>
-                                        <span style="white-space: nowrap;">
-                                            @if($isEntrada)
-                                                {{-- Para receitas, exibe o banco/conta financeira --}}
-                                                {{ $mov->contaDestino?->nome ?? '—' }}
-                                            @elseif($contaPagar && $contaPagar->centroCusto)
-                                                {{ $contaPagar->centroCusto->nome ?? '—' }}
-                                            @elseif(isset($mov->centroCusto))
-                                                {{ $mov->centroCusto->nome ?? '—' }}
-                                            @else
-                                                —
-                                            @endif
-                                        </span>
-                                    </td>
                                     {{-- FORMA PAGAMENTO --}}
-                                    <td>
-                                        @if($isEntrada)
-                                            @if($mov->forma_pagamento)
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                    {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
-                                                </span>
-                                            @elseif($mov->contaDestino && $mov->contaDestino->tipo)
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                    {{ strtoupper(str_replace('_', ' ', $mov->contaDestino->tipo)) }}
-                                                </span>
-                                            @else
-                                                —
-                                            @endif
+                                    <td class="px-3 py-2 text-sm" data-label="Forma Pagto">
+                                        @php
+                                            $forma = $formaPagtoMov ?? $mov->forma_pagamento ?? ($mov->contaDestino?->tipo ?? null);
+                                        @endphp
+                                        @if($forma)
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 whitespace-nowrap">
+                                                {{ strtoupper(str_replace('_', ' ', $forma)) }}
+                                            </span>
                                         @else
-                                            @if($contaPagar && $formaPagtoMov)
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                    {{ strtoupper(str_replace('_', ' ', $formaPagtoMov)) }}
-                                                </span>
-                                            @elseif($mov->forma_pagamento)
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
-                                                    {{ strtoupper(str_replace('_', ' ', $mov->forma_pagamento)) }}
-                                                </span>
-                                            @else
-                                                —
-                                            @endif
+                                            —
                                         @endif
                                     </td>
-                                    {{-- USUÁRIO RESPONSÁVEL --}}
-                                    <td>
-                                        @php
-                                            $usuario = null;
 
-                                            if (isset($mov->usuario) && is_object($mov->usuario)) {
-                                                $usuario = $mov->usuario;
-                                            } elseif (isset($mov->user) && is_object($mov->user)) {
-                                                $usuario = $mov->user;
-                                            } elseif (isset($mov->cobranca) && is_object($mov->cobranca) && isset($mov->cobranca->usuario) && is_object($mov->cobranca->usuario)) {
-                                                $usuario = $mov->cobranca->usuario;
-                                            } elseif (isset($mov->contaPagar) && is_object($mov->contaPagar) && isset($mov->contaPagar->usuario) && is_object($mov->contaPagar->usuario)) {
-                                                $usuario = $mov->contaPagar->usuario;
-                                            } elseif (isset($mov->user_id) && $mov->user_id) {
+                                    {{-- USUÁRIO --}}
+                                    <td class="px-3 py-2 text-sm whitespace-nowrap" style="font-weight: 500; color: rgb(17, 24, 39);" data-label="Usuário">
+                                        @php
+                                            $usuario = $mov->usuario ?? $mov->user ?? $mov->cobranca?->usuario ?? $mov->contaPagar?->usuario ?? null;
+                                            if (!$usuario && isset($mov->user_id) && $mov->user_id) {
                                                 $usuario = \App\Models\User::find($mov->user_id);
                                             }
+                                            $nomeCompleto = $usuario?->name ?? $usuario?->nome ?? '—';
+                                            if ($nomeCompleto !== '—') {
+                                                $partes = array_filter(explode(' ', trim($nomeCompleto)));
+                                                $nomeCompleto = count($partes) > 1
+                                                    ? reset($partes) . ' ' . end($partes)
+                                                    : reset($partes);
+                                            }
                                         @endphp
-                                        {{ $usuario?->name ?? $usuario?->nome ?? '—' }}
+                                        {{ $nomeCompleto }}
                                     </td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
 
+                                    {{-- AÇÕES --}}
+                                    <td class="px-3 py-2" data-label="Ações">
+                                        <div class="flex gap-1 justify-end">
                                             @if($isEntrada)
-                                            {{-- IMPRIMIR COMPROVANTE (apenas cobranças, não ajustes financeiros) --}}
-                                            @if(!($mov->is_financeiro ?? false) && isset($mov->cobranca))
-                                            <a href="{{ route('financeiro.cobrancas.recibo', $mov->cobranca) }}"
-                                                target="_blank"
-                                                class="btn btn-secondary btn-sm"
-                                                title="Imprimir Comprovante">
-                                                🖨️
-                                            </a>
-                                            @endif
-
-                                            {{-- DELETAR / ESTORNAR --}}
-                                            @php
-                                                // Buscar o ID da cobrança para estorno
-                                                $cobrancaId = null;
-                                                if ($isEntrada) {
+                                                @if(!($mov->is_financeiro ?? false) && isset($mov->cobranca))
+                                                <a href="{{ route('financeiro.cobrancas.recibo', $mov->cobranca) }}"
+                                                    target="_blank"
+                                                    class="p-2 rounded-full inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition"
+                                                    title="Imprimir Comprovante">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                    </svg>
+                                                </a>
+                                                @endif
+                                                @php
+                                                    $cobrancaId = null;
                                                     if (!($mov->is_financeiro ?? false) && isset($mov->cobranca)) {
-                                                        // Entrada direta de cobrança (novo fluxo)
                                                         $cobrancaId = $mov->cobranca->id;
                                                     } elseif (isset($mov->observacao) && preg_match('/Recebimento de cobrança ID (\d+)/', $mov->observacao, $matches)) {
-                                                        // Entrada via MovimentacaoFinanceira (fluxo legado)
                                                         $cobrancaId = $matches[1];
                                                     }
-                                                }
-                                            @endphp
-                                            @if($cobrancaId)
+                                                @endphp
+                                                @if($cobrancaId)
                                                 <form method="POST"
                                                     action="{{ route('financeiro.movimentacao.estornar', $cobrancaId) }}"
                                                     onsubmit="return confirm('Deseja estornar esta cobrança e devolvê-la para Contas a Receber?')">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit"
-                                                        class="btn btn-danger btn-sm"
+                                                        class="p-2 rounded-full inline-flex items-center justify-center text-red-600 hover:bg-red-50 transition"
                                                         title="Estornar Pagamento">
-                                                        ↩️
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                                        </svg>
                                                     </button>
                                                 </form>
+                                                @else
+                                                    <span class="text-xs text-gray-400 px-2">Não estornável</span>
+                                                @endif
                                             @else
-                                                <span class="text-xs text-gray-400">Não estornável</span>
+                                                <form method="POST"
+                                                    action="{{ route('financeiro.contasapagar.estornar', $mov) }}"
+                                                    onsubmit="return confirm('Deseja estornar este pagamento e devolvê-lo para Contas a Pagar?')">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="p-2 rounded-full inline-flex items-center justify-center text-red-600 hover:bg-red-50 transition"
+                                                        title="Estornar Pagamento">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
                                             @endif
-                                            @else
-                                            {{-- Estornar Conta a Pagar --}}
-                                            <form method="POST"
-                                                action="{{ route('financeiro.contasapagar.estornar', $mov) }}"
-                                                onsubmit="return confirm('Deseja estornar este pagamento e devolvê-lo para Contas a Pagar?')">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit"
-                                                    class="btn btn-danger btn-sm"
-                                                    title="Estornar Pagamento">
-                                                    ↩️
-                                                </button>
-                                            </form>
-                                            @endif
-
                                         </div>
                                     </td>
 
                                 </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="8" class="text-center py-12 text-gray-500">
-                                        Nenhuma movimentação encontrada.
-                                    </td>
-                                </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
-
                         </table>
                     </div>
                 </div>
 
-                {{-- TOTAL --}}
-                <div class="table-footer">
-                    <div class="footer-total">
-                        <span class="label">Total da Página:</span>
-                        <span class="value">
-                            R$ {{ number_format($totalPagina, 2, ',', '.') }}
-                        </span>
+                {{-- Rodapé com Totais --}}
+                <x-card class="mt-4 mb-6">
+                    <div class="p-4 flex justify-end">
+                        <div class="text-right space-y-2">
+                            <div>
+                                <span class="text-sm text-gray-600 uppercase tracking-wide">Total da Página:</span>
+                                <span class="ml-2 text-xl font-bold {{ $totalPagina >= 0 ? 'text-gray-900' : 'text-red-600' }}">
+                                    R$ {{ number_format($totalPagina, 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-600 uppercase tracking-wide">Entradas / Saídas (período):</span>
+                                <span class="ml-2 text-base font-semibold text-green-600">+R$ {{ number_format($totalEntradas, 2, ',', '.') }}</span>
+                                <span class="mx-1 text-gray-400">/</span>
+                                <span class="text-base font-semibold text-red-600">-R$ {{ number_format($totalSaidas, 2, ',', '.') }}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="pagination-container p-4">
-                    {{ $movimentacoes->links() }}
-                </div>
+                </x-card>
             </div>
+
+            <x-pagination :paginator="$movimentacoes" label="movimentações" />
+            @else
+            <x-card :padding="false" class="text-center py-12">
+                <p class="text-gray-500">Nenhuma movimentação encontrada para os filtros aplicados.</p>
+            </x-card>
+            @endif
 
         </div>
     </div>
+
 </x-app-layout>

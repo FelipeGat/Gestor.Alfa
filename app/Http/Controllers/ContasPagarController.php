@@ -13,10 +13,13 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsUserActivity;
 use Illuminate\Support\Facades\Storage;
 
 class ContasPagarController extends Controller
 {
+    use LogsUserActivity;
+
     protected $service;
 
     public function __construct(ContaPagarService $service)
@@ -46,7 +49,7 @@ class ContasPagarController extends Controller
         // Monta a query base
         $query = ContaPagar::with(['fornecedor', 'centroCusto', 'conta']);
 
-        // Filtro de busca geral
+        // Filtro de busca geral (Descrição, Fornecedor, Centro de Custo ou Valor)
         if ($request->filled('search')) {
             $searchTerm = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($searchTerm) {
@@ -57,7 +60,8 @@ class ContasPagarController extends Controller
                     })
                     ->orWhereHas('centroCusto', function ($sq) use ($searchTerm) {
                         $sq->where('nome', 'like', $searchTerm);
-                    });
+                    })
+                    ->orWhereRaw('CAST(valor AS CHAR) LIKE ?', [$searchTerm]);
             });
         }
 
@@ -1085,6 +1089,11 @@ class ContasPagarController extends Controller
 
             \Log::info('Arquivo encontrado, iniciando download', [
                 'caminho' => $anexo->caminho,
+            ]);
+
+            $this->registrarLog('anexo de conta a pagar baixado', $anexo, [
+                'arquivo' => $anexo->nome_original,
+                'tipo'    => $anexo->tipo ?? null,
             ]);
 
             return Storage::disk('public')->download($anexo->caminho, $anexo->nome_original);
