@@ -62,6 +62,43 @@
         .kpi-card-green { border-color: #16a34a; }
         .kpi-card-yellow { border-color: #eab308; }
         .kpi-card-purple { border-color: #7c3aed; }
+        /* Botões filtro rápido */
+        .btn-filtro-rapido {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-filtro-rapido.ativo {
+            background: #3f9cae;
+            color: white;
+        }
+        .btn-filtro-rapido.inativo {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .btn-filtro-rapido.inativo:hover { background: #e5e7eb; }
+        /* Status badges no modal */
+        .modal-status-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.25rem 0.6rem; font-size: 0.7rem; font-weight: 600;
+            border-radius: 9999px; text-transform: uppercase; white-space: nowrap;
+        }
+        .badge-em_elaboracao        { background:#f3f4f6; color:#374151; }
+        .badge-aguardando_aprovacao { background:#fef3c7; color:#92400e; }
+        .badge-aprovado             { background:#dcfce7; color:#166534; }
+        .badge-aguardando_pagamento { background:#fef9c3; color:#854d0e; }
+        .badge-agendado             { background:#ede9fe; color:#5b21b6; }
+        .badge-em_andamento         { background:#e0f2fe; color:#075985; }
+        .badge-financeiro           { background:#fee2e2; color:#dc2626; }
+        .badge-concluido            { background:#dcfce7; color:#15803d; }
+        .badge-recusado             { background:#fee2e2; color:#991b1b; }
+        .badge-garantia             { background:#ffedd5; color:#9a3412; }
+        .badge-cancelado            { background:#f3f4f6; color:#6b7280; }
     </style>
     @endpush
 
@@ -91,72 +128,122 @@
             @endif
 
             {{-- ================= FILTROS ================= --}}
-            <form method="GET" class="filters-card p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                    <div class="flex flex-col lg:col-span-4">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Pesquisar</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cliente, Empresa, Status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
+            <div x-data="{
+                periodo: '{{ request('periodo', '') }}',
+                mostrarCustom: {{ request('periodo') === 'intervalo' ? 'true' : 'false' }},
+                tipoCliente: '{{ request('tipo_cliente', 'todos') }}',
+                aplicarFiltro(tipo) {
+                    this.periodo = tipo;
+                    if (tipo !== 'intervalo') {
+                        this.mostrarCustom = false;
+                        const form = this.$refs.formFiltro;
+                        const di = form.querySelector('[name=data_inicio]');
+                        const df = form.querySelector('[name=data_fim]');
+                        if (di) di.disabled = true;
+                        if (df) df.disabled = true;
+                        setTimeout(() => form.submit(), 10);
+                    } else {
+                        this.mostrarCustom = true;
+                    }
+                },
+                aplicarTipoCliente(tipo) {
+                    this.tipoCliente = tipo;
+                    this.$refs.formFiltro.querySelector('[name=tipo_cliente]').value = tipo;
+                    setTimeout(() => this.$refs.formFiltro.submit(), 10);
+                }
+            }" class="space-y-4">
+
+                {{-- Card 1: Busca + Empresa + Status + Botões --}}
+                <form method="GET" x-ref="formFiltro" action="{{ route('orcamentos.index') }}" class="filters-card p-6">
+                    <input type="hidden" name="periodo" :value="periodo">
+                    <input type="hidden" name="tipo_cliente" :value="tipoCliente">
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+
+                        {{-- Busca --}}
+                        <div class="flex flex-col lg:col-span-12">
+                            <label class="text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                            <div class="relative">
+                                <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" name="search" value="{{ request('search') }}"
+                                    placeholder="Cliente, Empresa, Status, Nº orçamento, Descrição, Valor..."
+                                    class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
+                            </div>
+                        </div>
+
+                        {{-- Empresa --}}
+                        <div class="flex flex-col lg:col-span-4">
+                            <label class="text-sm font-medium text-gray-700 mb-2">Empresa</label>
+                            <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                <option value="">Todas as Empresas</option>
+                                @foreach($empresas as $empresa)
+                                <option value="{{ $empresa->id }}" @selected(request('empresa_id') == $empresa->id)>{{ $empresa->nome_fantasia }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Status --}}
+                        <div class="flex flex-col lg:col-span-4">
+                            <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                <option value="">Todos os Status</option>
+                                @foreach($statusList as $key => $label)
+                                <option value="{{ $key }}" @selected(request('status') == $key)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Botões --}}
+                        <div class="flex items-end gap-2 lg:col-span-4">
+                            <button type="submit" style="padding:.5rem 1rem;font-size:.875rem;width:130px;justify-content:center;background:#3f9cae;border-radius:9999px;display:inline-flex;align-items:center;gap:.5rem;color:white;font-weight:500;border:none;cursor:pointer;box-shadow:0 2px 4px rgba(63,156,174,.3);" onmouseover="this.style.background='#358a96'" onmouseout="this.style.background='#3f9cae'">
+                                <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/></svg>
+                                Filtrar
+                            </button>
+                            <a href="{{ route('orcamentos.index') }}" style="padding:.5rem 1rem;font-size:.875rem;width:130px;justify-content:center;background:#9ca3af;border-radius:9999px;box-shadow:0 2px 4px rgba(156,163,175,.3);display:inline-flex;align-items:center;gap:.5rem;color:white;font-weight:500;text-decoration:none;" onmouseover="this.style.background='#6b7280'" onmouseout="this.style.background='#9ca3af'">
+                                <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                Limpar
+                            </a>
+                        </div>
+
+                        {{-- Datas customizadas --}}
+                        <div x-show="mostrarCustom" x-cloak x-transition class="lg:col-span-12 flex flex-wrap items-end gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
+                                <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
+                                <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                            <button type="submit" style="padding:.5rem 1.25rem;background:#6366f1;color:white;border:none;border-radius:.375rem;font-size:.875rem;font-weight:500;cursor:pointer;">Aplicar</button>
+                        </div>
+
                     </div>
+                </form>
 
-                    <div class="flex flex-col lg:col-span-3">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
-                            <option value="">Todos</option>
-                            @foreach($statusList as $key => $label)
-                            <option value="{{ $key }}" @selected(collect(request('status'))->contains($key))>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col lg:col-span-3">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Empresa</label>
-                        <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
-                            <option value="">Todas</option>
-                            @foreach($empresas as $empresa)
-                            <option value="{{ $empresa->id }}" @selected(collect(request('empresa_id'))->contains($empresa->id))>{{ $empresa->nome_fantasia }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col lg:col-span-2">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Período</label>
-                        <select name="periodo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
-                            <option value="">Todos</option>
-                            <option value="ano" @selected(request('periodo')==='ano')>Ano Atual</option>
-                            <option value="mes" @selected(request('periodo')==='mes')>Mês Atual</option>
-                            <option value="semana" @selected(request('periodo')==='semana')>Semana Atual</option>
-                            <option value="dia" @selected(request('periodo')==='dia')>Hoje</option>
-                            <option value="intervalo" @selected(request('periodo')==='intervalo')>Intervalo</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col lg:col-span-2">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Data Inicial</label>
-                        <input type="date" name="data_inicio" value="{{ request('data_inicio') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
-                    </div>
-
-                    <div class="flex flex-col lg:col-span-2">
-                        <label class="text-sm font-medium text-gray-700 mb-2">Data Final</label>
-                        <input type="date" name="data_fim" value="{{ request('data_fim') }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae] w-full">
-                    </div>
-
-                    <div class="flex items-end gap-2 lg:col-span-3">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px;">
-                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
-                            </svg>
-                            Filtrar
-                        </button>
-
-                        <a href="{{ route('orcamentos.index') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
-                            <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                            Limpar
-                        </a>
+                {{-- Card 2: Período + Origem --}}
+                <div class="filters-card p-5">
+                    <div class="flex flex-wrap w-full justify-between items-center gap-3">
+                        <div class="flex gap-2 items-center flex-wrap">
+                            <span class="text-gray-700 font-semibold text-sm">Filtrar por período:</span>
+                            <button type="button" @click="aplicarFiltro('mes_anterior')" :class="periodo === 'mes_anterior' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Mês Anterior</button>
+                            <button type="button" @click="aplicarFiltro('dia')"          :class="periodo === 'dia'          ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Dia</button>
+                            <button type="button" @click="aplicarFiltro('semana')"       :class="periodo === 'semana'       ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Semana</button>
+                            <button type="button" @click="aplicarFiltro('mes')"          :class="periodo === 'mes'          ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Mês</button>
+                            <button type="button" @click="aplicarFiltro('ano')"          :class="periodo === 'ano'          ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Ano</button>
+                            <button type="button" @click="aplicarFiltro('intervalo')"    :class="periodo === 'intervalo'    ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">Outro período</button>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <button type="button" @click="aplicarTipoCliente('todos')"        :class="tipoCliente === 'todos'        ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">TODOS</button>
+                            <button type="button" @click="aplicarTipoCliente('clientes')"     :class="tipoCliente === 'clientes'     ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">CLIENTES</button>
+                            <button type="button" @click="aplicarTipoCliente('pre_clientes')" :class="tipoCliente === 'pre_clientes' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'" class="btn-filtro-rapido">PRÉ-CLIENTES</button>
+                        </div>
                     </div>
                 </div>
-            </form>
+
+            </div>
 
             {{-- ================= RESUMO ================= --}}
             @php
@@ -177,32 +264,32 @@
             <div class="resumo-grid gap-4 mb-6" style="
                 display: grid !important;
                 grid-template-columns: repeat(1, minmax(0, 1fr));">
-                <div class="kpi-card kpi-card-blue w-full max-w-none p-6">
+                <div class="kpi-card kpi-card-blue w-full max-w-none p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                    onclick="abrirModalResumo('total', 'Total de Orçamentos')">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Total de Orçamentos</p>
-                    <p class="text-3xl font-bold text-blue-600 mt-2">
-                        {{ $totalOrcamentos }}
-                    </p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalOrcamentos }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div class="kpi-card kpi-card-green w-full max-w-none p-6">
+                <div class="kpi-card kpi-card-green w-full max-w-none p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                    onclick="abrirModalResumo('aprovados', 'Aprovados')">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Aprovados</p>
-                    <p class="text-3xl font-bold text-green-600 mt-2">
-                        {{ $aprovados }}
-                    </p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ $aprovados }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div class="kpi-card kpi-card-yellow w-full max-w-none p-6">
+                <div class="kpi-card kpi-card-yellow w-full max-w-none p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                    onclick="abrirModalResumo('pendentes', 'Pendentes')">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Pendentes</p>
-                    <p class="text-3xl font-bold text-yellow-600 mt-2">
-                        {{ $pendentes }}
-                    </p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-2">{{ $pendentes }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div class="kpi-card kpi-card-purple w-full max-w-none p-6">
+                <div class="kpi-card kpi-card-purple w-full max-w-none p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                    onclick="abrirModalResumo('valor_total', 'Valor Total')">
                     <p class="text-xs text-gray-600 uppercase tracking-wide">Valor Total</p>
-                    <p class="text-3xl font-bold text-purple-600 mt-2">
-                        R$ {{ number_format($valorTotal, 2, ',', '.') }}
-                    </p>
+                    <p class="text-3xl font-bold text-purple-600 mt-2">R$ {{ number_format($valorTotal, 2, ',', '.') }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
             </div>
 
@@ -441,6 +528,157 @@
         </div>
     </div>
 </x-app-layout>
+
+{{-- ================= MODAL RESUMO CARDS ================= --}}
+<div id="modal-resumo-orcamentos" style="display:none; position:fixed; inset:0; background:rgba(107,114,128,.6); z-index:55; overflow-y:auto;">
+    <div style="max-width:1100px; margin:3vh auto 3vh; background:#fff; border-radius:0.5rem; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.2); border:1px solid #3f9cae; border-top-width:4px;">
+        <!-- Header -->
+        <div style="padding:1rem 1.5rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 id="modal-resumo-titulo" style="font-weight:700; font-size:1.1rem; color:#111827;"></h3>
+                <p id="modal-resumo-subtitulo" style="font-size:0.8rem; color:#6b7280; margin-top:2px;"></p>
+            </div>
+            <button onclick="fecharModalResumo()" style="font-size:1.5rem; color:#9ca3af; line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">&times;</button>
+        </div>
+        <!-- Loading -->
+        <div id="modal-resumo-loading" style="padding:3rem; text-align:center; color:#6b7280;">
+            <svg style="width:2.5rem;height:2.5rem;margin:0 auto 0.75rem;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
+                <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="#3f9cae" stroke-width="4"></circle>
+                <path style="opacity:.75" fill="#3f9cae" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Carregando orçamentos...
+        </div>
+        <!-- Tabela -->
+        <div id="modal-resumo-tabela" style="display:none; overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead style="background:rgba(63,156,174,.05); border-bottom:1px solid #3f9cae;">
+                    <tr>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Número</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Cliente</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Vendedor</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Valor</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Status</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Data</th>
+                        <th style="padding:.75rem 1rem; text-align:left; font-size:13px; font-weight:600; color:#111827; text-transform:uppercase;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-resumo-tbody" style="border-top:1px solid #e5e7eb;"></tbody>
+            </table>
+        </div>
+        <!-- Vazio -->
+        <div id="modal-resumo-vazio" style="display:none; padding:3rem; text-align:center; color:#9ca3af;">
+            Nenhum orçamento encontrado para este filtro.
+        </div>
+        <!-- Footer -->
+        <div style="padding:.875rem 1.5rem; border-top:1px solid #e5e7eb; background:#f9fafb; display:flex; justify-content:flex-end;">
+            <button onclick="fecharModalResumo()"
+                style="padding:.5rem 1.5rem; background:#ef4444; color:#fff; border-radius:9999px; font-size:.875rem; font-weight:500; display:inline-flex; align-items:center; gap:.4rem;"
+                onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function() {
+    const urlModal = '{{ route('orcamentos.modal') }}';
+    // Coleta os filtros ativos da URL atual
+    function getFiltrosAtivos() {
+        const params = new URLSearchParams(window.location.search);
+        const allowed = ['search', 'empresa_id', 'periodo', 'data_inicio', 'data_fim'];
+        const out = new URLSearchParams();
+        allowed.forEach(k => { if (params.has(k)) out.set(k, params.get(k)); });
+        return out;
+    }
+
+    window.abrirModalResumo = function(tipo, titulo) {
+        const modal   = document.getElementById('modal-resumo-orcamentos');
+        const loading = document.getElementById('modal-resumo-loading');
+        const tabela  = document.getElementById('modal-resumo-tabela');
+        const vazio   = document.getElementById('modal-resumo-vazio');
+        const tbody   = document.getElementById('modal-resumo-tbody');
+
+        document.getElementById('modal-resumo-titulo').textContent = titulo;
+        document.getElementById('modal-resumo-subtitulo').textContent = '';
+        modal.style.display   = 'block';
+        loading.style.display = 'block';
+        tabela.style.display  = 'none';
+        vazio.style.display   = 'none';
+        tbody.innerHTML       = '';
+
+        const params = getFiltrosAtivos();
+        params.set('tipo', tipo);
+
+        fetch(urlModal + '?' + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            loading.style.display = 'none';
+            if (!data.success || !data.orcamentos.length) {
+                vazio.style.display = 'block';
+                return;
+            }
+            document.getElementById('modal-resumo-subtitulo').textContent =
+                data.total + ' orçamento(s) | Valor Total: R$ ' +
+                data.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            data.orcamentos.forEach(orc => {
+                const tr = document.createElement('tr');
+                tr.style.cssText = 'border-bottom:1px solid #f3f4f6;';
+                tr.onmouseover = () => tr.style.background = '#f9fafb';
+                tr.onmouseout  = () => tr.style.background = '';
+                tr.innerHTML = `
+                    <td style="padding:.7rem 1rem; font-size:.85rem; color:#111827;">
+                        <span style="font-weight:600;">${orc.numero}</span>
+                        <span style="display:block; font-size:.7rem; color:#9ca3af;">${orc.empresa}</span>
+                    </td>
+                    <td style="padding:.7rem 1rem; font-size:.85rem; color:#111827;">${orc.cliente}</td>
+                    <td style="padding:.7rem 1rem; font-size:.85rem; color:#111827;">${orc.vendedor}</td>
+                    <td style="padding:.7rem 1rem; font-size:.85rem; font-weight:600; color:#111827; white-space:nowrap;">R$ ${orc.valor_total}</td>
+                    <td style="padding:.7rem 1rem;">
+                        <span class="modal-status-badge badge-${orc.status}">${orc.status_label}</span>
+                    </td>
+                    <td style="padding:.7rem 1rem; font-size:.85rem; color:#6b7280;">${orc.data}</td>
+                    <td style="padding:.7rem 1rem;">
+                        <a href="${orc.url}" target="_blank"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:#1f2937;color:#fff;border-radius:9999px;"
+                            title="Imprimir">
+                            <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z"/>
+                            </svg>
+                        </a>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            tabela.style.display = 'block';
+        })
+        .catch(() => {
+            loading.style.display = 'none';
+            vazio.style.display   = 'block';
+            document.getElementById('modal-resumo-subtitulo').textContent = 'Erro ao carregar dados.';
+        });
+    };
+
+    window.fecharModalResumo = function() {
+        document.getElementById('modal-resumo-orcamentos').style.display = 'none';
+    };
+
+    document.getElementById('modal-resumo-orcamentos').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalResumo();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') fecharModalResumo();
+    });
+})();
+</script>
 
 <div id="modal-agendamento-orcamento" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60;">
     <div style="max-width:920px; margin:3vh auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.25);">

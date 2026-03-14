@@ -71,23 +71,19 @@ class OrcamentoController extends Controller
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-
-                // Nº Orçamento
                 $q->where('numero_orcamento', 'like', "%{$search}%")
-
-                    // Status
                     ->orWhere('status', 'like', "%{$search}%")
-
-                    // Cliente
+                    ->orWhere('descricao', 'like', "%{$search}%")
+                    ->orWhereRaw('CAST(valor_total AS CHAR) LIKE ?', ["%{$search}%"])
                     ->orWhereHas('cliente', function ($qc) use ($search) {
-                        $qc->where('nome', 'like', "%{$search}%");
+                        $qc->where('nome', 'like', "%{$search}%")
+                            ->orWhere('nome_fantasia', 'like', "%{$search}%")
+                            ->orWhere('razao_social', 'like', "%{$search}%");
                     })
                     ->orWhereHas('preCliente', function ($qp) use ($search) {
                         $qp->where('nome_fantasia', 'like', "%{$search}%")
                             ->orWhere('razao_social', 'like', "%{$search}%");
                     })
-
-                    // Empresa
                     ->orWhereHas('empresa', function ($qe) use ($search) {
                         $qe->where('nome_fantasia', 'like', "%{$search}%");
                     });
@@ -116,6 +112,14 @@ class OrcamentoController extends Controller
             }
         }
 
+        // ================= FILTRO TIPO CLIENTE (clientes / pre_clientes) =================
+        $tipoCliente = $request->input('tipo_cliente', 'todos');
+        if ($tipoCliente === 'clientes') {
+            $query->whereNotNull('cliente_id');
+        } elseif ($tipoCliente === 'pre_clientes') {
+            $query->whereNotNull('pre_cliente_id');
+        }
+
         // ================= FILTRO POR PERÍODO =================
         if ($request->filled('periodo')) {
 
@@ -123,22 +127,24 @@ class OrcamentoController extends Controller
 
             switch ($request->periodo) {
 
+                case 'mes_anterior':
+                    $query->whereYear('created_at', $hoje->copy()->subMonth()->year)
+                        ->whereMonth('created_at', $hoje->copy()->subMonth()->month);
+                    break;
+
                 case 'ano':
                     $query->whereYear('created_at', $hoje->year);
                     break;
 
                 case 'mes':
-                    $ano = $request->get('ano', now()->year);
-                    $mes = $request->get('mes', now()->month);
-
-                    $query->whereYear('created_at', $ano)
-                        ->whereMonth('created_at', $mes);
+                    $query->whereYear('created_at', $hoje->year)
+                        ->whereMonth('created_at', $hoje->month);
                     break;
 
                 case 'semana':
                     $query->whereBetween('created_at', [
-                        $hoje->startOfWeek(),
-                        $hoje->endOfWeek(),
+                        $hoje->copy()->startOfWeek(),
+                        $hoje->copy()->endOfWeek(),
                     ]);
                     break;
 
@@ -149,8 +155,8 @@ class OrcamentoController extends Controller
                 case 'intervalo':
                     if ($request->filled('data_inicio') && $request->filled('data_fim')) {
                         $query->whereBetween('created_at', [
-                            $request->data_inicio.' 00:00:00',
-                            $request->data_fim.' 23:59:59',
+                            $request->data_inicio . ' 00:00:00',
+                            $request->data_fim . ' 23:59:59',
                         ]);
                     }
                     break;
@@ -208,6 +214,149 @@ class OrcamentoController extends Controller
             'statusList',
             'resumo'
         ));
+    }
+
+    public function modalOrcamentos(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        abort_if(
+            ! $user->isAdminPanel() && $user->tipo !== 'comercial',
+            403
+        );
+
+        $query = Orcamento::with([
+            'empresa:id,nome_fantasia',
+            'cliente:id,nome,nome_fantasia,razao_social',
+            'preCliente:id,nome_fantasia,razao_social',
+            'criadoPor:id,name',
+        ]);
+
+        if ($user->tipo === 'comercial') {
+            $empresaIds = $user->empresas->pluck('id');
+            if ($empresaIds->isEmpty()) {
+                return response()->json(['success' => true, 'orcamentos' => [], 'total' => 0, 'valor_total' => 0]);
+            }
+            $query->whereIn('empresa_id', $empresaIds);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_orcamento', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('descricao', 'like', "%{$search}%")
+                    ->orWhereRaw('CAST(valor_total AS CHAR) LIKE ?', ["%{$search}%"])
+                    ->orWhereHas('cliente', fn($qc) => $qc->where('nome', 'like', "%{$search}%")->orWhere('nome_fantasia', 'like', "%{$search}%"))
+                    ->orWhereHas('preCliente', fn($qp) => $qp->where('nome_fantasia', 'like', "%{$search}%")->orWhere('razao_social', 'like', "%{$search}%"))
+                    ->orWhereHas('empresa', fn($qe) => $qe->where('nome_fantasia', 'like', "%{$search}%"));
+            });
+        }
+
+        $empresaFilter = $request->input('empresa_id');
+        if ($empresaFilter) {
+            $empresaArray = array_filter(is_array($empresaFilter) ? $empresaFilter : [$empresaFilter]);
+            if (! empty($empresaArray)) {
+                $query->whereIn('empresa_id', $empresaArray);
+            }
+        }
+
+        $tipoCliente = $request->input('tipo_cliente', 'todos');
+        if ($tipoCliente === 'clientes') {
+            $query->whereNotNull('cliente_id');
+        } elseif ($tipoCliente === 'pre_clientes') {
+            $query->whereNotNull('pre_cliente_id');
+        }
+
+        if ($request->filled('periodo')) {
+            $hoje = Carbon::now();
+            switch ($request->periodo) {
+                case 'mes_anterior':
+                    $query->whereYear('created_at', $hoje->copy()->subMonth()->year)
+                        ->whereMonth('created_at', $hoje->copy()->subMonth()->month);
+                    break;
+                case 'ano':
+                    $query->whereYear('created_at', $hoje->year);
+                    break;
+                case 'mes':
+                    $query->whereYear('created_at', $hoje->year)->whereMonth('created_at', $hoje->month);
+                    break;
+                case 'semana':
+                    $query->whereBetween('created_at', [$hoje->copy()->startOfWeek(), $hoje->copy()->endOfWeek()]);
+                    break;
+                case 'dia':
+                    $query->whereDate('created_at', $hoje->toDateString());
+                    break;
+                case 'intervalo':
+                    if ($request->filled('data_inicio') && $request->filled('data_fim')) {
+                        $query->whereBetween('created_at', [$request->data_inicio . ' 00:00:00', $request->data_fim . ' 23:59:59']);
+                    }
+                    break;
+            }
+        }
+
+        $tipo = $request->get('tipo', 'total');
+        switch ($tipo) {
+            case 'aprovados':
+                $query->where('status', 'aprovado');
+                break;
+            case 'pendentes':
+                $query->whereIn('status', ['em_elaboracao', 'aguardando_aprovacao']);
+                break;
+            default:
+                $query->whereNotIn('status', ['aguardando_pagamento', 'recusado', 'cancelado', 'concluido']);
+        }
+
+        $orcamentos = $query->orderBy('created_at', 'desc')->get();
+
+        $statusLabels = [
+            'em_elaboracao'       => 'Em Elaboração',
+            'aguardando_aprovacao' => 'Aguardando Aprovação',
+            'aprovado'            => 'Aprovado',
+            'aguardando_pagamento' => 'Aguardando Pagamento',
+            'agendado'            => 'Agendado',
+            'recusado'            => 'Recusado',
+            'em_andamento'        => 'Em Andamento',
+            'financeiro'          => 'Financeiro',
+            'concluido'           => 'Concluído',
+            'garantia'            => 'Garantia',
+            'cancelado'           => 'Cancelado',
+        ];
+
+        $mapped = $orcamentos->map(function ($orc) use ($statusLabels) {
+            $nomeVendedor = $orc->criadoPor->name ?? null;
+            if ($nomeVendedor) {
+                $partes = explode(' ', trim($nomeVendedor));
+                $nomeVendedor = count($partes) > 1 ? $partes[0] . ' ' . end($partes) : $partes[0];
+            }
+
+            return [
+                'id'           => $orc->id,
+                'numero'       => $orc->numero_orcamento,
+                'cliente'      => $orc->nome_cliente !== '—' ? $orc->nome_cliente : 'N/A',
+                'empresa'      => $orc->empresa?->nome_fantasia ?? 'N/A',
+                'vendedor'     => $nomeVendedor ?? 'N/A',
+                'valor_total'  => number_format($orc->valor_total ?? 0, 2, ',', '.'),
+                'status'       => $orc->status,
+                'status_label' => $statusLabels[$orc->status] ?? ucfirst($orc->status),
+                'data'         => $orc->created_at?->format('d/m/Y') ?? 'N/A',
+                'url'          => route('orcamentos.imprimir', $orc->id),
+            ];
+        });
+
+        $valorTotal = 0;
+        foreach ($mapped as $orc) {
+            $valor = str_replace(',', '.', str_replace('.', '', $orc['valor_total']));
+            $valorTotal += (float) $valor;
+        }
+
+        return response()->json([
+            'success'     => true,
+            'orcamentos'  => $mapped->values(),
+            'total'       => $mapped->count(),
+            'valor_total' => $valorTotal,
+        ]);
     }
 
     public function show(Orcamento $orcamento)

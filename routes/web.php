@@ -243,6 +243,10 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         });
 
     // Orçamentos
+    Route::get('/orcamentos/modal', [OrcamentoController::class, 'modalOrcamentos'])
+        ->middleware('dashboard.comercial')
+        ->name('orcamentos.modal');
+
     Route::resource('orcamentos', OrcamentoController::class)
         ->middleware('dashboard.comercial');
 
