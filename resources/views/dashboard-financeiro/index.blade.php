@@ -1121,6 +1121,54 @@
             </div>{{-- /categorias-flip-inner --}}
             </div>{{-- /categorias-flip-scene --}}
 
+            {{-- ================= CARD: CUSTO FIXO PRÓXIMO MÊS ================= --}}
+            <div class="card-grafico p-6 mb-6">
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <h3 class="text-base font-semibold text-gray-700 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Custo Fixo — {{ $nomeProximoMes }}
+                    </h3>
+                    <div class="text-right">
+                        <span class="text-xs text-gray-400">{{ $diasUteisProximoMes }} dias úteis</span>
+                    </div>
+                </div>
+
+                {{-- Totalizador global --}}
+                <div class="flex flex-wrap items-center gap-6 mb-5 p-4 rounded-xl bg-teal-50 border border-teal-100">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Custo Fixo Total</span>
+                        <span class="text-2xl font-bold text-teal-700">R$ {{ number_format($custoFixoProximoMes, 2, ',', '.') }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Ticket Médio / dia útil</span>
+                        <span class="text-xl font-bold text-teal-600">R$ {{ number_format($ticketMedioCustoFixoGlobal, 2, ',', '.') }}</span>
+                    </div>
+                </div>
+
+                {{-- Por empresa --}}
+                @if($custoFixoProximoMesPorEmpresa->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    @foreach($custoFixoProximoMesPorEmpresa as $emp)
+                    <div class="p-3 rounded-xl border border-teal-100 bg-white flex flex-col gap-1">
+                        <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">{{ $emp->nome }}</span>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-xs text-gray-500">Custo Fixo</span>
+                            <span class="font-bold text-gray-800">R$ {{ number_format($emp->custo_fixo, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500">Ticket / dia útil</span>
+                            <span class="font-semibold text-teal-600">R$ {{ number_format($emp->ticket_medio_dia, 2, ',', '.') }}</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                    <p class="text-sm text-gray-400 text-center py-2">Nenhum custo fixo cadastrado para {{ $nomeProximoMes }}.</p>
+                @endif
+            </div>
+
             {{-- ================= NOVOS CARDS: INDICADORES E ALERTAS ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
 
@@ -1157,8 +1205,21 @@
                         </div>
                         {{-- Ticket médio de despesas --}}
                         <div class="flex flex-col gap-1">
-                            <span class="text-xs text-gray-500">Ticket médio de despesas</span>
-                            <span class="text-2xl font-bold text-blue-700">R$ {{ number_format($ticketMedioDespesas, 2, ',', '.') }}</span>
+                            <span class="text-xs text-gray-500 font-semibold">Ticket médio de despesas</span>
+                            <div class="flex flex-col gap-1 mt-0.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-500">Fixas</span>
+                                    <span class="font-bold text-indigo-700">R$ {{ number_format($ticketMedioDespesasFixas, 2, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-500">Variáveis</span>
+                                    <span class="font-bold text-pink-600">R$ {{ number_format($ticketMedioDespesasVariaveis, 2, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between border-t border-gray-100 pt-1 mt-0.5">
+                                    <span class="text-xs text-gray-400">Global</span>
+                                    <span class="text-sm font-semibold text-blue-700">R$ {{ number_format($ticketMedioDespesas, 2, ',', '.') }}</span>
+                                </div>
+                            </div>
                         </div>
                         {{-- Custo fixo x variável --}}
                         <div class="flex flex-col gap-1">

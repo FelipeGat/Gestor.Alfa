@@ -504,6 +504,17 @@ class DashboardFinanceiroController extends Controller
         $quantidadeDespesas = (clone $despesasPagas)->count();
         $ticketMedioDespesas = $quantidadeDespesas > 0 ? round($totalDespesasRealizadas / $quantidadeDespesas, 2) : 0;
 
+        // Ticket médio por tipo (fixas x variáveis)
+        $fixasPagas = (clone $despesasPagas)->where('tipo', 'FIXA');
+        $totalFixasTM = $fixasPagas->sum('valor');
+        $qtdFixasTM = (clone $fixasPagas)->count();
+        $ticketMedioDespesasFixas = $qtdFixasTM > 0 ? round($totalFixasTM / $qtdFixasTM, 2) : 0;
+
+        $variaveisPagas = (clone $despesasPagas)->where('tipo', '!=', 'FIXA');
+        $totalVariaveisTM = $variaveisPagas->sum('valor');
+        $qtdVariaveisTM = (clone $variaveisPagas)->count();
+        $ticketMedioDespesasVariaveis = $qtdVariaveisTM > 0 ? round($totalVariaveisTM / $qtdVariaveisTM, 2) : 0;
+
         // 3) Custo fixo x variável (corrigido: usar categoria, não tipo)
         $despesasPagas = ContaPagar::where('status', 'pago')
             ->whereDate('data_pagamento', '>=', $inicio->format('Y-m-d'))
@@ -732,6 +743,55 @@ class DashboardFinanceiroController extends Controller
             return $emp;
         });
 
+        // ================= CUSTO FIXO PRÓXIMO MÊS =================
+        $proximoMesRef    = now()->addMonth();
+        $inicioProxMes    = $proximoMesRef->copy()->startOfMonth();
+        $fimProxMes       = $proximoMesRef->copy()->endOfMonth();
+        $nomeProximoMes   = ucfirst($proximoMesRef->translatedFormat('F'));
+
+        // Dias úteis (seg–sex) do próximo mês
+        $diasUteisProximoMes = 0;
+        $diaIter = $inicioProxMes->copy();
+        while ($diaIter->lte($fimProxMes)) {
+            if ($diaIter->isWeekday()) {
+                $diasUteisProximoMes++;
+            }
+            $diaIter->addDay();
+        }
+
+        // Total global de custo fixo (ContaFixaPagar ativas vigentes no próximo mês)
+        $custoFixoProximoMes = \App\Models\ContaFixaPagar::where(function ($q) use ($inicioProxMes, $fimProxMes) {
+            $q->whereNull('data_fim')->orWhere('data_fim', '>=', $inicioProxMes->format('Y-m-d'));
+        })->where('data_inicial', '<=', $fimProxMes->format('Y-m-d'))
+            ->where('ativo', true)
+            ->sum('valor');
+
+        $ticketMedioCustoFixoGlobal = $diasUteisProximoMes > 0
+            ? round((float) $custoFixoProximoMes / $diasUteisProximoMes, 2)
+            : 0;
+
+        // Por empresa (via centro de custo → empresa_id)
+        $custoFixoProximoMesPorEmpresa = \App\Models\ContaFixaPagar::where(function ($q) use ($inicioProxMes, $fimProxMes) {
+            $q->whereNull('data_fim')->orWhere('data_fim', '>=', $inicioProxMes->format('Y-m-d'));
+        })->where('data_inicial', '<=', $fimProxMes->format('Y-m-d'))
+            ->where('ativo', true)
+            ->whereHas('centroCusto')
+            ->with('centroCusto:id,nome,empresa_id')
+            ->get(['id', 'centro_custo_id', 'valor'])
+            ->groupBy(fn ($cf) => $cf->centroCusto?->empresa_id)
+            ->filter(fn ($group, $empresaId) => $empresaId)
+            ->map(function ($group, $empresaId) use ($diasUteisProximoMes, $todasEmpresasAtivas) {
+                $total   = (float) $group->sum('valor');
+                $empresa = $todasEmpresasAtivas->firstWhere('id', $empresaId);
+                return (object) [
+                    'nome'             => $empresa?->nome_fantasia ?? $empresa?->razao_social ?? '—',
+                    'custo_fixo'       => $total,
+                    'ticket_medio_dia' => $diasUteisProximoMes > 0 ? round($total / $diasUteisProximoMes, 2) : 0,
+                ];
+            })
+            ->sortByDesc('custo_fixo')
+            ->values();
+
         // Cartões de crédito para o flip card do Saldo em Bancos
         $cartoesCredito = ContaFinanceira::where('tipo', 'credito')
             ->where('ativo', true)
@@ -819,6 +879,8 @@ class DashboardFinanceiroController extends Controller
             // Novos indicadores
             'percentualRendaComprometida' => $percentualRendaComprometida,
             'ticketMedioDespesas' => $ticketMedioDespesas,
+            'ticketMedioDespesasFixas' => $ticketMedioDespesasFixas,
+            'ticketMedioDespesasVariaveis' => $ticketMedioDespesasVariaveis,
             'custoFixo' => $custoFixo,
             'custoVariavel' => $custoVariavel,
             'percentualFixo' => $percentualFixo,
@@ -828,6 +890,12 @@ class DashboardFinanceiroController extends Controller
             'diferencaMeta' => $diferencaMeta,
             'percentualMeta' => $percentualMeta,
             'alertasFinanceiros' => $alertasFinanceiros,
+            // Custo fixo próximo mês
+            'custoFixoProximoMes' => $custoFixoProximoMes,
+            'ticketMedioCustoFixoGlobal' => $ticketMedioCustoFixoGlobal,
+            'custoFixoProximoMesPorEmpresa' => $custoFixoProximoMesPorEmpresa,
+            'diasUteisProximoMes' => $diasUteisProximoMes,
+            'nomeProximoMes' => $nomeProximoMes,
             // Lançamentos para modal
             'lancamentosReceita' => $lancamentosReceita,
             'lancamentosDespesa' => $lancamentosDespesa,
