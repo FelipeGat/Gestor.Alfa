@@ -619,6 +619,16 @@
                                     </option>
                                     @endforeach
                                 </select>
+                                @if($atendimento->tecnicosAdicionais->count() > 0)
+                                <div style="margin-top:3px; display:flex; flex-wrap:wrap; gap:2px;">
+                                    @foreach($atendimento->tecnicosAdicionais as $tecAd)
+                                    <span style="font-size:0.62rem; background:#dbeafe; color:#1d4ed8; padding:1px 6px; border-radius:9999px; white-space:nowrap;"
+                                          title="{{ $tecAd->nome }}">
+                                        +{{ collect(explode(' ', $tecAd->nome))->first() }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                                @endif
                             </td>
                             {{-- Prioridade (Editável) --}}
                             <td style="text-align: center;">
@@ -705,6 +715,7 @@
                                         data-periodo="{{ $atendimento->periodo_agendamento }}"
                                         data-hora="{{ $atendimento->data_inicio_agendamento?->format('H:i') }}"
                                         data-duracao="{{ $atendimento->duracao_agendamento_minutos ? max(1, (int) ($atendimento->duracao_agendamento_minutos / 60)) : '' }}"
+                                        data-tecnicos-adicionais="{{ $atendimento->tecnicosAdicionais->pluck('id')->implode(',') }}"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
@@ -935,7 +946,7 @@
             </div>
             <div style="padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
                 <div>
-                    <label class="text-sm font-medium text-gray-700">Técnico</label>
+                    <label class="text-sm font-medium text-gray-700">Técnico Principal</label>
                     <select id="fila_funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         <option value="">Selecione</option>
                         @foreach($funcionarios as $funcionario)
@@ -971,6 +982,20 @@
                     </select>
                 </div>
             </div>
+
+            {{-- Técnicos Adicionais --}}
+            <div style="padding:0 18px 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label class="text-sm font-semibold text-gray-700">Técnicos Adicionais</label>
+                    <button type="button" id="btn-add-tecnico-fila"
+                        style="font-size:12px; background:#3f9cae; color:#fff; border:none; border-radius:9999px; padding:3px 14px; cursor:pointer; font-weight:600;">
+                        + Adicionar Técnico
+                    </button>
+                </div>
+                <div id="lista-tecnicos-adicionais-fila" style="display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:12px; color:#9ca3af; margin:0;">Nenhum técnico adicional adicionado.</p>
+                </div>
+            </div>
             <div style="padding:0 18px 12px;">
                 <div class="text-sm font-semibold text-gray-700 mb-2">Agenda do dia (calendário por técnico)</div>
                 <div id="agenda-calendario-fila" style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;"></div>
@@ -994,6 +1019,42 @@
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
         let contextoReagendarFila = null;
+
+        // ===== TÉCNICOS ADICIONAIS =====
+        let tecnicosAdicionaisFila = [];
+        const funcionariosFilaOpts = [
+            @foreach($funcionarios as $f)
+            { id: '{{ $f->id }}', nome: '{{ addslashes($f->nome) }}' },
+            @endforeach
+        ];
+
+        function renderTecnicosAdicionaisFila() {
+            const container = document.getElementById('lista-tecnicos-adicionais-fila');
+            if (!container) return;
+            if (tecnicosAdicionaisFila.length === 0) {
+                container.innerHTML = '<p style="font-size:12px;color:#9ca3af;margin:0;">Nenhum técnico adicional adicionado.</p>';
+                return;
+            }
+            container.innerHTML = tecnicosAdicionaisFila.map((id, i) => {
+                const opts = funcionariosFilaOpts
+                    .map(f => `<option value="${f.id}" ${String(f.id) === String(id) ? 'selected' : ''}>${f.nome}</option>`)
+                    .join('');
+                return `<div style="display:flex;gap:6px;align-items:center;">
+                    <select onchange="window._atFilaUpdate(${i},this.value)" class="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" style="flex:1;font-size:13px;">
+                        <option value="">Selecione o técnico</option>${opts}
+                    </select>
+                    <button type="button" onclick="window._atFilaRemove(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:9999px;width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;">✕</button>
+                </div>`;
+            }).join('');
+        }
+
+        window._atFilaUpdate = (i, val) => { tecnicosAdicionaisFila[i] = val; };
+        window._atFilaRemove = (i) => { tecnicosAdicionaisFila.splice(i, 1); renderTecnicosAdicionaisFila(); };
+
+        document.getElementById('btn-add-tecnico-fila')?.addEventListener('click', function() {
+            tecnicosAdicionaisFila.push('');
+            renderTecnicosAdicionaisFila();
+        });
 
         // ===== AÇÕES RÁPIDAS =====
         document.querySelectorAll('.btn-acao-rapida').forEach((btn) => {
@@ -1095,6 +1156,11 @@
                 }
 
                 modalReagendarFila.style.display = 'block';
+
+                // Carregar técnicos adicionais existentes
+                tecnicosAdicionaisFila = (this.dataset.tecnicosAdicionais || '').split(',').filter(Boolean);
+                renderTecnicosAdicionaisFila();
+
                 carregarAgendaFila();
             });
         });
@@ -1102,6 +1168,8 @@
         function fecharModalFila() {
             modalReagendarFila.style.display = 'none';
             contextoReagendarFila = null;
+            tecnicosAdicionaisFila = [];
+            renderTecnicosAdicionaisFila();
         }
 
         document.getElementById('fechar-modal-reagendar-fila')?.addEventListener('click', fecharModalFila);
@@ -1190,6 +1258,13 @@
                 input.name = name;
                 input.value = value;
                 form.appendChild(input);
+            });
+
+            // Técnicos adicionais
+            tecnicosAdicionaisFila.filter(id => id && id !== funcionarioId).forEach(id => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'tecnicos_adicionais[]'; inp.value = id;
+                form.appendChild(inp);
             });
 
             document.body.appendChild(form);

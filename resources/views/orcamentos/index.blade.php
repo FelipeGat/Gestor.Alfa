@@ -454,7 +454,8 @@
                                             data-data-agendamento="{{ $dataAgendamento->format('Y-m-d') }}"
                                             data-periodo="{{ $orcamento->atendimento->periodo_agendamento }}"
                                             data-hora-inicio="{{ $dataAgendamento->format('H:i') }}"
-                                            data-duracao="{{ $orcamento->atendimento->duracao_agendamento_minutos ? intdiv($orcamento->atendimento->duracao_agendamento_minutos, 60) : 1 }}">
+                                            data-duracao="{{ $orcamento->atendimento->duracao_agendamento_minutos ? intdiv($orcamento->atendimento->duracao_agendamento_minutos, 60) : 1 }}"
+                                            data-tecnicos-adicionais="{{ $orcamento->atendimento->tecnicosAdicionais->pluck('id')->implode(',') }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
                                             </svg>
@@ -692,7 +693,7 @@
                 <input id="agendamento_orcamento_status_label" type="text" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm">
             </div>
             <div>
-                <label class="text-sm font-medium text-gray-700">Técnico</label>
+                <label class="text-sm font-medium text-gray-700">Técnico Principal</label>
                 <select id="agendamento_funcionario_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     <option value="">Selecione</option>
                     @foreach($funcionariosTecnicos as $funcionario)
@@ -734,6 +735,20 @@
                 </select>
             </div>
         </div>
+
+        {{-- Técnicos Adicionais --}}
+        <div style="padding:0 18px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label class="text-sm font-semibold text-gray-700">Técnicos Adicionais</label>
+                <button type="button" id="btn-add-tecnico-orc"
+                    style="font-size:12px; background:#3f9cae; color:#fff; border:none; border-radius:9999px; padding:3px 14px; cursor:pointer; font-weight:600;">
+                    + Adicionar Técnico
+                </button>
+            </div>
+            <div id="lista-tecnicos-adicionais-orc" style="display:flex; flex-direction:column; gap:6px;">
+                <p style="font-size:12px; color:#9ca3af; margin:0;">Nenhum técnico adicional adicionado.</p>
+            </div>
+        </div>
         <div style="padding:0 18px 12px;">
             <div class="text-sm font-semibold text-gray-700 mb-2">Agenda do dia (calendário por técnico)</div>
             <div id="agenda-calendario-orcamento" style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;"></div>
@@ -759,6 +774,42 @@
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
         let contextoAgendamento = null;
+
+        // ===== TÉCNICOS ADICIONAIS =====
+        let tecnicosAdicionaisOrc = [];
+        const funcionariosOrcOpts = [
+            @foreach($funcionariosTecnicos as $f)
+            { id: '{{ $f->id }}', nome: '{{ addslashes($f->nome) }}' },
+            @endforeach
+        ];
+
+        function renderTecnicosAdicionaisOrc() {
+            const container = document.getElementById('lista-tecnicos-adicionais-orc');
+            if (!container) return;
+            if (tecnicosAdicionaisOrc.length === 0) {
+                container.innerHTML = '<p style="font-size:12px;color:#9ca3af;margin:0;">Nenhum técnico adicional adicionado.</p>';
+                return;
+            }
+            container.innerHTML = tecnicosAdicionaisOrc.map((id, i) => {
+                const opts = funcionariosOrcOpts
+                    .map(f => `<option value="${f.id}" ${String(f.id) === String(id) ? 'selected' : ''}>${f.nome}</option>`)
+                    .join('');
+                return `<div style="display:flex;gap:6px;align-items:center;">
+                    <select onchange="window._orcTecUpdate(${i},this.value)" class="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" style="flex:1;font-size:13px;">
+                        <option value="">Selecione o técnico</option>${opts}
+                    </select>
+                    <button type="button" onclick="window._orcTecRemove(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:9999px;width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;">✕</button>
+                </div>`;
+            }).join('');
+        }
+
+        window._orcTecUpdate = (i, val) => { tecnicosAdicionaisOrc[i] = val; };
+        window._orcTecRemove = (i) => { tecnicosAdicionaisOrc.splice(i, 1); renderTecnicosAdicionaisOrc(); };
+
+        document.getElementById('btn-add-tecnico-orc')?.addEventListener('click', function() {
+            tecnicosAdicionaisOrc.push('');
+            renderTecnicosAdicionaisOrc();
+        });
 
         // Evento para selecionar "Dia todo" automaticamente
         periodoInput.addEventListener('change', function() {
@@ -793,6 +844,10 @@
                 horaInicioInput.value = dadosAgendamento.horaInicio || '';
                 duracaoInput.value = dadosAgendamento.duracao || '1';
 
+                // Carregar técnicos adicionais existentes
+                tecnicosAdicionaisOrc = dadosAgendamento.tecnicosAdicionais || [];
+                renderTecnicosAdicionaisOrc();
+
                 if (periodoInput.value === 'dia_todo') {
                     horaInicioInput.disabled = true;
                     duracaoInput.disabled = true;
@@ -804,6 +859,8 @@
                 periodoInput.value = '';
                 horaInicioInput.value = '';
                 duracaoInput.value = '1';
+                tecnicosAdicionaisOrc = [];
+                renderTecnicosAdicionaisOrc();
             }
 
             modal.style.display = 'block';
@@ -816,6 +873,8 @@
             }
             modal.style.display = 'none';
             contextoAgendamento = null;
+            tecnicosAdicionaisOrc = [];
+            renderTecnicosAdicionaisOrc();
         }
 
         async function carregarAgendaCalendario() {
@@ -885,7 +944,8 @@
                         data: this.dataset.dataAgendamento,
                         periodo: this.dataset.periodo,
                         horaInicio: this.dataset.horaInicio,
-                        duracao: this.dataset.duracao
+                        duracao: this.dataset.duracao,
+                        tecnicosAdicionais: (this.dataset.tecnicosAdicionais || '').split(',').filter(Boolean)
                     }
                 });
             });
@@ -1027,6 +1087,15 @@
                 input.name = name;
                 input.value = value;
                 form.appendChild(input);
+            });
+
+            // Técnicos adicionais (excluindo o técnico principal)
+            tecnicosAdicionaisOrc.filter(id => id && id !== funcionarioId).forEach(id => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'tecnicos_adicionais[]';
+                inp.value = id;
+                form.appendChild(inp);
             });
 
             document.body.appendChild(form);

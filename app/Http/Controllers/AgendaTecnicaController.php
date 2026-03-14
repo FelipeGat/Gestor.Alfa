@@ -68,13 +68,22 @@ class AgendaTecnicaController extends Controller
                   ->whereTime('data_inicio_agendamento', '<',  $limites['fim']);
         }
 
-        $agendamentos = $query->get()->map(fn (Atendimento $at) => [
-            'funcionario_id'     => $at->funcionario_id,
+        $agendamentos = $query->get()->flatMap(fn (Atendimento $at) => collect(
+            // Técnico principal
+            [['funcionario_id' => $at->funcionario_id]]
+        )->merge(
+            // Técnicos adicionais via pivot
+            \DB::table('atendimento_tecnicos')
+                ->where('atendimento_id', $at->id)
+                ->pluck('funcionario_id')
+                ->map(fn ($fid) => ['funcionario_id' => $fid])
+        )->map(fn ($row) => [
+            'funcionario_id'     => $row['funcionario_id'],
             'inicio'             => optional($at->data_inicio_agendamento)->format('H:i'),
             'fim'                => optional($at->data_fim_agendamento)->format('H:i'),
             'numero_atendimento' => $at->numero_atendimento,
             'cliente'            => $at->cliente?->nome ?? '—',
-        ])->values()->toArray();
+        ]))->values()->toArray();
 
         return Response::json([
             'tecnicos'     => $tecnicos,
@@ -138,6 +147,13 @@ class AgendaTecnicaController extends Controller
                 $request->hora_inicio,
                 (int) $request->duracao_horas
             );
+
+            // Salvar técnicos adicionais (excluindo o técnico principal)
+            $tecnicosAdicionais = array_filter(
+                (array) $request->input('tecnicos_adicionais', []),
+                fn ($id) => is_numeric($id) && (int) $id !== (int) $request->funcionario_id
+            );
+            $atendimento->tecnicosAdicionais()->sync(array_values($tecnicosAdicionais));
 
             // Atualiza status do orçamento
             $novoStatus  = $request->input('orcamento_status', 'agendado');
@@ -208,6 +224,13 @@ class AgendaTecnicaController extends Controller
                 $request->hora_inicio,
                 (int) $request->duracao_horas
             );
+
+            // Salvar técnicos adicionais (excluindo o técnico principal)
+            $tecnicosAdicionais = array_filter(
+                (array) $request->input('tecnicos_adicionais', []),
+                fn ($id) => is_numeric($id) && (int) $id !== (int) $request->funcionario_id
+            );
+            $atendimento->tecnicosAdicionais()->sync(array_values($tecnicosAdicionais));
 
             $orcamento->update(['data_agendamento' => $request->data_agendamento]);
 

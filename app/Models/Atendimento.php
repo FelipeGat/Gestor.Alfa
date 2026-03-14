@@ -101,6 +101,19 @@ class Atendimento extends Model
         return $this->belongsTo(Funcionario::class);
     }
 
+    /**
+     * Técnicos adicionais vinculados via pivot atendimento_tecnicos
+     */
+    public function tecnicosAdicionais()
+    {
+        return $this->belongsToMany(
+            Funcionario::class,
+            'atendimento_tecnicos',
+            'atendimento_id',
+            'funcionario_id'
+        )->withTimestamps();
+    }
+
     public function historicos()
     {
         return $this->hasMany(AtendimentoStatusHistorico::class);

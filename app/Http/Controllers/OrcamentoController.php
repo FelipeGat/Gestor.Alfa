@@ -49,7 +49,10 @@ class OrcamentoController extends Controller
             'empresa:id,nome_fantasia',
             'cliente:id,nome,nome_fantasia,razao_social',
             'preCliente:id,nome_fantasia,razao_social',
-            'atendimento:id,funcionario_id,data_inicio_agendamento,data_fim_agendamento,periodo_agendamento,duracao_agendamento_minutos'
+            'atendimento' => fn ($q) => $q->select([
+                'id','funcionario_id','data_inicio_agendamento',
+                'data_fim_agendamento','periodo_agendamento','duracao_agendamento_minutos',
+            ])->with('tecnicosAdicionais'),
         ]);
 
         // ================= COMERCIAL: LIMITA EMPRESAS =================

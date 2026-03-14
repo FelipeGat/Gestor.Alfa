@@ -36,7 +36,8 @@ class AtendimentoController extends Controller
             'cliente',
             'assunto',
             'empresa',
-            'funcionario'
+            'funcionario',
+            'tecnicosAdicionais',
         ])
         ->select([
             'id',
@@ -611,6 +612,13 @@ class AtendimentoController extends Controller
                 $request->hora_inicio,
                 (int) $request->duracao_horas
             );
+
+            // Salvar técnicos adicionais (excluindo o técnico principal)
+            $tecnicosAdicionais = array_filter(
+                (array) $request->input('tecnicos_adicionais', []),
+                fn ($id) => is_numeric($id) && (int) $id !== (int) $request->funcionario_id
+            );
+            $atendimento->tecnicosAdicionais()->sync(array_values($tecnicosAdicionais));
 
             // Atualizar data_atendimento para sincronizar com agendamento
             $atendimento->update([
