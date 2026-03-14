@@ -53,6 +53,10 @@ class DashboardComercialController extends Controller
                 $inicio = now()->subMonth()->startOfMonth();
                 $fim = now()->subMonth()->endOfMonth();
                 break;
+            case 'proximo_mes':
+                $inicio = now()->addMonth()->startOfMonth();
+                $fim = now()->addMonth()->endOfMonth();
+                break;
             case 'ano':
                 $inicio = now()->startOfYear();
                 $fim = now()->endOfYear();
@@ -150,50 +154,55 @@ class DashboardComercialController extends Controller
 
         $todosStatus = Orcamento::distinct()->pluck('status');
 
-        // ===================== A PAGAR — PRÓXIMO MÊS =====================
-        $proximoMesRef  = now()->addMonth();
-        $inicioProxMes  = $proximoMesRef->copy()->startOfMonth();
-        $fimProxMes     = $proximoMesRef->copy()->endOfMonth();
-        $nomeProximoMes = ucfirst($proximoMesRef->translatedFormat('F'));
+        // Rótulo do período para os cards
+        \Carbon\Carbon::setLocale(config('app.locale', 'pt_BR'));
+        $nomePeriodoCard = match($filtroRapido) {
+            'dia'          => 'Hoje — ' . now()->format('d/m/Y'),
+            'semana'       => 'Esta Semana',
+            'mes_anterior' => 'Mês Anterior (' . ucfirst(now()->subMonth()->translatedFormat('F')) . ')',
+            'proximo_mes'  => 'Próximo Mês (' . ucfirst(now()->addMonth()->translatedFormat('F')) . ')',
+            'ano'          => 'Ano ' . now()->year,
+            'custom'       => $inicio->format('d/m') . ' a ' . $fim->format('d/m/Y'),
+            default        => ucfirst($inicio->translatedFormat('F')) . '/' . $inicio->year,
+        };
 
-        $diasUteisProxMes = 0;
-        $dIter = $inicioProxMes->copy();
-        while ($dIter->lte($fimProxMes)) {
-            if ($dIter->isWeekday()) $diasUteisProxMes++;
+        // ===================== A PAGAR — PERÍODO SELECIONADO =====================
+        $diasUteisPeriodo = 0;
+        $dIter = $inicio->copy();
+        while ($dIter->lte($fim)) {
+            if ($dIter->isWeekday()) $diasUteisPeriodo++;
             $dIter->addDay();
         }
 
-        $aPagarProxMes = (float) ContaPagar::where('status', 'em_aberto')
-            ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
-            ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
+        $aPagarPeriodo = (float) ContaPagar::where('status', 'em_aberto')
+            ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
             ->when($empresaId, fn ($q) => $q->whereHas('centroCusto', fn ($cq) => $cq->where('empresa_id', $empresaId)))
             ->sum('valor');
 
-        $ticketMedioProxMes = $diasUteisProxMes > 0
-            ? round($aPagarProxMes / $diasUteisProxMes, 2)
+        $ticketMedioPeriodo = $diasUteisPeriodo > 0
+            ? round($aPagarPeriodo / $diasUteisPeriodo, 2)
             : 0;
 
-        // A Pagar por empresa (próximo mês)
-        $aPagarProxMesPorEmpresa = $empresas->map(function ($emp) use ($inicioProxMes, $fimProxMes, $diasUteisProxMes) {
+        $aPagarPorEmpresa = $empresas->map(function ($emp) use ($inicio, $fim, $diasUteisPeriodo) {
             $valor = (float) ContaPagar::where('status', 'em_aberto')
-                ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
-                ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
+                ->whereDate('data_vencimento', '>=', $inicio->format('Y-m-d'))
+                ->whereDate('data_vencimento', '<=', $fim->format('Y-m-d'))
                 ->whereHas('centroCusto', fn ($cq) => $cq->where('empresa_id', $emp->id))
                 ->sum('valor');
             return (object) [
-                'nome'          => $emp->nome_fantasia,
-                'a_pagar'       => $valor,
-                'ticket_dia'    => $diasUteisProxMes > 0 ? round($valor / $diasUteisProxMes, 2) : 0,
+                'nome'       => $emp->nome_fantasia,
+                'a_pagar'    => $valor,
+                'ticket_dia' => $diasUteisPeriodo > 0 ? round($valor / $diasUteisPeriodo, 2) : 0,
             ];
         })->filter(fn ($e) => $e->a_pagar > 0)->values();
 
-        // ===================== META × REALIZADO (mês corrente) =====================
-        $mesAtual = now()->month;
-        $anoAtual = now()->year;
+        // ===================== META × REALIZADO (período selecionado) =====================
+        $mesAtual = $inicio->month;
+        $anoAtual = $inicio->year;
 
         $realizadoRaw = Orcamento::whereIn('status', ['concluido', 'aprovado', 'em_andamento', 'financeiro'])
-            ->whereMonth('created_at', $mesAtual)
-            ->whereYear('created_at', $anoAtual)
+            ->whereBetween('created_at', [$inicio, $fim])
             ->when($empresaId, fn ($q) => $q->where('empresa_id', $empresaId))
             ->select('vendedor_id', 'empresa_id', DB::raw('SUM(valor_total) as total'))
             ->groupBy('vendedor_id', 'empresa_id')
@@ -206,25 +215,91 @@ class DashboardComercialController extends Controller
             ->with(['empresa:id,nome_fantasia', 'user:id,name'])
             ->get();
 
-        // Estrutura para o JS: por vendedor
-        $vendedoresMap = [];
-        foreach ($realizadoRaw as $row) {
-            $uid  = $row->vendedor_id ?? 0;
-            $nome = $row->vendedor?->name ?? 'Sem Vendedor';
-            if (!isset($vendedoresMap[$uid])) {
-                $vendedoresMap[$uid] = ['nome' => $nome, 'realizado' => 0, 'por_empresa' => []];
-            }
-            $empNome = $row->empresa?->nome_fantasia ?? 'Sem Empresa';
-            $vendedoresMap[$uid]['realizado']              += (float) $row->total;
-            $vendedoresMap[$uid]['por_empresa'][$empNome]  = ($vendedoresMap[$uid]['por_empresa'][$empNome] ?? 0) + (float) $row->total;
-        }
+        // Vendedores por empresa (histórico de orçamentos) para distribuição padrão
+        $vendedoresPorEmpresa = Orcamento::whereNotNull('vendedor_id')
+            ->when($empresaId, fn ($q) => $q->where('empresa_id', $empresaId))
+            ->select('empresa_id', 'vendedor_id')
+            ->distinct()
+            ->get()
+            ->groupBy('empresa_id')
+            ->map(fn ($rows) => $rows->pluck('vendedor_id')->unique()->values());
+
+        // Calcula meta efetiva por (empresa_id → vendedor_id):
+        // 1. Meta individual (user_id não nulo) tem prioridade
+        // 2. Meta global da empresa (user_id nulo) é dividida igualmente pelos vendedores da empresa
+        $metaEfetiva = []; // [empresa_id][user_id] => valor
+
         foreach ($metasMes as $meta) {
-            $uid = $meta->user_id ?? 0;
-            if (!isset($vendedoresMap[$uid])) {
-                $nome = $meta->user?->name ?? 'Sem Vendedor';
-                $vendedoresMap[$uid] = ['nome' => $nome, 'realizado' => 0, 'por_empresa' => []];
+            if ($meta->user_id !== null) {
+                // Meta individual — prioridade máxima
+                $metaEfetiva[$meta->empresa_id][$meta->user_id] = (float) $meta->valor_meta;
             }
-            $vendedoresMap[$uid]['meta'] = (float) $meta->valor_meta;
+        }
+
+        foreach ($metasMes as $meta) {
+            if ($meta->user_id === null) {
+                // Meta global da empresa — distribui igualmente pelos vendedores sem meta individual
+                $empId      = $meta->empresa_id;
+                $vendedores = $vendedoresPorEmpresa[$empId] ?? collect();
+
+                if ($vendedores->isEmpty()) {
+                    // Nenhum vendedor registrado: exibe meta sem distribuição
+                    $metaEfetiva[$empId][0] = (float) $meta->valor_meta;
+                    continue;
+                }
+
+                // Vendedores que ainda não têm meta individual nesta empresa
+                $semMeta = $vendedores->filter(fn ($uid) => !isset($metaEfetiva[$empId][$uid]));
+                $qtd     = $semMeta->count() ?: $vendedores->count();
+                $parte   = round($meta->valor_meta / $qtd, 2);
+
+                foreach ($semMeta->count() ? $semMeta : $vendedores as $uid) {
+                    $metaEfetiva[$empId][$uid] = ($metaEfetiva[$empId][$uid] ?? 0) + $parte;
+                }
+            }
+        }
+
+        // Vendedores com meta individual definida (user_id não nulo)
+        $uidsComMetaIndividual = $metasMes->whereNotNull('user_id')->pluck('user_id')->unique()->flip();
+
+        // Monta estrutura por vendedor para o gráfico
+        $vendedoresMap = [];
+
+        foreach ($realizadoRaw as $row) {
+            $uid     = $row->vendedor_id ?? 0;
+            $nome    = $row->vendedor?->name ?? 'Sem Vendedor';
+            $empNome = $row->empresa?->nome_fantasia ?? 'Sem Empresa';
+            $empId   = $row->empresa_id;
+
+            if (!isset($vendedoresMap[$uid])) {
+                $vendedoresMap[$uid] = [
+                    'nome'              => $nome,
+                    'realizado'         => 0,
+                    'por_empresa'       => [],
+                    'meta'              => 0,
+                    'meta_individual'   => isset($uidsComMetaIndividual[$uid]),
+                ];
+            }
+            $vendedoresMap[$uid]['realizado']             += (float) $row->total;
+            $vendedoresMap[$uid]['por_empresa'][$empNome]  = ($vendedoresMap[$uid]['por_empresa'][$empNome] ?? 0) + (float) $row->total;
+            $vendedoresMap[$uid]['meta']                  += $metaEfetiva[$empId][$uid] ?? 0;
+        }
+
+        // Acrescenta vendedores que têm meta mas nenhum realizado no período
+        foreach ($metaEfetiva as $empId => $porVendedor) {
+            foreach ($porVendedor as $uid => $metaVal) {
+                if (!isset($vendedoresMap[$uid])) {
+                    $user = \App\Models\User::find($uid);
+                    $vendedoresMap[$uid] = [
+                        'nome'            => $user?->name ?? 'Vendedor',
+                        'realizado'       => 0,
+                        'por_empresa'     => [],
+                        'meta'            => 0,
+                        'meta_individual' => isset($uidsComMetaIndividual[$uid]),
+                    ];
+                }
+                $vendedoresMap[$uid]['meta'] += $metaVal;
+            }
         }
 
         $metaRealizadoChart = array_values($vendedoresMap);
@@ -255,12 +330,12 @@ class DashboardComercialController extends Controller
             'inicio',
             'fim',
             'origemFiltro',
-            // A Pagar Próximo Mês
-            'nomeProximoMes',
-            'diasUteisProxMes',
-            'aPagarProxMes',
-            'ticketMedioProxMes',
-            'aPagarProxMesPorEmpresa',
+            // A Pagar — período selecionado
+            'nomePeriodoCard',
+            'diasUteisPeriodo',
+            'aPagarPeriodo',
+            'ticketMedioPeriodo',
+            'aPagarPorEmpresa',
             // Meta × Realizado
             'metaRealizadoChart',
             'metasMes',
@@ -308,6 +383,10 @@ class DashboardComercialController extends Controller
                 case 'mes_anterior':
                     $inicio = now()->subMonth()->startOfMonth();
                     $fim = now()->subMonth()->endOfMonth();
+                    break;
+                case 'proximo_mes':
+                    $inicio = now()->addMonth()->startOfMonth();
+                    $fim = now()->addMonth()->endOfMonth();
                     break;
                 case 'ano':
                     $inicio = now()->startOfYear();
@@ -415,6 +494,10 @@ class DashboardComercialController extends Controller
                     $inicio = now()->subMonth()->startOfMonth();
                     $fim = now()->subMonth()->endOfMonth();
                     break;
+                case 'proximo_mes':
+                    $inicio = now()->addMonth()->startOfMonth();
+                    $fim = now()->addMonth()->endOfMonth();
+                    break;
                 case 'ano':
                     $inicio = now()->startOfYear();
                     $fim = now()->endOfYear();
@@ -511,6 +594,8 @@ class DashboardComercialController extends Controller
                 return 'Este Mês (' . $inicio->format('m/Y') . ')';
             case 'mes_anterior':
                 return 'Mês Anterior (' . $inicio->format('m/Y') . ')';
+            case 'proximo_mes':
+                return 'Próximo Mês (' . $inicio->format('m/Y') . ')';
             case 'ano':
                 return 'Este Ano (' . $inicio->format('Y') . ')';
             case 'custom':

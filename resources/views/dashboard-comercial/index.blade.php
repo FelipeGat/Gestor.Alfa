@@ -123,61 +123,8 @@
         ]" />
     </x-slot>
 
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Dashboard Comercial
-        </h2>
-    </x-slot>
 
-    <!-- FILTROS -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <form action="{{ url()->current() }}" method="GET" class="filters-card p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                <div class="flex flex-col lg:col-span-4">
-                    <label class="text-sm font-medium text-gray-700 mb-2">
-                        Empresa
-                    </label>
-                    <select name="empresa_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
-                        <option value="">Todas as Empresas</option>
-                        @foreach($empresas as $empresa)
-                        <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
-                            {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex flex-col lg:col-span-4">
-                    <label class="text-sm font-medium text-gray-700 mb-2">
-                        Status
-                    </label>
-                    <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
-                        <option value="">Todos os Status</option>
-                        @foreach($todosStatus as $st)
-                        <option value="{{ $st }}" {{ $statusFiltro == $st ? 'selected' : '' }}>
-                            {{ ucfirst($st) }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-end gap-2 lg:col-span-4">
-                    <button type="submit" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #3f9cae; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.5rem; color: white; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(63, 156, 174, 0.3);" onmouseover="this.style.background='#358a96'; this.style.boxShadow='0 4px 6px rgba(63, 156, 174, 0.4)'" onmouseout="this.style.background='#3f9cae'; this.style.boxShadow='0 2px 4px rgba(63, 156, 174, 0.3)'">
-                        <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
-                        </svg>
-                        Filtrar
-                    </button>
-                    <a href="{{ route('dashboard.comercial') }}" style="padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; width: 130px; justify-content: center; background: #9ca3af; border-radius: 9999px; box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3); display: inline-flex; align-items: center; gap: 0.5rem; color: white; font-weight: 500; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.boxShadow='0 4px 6px rgba(156, 163, 175, 0.4)'" onmouseout="this.style.boxShadow='0 2px 4px rgba(156, 163, 175, 0.3)'">
-                        <svg fill="currentColor" viewBox="0 0 20 20" class="w-4 h-4">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                        Limpar
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
+    {{-- Primeiro card removido — integrado ao card de período abaixo --}}
 
     {{-- DADOS PARA O JS (Evita erro de sintaxe no editor) --}}
     <div id="dashboard-json-data"
@@ -370,13 +317,50 @@
                 }
             }" class="mb-6 filters-card p-6">
                 <form method="GET" x-ref="formFiltro" action="{{ route('dashboard.comercial') }}">
-                    @if($empresaId)
-                    <input type="hidden" name="empresa_id" value="{{ $empresaId }}">
-                    @endif
-                    @if($statusFiltro)
-                    <input type="hidden" name="status" value="{{ $statusFiltro }}">
-                    @endif
                     <input type="hidden" name="filtro_rapido" :value="filtroRapido">
+
+                    {{-- Linha 1: Empresa + Status + Filtrar + Limpar --}}
+                    <div class="flex flex-wrap items-end gap-3 mb-4">
+                        <div class="flex-1 min-w-[180px]">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Empresa</label>
+                            <select name="empresa_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 text-sm">
+                                <option value="">Todas as empresas</option>
+                                @foreach($empresas as $empresa)
+                                    <option value="{{ $empresa->id }}" {{ $empresaId == $empresa->id ? 'selected' : '' }}>
+                                        {{ $empresa->nome_fantasia }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex-1 min-w-[160px]">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 text-sm">
+                                <option value="">Todos os status</option>
+                                <option value="em_elaboracao" {{ $statusFiltro === 'em_elaboracao' ? 'selected' : '' }}>Em Elaboração</option>
+                                <option value="aguardando_aprovacao" {{ $statusFiltro === 'aguardando_aprovacao' ? 'selected' : '' }}>Aguardando Aprovação</option>
+                                <option value="aprovado" {{ $statusFiltro === 'aprovado' ? 'selected' : '' }}>Aprovado</option>
+                                <option value="em_andamento" {{ $statusFiltro === 'em_andamento' ? 'selected' : '' }}>Em Andamento</option>
+                                <option value="concluido" {{ $statusFiltro === 'concluido' ? 'selected' : '' }}>Concluído</option>
+                                <option value="financeiro" {{ $statusFiltro === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
+                                <option value="aguardando_pagamento" {{ $statusFiltro === 'aguardando_pagamento' ? 'selected' : '' }}>Aguardando Pagamento</option>
+                                <option value="reprovado" {{ $statusFiltro === 'reprovado' ? 'selected' : '' }}>Reprovado</option>
+                                <option value="cancelado" {{ $statusFiltro === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
+                            <x-button type="submit" variant="primary" size="sm" class="min-w-[100px]"
+                                iconLeft='<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" /></svg>'>
+                                Filtrar
+                            </x-button>
+                            <x-button href="{{ route('dashboard.comercial') }}" variant="secondary" size="sm" class="min-w-[100px]"
+                                iconLeft='<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'>
+                                Limpar
+                            </x-button>
+                        </div>
+                    </div>
+
+                    {{-- Separador --}}
+                    <div class="border-t border-gray-100 my-4"></div>
 
                     <div class="flex flex-wrap items-center gap-3">
 
@@ -413,6 +397,12 @@
                                     :class="filtroRapido === 'ano' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
                                     class="btn-filtro-rapido">
                                     Ano
+                                </button>
+                                <button type="button"
+                                    @click="aplicarFiltro('proximo_mes')"
+                                    :class="filtroRapido === 'proximo_mes' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="btn-filtro-rapido">
+                                    Próximo Mês
                                 </button>
                                 <button type="button"
                                     @click="aplicarFiltro('custom')"
@@ -562,38 +552,41 @@
 
             </div>
 
-            {{-- ================= A PAGAR — PRÓXIMO MÊS ================= --}}
-            <div class="card-grafico p-6 mb-8">
+            {{-- ================= A PAGAR + META × REALIZADO (lado a lado) ================= --}}
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8 items-start">
+
+            {{-- A PAGAR --}}
+            <div class="card-grafico p-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                         <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        A Pagar — {{ $nomeProximoMes }}
-                        <span class="text-xs font-normal text-gray-400 ml-1">({{ $diasUteisProxMes }} dias úteis)</span>
+                        A Pagar — {{ $nomePeriodoCard }}
+                        <span class="text-xs font-normal text-gray-400 ml-1">({{ $diasUteisPeriodo }} dias úteis)</span>
                     </h3>
-                    <span class="text-xs text-gray-400 italic">Contas a vencer no próximo mês</span>
+                    <span class="text-xs text-gray-400 italic">Contas em aberto no período</span>
                 </div>
 
                 {{-- Resumo global --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                     <div class="rounded-lg p-4" style="background:#fef2f2; border:1px solid #fecaca;">
                         <p class="text-xs font-semibold text-red-500 uppercase tracking-wide mb-1">Total a Pagar</p>
-                        <p class="text-2xl font-bold text-red-700">R$ {{ number_format($aPagarProxMes, 2, ',', '.') }}</p>
-                        <p class="text-xs text-red-400 mt-1">{{ $diasUteisProxMes }} dias úteis em {{ $nomeProximoMes }}</p>
+                        <p class="text-2xl font-bold text-red-700">R$ {{ number_format($aPagarPeriodo, 2, ',', '.') }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ $diasUteisPeriodo }} dias úteis</p>
                     </div>
                     <div class="rounded-lg p-4" style="background:#fff7ed; border:1px solid #fed7aa;">
                         <p class="text-xs font-semibold text-orange-500 uppercase tracking-wide mb-1">Ticket Médio / Dia Útil</p>
-                        <p class="text-2xl font-bold text-orange-600">R$ {{ number_format($ticketMedioProxMes, 2, ',', '.') }}</p>
+                        <p class="text-2xl font-bold text-orange-600">R$ {{ number_format($ticketMedioPeriodo, 2, ',', '.') }}</p>
                         <p class="text-xs text-orange-400 mt-1">Custo médio por dia útil</p>
                     </div>
                 </div>
 
                 {{-- Por empresa --}}
-                @if($aPagarProxMesPorEmpresa->isNotEmpty())
+                @if($aPagarPorEmpresa->isNotEmpty())
                 <div class="space-y-2">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Por Empresa</p>
-                    @foreach($aPagarProxMesPorEmpresa as $emp)
+                    @foreach($aPagarPorEmpresa as $emp)
                     <div class="flex items-center justify-between rounded-lg px-4 py-3" style="border:1px solid #fee2e2; background:#fffafa;">
                         <div class="flex items-center gap-3">
                             <div class="w-2 h-2 rounded-full bg-red-400"></div>
@@ -613,12 +606,12 @@
                     @endforeach
                 </div>
                 @else
-                <p class="text-sm text-gray-400 text-center py-4">Nenhuma conta a pagar registrada para {{ $nomeProximoMes }}.</p>
+                <p class="text-sm text-gray-400 text-center py-4">Nenhuma conta a pagar em aberto para {{ $nomePeriodoCard }}.</p>
                 @endif
             </div>
 
-            {{-- ================= META × REALIZADO ================= --}}
-            <div class="card-grafico p-6 mb-8" x-data="{
+            {{-- META × REALIZADO --}}
+            <div class="card-grafico p-6" x-data="{
                 modalMetaAberto: false,
                 salvandoMeta: false,
                 metaForm: {
@@ -699,14 +692,22 @@
                                 $realizado  = $v['realizado'] ?? 0;
                                 $pct        = $meta > 0 ? min(100, round(($realizado / $meta) * 100)) : ($realizado > 0 ? 100 : 0);
                                 $barColor   = $pct >= 100 ? '#16a34a' : ($pct >= 60 ? '#f59e0b' : '#ef4444');
+                                $metaIndividual = $v['meta_individual'] ?? false;
                             @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="py-2.5 px-3 font-medium text-gray-800">{{ $v['nome'] }}</td>
-                                <td class="py-2.5 px-3 text-right text-gray-600">
+                                <td class="py-2.5 px-3 text-right">
                                     @if($meta > 0)
-                                        R$ {{ number_format($meta, 2, ',', '.') }}
+                                        <div class="flex flex-col items-end gap-0.5">
+                                            <span class="font-semibold text-gray-700">R$ {{ number_format($meta, 2, ',', '.') }}</span>
+                                            @if($metaIndividual)
+                                                <span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:#ede9fe;color:#6d28d9;">Individual</span>
+                                            @else
+                                                <span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:#e0f2fe;color:#0369a1;">Distribuída</span>
+                                            @endif
+                                        </div>
                                     @else
-                                        <span class="text-gray-300 italic text-xs">—</span>
+                                        <span class="text-gray-300 italic text-xs">Sem meta</span>
                                     @endif
                                 </td>
                                 <td class="py-2.5 px-3 text-right font-semibold" style="color:#16a34a;">
@@ -752,6 +753,18 @@
                                 </svg>
                             </button>
                         </div>
+                        {{-- Aviso sobre distribuição automática --}}
+                        <div class="px-6 pt-4 pb-0">
+                            <div class="rounded-lg px-4 py-3 text-xs text-teal-800 flex items-start gap-2" style="background:#f0fdfa; border:1px solid #99f6e4;">
+                                <svg class="w-4 h-4 mt-0.5 shrink-0 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>
+                                    <strong>Meta da empresa</strong> (sem vendedor selecionado) é distribuída automaticamente e igualmente entre todos os vendedores da empresa.<br>
+                                    Para definir individualmente, selecione o vendedor abaixo.
+                                </span>
+                            </div>
+                        </div>
                         <div class="p-6 space-y-4">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Empresa</label>
@@ -763,9 +776,12 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Vendedor <span class="font-normal text-gray-400">(opcional — deixe vazio para meta global da empresa)</span></label>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">
+                                    Vendedor
+                                    <span class="font-normal text-gray-400 ml-1">— vazio = distribuída igualmente entre todos</span>
+                                </label>
                                 <select x-model="metaForm.user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
-                                    <option value="">Todos os Vendedores</option>
+                                    <option value="">Distribuir igualmente entre todos os vendedores</option>
                                     @foreach($vendedoresAtivos as $v)
                                     <option value="{{ $v->id }}">{{ $v->name }}</option>
                                     @endforeach
@@ -815,6 +831,8 @@
                     </div>
                 </div>
             </div>
+
+            </div>{{-- fim grid A Pagar + Meta × Realizado --}}
 
             {{-- ================= GRÁFICOS ================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
