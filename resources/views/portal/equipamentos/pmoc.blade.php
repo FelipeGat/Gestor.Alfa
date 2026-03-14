@@ -1,26 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-semibold text-2xl text-gray-900 leading-tight">
-                    Plano de Manutenção (PMOC)
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    {{ $cliente->nome_exibicao }}
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('portal.equipamentos.index') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Voltar
-                </a>
-            </div>
-        </div>
-    </x-slot>
-
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-green-50 py-8 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto space-y-6">
 

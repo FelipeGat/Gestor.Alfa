@@ -3,26 +3,6 @@
     @vite('resources/css/portal/index.css')
     @endpush
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
-                    Editar Atendimento #{{ $atendimento->id }}
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    {{ $cliente->nome_exibicao }}
-                </p>
-            </div>
-            <a href="{{ route('portal.atendimentos') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-[#3f9cae] hover:bg-[#2d7a8a] text-white text-sm font-semibold rounded-lg transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span class="hidden sm:inline">Voltar</span>
-            </a>
-        </div>
-    </x-slot>
-
     <div class="portal-wrapper">
         <div class="portal-table-card overflow-hidden">
             <div class="portal-table-header">

@@ -3,19 +3,6 @@
     @vite('resources/css/portal/index.css')
     @endpush
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
-                    Controle de Ativos Técnicos
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Gerencie seus ativos técnicos, manutenções e limpezas
-                </p>
-            </div>
-        </div>
-    </x-slot>
-
     <div class="portal-wrapper">
 
         <!-- Navigation Cards -->

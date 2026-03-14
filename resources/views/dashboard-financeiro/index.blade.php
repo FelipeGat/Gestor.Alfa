@@ -323,12 +323,6 @@
         ]" />
     </x-slot>
 
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Dashboard Financeiro
-        </h2>
-    </x-slot>
-
     {{-- ================= CONTEÚDO ================= --}}
     <div class="py-8 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

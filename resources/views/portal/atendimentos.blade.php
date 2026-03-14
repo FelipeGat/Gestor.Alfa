@@ -3,36 +3,6 @@
     @vite('resources/css/portal/index.css')
     @endpush
 
-    <x-slot name="header">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-900 leading-tight">
-                    Minhas Ordens de Serviço
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Unidade: <span class="font-semibold text-[#3f9cae]">{{ $cliente->nome_exibicao }}</span>
-                </p>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('portal.chamado.novo') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Novo Atendimento</span>
-                </a>
-
-                <a href="{{ route('portal.index') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#3f9cae] hover:bg-[#2d7a8a] text-white text-sm font-semibold rounded-lg shadow transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    <span class="hidden sm:inline">Voltar</span>
-                </a>
-            </div>
-        </div>
-    </x-slot>
-
     <div class="portal-wrapper">
         @if(session('atendimento_criado_numero'))
         <div id="modal-atendimento-criado" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">

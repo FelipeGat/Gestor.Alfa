@@ -297,11 +297,6 @@
     }
     </style>
 
-    {{-- ================= HEADER ================= --}}
-    <x-slot name="header">
-        <h1 class="page-title">Meus Atendimentos</h1>
-    </x-slot>
-
     {{-- ================= CONTEÚDO ================= --}}
     <div class="page-wrapper">
 

@@ -15,43 +15,6 @@
         ]" />
     </x-slot>
 
-    <x-slot name="header">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard Técnico {{ $empresaId ? '- ' . ($empresas->find($empresaId)->nome_fantasia ?? 'Empresa') : '(Global)' }}
-            </h2>
-
-            <!-- FILTROS -->
-            <form action="{{ route('dashboard.tecnico') }}" method="GET" class="flex flex-wrap items-center justify-center gap-3">
-                {{-- Filtro de Empresa --}}
-                <select name="empresa_id" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
-                    <option value="">Todas as Empresas</option>
-                    @foreach($empresas as $empresa)
-                    <option value="{{ $empresa->id }}" @selected($empresaId==$empresa->id)>
-                        {{ $empresa->nome_fantasia ?? $empresa->razao_social }}
-                    </option>
-                    @endforeach
-                </select>
-
-                {{-- Filtro de Status --}}
-                <select name="status_atual" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
-                    <option value="">Todos os Status</option>
-                    @foreach($todosStatus as $st)
-                    <option value="{{ $st }}" @selected($statusFiltro==$st)>
-                        {{ ucfirst(str_replace('_', ' ', $st)) }}
-                    </option>
-                    @endforeach
-                </select>
-
-                {{-- Botão Limpar --}}
-                @if($empresaId || $statusFiltro)
-                <a href="{{ route('dashboard.tecnico') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition text-sm">
-                    Limpar
-                </a>
-                @endif
-            </form>
-        </div>
-    </x-slot>
 
     <div class="py-8 bg-gray-50 min-h-screen" x-data="{
         modalAberto: false,

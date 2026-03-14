@@ -298,24 +298,6 @@
     }
     </style>
 
-    {{-- ================= HEADER ================= --}}
-    <x-slot name="header">
-        <div class="page-header">
-            <h1 class="page-title">Atendimento <span>#{{ $atendimento->numero_atendimento }}</span></h1>
-
-            <div style="display: flex; gap: 0.75rem;">
-                <span class="table-badge badge-status">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
-                    {{ ucfirst(str_replace('_', ' ', $atendimento->status_atual)) }}
-                </span>
-                <span class="table-badge badge-{{ $atendimento->prioridade }}">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
-                    {{ ucfirst($atendimento->prioridade) }}
-                </span>
-            </div>
-        </div>
-    </x-slot>
-
     {{-- ================= CONTEÚDO ================= --}}
     <div class="page-wrapper">
         <div class="main-grid">
