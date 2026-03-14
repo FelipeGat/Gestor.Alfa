@@ -759,36 +759,73 @@ class DashboardFinanceiroController extends Controller
             $diaIter->addDay();
         }
 
-        // Total global: tudo lançado como a pagar no próximo mês
-        $custoFixoProximoMes = ContaPagar::where('status', 'em_aberto')
+        // Total global A Pagar (contas_pagar em_aberto no próximo mês)
+        $custoFixoProximoMes = (float) ContaPagar::where('status', 'em_aberto')
             ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
             ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
             ->sum('valor');
 
         $ticketMedioCustoFixoGlobal = $diasUteisProximoMes > 0
-            ? round((float) $custoFixoProximoMes / $diasUteisProximoMes, 2)
+            ? round($custoFixoProximoMes / $diasUteisProximoMes, 2)
             : 0;
 
-        // Por empresa (via centro de custo → empresa_id)
-        $custoFixoProximoMesPorEmpresa = ContaPagar::where('status', 'em_aberto')
+        // Total global A Receber (cobranças pendentes no próximo mês)
+        $aReceberProximoMes = (float) Cobranca::where('status', '!=', 'pago')
             ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
             ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
-            ->whereHas('centroCusto')
-            ->with('centroCusto:id,nome,empresa_id')
-            ->get(['id', 'centro_custo_id', 'valor'])
-            ->groupBy(fn ($cp) => $cp->centroCusto?->empresa_id)
-            ->filter(fn ($group, $empresaId) => $empresaId)
-            ->map(function ($group, $empresaId) use ($diasUteisProximoMes, $todasEmpresasAtivas) {
-                $total   = (float) $group->sum('valor');
-                $empresa = $todasEmpresasAtivas->firstWhere('id', $empresaId);
-                return (object) [
-                    'nome'             => $empresa?->nome_fantasia ?? $empresa?->razao_social ?? '—',
-                    'custo_fixo'       => $total,
-                    'ticket_medio_dia' => $diasUteisProximoMes > 0 ? round($total / $diasUteisProximoMes, 2) : 0,
-                ];
+            ->where(function ($q) use ($statusOrcamentoAtivo) {
+                $q->where('tipo', 'contrato')
+                  ->orWhere(function ($sq) use ($statusOrcamentoAtivo) {
+                      $sq->where('tipo', 'orcamento')
+                         ->whereHas('orcamento', fn ($oq) => $oq->whereIn('status', $statusOrcamentoAtivo));
+                  });
             })
-            ->sortByDesc('custo_fixo')
-            ->values();
+            ->sum('valor');
+
+        $liquidoProximoMes    = $custoFixoProximoMes - $aReceberProximoMes;
+        $ticketLiquidoGlobal  = $diasUteisProximoMes > 0
+            ? round($liquidoProximoMes / $diasUteisProximoMes, 2)
+            : 0;
+
+        // Por empresa: A Pagar (via centro_custo) + A Receber (via orcamento)
+        $custoFixoProximoMesPorEmpresa = $todasEmpresasAtivas->map(
+            function ($empresa) use ($inicioProxMes, $fimProxMes, $diasUteisProximoMes, $statusOrcamentoAtivo) {
+                $aPagarEmp = (float) ContaPagar::where('status', 'em_aberto')
+                    ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
+                    ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
+                    ->whereHas('centroCusto', fn ($q) => $q->where('empresa_id', $empresa->id))
+                    ->sum('valor');
+
+                $aReceberEmp = (float) Cobranca::where('status', '!=', 'pago')
+                    ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
+                    ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
+                    ->where(function ($q) use ($statusOrcamentoAtivo) {
+                        $q->where('tipo', 'contrato')
+                          ->orWhere(function ($sq) use ($statusOrcamentoAtivo) {
+                              $sq->where('tipo', 'orcamento')
+                                 ->whereHas('orcamento', fn ($oq) => $oq->whereIn('status', $statusOrcamentoAtivo));
+                          });
+                    })
+                    ->where(function ($q) use ($empresa) {
+                        $q->whereHas('orcamento', fn ($oq) => $oq->where('empresa_id', $empresa->id))
+                          ->orWhereHas('contaFixa', fn ($cq) => $cq->where('empresa_id', $empresa->id));
+                    })
+                    ->sum('valor');
+
+                $liquido = $aPagarEmp - $aReceberEmp;
+
+                return (object) [
+                    'nome'               => $empresa->nome_fantasia ?? $empresa->razao_social,
+                    'a_pagar'            => $aPagarEmp,
+                    'a_receber'          => $aReceberEmp,
+                    'liquido'            => $liquido,
+                    'ticket_medio_dia'   => $diasUteisProximoMes > 0 ? round($aPagarEmp / $diasUteisProximoMes, 2) : 0,
+                    'ticket_liquido_dia' => $diasUteisProximoMes > 0 ? round($liquido / $diasUteisProximoMes, 2) : 0,
+                ];
+            }
+        )->filter(fn ($e) => $e->a_pagar > 0 || $e->a_receber > 0)
+         ->sortByDesc('a_pagar')
+         ->values();
 
         // Cartões de crédito para o flip card do Saldo em Bancos
         $cartoesCredito = ContaFinanceira::where('tipo', 'credito')
@@ -892,6 +929,9 @@ class DashboardFinanceiroController extends Controller
             // Custo fixo próximo mês
             'custoFixoProximoMes' => $custoFixoProximoMes,
             'ticketMedioCustoFixoGlobal' => $ticketMedioCustoFixoGlobal,
+            'aReceberProximoMes' => $aReceberProximoMes,
+            'liquidoProximoMes' => $liquidoProximoMes,
+            'ticketLiquidoGlobal' => $ticketLiquidoGlobal,
             'custoFixoProximoMesPorEmpresa' => $custoFixoProximoMesPorEmpresa,
             'diasUteisProximoMes' => $diasUteisProximoMes,
             'nomeProximoMes' => $nomeProximoMes,

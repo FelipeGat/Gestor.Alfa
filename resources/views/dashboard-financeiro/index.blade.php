@@ -1121,53 +1121,110 @@
             </div>{{-- /categorias-flip-inner --}}
             </div>{{-- /categorias-flip-scene --}}
 
-            {{-- ================= CARD: A PAGAR PRÓXIMO MÊS ================= --}}
-            <div class="card-grafico p-6 mb-6">
-                <div class="flex items-center justify-between gap-2 mb-4">
-                    <h3 class="text-base font-semibold text-gray-700 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        A Pagar — {{ $nomeProximoMes }}
-                    </h3>
-                    <div class="text-right">
+            {{-- ================= CARDS: A PAGAR PRÓXIMO MÊS (2 colunas) ================= --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+                {{-- CARD 1: A Pagar Total --}}
+                <div class="card-grafico p-6">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <h3 class="text-base font-semibold text-gray-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            A Pagar — {{ $nomeProximoMes }}
+                        </h3>
                         <span class="text-xs text-gray-400">{{ $diasUteisProximoMes }} dias úteis</span>
                     </div>
-                </div>
 
-                {{-- Totalizador global --}}
-                <div class="flex flex-wrap items-center gap-6 mb-5 p-4 rounded-xl bg-teal-50 border border-teal-100">
-                    <div>
-                        <span class="text-xs text-gray-500 block">Total a Pagar</span>
-                        <span class="text-2xl font-bold text-teal-700">R$ {{ number_format($custoFixoProximoMes, 2, ',', '.') }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-500 block">Ticket Médio / dia útil</span>
-                        <span class="text-xl font-bold text-teal-600">R$ {{ number_format($ticketMedioCustoFixoGlobal, 2, ',', '.') }}</span>
-                    </div>
-                </div>
-
-                {{-- Por empresa --}}
-                @if($custoFixoProximoMesPorEmpresa->isNotEmpty())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    @foreach($custoFixoProximoMesPorEmpresa as $emp)
-                    <div class="p-3 rounded-xl border border-teal-100 bg-white flex flex-col gap-1">
-                        <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">{{ $emp->nome }}</span>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-xs text-gray-500">A Pagar</span>
-                            <span class="font-bold text-gray-800">R$ {{ number_format($emp->custo_fixo, 2, ',', '.') }}</span>
+                    {{-- Totalizador --}}
+                    <div class="flex flex-wrap items-center gap-6 mb-4 p-4 rounded-xl bg-teal-50 border border-teal-100">
+                        <div>
+                            <span class="text-xs text-gray-500 block">Total a Pagar</span>
+                            <span class="text-2xl font-bold text-teal-700">R$ {{ number_format($custoFixoProximoMes, 2, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500">Ticket / dia útil</span>
-                            <span class="font-semibold text-teal-600">R$ {{ number_format($emp->ticket_medio_dia, 2, ',', '.') }}</span>
+                        <div>
+                            <span class="text-xs text-gray-500 block">Ticket Médio / dia útil</span>
+                            <span class="text-xl font-bold text-teal-600">R$ {{ number_format($ticketMedioCustoFixoGlobal, 2, ',', '.') }}</span>
                         </div>
                     </div>
-                    @endforeach
+
+                    {{-- Por empresa --}}
+                    @if($custoFixoProximoMesPorEmpresa->isNotEmpty())
+                    <div class="space-y-2">
+                        @foreach($custoFixoProximoMesPorEmpresa as $emp)
+                        <div class="p-3 rounded-xl border border-teal-100 bg-white flex flex-col gap-1">
+                            <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">{{ $emp->nome }}</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-xs text-gray-500">A Pagar</span>
+                                <span class="font-bold text-gray-800">R$ {{ number_format($emp->a_pagar, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Ticket / dia útil</span>
+                                <span class="font-semibold text-teal-600">R$ {{ number_format($emp->ticket_medio_dia, 2, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                        <p class="text-sm text-gray-400 text-center py-2">Nenhum lançamento a pagar em {{ $nomeProximoMes }}.</p>
+                    @endif
                 </div>
-                @else
-                    <p class="text-sm text-gray-400 text-center py-2">Nenhum lançamento a pagar em {{ $nomeProximoMes }}.</p>
-                @endif
-            </div>
+
+                {{-- CARD 2: Ticket Líquido (A Pagar − A Receber) --}}
+                <div class="card-grafico p-6">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <h3 class="text-base font-semibold text-gray-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                            </svg>
+                            Custo Líquido — {{ $nomeProximoMes }}
+                        </h3>
+                        <span class="text-xs text-gray-400">{{ $diasUteisProximoMes }} dias úteis</span>
+                    </div>
+
+                    {{-- Totalizador --}}
+                    <div class="flex flex-wrap items-center gap-4 mb-4 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+                        <div>
+                            <span class="text-xs text-gray-500 block">A Pagar</span>
+                            <span class="text-lg font-bold text-red-600">R$ {{ number_format($custoFixoProximoMes, 2, ',', '.') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 block">A Receber</span>
+                            <span class="text-lg font-bold text-emerald-600">R$ {{ number_format($aReceberProximoMes, 2, ',', '.') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 block">Ticket Líquido / dia útil</span>
+                            <span class="text-xl font-bold text-indigo-700">R$ {{ number_format($ticketLiquidoGlobal, 2, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Por empresa --}}
+                    @if($custoFixoProximoMesPorEmpresa->isNotEmpty())
+                    <div class="space-y-2">
+                        @foreach($custoFixoProximoMesPorEmpresa as $emp)
+                        <div class="p-3 rounded-xl border border-indigo-100 bg-white flex flex-col gap-1">
+                            <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">{{ $emp->nome }}</span>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-xs text-gray-500">A Pagar</span>
+                                <span class="font-bold text-red-600">R$ {{ number_format($emp->a_pagar, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">A Receber</span>
+                                <span class="font-semibold text-emerald-600">R$ {{ number_format($emp->a_receber, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-gray-100 pt-1 mt-0.5">
+                                <span class="text-xs text-gray-500">Ticket Líquido / dia útil</span>
+                                <span class="font-bold text-indigo-700">R$ {{ number_format($emp->ticket_liquido_dia, 2, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                        <p class="text-sm text-gray-400 text-center py-2">Nenhum lançamento em {{ $nomeProximoMes }}.</p>
+                    @endif
+                </div>
+
+            </div>{{-- /grid 2 cards A Pagar --}}
 
             {{-- ================= NOVOS CARDS: INDICADORES E ALERTAS ================= --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
