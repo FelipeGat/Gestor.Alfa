@@ -255,6 +255,7 @@ class DashboardTecnicoController extends Controller
                 'empresa:id,nome_fantasia',
                 'assunto:id,nome',
                 'funcionario.user:id,name,funcionario_id',
+                'tecnicosAdicionais.user:id,name,funcionario_id',
                 'orcamento:id,numero_orcamento,pre_cliente_id,atendimento_id',
                 'orcamento.preCliente:id,nome_fantasia,razao_social',
             ])
@@ -283,16 +284,14 @@ class DashboardTecnicoController extends Controller
                 'data_fim_agendamento',
                 'data_atendimento',
             ])
-            ->map(function (Atendimento $atendimento) {
+            ->flatMap(function (Atendimento $atendimento) {
                 $inicio = $atendimento->data_inicio_agendamento ?? $atendimento->data_atendimento;
                 $fim = $atendimento->data_fim_agendamento;
 
-                return [
+                $base = [
                     'id' => (int) $atendimento->id,
                     'numero_atendimento' => (string) ($atendimento->numero_atendimento ?: ('#' . $atendimento->id)),
                     'numero_orcamento'   => (string) ($atendimento->orcamento?->numero_orcamento ?? ''),
-                    'tecnico_id' => (int) $atendimento->funcionario_id,
-                    'tecnico_nome' => (string) ($atendimento->funcionario?->user?->name ?? '—'),
                     'cliente_nome' => (string) (
                         $atendimento->cliente?->nome_fantasia
                         ?: $atendimento->cliente?->nome
@@ -313,6 +312,22 @@ class DashboardTecnicoController extends Controller
                     'fim' => optional($fim)->format('H:i'),
                     'url' => route('atendimentos.edit', $atendimento),
                 ];
+
+                $eventos = [
+                    array_merge($base, [
+                        'tecnico_id'   => (int) $atendimento->funcionario_id,
+                        'tecnico_nome' => (string) ($atendimento->funcionario?->user?->name ?? '—'),
+                    ]),
+                ];
+
+                foreach ($atendimento->tecnicosAdicionais as $tec) {
+                    $eventos[] = array_merge($base, [
+                        'tecnico_id'   => (int) $tec->id,
+                        'tecnico_nome' => (string) ($tec->user?->name ?? $tec->nome ?? '—'),
+                    ]);
+                }
+
+                return $eventos;
             })
             ->filter(fn (array $item) => !empty($item['data_atendimento']))
             ->values();
