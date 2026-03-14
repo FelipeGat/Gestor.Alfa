@@ -759,11 +759,10 @@ class DashboardFinanceiroController extends Controller
             $diaIter->addDay();
         }
 
-        // Total global de custo fixo (ContaFixaPagar ativas vigentes no próximo mês)
-        $custoFixoProximoMes = \App\Models\ContaFixaPagar::where(function ($q) use ($inicioProxMes, $fimProxMes) {
-            $q->whereNull('data_fim')->orWhere('data_fim', '>=', $inicioProxMes->format('Y-m-d'));
-        })->where('data_inicial', '<=', $fimProxMes->format('Y-m-d'))
-            ->where('ativo', true)
+        // Total global: tudo lançado como a pagar no próximo mês
+        $custoFixoProximoMes = ContaPagar::where('status', 'em_aberto')
+            ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
             ->sum('valor');
 
         $ticketMedioCustoFixoGlobal = $diasUteisProximoMes > 0
@@ -771,14 +770,13 @@ class DashboardFinanceiroController extends Controller
             : 0;
 
         // Por empresa (via centro de custo → empresa_id)
-        $custoFixoProximoMesPorEmpresa = \App\Models\ContaFixaPagar::where(function ($q) use ($inicioProxMes, $fimProxMes) {
-            $q->whereNull('data_fim')->orWhere('data_fim', '>=', $inicioProxMes->format('Y-m-d'));
-        })->where('data_inicial', '<=', $fimProxMes->format('Y-m-d'))
-            ->where('ativo', true)
+        $custoFixoProximoMesPorEmpresa = ContaPagar::where('status', 'em_aberto')
+            ->whereDate('data_vencimento', '>=', $inicioProxMes->format('Y-m-d'))
+            ->whereDate('data_vencimento', '<=', $fimProxMes->format('Y-m-d'))
             ->whereHas('centroCusto')
             ->with('centroCusto:id,nome,empresa_id')
             ->get(['id', 'centro_custo_id', 'valor'])
-            ->groupBy(fn ($cf) => $cf->centroCusto?->empresa_id)
+            ->groupBy(fn ($cp) => $cp->centroCusto?->empresa_id)
             ->filter(fn ($group, $empresaId) => $empresaId)
             ->map(function ($group, $empresaId) use ($diasUteisProximoMes, $todasEmpresasAtivas) {
                 $total   = (float) $group->sum('valor');
