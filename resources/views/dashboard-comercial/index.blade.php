@@ -891,11 +891,79 @@
             const statusData = JSON.parse(dataElement.getAttribute('data-status') || '{}');
             const empresaData = JSON.parse(dataElement.getAttribute('data-empresas') || '[]');
 
+            // Helper: formata chave de status em label legível
+            function formatStatusLabel(key) {
+                return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            }
+
+            // Plugin inline: valores dentro de cada fatia do donut
+            const doughnutValuesPlugin = {
+                id: 'doughnutValues',
+                afterDraw(chart) {
+                    const { ctx } = chart;
+                    const dataset = chart.data.datasets[0];
+                    const total = dataset.data.reduce((a, b) => a + b, 0);
+                    if (!total) return;
+
+                    chart.getDatasetMeta(0).data.forEach((arc, i) => {
+                        const value = dataset.data[i];
+                        const pct = value / total;
+                        if (pct < 0.04) return; // omite fatias muito pequenas
+
+                        const pos = arc.tooltipPosition();
+                        ctx.save();
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 12px Inter, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(value, pos.x, pos.y);
+                        ctx.restore();
+                    });
+                }
+            };
+
+            // Plugin inline: valores dentro de cada barra horizontal (centrado)
+            const barValuesPlugin = {
+                id: 'barValues',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    chart.data.datasets.forEach((dataset, di) => {
+                        chart.getDatasetMeta(di).data.forEach((bar, i) => {
+                            const value = dataset.data[i];
+                            if (!value) return;
+                            const barWidth = bar.x - bar.base;
+                            if (barWidth < 20) return; // barra muito estreita
+                            const cx = bar.base + barWidth / 2;
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold 12px Inter, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(value, cx, bar.y);
+                            ctx.restore();
+                        });
+                    });
+                }
+            };
+
+            // Mapeamento de cores por empresa
+            const empresaCores = {
+                'DELTA':  '#10b981',
+                'GW':     '#3b82f6',
+                'INVEST': '#14b8a6',
+            };
+            const corPadrao = '#9ca3af';
+            function corEmpresa(nome) {
+                if (!nome) return corPadrao;
+                const key = nome.toUpperCase().trim();
+                return empresaCores[key] || corPadrao;
+            }
+
             // 1. Gráfico de Status
             new Chart(document.getElementById('chartStatus'), {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(statusData).map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+                    labels: Object.keys(statusData).map(formatStatusLabel),
                     datasets: [{
                         data: Object.values(statusData),
                         backgroundColor: ['#f59e0b', '#10b981', '#6366f1', '#3b82f6', '#ef4444', '#6b7280'],
@@ -910,18 +978,20 @@
                             position: 'bottom'
                         }
                     }
-                }
+                },
+                plugins: [doughnutValuesPlugin]
             });
 
             // 2. Gráfico de Quantidade por Empresa
+            const qtdLabels = empresaData.map(e => e.empresa ? (e.empresa.nome_fantasia || e.empresa.razao_social) : 'N/A');
             new Chart(document.getElementById('chartQtdaEmpresa'), {
                 type: 'bar',
                 data: {
-                    labels: empresaData.map(e => e.empresa ? (e.empresa.nome_fantasia || e.empresa.razao_social) : 'N/A'),
+                    labels: qtdLabels,
                     datasets: [{
                         label: 'Quantidade',
                         data: empresaData.map(e => e.total_qtd),
-                        backgroundColor: '#10b981'
+                        backgroundColor: qtdLabels.map(corEmpresa)
                     }]
                 },
                 options: {
@@ -933,18 +1003,53 @@
                             display: false
                         }
                     }
-                }
+                },
+                plugins: [barValuesPlugin]
             });
 
+            // Plugin inline: valores dentro de barras verticais
+            const verticalBarValuesPlugin = {
+                id: 'verticalBarValues',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    chart.data.datasets.forEach((dataset, di) => {
+                        chart.getDatasetMeta(di).data.forEach((bar, i) => {
+                            const value = dataset.data[i];
+                            if (!value) return;
+                            const barHeight = bar.base - bar.y;
+                            if (barHeight < 20) return; // barra muito baixa
+                            const cy = bar.y + barHeight / 2;
+                            // Formata valor abreviado: 250000 → R$ 250k
+                            let label;
+                            if (value >= 1000000) {
+                                label = 'R$ ' + (value / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M';
+                            } else if (value >= 1000) {
+                                label = 'R$ ' + Math.round(value / 1000).toLocaleString('pt-BR') + 'k';
+                            } else {
+                                label = 'R$ ' + Math.round(value).toLocaleString('pt-BR');
+                            }
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold 11px Inter, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(label, bar.x, cy);
+                            ctx.restore();
+                        });
+                    });
+                }
+            };
+
             // 3. Gráfico de Valor por Empresa
+            const valorLabels = empresaData.map(e => e.empresa ? (e.empresa.nome_fantasia || e.empresa.razao_social) : 'N/A');
             new Chart(document.getElementById('chartEmpresaValor'), {
                 type: 'bar',
                 data: {
-                    labels: empresaData.map(e => e.empresa ? (e.empresa.nome_fantasia || e.empresa.razao_social) : 'N/A'),
+                    labels: valorLabels,
                     datasets: [{
                         label: 'Valor Total (R$)',
                         data: empresaData.map(e => e.total_valor),
-                        backgroundColor: '#3b82f6'
+                        backgroundColor: valorLabels.map(corEmpresa)
                     }]
                 },
                 options: {
@@ -961,6 +1066,9 @@
                         }
                     },
                     plugins: {
+                        legend: {
+                            display: false
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -971,7 +1079,8 @@
                             }
                         }
                     }
-                }
+                },
+                plugins: [verticalBarValuesPlugin]
             });
         });
     </script>
