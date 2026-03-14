@@ -11,9 +11,11 @@ class NotificacaoService
 {
     protected $messaging;
 
-    public function __construct(Messaging $messaging)
+    public function __construct()
     {
-        $this->messaging = $messaging;
+        if (app()->bound(Messaging::class)) {
+            $this->messaging = app(Messaging::class);
+        }
     }
 
     /**
@@ -27,7 +29,7 @@ class NotificacaoService
      */
     public function enviarParaUsuario(User $user, string $titulo, string $corpo, array $dados = []): bool
     {
-        if (!$user->fcm_token) {
+        if (!$this->messaging || !$user->fcm_token) {
             return false;
         }
 

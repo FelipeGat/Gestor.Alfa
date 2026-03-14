@@ -356,6 +356,9 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
     Route::delete('/contas/{conta}', [\App\Http\Controllers\CategoriaController::class, 'destroyConta'])->name('contas.destroy');
 
     // Atendimentos
+    Route::get('/atendimentos/modal-dados', [AtendimentoController::class, 'modalDados'])
+        ->name('atendimentos.modal-dados');
+
     Route::resource('atendimentos', AtendimentoController::class)
         ->except(['show']);
 

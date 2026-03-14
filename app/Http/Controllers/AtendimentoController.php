@@ -53,17 +53,24 @@ class AtendimentoController extends Controller
             'data_inicio_agendamento',
             'data_fim_agendamento',
             'periodo_agendamento',
-            'created_at'
+            'descricao',
+            'created_at',
+            DB::raw('(SELECT MAX(created_at) FROM atendimento_andamentos WHERE atendimento_id = atendimentos.id) as ultima_andamento_at'),
+            DB::raw('(SELECT MAX(created_at) FROM atendimento_status_historicos WHERE atendimento_id = atendimentos.id) as ultima_status_at'),
         ]);
 
-        // 🔎 BUSCA (cliente ou solicitante)
+        // 🔎 BUSCA
         if ($request->filled('search')) {
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('nome_solicitante', 'like', "%{$search}%")
+                    ->orWhere('numero_atendimento', 'like', "%{$search}%")
                     ->orWhereHas('cliente', function ($c) use ($search) {
                         $c->where('nome', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('assunto', function ($a) use ($search) {
+                        $a->where('nome', 'like', "%{$search}%");
                     });
             });
         }
@@ -88,6 +95,19 @@ class AtendimentoController extends Controller
             $query->where('funcionario_id', $request->tecnico_id);
         }
 
+        // CLIENTE
+        if ($request->filled('cliente_id')) {
+            $query->where('cliente_id', $request->cliente_id);
+        }
+
+        // MEUS CHAMADOS
+        if ($request->boolean('meus_chamados') && Auth::check()) {
+            $funcionarioId = Auth::user()->funcionario_id;
+            if ($funcionarioId) {
+                $query->where('funcionario_id', $funcionarioId);
+            }
+        }
+
         // TRIAGEM PENDENTE (sem empresa ou sem técnico)
         if ($request->boolean('triagem_pendente')) {
             $query->where(function ($q) {
@@ -106,16 +126,31 @@ class AtendimentoController extends Controller
             // 📅 PERÍODO PADRÃO
             $periodo = $request->input('periodo', 'mes');
             match ($periodo) {
-                'dia' => $query->whereDate('data_atendimento', today()),
-                'semana' => $query->whereBetween('data_atendimento', [
-                    now()->startOfWeek(),
-                    now()->endOfWeek(),
-                ]),
-                'ano' => $query->whereYear('data_atendimento', now()->year),
-                default => $query->whereMonth('data_atendimento', now()->month)
-                    ->whereYear('data_atendimento', now()->year),
+                'dia'          => $query->whereDate('data_atendimento', today()),
+                'semana'       => $query->whereBetween('data_atendimento', [now()->startOfWeek(), now()->endOfWeek()]),
+                'ano'          => $query->whereYear('data_atendimento', now()->year),
+                'mes_anterior' => $query->whereMonth('data_atendimento', now()->subMonth()->month)
+                                        ->whereYear('data_atendimento', now()->subMonth()->year),
+                default        => $query->whereMonth('data_atendimento', now()->month)
+                                        ->whereYear('data_atendimento', now()->year),
             };
         }
+
+        // KPI counts (clone before pagination)
+        $statusAbertos = ['orcamento', 'aberto', 'em_atendimento', 'pendente_cliente', 'pendente_fornecedor', 'garantia'];
+        $agora = now();
+        $totalAtendimentos  = (clone $query)->count();
+        $qtdAberto          = (clone $query)->where('status_atual', 'aberto')->count();
+        $qtdEmAtendimento   = (clone $query)->where('status_atual', 'em_atendimento')->count();
+        $qtdPendentes       = (clone $query)->whereIn('status_atual', ['pendente_cliente', 'pendente_fornecedor'])->count();
+        $qtdConcluido       = (clone $query)->whereIn('status_atual', ['concluido', 'finalizacao'])->count();
+        // SLA
+        $qtdSlaEstourado   = (clone $query)->whereIn('status_atual', $statusAbertos)
+                                ->where('created_at', '<', $agora->copy()->subHours(8))->count();
+        $qtdSlaAlerta      = (clone $query)->whereIn('status_atual', $statusAbertos)
+                                ->whereBetween('created_at', [$agora->copy()->subHours(8), $agora->copy()->subHours(2)])->count();
+        $qtdResolvidosHoje = (clone $query)->whereIn('status_atual', ['concluido', 'finalizacao'])
+                                ->whereDate('updated_at', today())->count();
 
         $atendimentos = $query
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
@@ -123,20 +158,137 @@ class AtendimentoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $funcionarios = Funcionario::where('ativo', true)
-            ->orderBy('nome')
-            ->get();
-
-        $empresas = Empresa::orderBy('nome_fantasia')->get();
+        $funcionarios = Funcionario::where('ativo', true)->orderBy('nome')->get();
+        $empresas     = Empresa::orderBy('nome_fantasia')->get();
+        $clientes     = Cliente::orderBy('nome')->get(['id', 'nome']);
 
         return view('atendimentos.index', compact(
             'atendimentos',
             'funcionarios',
-            'empresas'
+            'empresas',
+            'clientes',
+            'totalAtendimentos',
+            'qtdAberto',
+            'qtdEmAtendimento',
+            'qtdPendentes',
+            'qtdConcluido',
+            'qtdSlaEstourado',
+            'qtdSlaAlerta',
+            'qtdResolvidosHoje'
         ));
     }
 
 
+
+    public function modalDados(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $tipo = $request->input('tipo', 'total');
+            $statusAbertos = ['orcamento', 'aberto', 'em_atendimento', 'pendente_cliente', 'pendente_fornecedor', 'garantia'];
+            $agora = now();
+
+            $query = Atendimento::with(['cliente', 'assunto', 'empresa', 'funcionario'])
+                ->select(['id', 'numero_atendimento', 'cliente_id', 'nome_solicitante',
+                          'assunto_id', 'empresa_id', 'funcionario_id', 'status_atual',
+                          'prioridade', 'created_at', 'descricao']);
+
+            // Mesmos filtros da tela principal
+            if ($request->filled('search')) {
+                $s = trim($request->search);
+                $query->where(function ($q) use ($s) {
+                    $q->where('nome_solicitante', 'like', "%{$s}%")
+                      ->orWhere('numero_atendimento', 'like', "%{$s}%")
+                      ->orWhereHas('cliente', fn ($c) => $c->where('nome', 'like', "%{$s}%"))
+                      ->orWhereHas('assunto',  fn ($a) => $a->where('nome', 'like', "%{$s}%"));
+                });
+            }
+            if ($request->filled('empresa_id'))  $query->where('empresa_id', $request->empresa_id);
+            if ($request->filled('tecnico_id'))  $query->where('funcionario_id', $request->tecnico_id);
+            if ($request->filled('cliente_id'))  $query->where('cliente_id', $request->cliente_id);
+            if ($request->filled('prioridade'))  $query->where('prioridade', $request->prioridade);
+            if ($request->boolean('triagem_pendente')) {
+                $query->where(fn ($q) => $q->whereNull('empresa_id')->orWhereNull('funcionario_id'));
+            }
+            if ($request->boolean('meus_chamados') && Auth::check()) {
+                $fid = Auth::user()->funcionario_id;
+                if ($fid) $query->where('funcionario_id', $fid);
+            }
+
+            // Período
+            if ($request->filled('data_inicio') && $request->filled('data_fim')) {
+                $query->whereBetween('data_atendimento', [$request->data_inicio, $request->data_fim]);
+            } else {
+                $periodo = $request->input('periodo', 'mes');
+                match ($periodo) {
+                    'dia'          => $query->whereDate('data_atendimento', today()),
+                    'semana'       => $query->whereBetween('data_atendimento', [now()->startOfWeek(), now()->endOfWeek()]),
+                    'ano'          => $query->whereYear('data_atendimento', now()->year),
+                    'mes_anterior' => $query->whereMonth('data_atendimento', now()->subMonth()->month)
+                                            ->whereYear('data_atendimento', now()->subMonth()->year),
+                    default        => $query->whereMonth('data_atendimento', now()->month)
+                                            ->whereYear('data_atendimento', now()->year),
+                };
+            }
+
+            // Filtro específico do card
+            match ($tipo) {
+                'sla_estourado'   => $query->whereIn('status_atual', $statusAbertos)->where('created_at', '<', $agora->copy()->subHours(8)),
+                'sla_alerta'      => $query->whereIn('status_atual', $statusAbertos)->whereBetween('created_at', [$agora->copy()->subHours(8), $agora->copy()->subHours(2)]),
+                'aguardando'      => $query->whereIn('status_atual', ['pendente_cliente', 'pendente_fornecedor']),
+                'resolvidos_hoje' => $query->whereIn('status_atual', ['concluido', 'finalizacao'])->whereDate('updated_at', today()),
+                default           => null,
+            };
+
+            $statusLabels = [
+                'orcamento' => 'Orçamento', 'aberto' => 'Aberto', 'em_atendimento' => 'Em Atendimento',
+                'pendente_cliente' => 'Pendente Cliente', 'pendente_fornecedor' => 'Pendente Fornecedor',
+                'garantia' => 'Garantia', 'finalizacao' => 'Finalização', 'concluido' => 'Concluído',
+            ];
+
+            $atendimentos = $query
+                ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
+                ->orderByDesc('created_at')
+                ->limit(200)
+                ->get()
+                ->map(function ($at) use ($statusLabels, $agora) {
+                    $diffH = (int) $at->created_at->diffInHours($agora);
+                    $diffM = (int) $at->created_at->diffInMinutes($agora) % 60;
+                    $isConcluido = in_array($at->status_atual, ['concluido', 'finalizacao']);
+
+                    if ($diffH >= 24) {
+                        $dias = floor($diffH / 24);
+                        $sla  = $dias . 'd ' . ($diffH % 24) . 'h';
+                    } elseif ($diffH > 0) {
+                        $sla = $diffH . 'h ' . $diffM . 'm';
+                    } else {
+                        $sla = $diffM . 'm';
+                    }
+                    $slaCor = $isConcluido ? 'cinza' : ($diffH >= 8 ? 'vermelho' : ($diffH >= 2 ? 'amarelo' : 'verde'));
+
+                    $partes  = explode(' ', $at->funcionario?->nome ?? '');
+                    $tecnico = count($partes) > 1 ? ($partes[0] . ' ' . end($partes)) : ($partes[0] ?? '—');
+
+                    return [
+                        'numero'    => $at->numero_atendimento,
+                        'cliente'   => $at->cliente?->nome ?? $at->nome_solicitante,
+                        'empresa'   => $at->empresa?->nome_fantasia ?? '—',
+                        'tecnico'   => $tecnico,
+                        'assunto'   => $at->assunto?->nome ?? '—',
+                        'status'    => $statusLabels[$at->status_atual] ?? $at->status_atual,
+                        'prioridade'=> ucfirst($at->prioridade ?? ''),
+                        'sla_texto' => $sla,
+                        'sla_cor'   => $slaCor,
+                        'data'      => $at->created_at->format('d/m/Y H:i'),
+                        'url'       => route('atendimentos.edit', $at->id),
+                    ];
+                });
+
+            return response()->json(['success' => true, 'atendimentos' => $atendimentos, 'total' => $atendimentos->count()]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('modalDados atendimentos: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Erro ao carregar dados.'], 500);
+        }
+    }
 
     public function create()
     {
