@@ -85,11 +85,11 @@ class DashboardComercialController extends Controller
             ->pluck('total', 'status');
 
         $totalOrcamentos = $statusCount->sum();
-        $qtdAguardando = $statusCount->get('aguardando_aprovacao', 0);
-        $qtdFinanceiro = $statusCount->get('financeiro', 0);
-        $qtdAprovado   = $statusCount->get('aprovado', 0);
-        $qtdAguardandoPagamento = $statusCount->get('aguardando_pagamento', 0);
-        $qtdConcluido = $statusCount->get('concluido', 0);
+        $qtdEmElaboracao = $statusCount->get('em_elaboracao', 0);
+        $qtdAguardando   = $statusCount->get('aguardando_aprovacao', 0);
+        $qtdAprovado     = $statusCount->get('aprovado', 0);
+        $qtdEmAndamento  = $statusCount->get('em_andamento', 0);
+        $qtdConcluido    = $statusCount->get('concluido', 0);
 
         // Métricas por empresa com eager loading
         $orcamentosPorEmpresa = Orcamento::select(
@@ -130,10 +130,10 @@ class DashboardComercialController extends Controller
 
         return view('dashboard-comercial.index', compact(
             'totalOrcamentos',
-            'qtdFinanceiro',
-            'qtdAguardandoPagamento',
-            'qtdAprovado',
+            'qtdEmElaboracao',
             'qtdAguardando',
+            'qtdAprovado',
+            'qtdEmAndamento',
             'qtdConcluido',
             'statusCount',
             'orcamentosPorEmpresa',
@@ -202,7 +202,7 @@ class DashboardComercialController extends Controller
             }
 
             $orcamentos = Orcamento::query()
-                ->with(['cliente', 'empresa', 'criadoPor'])
+                ->with(['cliente', 'preCliente', 'empresa', 'criadoPor'])
                 ->whereBetween('created_at', [$inicio, $fim])
                 ->when($empresaId, fn($q) => $q->where('empresa_id', $empresaId))
                 ->when($status, fn($q) => $q->where('status', $status))
@@ -218,12 +218,20 @@ class DashboardComercialController extends Controller
             ]);
 
             $orcamentos = $orcamentos->map(function ($orc) {
+                $nomeVendedor = $orc->criadoPor->name ?? null;
+                if ($nomeVendedor) {
+                    $partes = explode(' ', trim($nomeVendedor));
+                    $nomeVendedor = count($partes) > 1
+                        ? $partes[0] . ' ' . end($partes)
+                        : $partes[0];
+                }
+
                 return [
                     'id' => $orc->id,
                     'numero' => $orc->numero_orcamento,
-                    'cliente' => $orc->cliente ? ($orc->cliente->nome ?? $orc->cliente->razao_social ?? 'N/A') : 'N/A',
+                    'cliente' => $orc->nome_cliente !== '—' ? $orc->nome_cliente : 'N/A',
                     'empresa' => $orc->empresa ? ($orc->empresa->nome_fantasia ?? 'N/A') : 'N/A',
-                    'vendedor' => $orc->criadoPor ? ($orc->criadoPor->name ?? 'N/A') : 'N/A',
+                    'vendedor' => $nomeVendedor ?? 'N/A',
                     'valor_total' => number_format($orc->valor_total ?? 0, 2, ',', '.'),
                     'status' => $orc->status,
                     'status_label' => $this->getStatusLabel($orc->status),
@@ -301,7 +309,7 @@ class DashboardComercialController extends Controller
 
             // Buscar orçamentos com os mesmos filtros do modal
             $orcamentos = Orcamento::query()
-                ->with(['cliente', 'empresa', 'criadoPor'])
+                ->with(['cliente', 'preCliente', 'empresa', 'criadoPor'])
                 ->whereBetween('created_at', [$inicio, $fim])
                 ->when($empresaId, fn($q) => $q->where('empresa_id', $empresaId))
                 ->when($status, fn($q) => $q->where('status', $status))
@@ -363,13 +371,15 @@ class DashboardComercialController extends Controller
     private function getStatusLabel($status)
     {
         $labels = [
+            'em_elaboracao'       => 'Em Elaboração',
             'aguardando_aprovacao' => 'Aguardando Aprovação',
-            'financeiro' => 'Financeiro',
-            'aprovado' => 'Aprovado',
+            'aprovado'            => 'Aprovado',
+            'em_andamento'        => 'Em Andamento',
+            'concluido'           => 'Concluído',
+            'financeiro'          => 'Financeiro',
             'aguardando_pagamento' => 'Aguardando Pagamento',
-            'concluido' => 'Concluído',
-            'reprovado' => 'Reprovado',
-            'cancelado' => 'Cancelado',
+            'reprovado'           => 'Reprovado',
+            'cancelado'           => 'Cancelado',
         ];
 
         return $labels[$status] ?? ucfirst($status);

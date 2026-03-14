@@ -56,17 +56,17 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+        .kpi-card-gray {
+            border-color: #9ca3af;
+        }
         .kpi-card-indigo {
             border-color: #6366f1;
         }
         .kpi-card-emerald {
             border-color: #10b981;
         }
-        .kpi-card-amber {
-            border-color: #f59e0b;
-        }
-        .kpi-card-blue {
-            border-color: #2563eb;
+        .kpi-card-sky {
+            border-color: #0ea5e9;
         }
         .kpi-card-green {
             border-color: #16a34a;
@@ -261,11 +261,13 @@
         
         getStatusColor(status) {
             const colors = {
+                'em_elaboracao': 'bg-gray-100 text-gray-800',
                 'aguardando_aprovacao': 'bg-indigo-100 text-indigo-800',
-                'financeiro': 'bg-amber-100 text-amber-800',
                 'aprovado': 'bg-emerald-100 text-emerald-800',
-                'aguardando_pagamento': 'bg-blue-100 text-blue-800',
+                'em_andamento': 'bg-sky-100 text-sky-800',
                 'concluido': 'bg-green-100 text-green-800',
+                'financeiro': 'bg-amber-100 text-amber-800',
+                'aguardando_pagamento': 'bg-blue-100 text-blue-800',
                 'reprovado': 'bg-red-100 text-red-800',
                 'cancelado': 'bg-gray-100 text-gray-800',
             };
@@ -494,6 +496,18 @@
             {{-- ================= CARDS DE RESUMO ================= --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
 
+                <div @click="abrirModal('em_elaboracao', 'Em Elaboração')"
+                    class="kpi-card kpi-card-gray cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                        Em Elaboração
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </h3>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdEmElaboracao }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
+                </div>
+
                 <div @click="abrirModal('aguardando_aprovacao', 'Aguardando Aprovação')"
                     class="kpi-card kpi-card-indigo cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
@@ -520,29 +534,15 @@
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
-                <div @click="abrirModal('financeiro', 'Financeiro')"
-                    class="kpi-card kpi-card-amber cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
+                <div @click="abrirModal('em_andamento', 'Em Andamento')"
+                    class="kpi-card kpi-card-sky cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
-                        Financeiro
-                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        Em Andamento
+                        <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdFinanceiro }}</p>
-                    <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
-                </div>
-
-                <div @click="abrirModal('aguardando_pagamento', 'Aguardando Pagamento')"
-                    class="kpi-card kpi-card-blue cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center justify-between">
-                        Aguardando Pagamento
-                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdAguardandoPagamento }}</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ $qtdEmAndamento }}</p>
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
@@ -675,7 +675,6 @@
                                         <tr>
                                             <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Número</th>
                                             <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Cliente</th>
-                                            <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Empresa</th>
                                             <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Vendedor</th>
                                             <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Valor</th>
                                             <th class="px-4 py-3 text-left uppercase" style="font-size: 14px; font-weight: 600; color: rgb(17, 24, 39);">Status</th>
@@ -686,11 +685,13 @@
                                     <tbody class="divide-y divide-gray-200">
                                         <template x-for="orc in orcamentos" :key="orc.id">
                                             <tr class="hover:bg-gray-50 transition">
-                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.numero"></td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <span style="font-weight: 600; color: rgb(17, 24, 39);" x-text="orc.numero"></span>
+                                                    <span class="block text-xs text-gray-400" x-text="orc.empresa"></span>
+                                                </td>
                                                 <td class="px-4 py-3 text-sm">
                                                     <span style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.cliente"></span>
                                                 </td>
-                                                <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.empresa"></td>
                                                 <td class="px-4 py-3 text-sm" style="font-weight: 400; color: rgb(17, 24, 39);" x-text="orc.vendedor"></td>
                                                 <td class="px-4 py-3 text-sm font-semibold whitespace-nowrap" style="font-weight: 400; color: rgb(17, 24, 39);">
                                                     R$ <span x-text="orc.valor_total"></span>
