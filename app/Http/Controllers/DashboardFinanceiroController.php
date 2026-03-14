@@ -860,6 +860,7 @@ class DashboardFinanceiroController extends Controller
             'empresas' => $empresas,
             'empresaId' => $empresaId,
             'ano' => $ano,
+            'filtroRapido' => $filtroRapido,
             'contasFinanceiras' => $contasFinanceiras,
             'contasAgrupadasPorTipo' => $contasAgrupadasPorTipo,
             'saldoTotalBancos' => $saldoTotalBancos,
