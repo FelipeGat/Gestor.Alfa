@@ -184,6 +184,7 @@
         data-status='@json($statusCount)'
         data-empresas='@json($orcamentosPorEmpresa)'
         data-empresas-status='@json($orcamentosPorEmpresaStatus)'
+        data-meta-realizado='@json($metaRealizadoChart)'
         style="display: none;">
     </div>
 
@@ -559,6 +560,260 @@
                     <p class="text-xs text-gray-400 mt-2">Clique para ver detalhes</p>
                 </div>
 
+            </div>
+
+            {{-- ================= A PAGAR — PRÓXIMO MÊS ================= --}}
+            <div class="card-grafico p-6 mb-8">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        A Pagar — {{ $nomeProximoMes }}
+                        <span class="text-xs font-normal text-gray-400 ml-1">({{ $diasUteisProxMes }} dias úteis)</span>
+                    </h3>
+                    <span class="text-xs text-gray-400 italic">Contas a vencer no próximo mês</span>
+                </div>
+
+                {{-- Resumo global --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div class="rounded-lg p-4" style="background:#fef2f2; border:1px solid #fecaca;">
+                        <p class="text-xs font-semibold text-red-500 uppercase tracking-wide mb-1">Total a Pagar</p>
+                        <p class="text-2xl font-bold text-red-700">R$ {{ number_format($aPagarProxMes, 2, ',', '.') }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ $diasUteisProxMes }} dias úteis em {{ $nomeProximoMes }}</p>
+                    </div>
+                    <div class="rounded-lg p-4" style="background:#fff7ed; border:1px solid #fed7aa;">
+                        <p class="text-xs font-semibold text-orange-500 uppercase tracking-wide mb-1">Ticket Médio / Dia Útil</p>
+                        <p class="text-2xl font-bold text-orange-600">R$ {{ number_format($ticketMedioProxMes, 2, ',', '.') }}</p>
+                        <p class="text-xs text-orange-400 mt-1">Custo médio por dia útil</p>
+                    </div>
+                </div>
+
+                {{-- Por empresa --}}
+                @if($aPagarProxMesPorEmpresa->isNotEmpty())
+                <div class="space-y-2">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Por Empresa</p>
+                    @foreach($aPagarProxMesPorEmpresa as $emp)
+                    <div class="flex items-center justify-between rounded-lg px-4 py-3" style="border:1px solid #fee2e2; background:#fffafa;">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                            <span class="text-sm font-medium text-gray-700">{{ $emp->nome }}</span>
+                        </div>
+                        <div class="flex items-center gap-6 text-right">
+                            <div>
+                                <p class="text-xs text-gray-400">A Pagar</p>
+                                <p class="text-sm font-bold text-red-600">R$ {{ number_format($emp->a_pagar, 2, ',', '.') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">Ticket/dia</p>
+                                <p class="text-sm font-semibold text-orange-500">R$ {{ number_format($emp->ticket_dia, 2, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-sm text-gray-400 text-center py-4">Nenhuma conta a pagar registrada para {{ $nomeProximoMes }}.</p>
+                @endif
+            </div>
+
+            {{-- ================= META × REALIZADO ================= --}}
+            <div class="card-grafico p-6 mb-8" x-data="{
+                modalMetaAberto: false,
+                salvandoMeta: false,
+                metaForm: {
+                    empresa_id: '{{ $empresaId ?? ($empresas->first()?->id ?? '') }}',
+                    user_id: '',
+                    mes: {{ $mesAtual }},
+                    ano: {{ $anoAtual }},
+                    valor_meta: ''
+                },
+                async salvarMeta() {
+                    if (!this.metaForm.empresa_id || !this.metaForm.valor_meta) {
+                        alert('Preencha empresa e valor da meta.');
+                        return;
+                    }
+                    this.salvandoMeta = true;
+                    try {
+                        const resp = await fetch('{{ route('dashboard.comercial.metas.salvar') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                            },
+                            body: JSON.stringify(this.metaForm)
+                        });
+                        const data = await resp.json();
+                        if (data.success) {
+                            this.modalMetaAberto = false;
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'Erro ao salvar meta.');
+                        }
+                    } catch(e) {
+                        alert('Erro ao salvar meta. Tente novamente.');
+                    } finally {
+                        this.salvandoMeta = false;
+                    }
+                }
+            }">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Meta × Realizado — {{ \Carbon\Carbon::create()->month($mesAtual)->translatedFormat('F') }} / {{ $anoAtual }}
+                    </h3>
+                    <button @click="modalMetaAberto = true" type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white rounded-full transition"
+                        style="background:#3f9cae;" onmouseover="this.style.background='#358a96'" onmouseout="this.style.background='#3f9cae'">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Definir Meta
+                    </button>
+                </div>
+
+                {{-- Gráfico Meta x Realizado --}}
+                @if(count($metaRealizadoChart) > 0)
+                <div class="h-80 mb-6">
+                    <canvas id="chartMetaRealizado"></canvas>
+                </div>
+
+                {{-- Tabela de progresso por vendedor --}}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">Vendedor</th>
+                                <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500 uppercase">Meta</th>
+                                <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500 uppercase">Realizado</th>
+                                <th class="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">Progresso</th>
+                                <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500 uppercase">%</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($metaRealizadoChart as $v)
+                            @php
+                                $meta       = $v['meta'] ?? 0;
+                                $realizado  = $v['realizado'] ?? 0;
+                                $pct        = $meta > 0 ? min(100, round(($realizado / $meta) * 100)) : ($realizado > 0 ? 100 : 0);
+                                $barColor   = $pct >= 100 ? '#16a34a' : ($pct >= 60 ? '#f59e0b' : '#ef4444');
+                            @endphp
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2.5 px-3 font-medium text-gray-800">{{ $v['nome'] }}</td>
+                                <td class="py-2.5 px-3 text-right text-gray-600">
+                                    @if($meta > 0)
+                                        R$ {{ number_format($meta, 2, ',', '.') }}
+                                    @else
+                                        <span class="text-gray-300 italic text-xs">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-2.5 px-3 text-right font-semibold" style="color:#16a34a;">
+                                    R$ {{ number_format($realizado, 2, ',', '.') }}
+                                </td>
+                                <td class="py-2.5 px-3">
+                                    <div class="w-full bg-gray-100 rounded-full h-2">
+                                        <div class="h-2 rounded-full transition-all" style="width:{{ $pct }}%; background:{{ $barColor }};"></div>
+                                    </div>
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-xs font-bold" style="color:{{ $barColor }};">{{ $pct }}%</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <p class="text-gray-400 mb-1">Nenhum dado de orçamento no mês atual.</p>
+                    <p class="text-xs text-gray-300">Defina metas e os orçamentos concluídos aparecerão aqui.</p>
+                </div>
+                @endif
+
+                {{-- Modal Definir Meta --}}
+                <div x-show="modalMetaAberto" x-cloak @keydown.escape.window="modalMetaAberto = false"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none;">
+                    <div @click="modalMetaAberto = false" class="absolute inset-0 bg-gray-900 bg-opacity-60"></div>
+                    <div @click.stop class="relative bg-white rounded-xl shadow-2xl w-full max-w-md"
+                        style="border:1px solid #3f9cae; border-top-width:4px;">
+                        <div class="px-6 py-4 flex justify-between items-center" style="background:rgba(63,156,174,0.06); border-bottom:1px solid #e5e7eb;">
+                            <h4 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#3f9cae;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Definir Meta Comercial
+                            </h4>
+                            <button @click="modalMetaAberto = false" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Empresa</label>
+                                <select x-model="metaForm.empresa_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Selecione a empresa</option>
+                                    @foreach($empresas as $emp)
+                                    <option value="{{ $emp->id }}">{{ $emp->nome_fantasia }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Vendedor <span class="font-normal text-gray-400">(opcional — deixe vazio para meta global da empresa)</span></label>
+                                <select x-model="metaForm.user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                    <option value="">Todos os Vendedores</option>
+                                    @foreach($vendedoresAtivos as $v)
+                                    <option value="{{ $v->id }}">{{ $v->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Mês</label>
+                                    <select x-model="metaForm.mes" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                        @foreach(range(1,12) as $m)
+                                        <option value="{{ $m }}" {{ $m == $mesAtual ? 'selected' : '' }}>
+                                            {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Ano</label>
+                                    <select x-model="metaForm.ano" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                                        @foreach(range(now()->year - 1, now()->year + 1) as $y)
+                                        <option value="{{ $y }}" {{ $y == $anoAtual ? 'selected' : '' }}>{{ $y }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Valor da Meta (R$)</label>
+                                <input type="number" x-model="metaForm.valor_meta" min="0" step="0.01"
+                                    placeholder="Ex: 50000.00"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3f9cae]">
+                            </div>
+                        </div>
+                        <div class="px-6 py-4 flex justify-end gap-3" style="border-top:1px solid #e5e7eb; background:#f9fafb;">
+                            <button @click="modalMetaAberto = false" type="button"
+                                class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition">
+                                Cancelar
+                            </button>
+                            <button @click="salvarMeta()" type="button"
+                                :disabled="salvandoMeta"
+                                class="px-5 py-2 text-sm font-semibold text-white rounded-full transition"
+                                style="background:#3f9cae;" onmouseover="this.style.background='#358a96'" onmouseout="this.style.background='#3f9cae'"
+                                :class="salvandoMeta ? 'opacity-60 cursor-not-allowed' : ''">
+                                <span x-show="!salvandoMeta">Salvar Meta</span>
+                                <span x-show="salvandoMeta">Salvando...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- ================= GRÁFICOS ================= --}}
@@ -1166,6 +1421,75 @@
 
             // 3. Renderiza gráfico inicial
             renderVolumeChart();
+
+            // ===== 4. META × REALIZADO =====
+            const metaRealizadoData = JSON.parse(dataElement.getAttribute('data-meta-realizado') || '[]');
+
+            const canvasMeta = document.getElementById('chartMetaRealizado');
+            if (canvasMeta && metaRealizadoData.length > 0) {
+                // Coletar todas as empresas presentes
+                const todasEmpresasMeta = [];
+                metaRealizadoData.forEach(v => {
+                    Object.keys(v.por_empresa || {}).forEach(e => {
+                        if (!todasEmpresasMeta.includes(e)) todasEmpresasMeta.push(e);
+                    });
+                });
+
+                const labels = metaRealizadoData.map(v => v.nome);
+                const coresEmpresas = ['#10b981', '#3b82f6', '#14b8a6', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
+
+                // Um dataset por empresa (realizado, stacked)
+                const datasets = todasEmpresasMeta.map((emp, i) => ({
+                    label: emp,
+                    data: metaRealizadoData.map(v => v.por_empresa?.[emp] || 0),
+                    backgroundColor: coresEmpresas[i % coresEmpresas.length],
+                    stack: 'realizado',
+                    borderRadius: 3,
+                }));
+
+                // Dataset de Meta (linha)
+                datasets.push({
+                    label: 'Meta',
+                    data: metaRealizadoData.map(v => v.meta || null),
+                    type: 'line',
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239,68,68,0.12)',
+                    borderWidth: 2,
+                    borderDash: [6, 3],
+                    pointBackgroundColor: '#ef4444',
+                    pointRadius: 5,
+                    fill: false,
+                    order: 0,
+                    stack: undefined,
+                });
+
+                new Chart(canvasMeta, {
+                    type: 'bar',
+                    data: { labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: {
+                                stacked: true,
+                                ticks: {
+                                    callback: v => 'R$ ' + (v >= 1000 ? Math.round(v/1000) + 'k' : v)
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': R$ ' + (ctx.raw || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         });
     </script>
     @endpush

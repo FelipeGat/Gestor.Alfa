@@ -154,6 +154,11 @@ Route::middleware(['auth', 'primeiro_acesso'])->group(function () {
         ->middleware('dashboard.comercial')
         ->name('dashboard.comercial.exportar');
 
+    // Metas Comerciais
+    Route::post('/dashboard-comercial/metas', [DashboardComercialController::class, 'salvarMeta'])
+        ->middleware('dashboard.comercial')
+        ->name('dashboard.comercial.metas.salvar');
+
     // Histórico de Orçamentos
     Route::get('/dashboard-comercial/orcamentos/{orcamento}/historicos', [DashboardComercialController::class, 'getHistoricos'])
         ->middleware('dashboard.comercial')
