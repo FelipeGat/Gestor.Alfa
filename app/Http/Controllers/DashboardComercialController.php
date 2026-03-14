@@ -122,6 +122,26 @@ class DashboardComercialController extends Controller
             DB::raw('SUM(valor_total) as valor_total')
         )->first();
 
+        // Breakdown por empresa + status para o gráfico de volume financeiro
+        // Sem filtro de data, igual ao $orcamentosPorEmpresa, para exibir todas as empresas
+        $orcamentosPorEmpresaStatus = Orcamento::select(
+                'empresa_id',
+                'status',
+                DB::raw('SUM(valor_total) as total_valor')
+            )
+            ->when($empresaId, function ($query) use ($empresaId) {
+                $query->where('empresa_id', $empresaId);
+            })
+            ->when($origemFiltro === 'contrato', function ($query) {
+                $query->whereNotNull('atendimento_id');
+            })
+            ->when($origemFiltro === 'avulso', function ($query) {
+                $query->whereNull('atendimento_id');
+            })
+            ->groupBy('empresa_id', 'status')
+            ->with(['empresa:id,nome_fantasia'])
+            ->get();
+
         $empresas = Empresa::select('id', 'nome_fantasia')
             ->orderBy('nome_fantasia')
             ->get();
@@ -137,6 +157,7 @@ class DashboardComercialController extends Controller
             'qtdConcluido',
             'statusCount',
             'orcamentosPorEmpresa',
+            'orcamentosPorEmpresaStatus',
             'metricasFiltradas',
             'empresas',
             'todosStatus',

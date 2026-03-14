@@ -183,6 +183,7 @@
     <div id="dashboard-json-data"
         data-status='@json($statusCount)'
         data-empresas='@json($orcamentosPorEmpresa)'
+        data-empresas-status='@json($orcamentosPorEmpresaStatus)'
         style="display: none;">
     </div>
 
@@ -591,12 +592,32 @@
             </div>
 
             <div class="card-grafico p-6 mb-10">
-                <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Volume Financeiro por Empresa (Valor Total)
-                </h3>
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Volume Financeiro por Empresa (Valor Total)
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        <select id="filtroVolumeEmpresa"
+                            onchange="updateVolumeChart()"
+                            class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-[#3f9cae]">
+                            <option value="">Todas as empresas</option>
+                            @foreach($empresas as $emp)
+                                <option value="{{ $emp->nome_fantasia }}">{{ $emp->nome_fantasia }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filtroVolumeStatus"
+                            onchange="updateVolumeChart()"
+                            class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-[#3f9cae]">
+                            <option value="">Todos os status</option>
+                            @foreach($todosStatus as $st)
+                                <option value="{{ $st }}">{{ ucwords(str_replace('_', ' ', $st)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
                 <div class="h-96">
                     <canvas id="chartEmpresaValor"></canvas>
                 </div>
@@ -1007,6 +1028,22 @@
                 plugins: [barValuesPlugin]
             });
 
+            // Dados empresa × status para o gráfico de volume financeiro
+            const empresaStatusData = JSON.parse(dataElement.getAttribute('data-empresas-status') || '[]');
+
+            // Cores por status (para quando filtrar por empresa)
+            const statusCoresVolume = {
+                'em_elaboracao':       '#9ca3af',
+                'aguardando_aprovacao':'#6366f1',
+                'aprovado':            '#10b981',
+                'em_andamento':        '#0ea5e9',
+                'concluido':           '#16a34a',
+                'financeiro':          '#f59e0b',
+                'aguardando_pagamento':'#3b82f6',
+                'reprovado':           '#ef4444',
+                'cancelado':           '#6b7280',
+            };
+
             // Plugin inline: valores dentro de barras verticais
             const verticalBarValuesPlugin = {
                 id: 'verticalBarValues',
@@ -1017,9 +1054,8 @@
                             const value = dataset.data[i];
                             if (!value) return;
                             const barHeight = bar.base - bar.y;
-                            if (barHeight < 20) return; // barra muito baixa
+                            if (barHeight < 20) return;
                             const cy = bar.y + barHeight / 2;
-                            // Formata valor abreviado: 250000 → R$ 250k
                             let label;
                             if (value >= 1000000) {
                                 label = 'R$ ' + (value / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M';
@@ -1040,48 +1076,96 @@
                 }
             };
 
-            // 3. Gráfico de Valor por Empresa
-            const valorLabels = empresaData.map(e => e.empresa ? (e.empresa.nome_fantasia || e.empresa.razao_social) : 'N/A');
-            new Chart(document.getElementById('chartEmpresaValor'), {
-                type: 'bar',
-                data: {
-                    labels: valorLabels,
-                    datasets: [{
-                        label: 'Valor Total (R$)',
-                        data: empresaData.map(e => e.total_valor),
-                        backgroundColor: valorLabels.map(corEmpresa)
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$ ' + value.toLocaleString('pt-BR');
+            // Instância do gráfico (precisa ser destruída ao filtrar)
+            let chartEmpresaValorInstance = null;
+
+            function buildVolumeData() {
+                const empresa = document.getElementById('filtroVolumeEmpresa').value;
+                const status  = document.getElementById('filtroVolumeStatus').value;
+
+                if (empresa) {
+                    // Modo: empresa selecionada → colunas por status
+                    const filtrado = empresaStatusData.filter(d =>
+                        d.empresa && (d.empresa.nome_fantasia || '') === empresa
+                        && (!status || d.status === status)
+                    );
+                    const byStatus = {};
+                    filtrado.forEach(d => {
+                        byStatus[d.status] = (byStatus[d.status] || 0) + parseFloat(d.total_valor || 0);
+                    });
+                    const labels = Object.keys(byStatus).map(formatStatusLabel);
+                    return {
+                        labels,
+                        data:   Object.values(byStatus),
+                        colors: Object.keys(byStatus).map(s => statusCoresVolume[s] || '#9ca3af'),
+                    };
+                } else {
+                    // Modo: sem empresa → colunas por empresa (filtrado por status se preenchido)
+                    const filtrado = status
+                        ? empresaStatusData.filter(d => d.status === status)
+                        : empresaStatusData;
+                    const byEmpresa = {};
+                    filtrado.forEach(d => {
+                        const nome = d.empresa ? (d.empresa.nome_fantasia || 'N/A') : 'N/A';
+                        byEmpresa[nome] = (byEmpresa[nome] || 0) + parseFloat(d.total_valor || 0);
+                    });
+                    const labels = Object.keys(byEmpresa);
+                    return {
+                        labels,
+                        data:   Object.values(byEmpresa),
+                        colors: labels.map(corEmpresa),
+                    };
+                }
+            }
+
+            function renderVolumeChart() {
+                if (chartEmpresaValorInstance) {
+                    chartEmpresaValorInstance.destroy();
+                }
+                const { labels, data, colors } = buildVolumeData();
+                chartEmpresaValorInstance = new Chart(document.getElementById('chartEmpresaValor'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Valor Total (R$)',
+                            data,
+                            backgroundColor: colors,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Valor: R$ ' + context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                    }
                                 }
                             }
                         }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Valor: R$ ' + context.raw.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2
-                                    });
-                                }
-                            }
-                        }
-                    }
-                },
-                plugins: [verticalBarValuesPlugin]
-            });
+                    plugins: [verticalBarValuesPlugin]
+                });
+            }
+
+            // Expõe para os selects chamarem
+            window.updateVolumeChart = renderVolumeChart;
+
+            // 3. Renderiza gráfico inicial
+            renderVolumeChart();
         });
     </script>
     @endpush
