@@ -24,6 +24,10 @@ class DashboardFinanceiroController extends Controller
         // Processar filtro rápido (período) — calculado uma única vez e reutilizado em todo o controller
         $filtroRapido = $request->get('filtro_rapido', 'mes');
         switch ($filtroRapido) {
+            case 'mes_anterior':
+                $inicio = now()->subMonth()->startOfMonth();
+                $fim = now()->subMonth()->endOfMonth();
+                break;
             case 'dia':
                 $inicio = now()->startOfDay();
                 $fim = now()->endOfDay();

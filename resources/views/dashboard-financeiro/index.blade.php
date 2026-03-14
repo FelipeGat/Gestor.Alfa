@@ -410,6 +410,12 @@
                                 <span class="text-gray-700 font-semibold text-sm">Filtrar por Data:</span>
                                 {{-- Botões de filtro rápido --}}
                                 <button type="button"
+                                    @click="aplicarFiltro('mes_anterior')"
+                                    :class="filtroRapido === 'mes_anterior' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
+                                    class="">
+                                    Último Mês
+                                </button>
+                                <button type="button"
                                     @click="aplicarFiltro('dia')"
                                     :class="filtroRapido === 'dia' ? 'btn-filtro-rapido ativo' : 'btn-filtro-rapido inativo'"
                                     class="">
